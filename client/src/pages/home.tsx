@@ -2,7 +2,7 @@ import { Navbar } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Code2, GraduationCap, Users, HeartHandshake, ArrowDown, Mail } from "lucide-react";
+import { ArrowRight, CheckCircle2, Code2, GraduationCap, Users, HeartHandshake, ArrowDown, Mail, Building2, UserPlus } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Home() {
@@ -258,11 +258,11 @@ export default function Home() {
 
           <div className="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-100 lg:sticky lg:top-32">
             <h3 className="text-2xl font-display text-[#0B1D3A] mb-6">Who We're Looking For</h3>
-            <p className="text-muted-foreground mb-8">
-              If you can think through a problem and navigate a computer, we can teach you the rest.
+            <p className="text-muted-foreground mb-4">
+              No college degree required. No bootcamp tuition. If you have a high school diploma or GED, problem-solving instincts, and the drive to learn — you're exactly who we're looking for. Non-traditional candidates are our priority.
             </p>
             
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mb-8">
               {[
                 "GED Holders",
                 "Career Changers",
@@ -284,16 +284,14 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="mt-8 pt-8 border-t border-slate-100">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-muted-foreground">Next Cohort</span>
-                <span className="text-sm font-bold text-[#0B1D3A]">Fall 2025</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-muted-foreground">Status</span>
-                <span className="text-sm font-bold text-[#0EA5E9]">Waitlist Open</span>
-              </div>
-            </div>
+            <Button 
+              className="w-full bg-[#0EA5E9] hover:bg-[#0EA5E9]/90 text-[#0B1D3A] font-bold rounded-full h-14 text-lg shadow-lg shadow-[#0EA5E9]/20"
+              onClick={() => window.location.href = "mailto:apply@codeforward.org?subject=Engineering%20Fellowship%20Application"}
+            >
+              <UserPlus className="mr-2 w-5 h-5" />
+              Apply for the Fellowship <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+            <p className="text-xs text-muted-foreground text-center mt-3">Only a HS diploma or GED required. All backgrounds welcome.</p>
           </div>
         </div>
       </Section>
@@ -327,19 +325,34 @@ export default function Home() {
           <h2 className="text-4xl md:text-6xl font-display mb-8">
             Help us write the code for a better community.
           </h2>
-          <p className="text-xl md:text-2xl text-white/80 mb-12 font-light leading-relaxed">
+          <p className="text-xl md:text-2xl text-white/80 mb-6 font-light leading-relaxed">
             Whether you want to donate, volunteer your development skills, apply for training, or refer a nonprofit or local agency that needs help — there's a place for you at CodeForward.
           </p>
+
+          <p className="text-lg text-white/60 mb-12 font-light">
+            We're actively seeking founding corporate sponsors and board members to help shape CodeForward from the ground up. This is your chance to be part of something from day one.
+          </p>
           
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
             <Button 
               size="lg" 
               className="bg-[#0EA5E9] hover:bg-[#0EA5E9]/90 text-[#0B1D3A] font-bold text-lg px-8 py-8 h-auto rounded-xl shadow-lg hover:shadow-[#0EA5E9]/30 transition-all w-full sm:w-auto"
-              onClick={() => window.location.href = "mailto:donate@codeforward.org"}
+              onClick={() => window.location.href = "mailto:donate@codeforward.org?subject=Founding%20Sponsor%20Inquiry"}
             >
               <HeartHandshake className="mr-2 w-6 h-6" />
-              Make a Donation
+              Become a Founding Sponsor
             </Button>
+            <Button 
+              variant="outline"
+              size="lg" 
+              className="bg-transparent border-white/30 hover:bg-white/10 text-white font-bold text-lg px-8 py-8 h-auto rounded-xl transition-all w-full sm:w-auto"
+              onClick={() => window.location.href = "mailto:hello@codeforward.org?subject=Board%20Member%20Interest"}
+            >
+              <Building2 className="mr-2 w-6 h-6" />
+              Join Our Board
+            </Button>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               variant="outline"
               size="lg" 
@@ -352,7 +365,7 @@ export default function Home() {
           </div>
 
           <p className="mt-12 text-sm text-white/40">
-            CodeForward is a registered 501(c)(3) nonprofit organization. All donations are tax-deductible.
+            CodeForward is a 501(c)(3) nonprofit initiative. All donations are tax-deductible.
           </p>
         </div>
       </section>

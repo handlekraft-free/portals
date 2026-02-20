@@ -2,7 +2,7 @@ import { Navbar } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Code2, GraduationCap, Users, HeartHandshake, ArrowDown, Mail, Building2, UserPlus } from "lucide-react";
+import { ArrowRight, CheckCircle2, Code2, GraduationCap, Users, HeartHandshake, ArrowDown, Mail, Building2, UserPlus, Home as HomeIcon, Heart, Handshake, UtensilsCrossed, Baby, Shield, Landmark, Building, Rocket } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Home() {
@@ -38,7 +38,7 @@ export default function Home() {
             </h1>
 
             <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-10 font-light leading-relaxed">
-              We build bespoke software and websites — at no cost — for nonprofits, local agencies, and community organizations. And we train the next generation of developers to do it.
+              We build bespoke software and websites — at no cost — for nonprofits, local agencies, community organizations, and underserved entrepreneurs. And we train the next generation of developers to do it.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
@@ -191,14 +191,15 @@ export default function Home() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            { emoji: "🏠", name: "Shelters", desc: "Homeless shelters and transitional housing programs" },
-            { emoji: "🏥", name: "Clinics", desc: "Free and sliding-scale community health clinics" },
-            { emoji: "🤝", name: "Social Services", desc: "Case management and social service agencies" },
-            { emoji: "🍳", name: "Food Banks", desc: "Food banks, pantries, and community kitchens" },
-            { emoji: "👩‍👩‍👧", name: "Youth Programs", desc: "Mentorship and after-school programs" },
-            { emoji: "🎖️", name: "Veteran Services", desc: "Veteran service and transition organizations" },
-            { emoji: "🏛️", name: "Local Government", desc: "Underserved state and local agencies serving the public" },
-            { emoji: "🏙️", name: "Community Orgs", desc: "Neighborhood and community development groups" },
+            { icon: HomeIcon, name: "Shelters", desc: "Homeless shelters and transitional housing programs" },
+            { icon: Heart, name: "Clinics", desc: "Free and sliding-scale community health clinics" },
+            { icon: Handshake, name: "Social Services", desc: "Case management and social service agencies" },
+            { icon: UtensilsCrossed, name: "Food Banks", desc: "Food banks, pantries, and community kitchens" },
+            { icon: Baby, name: "Youth Programs", desc: "Mentorship and after-school programs" },
+            { icon: Shield, name: "Veteran Services", desc: "Veteran service and transition organizations" },
+            { icon: Landmark, name: "Local Government", desc: "Underserved state and local agencies serving the public" },
+            { icon: Building, name: "Community Orgs", desc: "Neighborhood and community development groups" },
+            { icon: Rocket, name: "Entrepreneurs", desc: "Woman-owned, veteran-owned, and minority-owned startups" },
           ].map((sector, i) => (
             <motion.div
               key={i}
@@ -208,7 +209,7 @@ export default function Home() {
               whileHover={{ scale: 1.05, backgroundColor: "#0EA5E9", color: "#0B1D3A" }}
               className="bg-white/5 border border-white/10 p-6 rounded-xl flex flex-col items-center justify-center text-center h-36 cursor-default transition-colors"
             >
-              <span className="text-3xl mb-2">{sector.emoji}</span>
+              <sector.icon className="w-8 h-8 mb-3 text-[#0EA5E9]" />
               <span className="font-display text-lg tracking-wide mb-1">{sector.name}</span>
               <span className="text-xs text-white/50 leading-tight">{sector.desc}</span>
             </motion.div>
@@ -286,7 +287,7 @@ export default function Home() {
 
             <Button 
               className="w-full bg-[#0EA5E9] hover:bg-[#0EA5E9]/90 text-[#0B1D3A] font-bold rounded-full h-14 text-lg shadow-lg shadow-[#0EA5E9]/20"
-              onClick={() => window.location.href = "mailto:apply@codeforward.org?subject=Engineering%20Fellowship%20Application"}
+              onClick={() => window.location.href = "mailto:apply@codeforcommunities.org?subject=Engineering%20Fellowship%20Application"}
             >
               <UserPlus className="mr-2 w-5 h-5" />
               Apply for the Fellowship <ArrowRight className="ml-2 w-5 h-5" />
@@ -337,7 +338,7 @@ export default function Home() {
             <Button 
               size="lg" 
               className="bg-[#0EA5E9] hover:bg-[#0EA5E9]/90 text-[#0B1D3A] font-bold text-lg px-8 py-8 h-auto rounded-xl shadow-lg hover:shadow-[#0EA5E9]/30 transition-all w-full sm:w-auto"
-              onClick={() => window.location.href = "mailto:donate@codeforward.org?subject=Founding%20Sponsor%20Inquiry"}
+              onClick={() => window.location.href = "mailto:donate@codeforcommunities.org?subject=Founding%20Sponsor%20Inquiry"}
             >
               <HeartHandshake className="mr-2 w-6 h-6" />
               Become a Founding Sponsor
@@ -346,7 +347,7 @@ export default function Home() {
               variant="outline"
               size="lg" 
               className="bg-transparent border-white/30 hover:bg-white/10 text-white font-bold text-lg px-8 py-8 h-auto rounded-xl transition-all w-full sm:w-auto"
-              onClick={() => window.location.href = "mailto:hello@codeforward.org?subject=Board%20Member%20Interest"}
+              onClick={() => window.location.href = "mailto:hello@codeforcommunities.org?subject=Board%20Member%20Interest"}
             >
               <Building2 className="mr-2 w-6 h-6" />
               Join Our Board
@@ -357,7 +358,7 @@ export default function Home() {
               variant="outline"
               size="lg" 
               className="bg-transparent border-white/30 hover:bg-white/10 text-white font-bold text-lg px-8 py-8 h-auto rounded-xl transition-all w-full sm:w-auto"
-              onClick={() => window.location.href = "mailto:hello@codeforward.org"}
+              onClick={() => window.location.href = "mailto:hello@codeforcommunities.org"}
             >
               <Mail className="mr-2 w-6 h-6" />
               Start a Conversation

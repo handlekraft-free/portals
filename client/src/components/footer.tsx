@@ -24,7 +24,7 @@ export function Footer() {
             <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-[#0EA5E9] hover:text-[#0B1D3A] transition-colors"><Twitter size={18} /></a>
             <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-[#0EA5E9] hover:text-[#0B1D3A] transition-colors"><Github size={18} /></a>
             <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-[#0EA5E9] hover:text-[#0B1D3A] transition-colors"><Linkedin size={18} /></a>
-            <a href="mailto:hello@codeforward.org" className="p-2 bg-white/5 rounded-full hover:bg-[#0EA5E9] hover:text-[#0B1D3A] transition-colors"><Mail size={18} /></a>
+            <a href="mailto:hello@codeforcommunities.org" className="p-2 bg-white/5 rounded-full hover:bg-[#0EA5E9] hover:text-[#0B1D3A] transition-colors"><Mail size={18} /></a>
           </div>
         </div>
         
@@ -41,7 +41,7 @@ export function Footer() {
         <div>
           <h4 className="text-white font-bold mb-6">Contact</h4>
           <ul className="space-y-4 text-sm">
-            <li><a href="mailto:hello@codeforward.org" className="hover:text-[#0EA5E9] transition-colors">hello@codeforward.org</a></li>
+            <li><a href="mailto:hello@codeforcommunities.org" className="hover:text-[#0EA5E9] transition-colors">hello@codeforcommunities.org</a></li>
             <li>San Francisco, CA</li>
             <li className="pt-4 text-xs opacity-50">
               © {new Date().getFullYear()} Code for Communities. All rights reserved.

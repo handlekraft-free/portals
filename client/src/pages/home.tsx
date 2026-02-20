@@ -149,8 +149,8 @@ export default function Home() {
           {[
             {
               icon: Code2,
-              title: "Pro Bono Engineering",
-              desc: "Custom-built intake systems, scheduling tools, donor management platforms, websites, dashboards, and workflow automation — tailored to each organization's needs and delivered at no cost."
+              title: "Pro Bono Software & Web Design",
+              desc: "Custom-built websites, intake systems, scheduling tools, donor management platforms, dashboards, and workflow automation — tailored to each organization's needs and delivered at no cost."
             },
             {
               icon: GraduationCap,

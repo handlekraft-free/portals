@@ -14,8 +14,11 @@ export function Footer() {
               CodeForward
             </span>
           </Link>
-          <p className="max-w-md text-sm leading-relaxed mb-8">
-            CodeForward is a 501(c)(3) nonprofit organization dedicated to building bespoke software for mission-driven organizations while training the next generation of diverse tech talent.
+          <p className="max-w-md text-sm leading-relaxed mb-4">
+            A 501(c)(3) nonprofit initiative. All donations are tax-deductible.
+          </p>
+          <p className="max-w-md text-sm leading-relaxed mb-8 text-white/40">
+            Founded by a Service-Disabled Veteran-Owned Small Business entrepreneur.
           </p>
           <div className="flex gap-4">
             <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-[#0EA5E9] hover:text-[#0B1D3A] transition-colors"><Twitter size={18} /></a>

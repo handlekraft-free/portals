@@ -38,7 +38,7 @@ export default function Home() {
             </h1>
 
             <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-10 font-light leading-relaxed">
-              We build bespoke software for nonprofits pro bono, while training the next generation of diverse engineering talent.
+              We build bespoke software and websites — at no cost — for nonprofits, local agencies, and community organizations. And we train the next generation of developers to do it.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
@@ -63,15 +63,15 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto border-t border-white/10 pt-12">
               <div className="text-center">
                 <div className="text-4xl font-display text-[#0EA5E9] mb-1">$0</div>
-                <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Cost to Nonprofits</div>
+                <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Cost to Organizations</div>
               </div>
               <div className="text-center">
                 <div className="text-4xl font-display text-[#0EA5E9] mb-1">100%</div>
-                <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Open Source</div>
+                <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Donation Funded</div>
               </div>
               <div className="text-center">
                 <div className="text-4xl font-display text-[#0EA5E9] mb-1">2x</div>
-                <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Impact Multiplier</div>
+                <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Impact: Software + Jobs</div>
               </div>
             </div>
           </motion.div>
@@ -92,18 +92,18 @@ export default function Home() {
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div>
             <SectionHeader 
-              title="The Tech Gap in Social Impact" 
+              title="Technology shouldn't be a luxury. Neither should opportunity." 
               className="mb-8"
             />
             <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
               <p>
-                Thousands of mission-driven organizations rely on spreadsheets and paper to manage life-changing work. Commercial software is too expensive, and off-the-shelf tools rarely fit their unique needs.
+                Thousands of community organizations — shelters, clinics, food banks — and underfunded state and local government agencies rely on spreadsheets and paper to manage life-changing work. Commercial software is too expensive, and off-the-shelf tools rarely fit their unique needs.
               </p>
               <p>
-                Meanwhile, talented junior developers struggle to find their first role in a tech industry that demands "senior-only" experience, creating a bottleneck for diverse talent entering the field.
+                At the same time, talented people from underserved communities are locked out of tech careers by an industry that demands years of experience for entry-level roles. The timing has never been better: AI-assisted development tools are making it possible for motivated learners to build real software faster than ever before.
               </p>
               <p className="font-semibold text-[#0B1D3A]">
-                CodeForward bridges this gap by solving both problems simultaneously.
+                CodeForward bridges both gaps at once — delivering free custom software to the organizations and agencies that need it most, while training the next generation of developers to build it.
               </p>
             </div>
           </div>
@@ -120,10 +120,10 @@ export default function Home() {
             <h3 className="text-2xl font-display mb-8 relative z-10">The CodeForward Cycle</h3>
             <ul className="space-y-6 relative z-10">
               {[
-                "We identify nonprofits with critical software needs.",
-                "Senior engineers scope and architect bespoke solutions.",
-                "Junior fellows build the software under senior mentorship.",
-                "Nonprofits get free tools; Fellows get career-launching experience."
+                "Community organizations and local agencies apply for free custom software.",
+                "Trainees build solutions using AI-assisted tools under expert supervision.",
+                "Organizations get powerful tools; trainees get real portfolio projects.",
+                "Graduates enter the workforce and mentor the next cohort."
               ].map((step, i) => (
                 <li key={i} className="flex gap-4 items-start">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#0EA5E9] text-[#0B1D3A] font-bold flex items-center justify-center text-sm">
@@ -150,17 +150,17 @@ export default function Home() {
             {
               icon: Code2,
               title: "Pro Bono Engineering",
-              desc: "We function as a high-end software consultancy, but our invoice is always $0. We build robust, secure, maintainable web applications tailored to specific operational needs."
+              desc: "Custom-built intake systems, scheduling tools, donor management platforms, websites, dashboards, and workflow automation — tailored to each organization's needs and delivered at no cost."
             },
             {
               icon: GraduationCap,
               title: "Workforce Training",
-              desc: "Our Fellowship provides pre-apprenticeship style training. Fellows work in a real agile environment, conduct code reviews, and ship production code."
+              desc: "A 2-4 week foundational program followed by supervised work on real client projects. Trainees use AI-assisted tools to build functional software from day one, creating a fast on-ramp to tech careers."
             },
             {
               icon: HeartHandshake,
-              title: "Sustainable Impact",
-              desc: "By removing software costs, we help nonprofits direct more funding to their beneficiaries. By launching careers, we increase economic mobility for fellows."
+              title: "The Virtuous Cycle",
+              desc: "As trainees advance, they take on more complex projects and mentor new cohorts. The organization's capacity grows while creating a sustainable pipeline of skilled, employed developers."
             }
           ].map((card, i) => (
             <motion.div
@@ -184,21 +184,21 @@ export default function Home() {
       {/* 4. Who We Serve */}
       <Section id="who-we-serve" background="navy">
         <SectionHeader 
-          title="Who We Serve" 
-          subtitle="Our focus is on small-to-medium nonprofits where custom software can be transformational."
+          title="Built for the organizations that build our communities." 
+          subtitle="If you're a nonprofit, community service organization, or local government agency running on shoestring technology, we want to hear from you."
           className="text-white"
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            "Food Banks",
-            "Legal Aid Clinics",
-            "Housing Advocacy",
-            "Education Nonprofits",
-            "Environmental Groups",
-            "Animal Shelters",
-            "Community Health",
-            "Arts Organizations"
+            { emoji: "🏠", name: "Shelters", desc: "Homeless shelters and transitional housing programs" },
+            { emoji: "🏥", name: "Clinics", desc: "Free and sliding-scale community health clinics" },
+            { emoji: "🤝", name: "Social Services", desc: "Case management and social service agencies" },
+            { emoji: "🍳", name: "Food Banks", desc: "Food banks, pantries, and community kitchens" },
+            { emoji: "👩‍👩‍👧", name: "Youth Programs", desc: "Mentorship and after-school programs" },
+            { emoji: "🎖️", name: "Veteran Services", desc: "Veteran service and transition organizations" },
+            { emoji: "🏛️", name: "Local Government", desc: "Underserved state and local agencies serving the public" },
+            { emoji: "🏙️", name: "Community Orgs", desc: "Neighborhood and community development groups" },
           ].map((sector, i) => (
             <motion.div
               key={i}
@@ -206,9 +206,11 @@ export default function Home() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.05 }}
               whileHover={{ scale: 1.05, backgroundColor: "#0EA5E9", color: "#0B1D3A" }}
-              className="bg-white/5 border border-white/10 p-6 rounded-xl flex items-center justify-center text-center h-32 cursor-default transition-colors"
+              className="bg-white/5 border border-white/10 p-6 rounded-xl flex flex-col items-center justify-center text-center h-36 cursor-default transition-colors"
             >
-              <span className="font-display text-xl tracking-wide">{sector}</span>
+              <span className="text-3xl mb-2">{sector.emoji}</span>
+              <span className="font-display text-lg tracking-wide mb-1">{sector.name}</span>
+              <span className="text-xs text-white/50 leading-tight">{sector.desc}</span>
             </motion.div>
           ))}
         </div>
@@ -219,26 +221,26 @@ export default function Home() {
         <div className="grid lg:grid-cols-2 gap-16 items-start">
           <div>
             <SectionHeader 
-              title="The Engineering Fellowship" 
-              subtitle="Bridging the gap between coding bootcamps and first engineering roles."
+              title="Learn by building things that matter." 
+              subtitle="No CS degree required. No bootcamp tuition. Just problem-solving instincts and the drive to learn."
             />
             <div className="space-y-12">
               {[
                 {
-                  title: "Real Production Code",
-                  desc: "No toy projects. Fellows write code that is deployed to real users solving real problems."
+                  title: "Foundations",
+                  desc: "2-4 weeks of core concepts: databases, forms, logic, version control. Taught through AI-assisted tools."
                 },
                 {
-                  title: "Senior Mentorship",
-                  desc: "Fellows are paired with industry veterans from top tech companies for code review and career guidance."
+                  title: "Real Projects",
+                  desc: "Build software for real organizations immediately. Portfolio from day one. Senior review before anything goes live."
                 },
                 {
-                  title: "Agile Workflow",
-                  desc: "We simulate a professional product team environment with sprints, standups, and retro."
+                  title: "Advance & Mentor",
+                  desc: "Top performers graduate into reviewer and team lead roles. Mentor the next cohort."
                 },
                 {
-                  title: "Portfolio of Impact",
-                  desc: "Graduates leave with a deployed, live case study demonstrating their ability to deliver value."
+                  title: "Launch Your Career",
+                  desc: "Graduate with a real-world portfolio, verifiable experience, and modern AI-assisted development skills."
                 }
               ].map((item, i) => (
                 <div key={i} className="flex gap-4">
@@ -257,17 +259,21 @@ export default function Home() {
           <div className="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-100 lg:sticky lg:top-32">
             <h3 className="text-2xl font-display text-[#0B1D3A] mb-6">Who We're Looking For</h3>
             <p className="text-muted-foreground mb-8">
-              We focus on high-potential individuals from non-traditional backgrounds who have completed initial training but need that first break.
+              If you can think through a problem and navigate a computer, we can teach you the rest.
             </p>
             
             <div className="flex flex-wrap gap-2">
               {[
-                "Bootcamp Graduates",
-                "Self-Taught Devs",
-                "Career Switchers",
+                "GED Holders",
+                "Career Changers",
                 "Veterans",
-                "Returning Parents",
-                "Underrepresented Groups"
+                "Formerly Incarcerated",
+                "Single Parents",
+                "Self-Taught Learners",
+                "Underemployed Workers",
+                "Community College Students",
+                "Non-Degree Candidates",
+                "Second Chance Seekers"
               ].map((tag, i) => (
                 <span 
                   key={i} 
@@ -297,17 +303,18 @@ export default function Home() {
         <div className="bg-slate-50 rounded-3xl p-8 md:p-16 text-center border border-slate-200">
           <Code2 className="w-12 h-12 text-[#0B1D3A] mx-auto mb-6" />
           <h2 className="text-3xl md:text-4xl font-display text-[#0B1D3A] mb-4">
-            Radical Transparency
+            Read the full proposal.
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            We believe in open source and open operations. Read our detailed founding proposal to understand our operating model, budget projections, and impact metrics.
+            CodeForward is in its founding stage. We've put together a detailed organizational proposal covering our mission, operating model, funding strategy, workforce development program, and implementation timeline. We'd love your feedback — and your support.
           </p>
           <Button 
             className="bg-[#0B1D3A] hover:bg-[#0B1D3A]/90 text-white font-bold rounded-full px-8 py-6 h-auto"
             onClick={() => window.open('/proposal.pdf', '_blank')}
           >
-            Download Full Proposal (PDF)
+            Download Full Proposal (PDF) <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
+          <p className="text-sm text-muted-foreground mt-4">This is a living document. We welcome questions, critiques, and conversations.</p>
         </div>
       </Section>
 
@@ -318,10 +325,10 @@ export default function Home() {
         
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
           <h2 className="text-4xl md:text-6xl font-display mb-8">
-            Help Us Build the Future
+            Help us write the code for a better community.
           </h2>
           <p className="text-xl md:text-2xl text-white/80 mb-12 font-light leading-relaxed">
-            Whether you're a nonprofit needing tech, an engineer wanting to mentor, or a donor looking for high-leverage impact, we want to talk.
+            Whether you want to donate, volunteer your development skills, apply for training, or refer a nonprofit or local agency that needs help — there's a place for you at CodeForward.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center">

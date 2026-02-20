@@ -121,7 +121,7 @@ doc.addPage();
 heading('1. Executive Summary');
 divider();
 
-body('Code for Communities is an early-stage 501(c)(3) nonprofit initiative that delivers free, custom-built software and websites to community organizations, nonprofits, underserved state and local government agencies, and underserved entrepreneurs — while simultaneously training underserved candidates in AI-assisted software development.');
+body('Code for Communities is an early-stage 501(c)(3) nonprofit initiative that delivers free, custom-built software and websites to community organizations, nonprofits, and underserved state and local government agencies — while simultaneously training underserved candidates in AI-assisted software development.');
 
 body('We operate at the intersection of two urgent needs:');
 
@@ -232,7 +232,7 @@ heading('5. Who We Serve');
 divider();
 
 subheading('Organizations We Support');
-body('We serve nonprofits, community service organizations, underserved state and local government agencies, and underserved entrepreneurs — any mission-driven organization running on shoestring technology that serves the public good.');
+body('We serve nonprofits, community service organizations, and underserved state and local government agencies — any mission-driven organization running on shoestring technology that serves the public good.');
 
 const orgs = [
   ['Shelters', 'Homeless shelters and transitional housing programs'],
@@ -243,7 +243,6 @@ const orgs = [
   ['Veteran Services', 'Veteran service and transition organizations'],
   ['Local Government', 'Underserved state and local agencies serving the public'],
   ['Community Orgs', 'Neighborhood and community development groups'],
-  ['Entrepreneurs', 'Woman-owned, veteran-owned, and minority-owned startups'],
 ];
 
 orgs.forEach(([name, desc]) => {
@@ -464,7 +463,7 @@ body('Senior engineers and experienced developers can volunteer as code reviewer
 
 checkPage(160);
 subheading('Refer an Organization');
-body('Know a nonprofit, community organization, local government agency, or underserved entrepreneur struggling with outdated technology? Refer them to us. We want to hear from any mission-driven organization that could benefit from custom software or web design.');
+body('Know a nonprofit, community organization, or local government agency struggling with outdated technology? Refer them to us. We want to hear from any mission-driven organization that could benefit from custom software or web design.');
 
 checkPage(160);
 subheading('Apply for the Fellowship');

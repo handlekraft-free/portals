@@ -2,7 +2,7 @@ import { Navbar } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Code2, GraduationCap, Users, HeartHandshake, ArrowDown, Mail, Building2, UserPlus, Home as HomeIcon, Heart, Handshake, UtensilsCrossed, Baby, Shield, Landmark, Building, Rocket } from "lucide-react";
+import { ArrowRight, CheckCircle2, Code2, GraduationCap, Users, HeartHandshake, ArrowDown, Mail, Building2, UserPlus, Home as HomeIcon, Heart, Handshake, UtensilsCrossed, Baby, Shield, Landmark, Building } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Home() {
@@ -38,7 +38,7 @@ export default function Home() {
             </h1>
 
             <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-10 font-light leading-relaxed">
-              We build bespoke software and websites — at no cost — for nonprofits, local agencies, community organizations, and underserved entrepreneurs. And we train the next generation of developers to do it.
+              We build bespoke software and websites — at no cost — for nonprofits, local agencies, and community organizations. And we train the next generation of developers to do it.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
@@ -199,7 +199,6 @@ export default function Home() {
             { icon: Shield, name: "Veteran Services", desc: "Veteran service and transition organizations" },
             { icon: Landmark, name: "Local Government", desc: "Underserved state and local agencies serving the public" },
             { icon: Building, name: "Community Orgs", desc: "Neighborhood and community development groups" },
-            { icon: Rocket, name: "Entrepreneurs", desc: "Woman-owned, veteran-owned, and minority-owned startups" },
           ].map((sector, i) => (
             <motion.div
               key={i}

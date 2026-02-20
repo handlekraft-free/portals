@@ -11,7 +11,7 @@ export function Footer() {
               C
             </div>
             <span className="text-white font-display text-2xl tracking-wide">
-              CodeForward
+              Code for Communities
             </span>
           </Link>
           <p className="max-w-md text-sm leading-relaxed mb-4">
@@ -44,7 +44,7 @@ export function Footer() {
             <li><a href="mailto:hello@codeforward.org" className="hover:text-[#0EA5E9] transition-colors">hello@codeforward.org</a></li>
             <li>San Francisco, CA</li>
             <li className="pt-4 text-xs opacity-50">
-              © {new Date().getFullYear()} CodeForward. All rights reserved.
+              © {new Date().getFullYear()} Code for Communities. All rights reserved.
             </li>
           </ul>
         </div>

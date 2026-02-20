@@ -103,7 +103,7 @@ export default function Home() {
                 At the same time, talented people from underserved communities are locked out of tech careers by an industry that demands years of experience for entry-level roles. The timing has never been better: AI-assisted development tools are making it possible for motivated learners to build real software faster than ever before.
               </p>
               <p className="font-semibold text-[#0B1D3A]">
-                CodeForward bridges both gaps at once — delivering free custom software to the organizations and agencies that need it most, while training the next generation of developers to build it.
+                Code for Communities bridges both gaps at once — delivering free custom software to the organizations and agencies that need it most, while training the next generation of developers to build it.
               </p>
             </div>
           </div>
@@ -117,7 +117,7 @@ export default function Home() {
             {/* Decorative background circle */}
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#0EA5E9] rounded-full opacity-20 blur-2xl group-hover:scale-150 transition-transform duration-1000" />
             
-            <h3 className="text-2xl font-display mb-8 relative z-10">The CodeForward Cycle</h3>
+            <h3 className="text-2xl font-display mb-8 relative z-10">The Code for Communities Cycle</h3>
             <ul className="space-y-6 relative z-10">
               {[
                 "Community organizations and local agencies apply for free custom software.",
@@ -304,7 +304,7 @@ export default function Home() {
             Read the full proposal.
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            CodeForward is in its founding stage. We've put together a detailed organizational proposal covering our mission, operating model, funding strategy, workforce development program, and implementation timeline. We'd love your feedback — and your support.
+            Code for Communities is in its founding stage. We've put together a detailed organizational proposal covering our mission, operating model, funding strategy, workforce development program, and implementation timeline. We'd love your feedback — and your support.
           </p>
           <Button 
             className="bg-[#0B1D3A] hover:bg-[#0B1D3A]/90 text-white font-bold rounded-full px-8 py-6 h-auto"
@@ -326,11 +326,11 @@ export default function Home() {
             Help us write the code for a better community.
           </h2>
           <p className="text-xl md:text-2xl text-white/80 mb-6 font-light leading-relaxed">
-            Whether you want to donate, volunteer your development skills, apply for training, or refer a nonprofit or local agency that needs help — there's a place for you at CodeForward.
+            Whether you want to donate, volunteer your development skills, apply for training, or refer a nonprofit or local agency that needs help — there's a place for you at Code for Communities.
           </p>
 
           <p className="text-lg text-white/60 mb-12 font-light">
-            We're actively seeking founding corporate sponsors and board members to help shape CodeForward from the ground up. This is your chance to be part of something from day one.
+            We're actively seeking founding corporate sponsors and board members to help shape Code for Communities from the ground up. This is your chance to be part of something from day one.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
@@ -365,7 +365,7 @@ export default function Home() {
           </div>
 
           <p className="mt-12 text-sm text-white/40">
-            CodeForward is a 501(c)(3) nonprofit initiative. All donations are tax-deductible.
+            Code for Communities is a 501(c)(3) nonprofit initiative. All donations are tax-deductible.
           </p>
         </div>
       </section>

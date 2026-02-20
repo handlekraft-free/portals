@@ -50,7 +50,7 @@ export function Navbar() {
               C
             </div>
             <span className="text-white font-display text-2xl tracking-wide">
-              CodeForward
+              Code for Communities
             </span>
           </Link>
 

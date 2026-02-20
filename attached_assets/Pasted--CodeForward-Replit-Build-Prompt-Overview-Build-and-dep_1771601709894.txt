@@ -1,0 +1,168 @@
+# CodeForward — Replit Build Prompt
+
+## Overview
+
+Build and deploy a single-page website for **CodeForward**, an early-stage 501(c)(3) nonprofit initiative that provides free bespoke software and web design to community organizations while training underserved candidates in AI-assisted software development. This site will be shared with a small group of potential foundational donors, so it should feel professional but honest about being early-stage — this is a vision being brought to life, not a mature organization pretending to be bigger than it is.
+
+The site should also host a downloadable PDF version of the full organizational proposal.
+
+-----
+
+## Tech Stack
+
+- **Single HTML file** (index.html) with embedded CSS and JS — no frameworks, no build step
+- Fonts: Google Fonts — `DM Serif Display` (headings) and `Outfit` (body)
+- Fully responsive (mobile, tablet, desktop)
+- Host directly on Replit with the static file server
+- Include a `/proposal.pdf` file in the project (I will upload the PDF separately — create a placeholder reference for now)
+
+-----
+
+## Design Direction
+
+**Aesthetic:** Refined, confident, civic-tech. Dark navy (#0B1D3A) hero with teal (#0EA5E9) accents. Cream (#FAF7F2) for light sections, white for alternating sections. This is NOT a startup landing page — it’s a mission-driven organization. Think editorial, trustworthy, warm but serious.
+
+**Typography:** DM Serif Display for all headings (with slight negative letter-spacing). Outfit (weight 300–600) for body text. Large section titles, generous line height, plenty of whitespace.
+
+**Tone of copy:** Direct, human, zero jargon. Speak to donors as peers. Acknowledge this is early-stage. Emphasize the founder’s background (retiring SDVOSB software entrepreneur), the dual-impact model, and the timing opportunity with AI-assisted development tools.
+
+-----
+
+## Site Structure (Single Page, Scroll)
+
+### 1. Fixed Navigation
+
+- Left: Logo — “Code**Forward**” (teal on the “Forward”)
+- Right: Mission | What We Do | Who We Serve | Training | Get Involved (smooth scroll links)
+- “Get Involved” styled as a small teal button
+- Mobile: hamburger menu
+- Background: semi-transparent navy with backdrop blur
+
+### 2. Hero Section
+
+- Full viewport height, navy background with subtle animated radial gradients and a faint grid overlay
+- Small badge: “Early-Stage 501(c)(3) Nonprofit Initiative”
+- Main headline: `Free Software for *Those Who Serve*` (the italic portion in a teal gradient)
+- Subheadline: “We build bespoke software and websites — at no cost — for shelters, clinics, and community organizations. And we train the next generation of developers to do it.”
+- Two buttons: “Read Our Proposal →” (primary, links to #proposal or opens PDF) and “See How It Works” (outline, scrolls to pillars)
+- Bottom stats row (separated by a thin white border-top):
+  - $0 / Cost to Organizations
+  - 100% / Donation Funded
+  - 2x / Impact: Software + Jobs
+
+### 3. Mission Section (cream background)
+
+- Label: “Our Mission”
+- Title: “Technology shouldn’t be a luxury. Neither should opportunity.”
+- Two-column layout:
+  - Left: 3 paragraphs explaining the problem (community orgs underserved by tech, workforce gap, CodeForward as the bridge). Mention founder’s SDVOSB background, working with his son, and the AI-tools timing opportunity.
+  - Right: Dark navy rounded card showing the virtuous cycle as 4 numbered steps with arrows:
+  1. Community organizations apply for free custom software
+  1. Trainees build solutions using AI-assisted tools under expert supervision
+  1. Organizations get powerful tools; trainees get real portfolio projects
+  1. Graduates enter the workforce and mentor the next cohort
+
+### 4. Three Pillars Section (white background)
+
+- Label: “What We Do”
+- Title: “Three pillars. One cycle of impact.”
+- Subtitle: “Every project serves two purposes — delivering tools to organizations that need them and building careers for people who deserve them.”
+- Three cards in a row (stack on mobile):
+
+**Card 1 — Pro Bono Software** (💻 icon)
+Custom-built intake systems, scheduling tools, donor management platforms, websites, dashboards, and workflow automation — tailored to each organization’s needs and delivered at no cost.
+
+**Card 2 — Workforce Training** (🎓 icon)
+A 2–4 week foundational program followed by supervised work on real client projects. Trainees use AI-assisted tools to build functional software from day one, creating a fast on-ramp to tech careers.
+
+**Card 3 — The Virtuous Cycle** (♻️ icon)
+As trainees advance, they take on more complex projects and mentor new cohorts. The organization’s capacity grows while creating a sustainable pipeline of skilled, employed developers.
+
+- Cards have a thin teal gradient top border, cream background, subtle hover lift
+
+### 5. Who We Serve (navy background)
+
+- Label: “Who We Serve”
+- Title: “Built for the organizations that build our communities.”
+- Subtitle: “If you’re a nonprofit or community service organization running on shoestring technology, we want to hear from you.”
+- 4x2 grid of service cards (2 columns on mobile, 1 on small mobile):
+  - 🏠 Shelters — Homeless shelters and transitional housing programs
+  - 🏥 Clinics — Free and sliding-scale community health clinics
+  - 🤝 Social Services — Case management and social service agencies
+  - 🍳 Food Banks — Food banks, pantries, and community kitchens
+  - 👩‍👩‍👧 Youth Programs — Mentorship and after-school programs
+  - 🎖️ Veteran Services — Veteran service and transition organizations
+  - 💜 Crisis Centers — Domestic violence shelters and crisis support
+  - 🏙️ Community Orgs — Neighborhood and community development groups
+
+### 6. Training / Workforce Development (cream background)
+
+- Label: “Workforce Development”
+- Title: “Learn by building things that matter.”
+- Subtitle: “No CS degree required. No bootcamp tuition. Just problem-solving instincts and the drive to learn.”
+- Two-column layout:
+  - Left: 4 numbered steps (white cards with teal step numbers):
+  1. **Foundations** — 2–4 weeks of core concepts: databases, forms, logic, version control. Taught through AI-assisted tools.
+  1. **Real Projects** — Build software for real organizations immediately. Portfolio from day one. Senior review before anything goes live.
+  1. **Advance & Mentor** — Top performers graduate into reviewer/team lead roles. Mentor the next cohort.
+  1. **Launch Your Career** — Graduate with real-world portfolio, verifiable experience, and modern AI-assisted dev skills.
+  - Right: “Who We’re Looking For” card with pill/tag cloud:
+    - GED Holders, Career Changers, Veterans, Formerly Incarcerated, Single Parents, Self-Taught Learners, Underemployed Workers, Community College Students, Non-Degree Candidates, Second Chance Seekers
+    - Below tags: “If you can think through a problem and navigate a computer, we can teach you the rest.”
+
+### 7. Proposal Download Section (NEW — light section with subtle navy tint)
+
+- Label: “For Potential Partners & Donors”
+- Title: “Read the full proposal.”
+- Body text: “CodeForward is in its founding stage. We’ve put together a detailed organizational proposal covering our mission, operating model, funding strategy, workforce development program, and implementation timeline. We’d love your feedback — and your support.”
+- Large download button: “Download Full Proposal (PDF) →” linking to `/proposal.pdf`
+- Small note below: “This is a living document. We welcome questions, critiques, and conversations.”
+
+### 8. CTA Section (navy gradient background with teal radial glow at top)
+
+- Label: “Get Involved”
+- Title: “Help us write the code for a better community.”
+- Body: “Whether you want to donate, volunteer your development skills, apply for training, or refer a nonprofit that needs help — there’s a place for you at CodeForward.”
+- Two buttons: “Make a Donation →” (primary) and “Start a Conversation” (outline) — both mailto:hello@codeforward.org for now
+
+### 9. Footer (dark gray)
+
+- Logo
+- “A 501(c)(3) nonprofit initiative. All donations are tax-deductible.”
+- “Founded by a Service-Disabled Veteran-Owned Small Business entrepreneur.”
+- © 2026 CodeForward
+
+-----
+
+## Interactions & Polish
+
+- **Scroll animations:** Elements with class `.fade-up` start invisible and translate up 30px, becoming visible when they enter the viewport (IntersectionObserver, threshold 0.15)
+- **Hero gradient animation:** Slow 20s drift animation on the radial gradient background
+- **Card hovers:** Subtle translateY(-4px) lift with soft box-shadow
+- **Candidate tags:** On hover, invert to navy background with white text
+- **Smooth scroll:** `html { scroll-behavior: smooth; }`
+- **Mobile hamburger:** Toggles nav links open/closed
+
+-----
+
+## Important Notes for the Build
+
+1. **This is early-stage.** The badge in the hero says “Early-Stage 501(c)(3) Nonprofit Initiative.” The proposal section frames this as a founding-stage organization seeking foundational support. Don’t overclaim.
+1. **Proposal PDF:** Create a placeholder link to `/proposal.pdf`. I will upload the actual PDF file to the Replit project. If you want, also create a simple route or just serve it as a static file.
+1. **No backend needed.** This is a static site. The mailto links are intentional placeholders until we build contact forms.
+1. **Performance:** Everything in one HTML file. No external JS libraries. CSS animations only (no animation libraries). Google Fonts are the only external dependency.
+1. **Accessibility:** Semantic HTML, proper heading hierarchy, alt text concepts for any decorative elements, sufficient color contrast, keyboard-navigable.
+1. **Deploy:** Should work immediately with Replit’s static hosting. Just serve index.html from the root.
+
+-----
+
+## File Structure
+
+```
+/
+├── index.html          (the complete single-page site)
+├── proposal.pdf        (placeholder — I'll upload the real one)
+└── README.md           (brief project description)
+```
+
+That’s it. Build it clean, build it beautiful, and make it something I’d be proud to send to the first five people I’m asking to believe in this.

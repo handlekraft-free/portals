@@ -2,7 +2,7 @@ import { Navbar } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Code2, GraduationCap, Users, HeartHandshake, ArrowDown } from "lucide-react";
+import { ArrowRight, CheckCircle2, Code2, GraduationCap, Users, HeartHandshake, ArrowDown, Mail } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Home() {

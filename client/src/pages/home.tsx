@@ -2,8 +2,9 @@ import { Navbar } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Code2, GraduationCap, Users, HeartHandshake, ArrowDown, Mail, Building2, UserPlus, Home as HomeIcon, Heart, Handshake, UtensilsCrossed, Baby, Shield, Landmark, Building } from "lucide-react";
+import { ArrowRight, CheckCircle2, Code2, GraduationCap, Users, HeartHandshake, ArrowDown, Mail, Building2, UserPlus, Home as HomeIcon, Heart, Handshake, UtensilsCrossed, Baby, Shield, Landmark, Building, HandHeart } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "wouter";
 import logoImg from "@/assets/images/logo.png";
 
 export default function Home() {
@@ -215,6 +216,19 @@ export default function Home() {
             </motion.div>
           ))}
         </div>
+
+        <div className="text-center mt-12">
+          <Link href="/apply/client">
+            <Button 
+              size="lg"
+              className="bg-[#14B8A6] text-[#0B1D3A] font-bold text-lg rounded-full px-8 h-14"
+              data-testid="button-get-buddy"
+            >
+              <HandHeart className="mr-2 w-5 h-5" />
+              Get a Buddy — Apply for Free Help <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+          </Link>
+        </div>
       </Section>
 
       <Section id="training" background="cream">
@@ -285,14 +299,15 @@ export default function Home() {
               ))}
             </div>
 
-            <Button 
-              className="w-full bg-[#14B8A6] hover:bg-[#14B8A6]/90 text-[#0B1D3A] font-bold rounded-full h-14 text-lg shadow-lg shadow-[#14B8A6]/20"
-              onClick={() => window.location.href = "mailto:apply@thebuddypromise.org?subject=Fellowship%20Application"}
-              data-testid="button-apply-fellowship"
-            >
-              <UserPlus className="mr-2 w-5 h-5" />
-              Apply for the Fellowship <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
+            <Link href="/apply/fellowship">
+              <Button 
+                className="w-full bg-[#14B8A6] text-[#0B1D3A] font-bold rounded-full h-14 text-lg"
+                data-testid="button-apply-fellowship"
+              >
+                <UserPlus className="mr-2 w-5 h-5" />
+                Apply for the Fellowship <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
             <p className="text-xs text-muted-foreground text-center mt-3">Only a HS diploma or GED required. All backgrounds welcome.</p>
           </div>
         </div>
@@ -354,11 +369,35 @@ export default function Home() {
               Join Our Board
             </Button>
           </div>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
+            <Link href="/apply/client">
+              <Button 
+                variant="outline"
+                size="lg" 
+                className="bg-transparent border-white/30 text-white font-bold text-lg px-8 py-8 h-auto rounded-xl w-full sm:w-auto"
+                data-testid="button-cta-get-buddy"
+              >
+                <HandHeart className="mr-2 w-6 h-6" />
+                Get a Buddy (Free Help)
+              </Button>
+            </Link>
+            <Link href="/apply/fellowship">
+              <Button 
+                variant="outline"
+                size="lg" 
+                className="bg-transparent border-white/30 text-white font-bold text-lg px-8 py-8 h-auto rounded-xl w-full sm:w-auto"
+                data-testid="button-cta-apply-fellowship"
+              >
+                <UserPlus className="mr-2 w-6 h-6" />
+                Apply for the Fellowship
+              </Button>
+            </Link>
+          </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               variant="outline"
               size="lg" 
-              className="bg-transparent border-white/30 hover:bg-white/10 text-white font-bold text-lg px-8 py-8 h-auto rounded-xl transition-all w-full sm:w-auto"
+              className="bg-transparent border-white/30 text-white font-bold text-lg px-8 py-8 h-auto rounded-xl w-full sm:w-auto"
               onClick={() => window.location.href = "mailto:hello@thebuddypromise.org"}
               data-testid="button-conversation"
             >

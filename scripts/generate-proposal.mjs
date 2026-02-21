@@ -154,10 +154,12 @@ body('Commercial software solutions cost tens of thousands of dollars per year. 
 body('The result: the organizations that care the most about their communities are often the least equipped to serve them efficiently.');
 
 checkPage(200);
-subheading('The Workforce Gap');
-body('At the same time, the tech industry has a pipeline problem. Entry-level positions increasingly require 2-3 years of professional experience, leaving talented people from non-traditional backgrounds on the outside looking in — career changers, veterans, formerly incarcerated individuals, single parents, GED holders, and self-taught learners.');
+subheading('The Opportunity Gap');
+body('Right now, the tech industry is in the middle of a historic shift. AI tools are reshaping how software gets built, and companies are rethinking what their teams look like. Entry-level hiring has tightened — but this is a moment, not a permanent condition. The door will swing open again, and when it does, the people who are ready will walk through it.');
 
-body('Bootcamps and community college programs produce graduates with foundational skills but no professional experience. Without that first real opportunity, talented people cycle through rejection — and the industry misses out on diverse perspectives and problem-solving approaches it desperately needs.');
+body('The challenge is that talented people from non-traditional backgrounds — career changers, veterans, formerly incarcerated individuals, single parents, GED holders, and self-taught learners — often can\'t get that first real opportunity to prove what they can do. Bootcamps and community college programs build foundational skills, but without professional experience and a real portfolio, graduates cycle through rejection.');
+
+body('The Buddy Promise exists to close that gap right now — so that when the industry is ready, our fellows already are. We give them real projects, real mentorship, and real skills so they\'re not waiting for an opportunity. They\'re building one.');
 
 checkPage(120);
 subheading('The Timing Opportunity');

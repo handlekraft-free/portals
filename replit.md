@@ -1,6 +1,6 @@
 # Overview
 
-**Code for Communities** (originally "CodeForward") is a single-page marketing website for an early-stage 501(c)(3) nonprofit that provides free bespoke software and web design to community organizations while training the next generation of developers. The site is a scroll-based landing page with sections for mission, services, training program, and donor engagement. It also hosts a downloadable PDF proposal.
+**The Buddy Promise** is a single-page marketing website for an early-stage 501(c)(3) nonprofit that provides free bespoke software and web design to community organizations while training aspiring developers. The site is a scroll-based landing page with sections for mission, services, fellowship program, and donor/sponsor engagement. It also hosts a downloadable PDF proposal.
 
 Despite having a full-stack template structure (Express backend, PostgreSQL via Drizzle), this is fundamentally a **static marketing site** — the backend serves the frontend with no meaningful API routes, and the database schema is a placeholder dummy table.
 
@@ -13,12 +13,13 @@ Preferred communication style: Simple, everyday language.
 ## Frontend
 - **Framework:** React 18 with TypeScript, built with Vite
 - **Routing:** Wouter (lightweight client-side router) — only two routes: Home (`/`) and a 404 page
-- **Styling:** Tailwind CSS with CSS variables for theming, using a civic-tech color palette (navy `#0B1D3A`, teal `#0EA5E9`, cream `#FAF7F2`)
+- **Styling:** Tailwind CSS with CSS variables for theming, using a warm civic-tech color palette (navy `#0B1D3A`, warm teal `#14B8A6`, cream `#FAF7F2`)
 - **UI Components:** shadcn/ui (new-york style) with Radix UI primitives — full component library installed
 - **Animations:** Framer Motion for scroll animations and hero effects
 - **Fonts:** DM Serif Display (headings) and Outfit (body) via Google Fonts, referenced through CSS custom properties (`--font-display`, `--font-body`)
 - **State Management:** TanStack React Query is installed but barely used since there are no real API calls
 - **Path Aliases:** `@/` maps to `client/src/`, `@shared/` maps to `shared/`
+- **Logo:** Generated father-and-son dual profile image at `client/src/assets/images/logo.png`, imported as a module in nav and footer components
 
 ## Backend
 - **Runtime:** Express 5 on Node.js with TypeScript (via tsx)
@@ -42,6 +43,7 @@ Preferred communication style: Simple, everyday language.
 1. **Full-stack template for a static site** — The project uses a full Express + React + PostgreSQL template even though it's currently just a landing page. This allows easy expansion to add features like contact forms, donation processing, or admin dashboards later.
 2. **Component library overkill** — A complete shadcn/ui installation exists with 40+ components, most unused. This is intentional for rapid feature development.
 3. **Single-page scroll design** — Navigation uses anchor links (`#mission`, `#what-we-do`, etc.) with smooth scrolling rather than separate routes.
+4. **Branding:** "The Buddy Promise" — warm, kind, techy but approachable. Father-son founding team. Accent color is warm teal (#14B8A6). Emails use @thebuddypromise.org domain.
 
 # External Dependencies
 
@@ -49,4 +51,13 @@ Preferred communication style: Simple, everyday language.
 - **Google Fonts** — DM Serif Display and Outfit loaded via CDN in `index.css`
 - **External Textures** — Transparent Textures pattern used in hero background (`transparenttextures.com`)
 - **Replit Plugins** — `@replit/vite-plugin-runtime-error-modal`, `@replit/vite-plugin-cartographer`, and `@replit/vite-plugin-dev-banner` for development on Replit
-- **PDF Asset** — The site references `/proposal.pdf` which should be placed in the public directory as a downloadable document
+- **PDF Asset** — Generated via `scripts/generate-proposal.mjs` using pdfkit, saved to `client/public/proposal.pdf`
+- **pdfkit** — Node.js PDF generation library used for proposal document
+
+# Recent Changes
+- Rebranded from "Code for Communities" (originally "CodeForward") to "The Buddy Promise"
+- Updated accent color from #0EA5E9 (blue) to #14B8A6 (warm teal)
+- Generated father-and-son dual profile logo
+- Softened all copy to be warmer and more approachable
+- Updated all email addresses to @thebuddypromise.org
+- Regenerated PDF proposal with new branding and tone

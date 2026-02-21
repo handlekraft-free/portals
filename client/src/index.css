@@ -5,24 +5,25 @@
 @tailwind utilities;
 
 :root {
-  /* Civic Tech Palette */
+  /* The Buddy Promise Palette */
   /* Navy #0B1D3A -> 218 69% 14% */
-  /* Teal #0EA5E9 -> 199 89% 48% */
+  /* Warm Teal #14B8A6 -> 173 58% 39% */
+  /* Amber Accent #F59E0B -> 43 96% 56% */
   /* Cream #FAF7F2 -> 38 33% 96% */
   
   --background: 38 33% 96%;
   --foreground: 218 69% 14%;
 
   --primary: 218 69% 14%;
-  --primary-foreground: 199 89% 48%;
+  --primary-foreground: 173 58% 90%;
 
-  --secondary: 199 89% 48%;
+  --secondary: 173 58% 39%;
   --secondary-foreground: 218 69% 14%;
 
   --muted: 218 20% 90%;
   --muted-foreground: 218 20% 40%;
 
-  --accent: 199 89% 48%;
+  --accent: 173 58% 39%;
   --accent-foreground: 218 69% 14%;
 
   --destructive: 0 84% 60%;
@@ -30,11 +31,10 @@
 
   --border: 218 20% 85%;
   --input: 218 20% 85%;
-  --ring: 199 89% 48%;
+  --ring: 173 58% 39%;
 
   --radius: 0.5rem;
 
-  /* Custom Font Variables */
   --font-display: 'DM Serif Display', serif;
   --font-body: 'Outfit', sans-serif;
 }
@@ -42,7 +42,6 @@
 .dark {
   --background: 218 69% 14%;
   --foreground: 38 33% 96%;
-  /* ... simplified dark mode mapping if needed later */
 }
 
 @layer base {
@@ -70,6 +69,6 @@
   }
   
   .hero-gradient {
-    background: radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.15) 0%, rgba(11, 29, 58, 0) 50%);
+    background: radial-gradient(circle at 50% 50%, rgba(20, 184, 166, 0.15) 0%, rgba(11, 29, 58, 0) 50%);
   }
 }

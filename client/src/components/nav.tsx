@@ -4,6 +4,7 @@ import { Menu, X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import logoImg from "@/assets/images/logo.png";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -19,15 +20,14 @@ export function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: "Mission", href: "#mission" },
+    { name: "Our Promise", href: "#mission" },
     { name: "What We Do", href: "#what-we-do" },
-    { name: "Who We Serve", href: "#who-we-serve" },
-    { name: "Training", href: "#training" },
+    { name: "Who We Help", href: "#who-we-serve" },
+    { name: "Fellowship", href: "#training" },
   ];
 
   const handleNavClick = (href: string) => {
     setIsMobileOpen(false);
-    // If it's an anchor link on the home page, scroll to it
     if (href.startsWith("#")) {
       const element = document.querySelector(href);
       if (element) {
@@ -45,16 +45,13 @@ export function Navbar() {
         )}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-            <div className="w-8 h-8 bg-[#0EA5E9] rounded-lg flex items-center justify-center text-[#0B1D3A] font-bold text-xl leading-none shadow-lg shadow-[#0EA5E9]/20 group-hover:shadow-[#0EA5E9]/40 transition-all">
-              C
-            </div>
-            <span className="text-white font-display text-2xl tracking-wide">
-              Code for Communities
+          <Link href="/" className="flex items-center gap-3 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+            <img src={logoImg} alt="The Buddy Promise logo" className="w-10 h-10 rounded-lg shadow-lg" />
+            <span className="text-white font-display text-2xl tracking-wide" data-testid="text-brand-name">
+              The Buddy Promise
             </span>
           </Link>
 
-          {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
               <a
@@ -64,30 +61,31 @@ export function Navbar() {
                   e.preventDefault();
                   handleNavClick(link.href);
                 }}
-                className="text-white/80 hover:text-[#0EA5E9] text-sm font-medium transition-colors"
+                className="text-white/80 hover:text-[#14B8A6] text-sm font-medium transition-colors"
+                data-testid={`link-nav-${link.name.toLowerCase().replace(/\s+/g, '-')}`}
               >
                 {link.name}
               </a>
             ))}
             <Button 
-              className="bg-[#0EA5E9] hover:bg-[#0EA5E9]/90 text-[#0B1D3A] font-bold rounded-full px-6 hover:shadow-lg hover:shadow-[#0EA5E9]/20 transition-all"
+              className="bg-[#14B8A6] hover:bg-[#14B8A6]/90 text-[#0B1D3A] font-bold rounded-full px-6 hover:shadow-lg hover:shadow-[#14B8A6]/20 transition-all"
               onClick={() => handleNavClick("#get-involved")}
+              data-testid="button-get-involved"
             >
               Get Involved
             </Button>
           </div>
 
-          {/* Mobile Toggle */}
           <button
             className="md:hidden text-white p-2"
             onClick={() => setIsMobileOpen(!isMobileOpen)}
+            data-testid="button-mobile-menu"
           >
             {isMobileOpen ? <X /> : <Menu />}
           </button>
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMobileOpen && (
           <motion.div
@@ -108,11 +106,11 @@ export function Navbar() {
                   className="text-2xl font-display text-white border-b border-white/10 pb-4 flex justify-between items-center"
                 >
                   {link.name}
-                  <ChevronRight className="w-5 h-5 text-[#0EA5E9]" />
+                  <ChevronRight className="w-5 h-5 text-[#14B8A6]" />
                 </a>
               ))}
               <Button 
-                className="bg-[#0EA5E9] text-[#0B1D3A] w-full py-6 text-lg font-bold mt-4"
+                className="bg-[#14B8A6] text-[#0B1D3A] w-full py-6 text-lg font-bold mt-4"
                 onClick={() => handleNavClick("#get-involved")}
               >
                 Get Involved

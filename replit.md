@@ -1,8 +1,6 @@
 # Overview
 
-**The Buddy Promise** is a single-page marketing website for an early-stage 501(c)(3) nonprofit that provides free bespoke software and web design to community organizations while training aspiring developers. The site is a scroll-based landing page with sections for mission, services, fellowship program, and donor/sponsor engagement. It also hosts a downloadable PDF proposal.
-
-Despite having a full-stack template structure (Express backend, PostgreSQL via Drizzle), this is fundamentally a **static marketing site** — the backend serves the frontend with no meaningful API routes, and the database schema is a placeholder dummy table.
+**The Buddy Promise** is a full-stack web application for an early-stage 501(c)(3) nonprofit that provides free bespoke software and web design to community organizations while training product-focused problem solvers who leverage AI tools. The site includes a scroll-based landing page, public application forms (fellowship and client "Get a Buddy"), and an admin dashboard for managing application queues.
 
 # User Preferences
 
@@ -12,27 +10,28 @@ Preferred communication style: Simple, everyday language.
 
 ## Frontend
 - **Framework:** React 18 with TypeScript, built with Vite
-- **Routing:** Wouter (lightweight client-side router) — only two routes: Home (`/`) and a 404 page
+- **Routing:** Wouter — routes: Home (`/`), Apply Fellowship (`/apply/fellowship`), Apply Client (`/apply/client`), Admin (`/admin`), 404
 - **Styling:** Tailwind CSS with CSS variables for theming, using a warm civic-tech color palette (navy `#0B1D3A`, warm teal `#14B8A6`, cream `#FAF7F2`)
 - **UI Components:** shadcn/ui (new-york style) with Radix UI primitives — full component library installed
 - **Animations:** Framer Motion for scroll animations and hero effects
 - **Fonts:** DM Serif Display (headings) and Outfit (body) via Google Fonts, referenced through CSS custom properties (`--font-display`, `--font-body`)
-- **State Management:** TanStack React Query is installed but barely used since there are no real API calls
+- **State Management:** TanStack React Query for API data fetching and mutations
 - **Path Aliases:** `@/` maps to `client/src/`, `@shared/` maps to `shared/`
 - **Logo:** Generated father-and-son dual profile image at `client/src/assets/images/logo.png`, imported as a module in nav and footer components
 
 ## Backend
 - **Runtime:** Express 5 on Node.js with TypeScript (via tsx)
-- **Purpose:** Serves the built frontend in production; runs Vite dev server in development
-- **API Routes:** None — `server/routes.ts` is empty; the server just serves static files
-- **Storage:** `MemStorage` class in `server/storage.ts` is an empty shell with no methods
+- **Auth:** Session-based admin authentication using express-session + connect-pg-simple, bcryptjs for password hashing
+- **API Routes:** Public form submissions (POST), admin login/logout, admin CRUD for both application queues (GET/PATCH with auth middleware)
+- **Storage:** `DatabaseStorage` class in `server/storage.ts` with Drizzle ORM for all CRUD operations
+- **Default Admin:** Seeded on startup (username: "admin", password: "buddypromise2026") — should be changed for production
 
 ## Database
 - **ORM:** Drizzle ORM configured for PostgreSQL
-- **Schema:** Located at `shared/schema.ts` — contains only a dummy table placeholder
+- **Schema:** Located at `shared/schema.ts` — three tables: `fellowship_applications`, `client_applications`, `admin_users`
+- **Session Store:** `connect-pg-simple` auto-creates session table in PostgreSQL
 - **Migrations:** Output to `./migrations` directory via `drizzle-kit`
 - **Connection:** Uses `DATABASE_URL` environment variable; server has a fallback so it doesn't crash if unset
-- **Note:** The database is not actually needed for the current static site functionality. It's part of the template and may be used for future features (contact forms, donation tracking, etc.)
 
 ## Build Process
 - **Development:** `tsx server/index.ts` with Vite middleware for HMR
@@ -40,14 +39,15 @@ Preferred communication style: Simple, everyday language.
 - **Server Bundle:** esbuild bundles server code into `dist/index.cjs`, externalizing most deps except an allowlist of common packages
 
 ## Key Design Decisions
-1. **Full-stack template for a static site** — The project uses a full Express + React + PostgreSQL template even though it's currently just a landing page. This allows easy expansion to add features like contact forms, donation processing, or admin dashboards later.
-2. **Component library overkill** — A complete shadcn/ui installation exists with 40+ components, most unused. This is intentional for rapid feature development.
-3. **Single-page scroll design** — Navigation uses anchor links (`#mission`, `#what-we-do`, etc.) with smooth scrolling rather than separate routes.
+1. **Full-stack application** — Express + React + PostgreSQL for landing page, public forms, and admin dashboard.
+2. **Component library** — A complete shadcn/ui installation for rapid feature development.
+3. **Single-page scroll design** — Homepage uses anchor links with smooth scrolling; separate routes for forms and admin.
 4. **Branding:** "The Buddy Promise" — warm, kind, techy but approachable. Father-son founding team. Accent color is warm teal (#14B8A6). Emails use @thebuddypromise.org domain.
+5. **Product-focused training** — Fellows own products end-to-end while AI agents handle deep technical implementation.
 
 # External Dependencies
 
-- **PostgreSQL** — Required via `DATABASE_URL` environment variable (Drizzle ORM + node-postgres), though not actively used
+- **PostgreSQL** — Required via `DATABASE_URL` environment variable (Drizzle ORM + node-postgres)
 - **Google Fonts** — DM Serif Display and Outfit loaded via CDN in `index.css`
 - **External Textures** — Transparent Textures pattern used in hero background (`transparenttextures.com`)
 - **Replit Plugins** — `@replit/vite-plugin-runtime-error-modal`, `@replit/vite-plugin-cartographer`, and `@replit/vite-plugin-dev-banner` for development on Replit
@@ -61,3 +61,9 @@ Preferred communication style: Simple, everyday language.
 - Softened all copy to be warmer and more approachable
 - Updated all email addresses to @thebuddypromise.org
 - Regenerated PDF proposal with new branding and tone
+- Added database schema for fellowship_applications, client_applications, admin_users
+- Built public fellowship application form at /apply/fellowship
+- Built public client application form ("Get a Buddy") at /apply/client
+- Built admin dashboard at /admin with login, two queue tabs (fellowship and client), rating/priority/status management
+- Added CTA buttons on homepage linking to both application forms
+- Updated messaging from "training developers" to "training product-focused problem solvers who leverage AI tools"

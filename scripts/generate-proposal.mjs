@@ -71,7 +71,7 @@ doc.fontSize(42).fillColor('#FFFFFF').font('Helvetica-Bold')
 
 doc.moveDown(1.5);
 doc.fontSize(14).fillColor('#FFFFFF').font('Helvetica').opacity(0.7)
-  .text('Free Software & Websites for Community Organizations.\nHands-On Training for Aspiring Developers.', 72);
+  .text('Free Software & Websites for Community Organizations.\nProduct-Focused Training for Aspiring Problem Solvers.', 72);
 
 doc.opacity(1);
 doc.moveDown(4);
@@ -121,14 +121,14 @@ doc.addPage();
 heading('1. Executive Summary');
 divider();
 
-body('The Buddy Promise is an early-stage 501(c)(3) nonprofit that pairs aspiring developers with community organizations that need help — building free, custom software and websites side by side, like buddies do.');
+body('The Buddy Promise is an early-stage 501(c)(3) nonprofit that pairs aspiring product builders with community organizations that need help — creating free, custom software and websites side by side, like buddies do.');
 
 body('We exist at the intersection of two needs that belong together:');
 
 bullet('Community organizations and local agencies are underserved by technology — running critical work on spreadsheets, paper forms, and outdated systems they can\'t afford to replace.');
-bullet('Talented people from non-traditional backgrounds are locked out of tech careers by an industry that demands years of experience for entry-level roles.');
+bullet('Talented people from non-traditional backgrounds are locked out of tech careers by an industry that too often values credentials over capability.');
 
-body('The Buddy Promise brings these two worlds together. Our fellows build real software for real organizations under caring, expert supervision, using modern AI-assisted development tools. Organizations receive powerful, custom tools at no cost. Fellows gain verifiable experience, a professional portfolio, and a genuine pathway into tech.');
+body('The Buddy Promise brings these two worlds together. Our fellows learn to own products from idea to delivery — using AI-powered tools to solve real problems for real organizations, with caring expert supervision at every step. Organizations receive powerful, custom tools at no cost. Fellows gain verifiable experience, a professional portfolio, and a genuine pathway into tech.');
 
 body('Founded by a father-son team — a retiring Service-Disabled Veteran-Owned Small Business (SDVOSB) software entrepreneur and his son — The Buddy Promise combines decades of enterprise software experience with a deep belief that the best way to learn is by helping someone who needs it.');
 
@@ -137,6 +137,7 @@ bullet('Cost to organizations: $0');
 bullet('100% donation-funded');
 bullet('No formal education required beyond a high school diploma or GED');
 bullet('Non-traditional candidates are our priority');
+bullet('Product-focused training: fellows learn to own and deliver solutions, not just write code');
 bullet('Dual impact: software delivery + career development');
 
 // ===========================
@@ -161,9 +162,11 @@ body('The challenge is that talented people from non-traditional backgrounds —
 
 body('The Buddy Promise exists to close that gap right now — so that when the industry is ready, our fellows already are. We give them real projects, real mentorship, and real skills so they\'re not waiting for an opportunity. They\'re building one.');
 
-checkPage(120);
-subheading('The Timing Opportunity');
-body('AI-assisted development tools — GitHub Copilot, Cursor, Replit, and others — have fundamentally changed the learning curve for software development. Motivated learners can now build functional, production-quality software far faster than was possible even two years ago. With the right guidance and real-world projects, motivated people can reach professional competency in weeks rather than years. The door is open wider than it\'s ever been.');
+checkPage(180);
+subheading('The Emerging Capability');
+body('AI-powered development tools — GitHub Copilot, Cursor, Replit, and others — have fundamentally changed what it means to build software. Agentic engineering is accelerating fast: AI handles more and more of the deep technical implementation, while humans focus on understanding problems, designing solutions, and owning the product.');
+
+body('This shift means the most valuable skill isn\'t memorizing syntax or mastering low-level architecture — it\'s knowing how to apply emerging tools to solve real problems. With the right guidance and real-world projects, motivated people can reach professional competency in weeks rather than years. The Buddy Promise trains people for where the industry is heading, not where it\'s been.');
 
 // ===========================
 // 3. OUR APPROACH
@@ -179,13 +182,13 @@ subheading('Step 1: Listen');
 body('Community organizations, nonprofits, and local agencies tell us what they need — a website, a scheduling tool, a better way to track clients. Our team listens carefully, scopes the project, and figures out how to help.');
 
 subheading('Step 2: Build Together');
-body('We pair each project with fellows who build the solution using AI-assisted tools, with senior mentors guiding them every step of the way. Every line of code is reviewed. Professional practices are followed from day one.');
+body('We pair each project with fellows who own the solution end to end — scoping requirements, designing the product, and building it with AI-powered tools, with senior mentors guiding them every step of the way. Every deliverable is reviewed. Professional practices are followed from day one.');
 
 subheading('Step 3: Deliver with Care');
 body('Organizations receive custom-built tools — intake systems, scheduling platforms, donor dashboards, websites, workflow automation — tailored to their needs. We provide training and support to make sure adoption sticks.');
 
 subheading('Step 4: Pay It Forward');
-body('As fellows grow, they take on more complex projects and begin mentoring the next group. Graduates leave with a real portfolio, real references, and real skills. Many transition into paid tech careers — and some come back to help the next buddy.');
+body('As fellows grow, they take on more complex products and begin mentoring the next group. Graduates leave with a real portfolio of products they owned, real references, and the ability to leverage emerging tools to solve any problem. Many transition into paid tech careers — and some come back to help the next buddy.');
 
 body('Each graduating class strengthens our ability to help more organizations and welcome more learners. That\'s the promise.');
 
@@ -208,12 +211,12 @@ bullet('Data migration from legacy systems');
 body('Every solution is shaped around the organization\'s real needs, built on modern technology, and delivered with training and documentation.');
 
 checkPage(200);
-subheading('2. Hands-On Training');
-body('Our fellowship is designed as a warm, supportive on-ramp to tech careers:');
-bullet('2-4 week foundational program covering databases, forms, logic, version control, and AI-assisted tools');
-bullet('Immediate placement on real projects with senior mentorship');
-bullet('Professional practices from day one: code review, testing, collaborative workflow');
-bullet('A portfolio of deployed, live projects — not classroom exercises');
+subheading('2. Product-Focused Training');
+body('Our fellowship trains people to own and deliver products — not just write code. We teach fellows to leverage AI-powered tools to solve problems, with a grounded understanding of the architectures underneath:');
+bullet('2-4 week foundational program covering how software products work — databases, interfaces, logic, and workflows — with AI tools doing the heavy lifting');
+bullet('Immediate placement on real products with senior mentorship');
+bullet('Fellows own their projects end to end: scoping, building, delivering, and supporting');
+bullet('A portfolio of deployed, live products — not classroom exercises');
 bullet('No tuition. No college degree required. Only a high school diploma or GED.');
 body('Non-traditional candidates — GED holders, career changers, veterans, formerly incarcerated individuals, single parents, self-taught learners — are exactly who we\'re looking for.');
 
@@ -224,7 +227,7 @@ bullet('Our capacity to help organizations grows with each graduating class');
 bullet('More organizations get the tools they need');
 bullet('More people gain real-world experience and launch careers');
 bullet('Graduates often return as volunteer mentors');
-body('Over time, The Buddy Promise becomes a self-sustaining engine for community technology and career development.');
+body('Over time, The Buddy Promise becomes a self-sustaining engine for community technology and product-focused career development.');
 
 // ===========================
 // 5. WHO WE SERVE
@@ -255,7 +258,7 @@ orgs.forEach(([name, desc]) => {
 
 spacer(0.5);
 subheading('People We Train');
-body('Our fellowship prioritizes non-traditional candidates — people with the drive and curiosity to learn but without access to traditional pathways into tech:');
+body('Our fellowship prioritizes non-traditional candidates — people with the drive and curiosity to solve problems and own products, but without access to traditional pathways into tech:');
 
 const candidates = [
   'GED holders and high school graduates',
@@ -270,7 +273,7 @@ const candidates = [
 
 candidates.forEach(c => bullet(c));
 
-body('The only prerequisites are a high school diploma or GED, basic computer literacy, and the willingness to learn and help.');
+body('The only prerequisites are a high school diploma or GED, basic computer literacy, and the willingness to learn and help. We\'re not looking for people who already know how to code — we\'re looking for people who want to solve problems and own the outcome.');
 
 // ===========================
 // 6. THE FELLOWSHIP PROGRAM
@@ -280,37 +283,37 @@ heading('6. The Fellowship Program');
 divider();
 
 subheading('Phase 1: Foundations (Weeks 1-4)');
-body('Fellows complete a supportive foundational program covering:');
-bullet('Core web development concepts: HTML, CSS, JavaScript');
-bullet('Database fundamentals: SQL, data modeling, CRUD operations');
-bullet('Version control with Git and collaborative workflows');
-bullet('AI-assisted development: prompt engineering, code generation, debugging with AI tools');
-bullet('Professional practices: code review, documentation, testing basics');
-body('The emphasis is on learning by doing. Fellows build small functional projects from day one with AI-assisted tools and senior support.');
+body('Fellows complete a supportive foundational program focused on understanding how software products work and how to build them with AI-powered tools:');
+bullet('How software products are structured: databases, interfaces, logic, and workflows');
+bullet('Working with AI development tools: directing agents, reviewing output, iterating on solutions');
+bullet('Understanding architectures at a practical level — enough to make smart decisions, not to build from scratch');
+bullet('Version control and collaborative workflows');
+bullet('Product thinking: scoping problems, designing solutions, and delivering value');
+body('The emphasis is on learning by doing. Fellows build small functional products from day one — using AI tools for the deep technical work while they focus on solving problems and owning the outcome.');
 
 checkPage(200);
-subheading('Phase 2: Real Projects (Weeks 5-12)');
-body('Fellows are paired with real client projects under caring senior supervision:');
-bullet('Work on actual software being built for community organizations');
+subheading('Phase 2: Real Products (Weeks 5-12)');
+body('Fellows are paired with real client products under caring senior supervision:');
+bullet('Own actual products being built for community organizations — from requirements to delivery');
 bullet('Follow professional workflow: sprints, standups, retrospectives');
-bullet('All code reviewed by senior mentors before deployment');
-bullet('Build a portfolio of live, deployed projects with real impact');
+bullet('Use AI agents for implementation while focusing on product decisions and quality');
+bullet('Build a portfolio of live, deployed products with real impact');
 bullet('Receive regular feedback, encouragement, and mentorship');
 
 checkPage(200);
 subheading('Phase 3: Grow & Give Back (Weeks 13+)');
 body('As fellows advance, they step into bigger roles:');
-bullet('Take on more complex features and architectural decisions');
-bullet('Begin reviewing code from newer fellows');
-bullet('Serve as team leads on smaller projects');
+bullet('Take on more complex products and higher-level architectural decisions');
+bullet('Begin reviewing work from newer fellows');
+bullet('Serve as product leads on smaller projects');
 bullet('Mentor the next group of buddies');
 
 checkPage(140);
 subheading('Phase 4: Launch Your Career');
 body('Graduates leave the program with:');
-bullet('A portfolio of 3-5 deployed, real-world projects');
+bullet('A portfolio of 3-5 deployed, real-world products they owned end to end');
 bullet('Verifiable professional experience in a team environment');
-bullet('Modern AI-assisted development skills that employers want');
+bullet('The ability to leverage AI-powered tools to build and ship products — the skill employers increasingly need');
 bullet('Professional references from senior engineers');
 bullet('Job search support and interview preparation');
 
@@ -321,25 +324,27 @@ doc.addPage();
 heading('7. The AI Advantage');
 divider();
 
-body('The Buddy Promise is built for this moment. AI-assisted development tools have changed what\'s possible — and we\'re using them to open doors wider:');
+body('The Buddy Promise is built for this moment. Agentic engineering — where AI handles more and more of the deep technical implementation — is transforming software development. We\'re not fighting that trend. We\'re riding it.');
+
+body('Our philosophy is simple: AI agents do the deep stuff. Our fellows focus on what matters most — understanding the problem, designing the right solution, and owning the product. We teach people to apply emerging tools with a practical understanding of the architectures underneath, not to compete with AI on implementation.');
 
 subheading('For Fellows');
-bullet('AI tools act as a patient, always-available coding partner, accelerating the learning curve dramatically');
-bullet('Fellows can build functional, production-quality software in weeks rather than months');
-bullet('Focus shifts from memorizing syntax to understanding problems and designing thoughtful solutions');
-bullet('Graduates enter the job market with AI-native skills that employers increasingly need');
+bullet('AI agents handle the heavy technical lifting — fellows focus on product thinking, problem solving, and quality');
+bullet('Fellows learn to direct AI tools, review their output, and iterate — the core skill of the emerging workforce');
+bullet('Focus shifts from memorizing syntax to understanding problems and owning solutions end to end');
+bullet('Graduates enter the job market trained for where the industry is heading, not where it\'s been');
 
 checkPage(180);
 subheading('For Organizations');
-bullet('Projects can be scoped and delivered faster, meaning we can help more organizations each cycle');
-bullet('AI tools help maintain code quality even with newer developers');
-bullet('Modern technology stacks that are easier to maintain long-term');
+bullet('AI-powered workflows mean faster delivery, so we can help more organizations each cycle');
+bullet('Products are built on modern stacks that are easier to maintain long-term');
+bullet('Fellows bring a product mindset — they care about solving your problem, not just shipping code');
 
 checkPage(140);
 subheading('For the Mission');
-bullet('Lower barriers to entry mean a wider, more diverse community of learners');
-bullet('Faster project delivery means more impact per dollar donated');
-bullet('AI-assisted development is the future — our graduates are trained for where the industry is heading');
+bullet('Lower barriers to entry mean a wider, more diverse community of learners — you don\'t need a CS degree to own a product');
+bullet('Faster product delivery means more impact per dollar donated');
+bullet('As AI capabilities accelerate, our model scales with them — every advance makes our fellows more capable, not less relevant');
 
 // ===========================
 // 8. OPERATING MODEL
@@ -410,7 +415,7 @@ subheading('Founder');
 body('A retiring Service-Disabled Veteran-Owned Small Business (SDVOSB) software entrepreneur with decades of experience building enterprise software solutions. His career spans government contracting, commercial software development, and small business leadership. He brings deep expertise in project management, client relations, and software architecture — along with a lifelong commitment to giving back.');
 
 subheading('Co-Founder');
-body('Working alongside his father, the co-founder brings modern development skills, experience with AI-assisted development tools, and a genuine passion for making tech careers accessible to people from all backgrounds.');
+body('Working alongside his father, the co-founder brings modern product development skills, deep experience with AI-powered and agentic development tools, and a genuine passion for making tech careers accessible to people from all backgrounds.');
 
 checkPage(140);
 subheading('We\'re Growing Our Family');

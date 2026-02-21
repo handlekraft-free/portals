@@ -41,7 +41,7 @@ export default function Home() {
             </h1>
 
             <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-10 font-light leading-relaxed" data-testid="text-hero-subtitle">
-              We pair aspiring developers with community organizations that need help — building free software and websites side by side, like buddies do.
+              We pair aspiring product builders with community organizations that need help — creating free software and websites side by side, like buddies do.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
@@ -103,10 +103,10 @@ export default function Home() {
                 Thousands of community organizations — shelters, clinics, food banks — and underfunded local agencies rely on spreadsheets and paper to manage work that changes lives. The software they need is out of reach. The people who could build it are out of opportunities.
               </p>
               <p>
-                We believe the best way to learn is by helping someone. And the best way to get help is from someone who genuinely cares. AI-assisted tools make it possible for motivated learners to build real, professional software faster than ever before.
+                We believe the best way to learn is by helping someone. And the best way to get help is from someone who genuinely cares. AI-powered tools mean motivated people can own and deliver real products faster than ever — you don't need a CS degree to solve real problems.
               </p>
               <p className="font-semibold text-[#0B1D3A]">
-                The Buddy Promise brings these two worlds together — pairing people who want to learn with organizations that need a hand.
+                The Buddy Promise brings these two worlds together — pairing people who want to solve problems with organizations that need a hand.
               </p>
             </div>
           </div>
@@ -123,8 +123,8 @@ export default function Home() {
             <ul className="space-y-6 relative z-10">
               {[
                 "A community organization tells us what they need — a website, a scheduling tool, a better way to track clients.",
-                "We pair them with aspiring developers who build the solution using AI-assisted tools, with senior guidance every step of the way.",
-                "The organization gets a custom tool that fits their work. The developer gets real experience and a portfolio they're proud of.",
+                "We pair them with aspiring product builders who own the solution end to end — using AI-powered tools with senior guidance every step of the way.",
+                "The organization gets a custom tool that fits their work. The fellow gets real experience and a portfolio of products they're proud of.",
                 "Graduates pay it forward — mentoring the next group of buddies."
               ].map((step, i) => (
                 <li key={i} className="flex gap-4 items-start">
@@ -142,7 +142,7 @@ export default function Home() {
       <Section id="what-we-do" background="white">
         <SectionHeader 
           title="Three ways we keep our promise." 
-          subtitle="Every project we take on serves two purposes: helping an organization and launching a career."
+          subtitle="Every product we build serves two purposes: helping an organization and launching a career."
           centered
         />
         
@@ -155,8 +155,8 @@ export default function Home() {
             },
             {
               icon: GraduationCap,
-              title: "Hands-On Training",
-              desc: "A supportive fellowship where aspiring developers learn by building real software for real people. AI-assisted tools accelerate the journey. Senior mentors ensure quality every step of the way."
+              title: "Product-Focused Training",
+              desc: "A supportive fellowship where aspiring product builders learn by solving real problems for real people. AI agents handle the deep tech — fellows focus on owning the product and delivering value."
             },
             {
               icon: HeartHandshake,
@@ -228,19 +228,19 @@ export default function Home() {
               {[
                 {
                   title: "Foundations",
-                  desc: "2-4 weeks of core concepts: databases, forms, logic, and version control — all taught through hands-on projects with AI-assisted tools at your side."
+                  desc: "2-4 weeks learning how software products work — databases, interfaces, logic, and workflows — with AI tools doing the heavy lifting while you focus on solving problems."
                 },
                 {
-                  title: "Real Projects, Real People",
-                  desc: "You'll build software for real organizations from day one. Every project goes through senior review. Your portfolio starts here."
+                  title: "Real Products, Real People",
+                  desc: "You'll own products built for real organizations from day one. AI agents handle the deep tech. You focus on the problem, the product, and the outcome."
                 },
                 {
                   title: "Grow & Give Back",
-                  desc: "As you advance, you'll take on bigger challenges and start mentoring newer fellows. Teaching is the best way to deepen what you know."
+                  desc: "As you advance, you'll take on bigger products and start mentoring newer fellows. Teaching is the best way to deepen what you know."
                 },
                 {
                   title: "Launch Your Career",
-                  desc: "Graduate with a portfolio of deployed projects, real professional references, and modern AI-native development skills that employers are looking for."
+                  desc: "Graduate with a portfolio of products you owned end to end, real professional references, and the ability to leverage AI tools to build and ship anything."
                 }
               ].map((item, i) => (
                 <div key={i} className="flex gap-4">
@@ -259,7 +259,7 @@ export default function Home() {
           <div className="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-100 lg:sticky lg:top-32">
             <h3 className="text-2xl font-display text-[#0B1D3A] mb-6">Who We're Looking For</h3>
             <p className="text-muted-foreground mb-4">
-              No college degree required. No bootcamp tuition. If you have a high school diploma or GED, curiosity, and the heart to help — you're exactly who we want as a buddy. Non-traditional candidates are our priority.
+              No college degree required. No bootcamp tuition. We're not looking for people who already know how to code — we're looking for people who want to solve problems and own the outcome. If you have a high school diploma or GED and the heart to help, you're exactly who we want as a buddy.
             </p>
             
             <div className="flex flex-wrap gap-2 mb-8">

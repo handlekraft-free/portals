@@ -436,12 +436,12 @@ heading('11. Implementation Timeline');
 divider();
 
 const timeline = [
-  ['Q1 2026', 'File 501(c)(3) application. Recruit founding board members and sponsors. Finalize curriculum.'],
-  ['Q2 2026', 'Launch pilot cohort (5-8 fellows). Begin first 3 client projects. Build mentor network.'],
-  ['Q3 2026', 'Complete pilot projects. Gather impact data. Begin second cohort intake.'],
-  ['Q4 2026', 'Publish first impact report. Apply for foundation and government grants. Plan Year 2 growth.'],
-  ['2027', 'Scale to 2-3 cohorts/year. Expand into civic technology projects. Develop employer partnerships.'],
-  ['2028', 'Explore geographic expansion. Launch alumni mentorship program. Pursue sustainable revenue through government contracts.'],
+  ['Q2 2026', 'File 501(c)(3) application. Recruit founding board members and sponsors. Finalize curriculum.'],
+  ['Q3 2026', 'Launch pilot cohort (5-8 fellows). Begin first 3 client projects. Build mentor network.'],
+  ['Q4 2026', 'Complete pilot projects. Gather impact data. Begin second cohort intake.'],
+  ['Q1 2027', 'Publish first impact report. Apply for foundation and government grants. Plan Year 2 growth.'],
+  ['2027-2028', 'Scale to 2-3 cohorts/year. Expand into civic technology projects. Develop employer partnerships.'],
+  ['2029', 'Explore geographic expansion. Launch alumni mentorship program. Pursue sustainable revenue through government contracts.'],
 ];
 
 timeline.forEach(([period, desc]) => {

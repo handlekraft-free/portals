@@ -60,14 +60,14 @@ export function Navbar() {
                   e.preventDefault();
                   handleNavClick(link.href);
                 }}
-                className="text-white/80 hover:text-[#14B8A6] text-sm font-medium transition-colors"
+                className="text-white/80 hover:text-[#D4A843] text-sm font-medium transition-colors"
                 data-testid={`link-nav-${link.name.toLowerCase().replace(/\s+/g, '-')}`}
               >
                 {link.name}
               </a>
             ))}
             <Button 
-              className="bg-[#14B8A6] hover:bg-[#14B8A6]/90 text-[#0B1D3A] font-bold rounded-full px-6 hover:shadow-lg hover:shadow-[#14B8A6]/20 transition-all"
+              className="bg-[#D4A843] hover:bg-[#D4A843]/90 text-[#1A1F2B] font-bold rounded-full px-6 hover:shadow-lg hover:shadow-[#D4A843]/20 transition-all"
               onClick={() => handleNavClick("#get-involved")}
               data-testid="button-get-involved"
             >
@@ -91,7 +91,7 @@ export function Navbar() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 z-40 bg-[#0B1D3A] pt-24 px-6 md:hidden"
+            className="fixed inset-0 z-40 bg-[#1A1F2B] pt-24 px-6 md:hidden"
           >
             <div className="flex flex-col gap-6">
               {navLinks.map((link) => (
@@ -105,11 +105,11 @@ export function Navbar() {
                   className="text-2xl font-display text-white border-b border-white/10 pb-4 flex justify-between items-center"
                 >
                   {link.name}
-                  <ChevronRight className="w-5 h-5 text-[#14B8A6]" />
+                  <ChevronRight className="w-5 h-5 text-[#D4A843]" />
                 </a>
               ))}
               <Button 
-                className="bg-[#14B8A6] text-[#0B1D3A] w-full py-6 text-lg font-bold mt-4"
+                className="bg-[#D4A843] text-[#1A1F2B] w-full py-6 text-lg font-bold mt-4"
                 onClick={() => handleNavClick("#get-involved")}
               >
                 Get Involved

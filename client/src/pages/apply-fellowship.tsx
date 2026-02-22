@@ -38,11 +38,11 @@ export default function ApplyFellowship() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen font-body bg-[#FAF7F2]">
+      <div className="min-h-screen font-body bg-[#F5F3EF]">
         <Navbar />
         <div className="max-w-2xl mx-auto px-6 py-32 text-center">
-          <CheckCircle2 className="w-16 h-16 text-[#14B8A6] mx-auto mb-6" />
-          <h1 className="text-4xl font-display text-[#0B1D3A] mb-4" data-testid="text-fellowship-success">Application Received!</h1>
+          <CheckCircle2 className="w-16 h-16 text-[#0D7377] mx-auto mb-6" />
+          <h1 className="text-4xl font-display text-[#1A1F2B] mb-4" data-testid="text-fellowship-success">Application Received!</h1>
           <p className="text-lg text-muted-foreground mb-8">
             Thank you for applying to the Handlekraft Fellowship. We'll review your application and be in touch soon. We're excited to learn more about you.
           </p>
@@ -58,7 +58,7 @@ export default function ApplyFellowship() {
   }
 
   return (
-    <div className="min-h-screen font-body bg-[#FAF7F2]">
+    <div className="min-h-screen font-body bg-[#F5F3EF]">
       <Navbar />
       <div className="max-w-2xl mx-auto px-6 py-32">
         <Link href="/">
@@ -67,7 +67,7 @@ export default function ApplyFellowship() {
           </Button>
         </Link>
 
-        <h1 className="text-4xl font-display text-[#0B1D3A] mb-2" data-testid="text-fellowship-heading">Apply for the Fellowship</h1>
+        <h1 className="text-4xl font-display text-[#1A1F2B] mb-2" data-testid="text-fellowship-heading">Apply for the Fellowship</h1>
         <p className="text-lg text-muted-foreground mb-8">
           No college degree required. No tuition. Just a willingness to show up, learn, and build something meaningful. We're looking for problem solvers, not programmers — people ready to claim their <span className="italic">handlekraft</span>.
         </p>
@@ -137,7 +137,7 @@ export default function ApplyFellowship() {
 
           <Button
             type="submit"
-            className="w-full bg-[#14B8A6] text-[#0B1D3A] font-bold rounded-full h-14 text-lg"
+            className="w-full bg-[#0D7377] text-white font-bold rounded-full h-14 text-lg"
             disabled={mutation.isPending}
             data-testid="button-submit-fellowship"
           >

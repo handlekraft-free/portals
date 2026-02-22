@@ -35,9 +35,9 @@ function LoginForm({ onLogin }: { onLogin: () => void }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0B1D3A]">
+    <div className="min-h-screen flex items-center justify-center bg-[#1A1F2B]">
       <div className="bg-white rounded-2xl p-8 w-full max-w-sm shadow-2xl">
-        <h1 className="text-2xl font-display text-[#0B1D3A] mb-6 text-center" data-testid="text-admin-login-heading">Admin Login</h1>
+        <h1 className="text-2xl font-display text-[#1A1F2B] mb-6 text-center" data-testid="text-admin-login-heading">Admin Login</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="username">Username</Label>
@@ -77,7 +77,7 @@ function RatingStars({ rating, onChange }: { rating: number; onChange: (r: numbe
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map(n => (
         <button key={n} type="button" onClick={() => onChange(n)} className="p-0.5" data-testid={`button-star-${n}`}>
-          <Star className={`w-4 h-4 ${n <= rating ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
+          <Star className={`w-4 h-4 ${n <= rating ? "fill-[#D4A843] text-[#D4A843]" : "text-gray-300"}`} />
         </button>
       ))}
     </div>
@@ -416,7 +416,7 @@ export default function Admin() {
     });
   }
 
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-[#0B1D3A] text-white">Loading...</div>;
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-[#1A1F2B] text-white">Loading...</div>;
 
   if (!isAuthenticated) {
     return <LoginForm onLogin={() => { setLoggedIn(true); queryClient.invalidateQueries({ queryKey: ["/api/admin/me"] }); }} />;
@@ -424,7 +424,7 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-gray-50 font-body">
-      <header className="bg-[#0B1D3A] text-white px-6 py-4 flex items-center justify-between">
+      <header className="bg-[#1A1F2B] text-white px-6 py-4 flex items-center justify-between">
         <h1 className="text-xl font-display" data-testid="text-admin-heading">Handlekraft Digital — Admin</h1>
         <Button variant="ghost" className="text-white/70" onClick={handleLogout} data-testid="button-logout">
           <LogOut className="mr-2 w-4 h-4" /> Sign Out
@@ -441,7 +441,7 @@ export default function Admin() {
           <TabsContent value="fellowship">
             <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b bg-gray-50/50">
-                <h2 className="text-lg font-semibold text-[#0B1D3A]" data-testid="text-fellowship-queue-heading">Fellowship Applications</h2>
+                <h2 className="text-lg font-semibold text-[#1A1F2B]" data-testid="text-fellowship-queue-heading">Fellowship Applications</h2>
                 <p className="text-sm text-muted-foreground">Review, rate, and prioritize fellowship candidates</p>
               </div>
               <FellowshipQueue />
@@ -451,7 +451,7 @@ export default function Admin() {
           <TabsContent value="clients">
             <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b bg-gray-50/50">
-                <h2 className="text-lg font-semibold text-[#0B1D3A]" data-testid="text-client-queue-heading">Client Requests</h2>
+                <h2 className="text-lg font-semibold text-[#1A1F2B]" data-testid="text-client-queue-heading">Client Requests</h2>
                 <p className="text-sm text-muted-foreground">Review, rate, and prioritize organizations requesting help</p>
               </div>
               <ClientQueue />

@@ -11,7 +11,7 @@ Preferred communication style: Simple, everyday language.
 ## Frontend
 - **Framework:** React 18 with TypeScript, built with Vite
 - **Routing:** Wouter — routes: Home (`/`), Apply Fellowship (`/apply/fellowship`), Apply Client (`/apply/client`), Admin (`/admin`), 404
-- **Styling:** Tailwind CSS with CSS variables for theming, using a warm civic-tech color palette (navy `#0B1D3A`, warm teal `#14B8A6`, cream `#FAF7F2`)
+- **Styling:** Tailwind CSS with CSS variables for theming, using a teal/gold/slate color palette (charcoal slate `#1A1F2B`, deep teal `#0D7377`, warm gold `#D4A843`, off-white `#F5F3EF`)
 - **UI Components:** shadcn/ui (new-york style) with Radix UI primitives — full component library installed
 - **Animations:** Framer Motion for scroll animations and hero effects
 - **Fonts:** DM Serif Display (headings) and Outfit (body) via Google Fonts, referenced through CSS custom properties (`--font-display`, `--font-body`)
@@ -42,7 +42,7 @@ Preferred communication style: Simple, everyday language.
 1. **Full-stack application** — Express + React + PostgreSQL for landing page, public forms, and admin dashboard.
 2. **Component library** — A complete shadcn/ui installation for rapid feature development.
 3. **Single-page scroll design** — Homepage uses anchor links with smooth scrolling; separate routes for forms and admin.
-4. **Branding:** "Handlekraft Digital" — Norwegian etymology (handle + kraft = the power to act). Warm, kind, techy but approachable. Father-son founding team. Accent color is warm teal (#14B8A6). Emails use @handlekraft.ai domain.
+4. **Branding:** "Handlekraft Digital" — Norwegian etymology (handle + kraft = the power to act). Warm, kind, techy but approachable. Father-son founding team. Primary color is deep teal (#0D7377), accent is warm gold (#D4A843), dark base is charcoal slate (#1A1F2B), light surface is off-white (#F5F3EF). Emails use @handlekraft.ai domain.
 5. **Product-focused training** — Fellows own products end-to-end while AI agents handle deep technical implementation.
 
 # External Dependencies
@@ -67,3 +67,8 @@ Preferred communication style: Simple, everyday language.
 - Built public client application form ("Request Free Help") at /apply/client
 - Built admin dashboard at /admin with login, two queue tabs (fellowship and client), rating/priority/status management
 - Added CTA buttons on homepage linking to both application forms
+- Added Wordmark component with Unicode schwa (ə) rendering "handləkraft" with optional "THE POWER TO ACT" tagline
+- Shifted color palette from navy/warm teal to charcoal slate (#1A1F2B) / deep teal (#0D7377) / warm gold (#D4A843) / off-white (#F5F3EF)
+- Regenerated HK monogram logo with updated teal/gold palette
+- Updated all CSS variables, component colors, and utility classes to new palette
+- Gold used for hero accents, tagline, stats, nav CTA, step numbers; teal used for primary buttons, checkmarks, card accents

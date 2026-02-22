@@ -11,8 +11,8 @@ interface SectionProps extends React.HTMLAttributes<HTMLElement> {
 export function Section({ children, className, id, background = "white", ...props }: SectionProps) {
   const bgStyles = {
     white: "bg-white",
-    cream: "bg-[#FAF7F2]",
-    navy: "bg-[#0B1D3A] text-white",
+    cream: "bg-[#F5F3EF]",
+    navy: "bg-[#1A1F2B] text-white",
   };
 
   return (

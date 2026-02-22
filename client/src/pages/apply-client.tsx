@@ -43,11 +43,11 @@ export default function ApplyClient() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen font-body bg-[#FAF7F2]">
+      <div className="min-h-screen font-body bg-[#F5F3EF]">
         <Navbar />
         <div className="max-w-2xl mx-auto px-6 py-32 text-center">
-          <CheckCircle2 className="w-16 h-16 text-[#14B8A6] mx-auto mb-6" />
-          <h1 className="text-4xl font-display text-[#0B1D3A] mb-4" data-testid="text-client-success">Request Received!</h1>
+          <CheckCircle2 className="w-16 h-16 text-[#0D7377] mx-auto mb-6" />
+          <h1 className="text-4xl font-display text-[#1A1F2B] mb-4" data-testid="text-client-success">Request Received!</h1>
           <p className="text-lg text-muted-foreground mb-8">
             Thank you for reaching out. We'll review your request and be in touch soon to learn more about your organization and how we can help.
           </p>
@@ -63,7 +63,7 @@ export default function ApplyClient() {
   }
 
   return (
-    <div className="min-h-screen font-body bg-[#FAF7F2]">
+    <div className="min-h-screen font-body bg-[#F5F3EF]">
       <Navbar />
       <div className="max-w-2xl mx-auto px-6 py-32">
         <Link href="/">
@@ -72,7 +72,7 @@ export default function ApplyClient() {
           </Button>
         </Link>
 
-        <h1 className="text-4xl font-display text-[#0B1D3A] mb-2" data-testid="text-client-heading">Request Free Help</h1>
+        <h1 className="text-4xl font-display text-[#1A1F2B] mb-2" data-testid="text-client-heading">Request Free Help</h1>
         <p className="text-lg text-muted-foreground mb-8">
           Tell us about your organization and what you need. Whether it's a website, an intake system, or something else entirely — we'd love to help you gain the power to act. Everything we build is free.
         </p>
@@ -164,7 +164,7 @@ export default function ApplyClient() {
 
           <Button
             type="submit"
-            className="w-full bg-[#14B8A6] text-[#0B1D3A] font-bold rounded-full h-14 text-lg"
+            className="w-full bg-[#0D7377] text-white font-bold rounded-full h-14 text-lg"
             disabled={mutation.isPending}
             data-testid="button-submit-client"
           >

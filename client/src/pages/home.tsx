@@ -10,13 +10,13 @@ import logoImg from "@/assets/images/logo.png";
 
 export default function Home() {
   return (
-    <div className="min-h-screen font-body selection:bg-[#14B8A6] selection:text-white">
+    <div className="min-h-screen font-body selection:bg-[#0D7377] selection:text-white">
       <Navbar />
       
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0B1D3A] text-white pt-20">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#1A1F2B] text-white pt-20">
         <div className="absolute inset-0 z-0">
-          <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#14B8A6] rounded-full mix-blend-screen filter blur-[120px] opacity-20 animate-pulse" />
-          <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-amber-400 rounded-full mix-blend-screen filter blur-[100px] opacity-10" />
+          <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#0D7377] rounded-full mix-blend-screen filter blur-[120px] opacity-20 animate-pulse" />
+          <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-[#D4A843] rounded-full mix-blend-screen filter blur-[100px] opacity-10" />
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]" />
         </div>
 
@@ -31,16 +31,16 @@ export default function Home() {
             </div>
 
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-sm font-medium mb-8 backdrop-blur-sm" data-testid="text-badge">
-              <span className="w-2 h-2 rounded-full bg-[#14B8A6] animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-[#D4A843] animate-pulse" />
               Early-Stage 501(c)(3) Nonprofit Initiative
             </div>
             
             <div className="flex justify-center mb-6" data-testid="text-hero-heading">
-              <Wordmark size="hero" className="text-white" showTagline taglineClassName="text-[#14B8A6] text-center" />
+              <Wordmark size="hero" className="text-white" showTagline taglineClassName="text-[#D4A843] text-center" />
             </div>
 
             <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-4 font-light leading-relaxed" data-testid="text-hero-subtitle">
-              <span className="italic text-white/50">Handl&#x259;kraft</span> is Norwegian for <span className="text-[#14B8A6] font-medium">the power to act on your own behalf</span>. We give that power to the people and organizations who need it most.
+              <span className="italic text-white/50">Handl&#x259;kraft</span> is Norwegian for <span className="text-[#D4A843] font-medium">the power to act on your own behalf</span>. We give that power to the people and organizations who need it most.
             </p>
 
             <p className="text-lg text-white/50 max-w-xl mx-auto mb-10 font-light">
@@ -50,7 +50,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
               <Button 
                 size="lg" 
-                className="bg-[#14B8A6] hover:bg-[#14B8A6]/90 text-[#0B1D3A] text-lg font-bold rounded-full px-8 h-14 shadow-xl shadow-[#14B8A6]/20 hover:-translate-y-1 transition-all"
+                className="bg-[#D4A843] hover:bg-[#D4A843]/90 text-[#1A1F2B] text-lg font-bold rounded-full px-8 h-14 shadow-xl shadow-[#D4A843]/20 hover:-translate-y-1 transition-all"
                 onClick={() => window.open('/proposal.pdf', '_blank')}
                 data-testid="button-read-proposal"
               >
@@ -69,15 +69,15 @@ export default function Home() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto border-t border-white/10 pt-12">
               <div className="text-center">
-                <div className="text-4xl font-display text-[#14B8A6] mb-1" data-testid="text-stat-cost">$0</div>
+                <div className="text-4xl font-display text-[#D4A843] mb-1" data-testid="text-stat-cost">$0</div>
                 <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Cost to Organizations</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-display text-[#14B8A6] mb-1">100%</div>
+                <div className="text-4xl font-display text-[#D4A843] mb-1">100%</div>
                 <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Donation Funded</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-display text-[#14B8A6] mb-1">2x</div>
+                <div className="text-4xl font-display text-[#D4A843] mb-1">2x</div>
                 <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Impact: Software + Careers</div>
               </div>
             </div>
@@ -108,7 +108,7 @@ export default function Home() {
               <p>
                 We believe the most powerful thing you can give someone is the ability to act. For organizations, that means custom tools that actually fit their work. For aspiring builders, it means real projects, real mentorship, and a real path forward. AI-powered tools mean motivated people can own and deliver real products faster than ever — you don't need a CS degree to solve real problems.
               </p>
-              <p className="font-semibold text-[#0B1D3A]">
+              <p className="font-semibold text-[#1A1F2B]">
                 Handlekraft Digital brings these two worlds together — giving organizations the tools to act, and giving people the skills to build them.
               </p>
             </div>
@@ -118,9 +118,9 @@ export default function Home() {
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="bg-[#0B1D3A] text-white p-8 md:p-12 rounded-3xl shadow-2xl relative overflow-hidden group"
+            className="bg-[#1A1F2B] text-white p-8 md:p-12 rounded-3xl shadow-2xl relative overflow-hidden group"
           >
-            <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#14B8A6] rounded-full opacity-20 blur-2xl group-hover:scale-150 transition-transform duration-1000" />
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#0D7377] rounded-full opacity-20 blur-2xl group-hover:scale-150 transition-transform duration-1000" />
             
             <h3 className="text-2xl font-display mb-4 relative z-10">Handle + Kraft</h3>
             <p className="text-white/60 text-sm mb-8 relative z-10 italic">Norwegian: to act + power = the power to act</p>
@@ -132,7 +132,7 @@ export default function Home() {
                 "Graduates pay it forward — mentoring the next cohort, strengthening the cycle."
               ].map((step, i) => (
                 <li key={i} className="flex gap-4 items-start">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#14B8A6] text-[#0B1D3A] font-bold flex items-center justify-center text-sm">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#D4A843] text-[#1A1F2B] font-bold flex items-center justify-center text-sm">
                     {i + 1}
                   </div>
                   <p className="text-white/90 font-light">{step}</p>
@@ -173,11 +173,11 @@ export default function Home() {
               whileHover={{ y: -8 }}
               className="p-8 rounded-2xl bg-white border border-slate-100 shadow-xl shadow-slate-200/50 relative overflow-hidden group"
             >
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#0B1D3A] to-[#14B8A6]" />
-              <div className="w-12 h-12 bg-[#14B8A6]/10 rounded-xl flex items-center justify-center text-[#14B8A6] mb-6 group-hover:bg-[#14B8A6] group-hover:text-white transition-colors">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#1A1F2B] to-[#0D7377]" />
+              <div className="w-12 h-12 bg-[#0D7377]/10 rounded-xl flex items-center justify-center text-[#0D7377] mb-6 group-hover:bg-[#0D7377] group-hover:text-white transition-colors">
                 <card.icon size={24} />
               </div>
-              <h3 className="text-xl font-bold text-[#0B1D3A] mb-4">{card.title}</h3>
+              <h3 className="text-xl font-bold text-[#1A1F2B] mb-4">{card.title}</h3>
               <p className="text-muted-foreground leading-relaxed">
                 {card.desc}
               </p>
@@ -209,11 +209,11 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.05 }}
-              whileHover={{ scale: 1.05, backgroundColor: "#14B8A6", color: "#0B1D3A" }}
+              whileHover={{ scale: 1.05, backgroundColor: "#0D7377" }}
               className="bg-white/5 border border-white/10 p-6 rounded-xl flex flex-col items-center justify-center text-center h-36 cursor-default transition-colors"
               data-testid={`card-sector-${sector.name.toLowerCase().replace(/\s+/g, '-')}`}
             >
-              <sector.icon className="w-8 h-8 mb-3 text-[#14B8A6]" />
+              <sector.icon className="w-8 h-8 mb-3 text-[#D4A843]" />
               <span className="font-display text-lg tracking-wide mb-1">{sector.name}</span>
               <span className="text-xs text-white/50 leading-tight">{sector.desc}</span>
             </motion.div>
@@ -224,7 +224,7 @@ export default function Home() {
           <Link href="/apply/client">
             <Button 
               size="lg"
-              className="bg-[#14B8A6] text-[#0B1D3A] font-bold text-lg rounded-full px-8 h-14"
+              className="bg-[#D4A843] text-[#1A1F2B] font-bold text-lg rounded-full px-8 h-14"
               data-testid="button-get-started"
             >
               <Zap className="mr-2 w-5 h-5" />
@@ -262,10 +262,10 @@ export default function Home() {
               ].map((item, i) => (
                 <div key={i} className="flex gap-4">
                   <div className="mt-1">
-                    <CheckCircle2 className="text-[#14B8A6] w-6 h-6" />
+                    <CheckCircle2 className="text-[#0D7377] w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="text-xl font-bold text-[#0B1D3A] mb-2">{item.title}</h4>
+                    <h4 className="text-xl font-bold text-[#1A1F2B] mb-2">{item.title}</h4>
                     <p className="text-muted-foreground">{item.desc}</p>
                   </div>
                 </div>
@@ -274,7 +274,7 @@ export default function Home() {
           </div>
 
           <div className="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-100 lg:sticky lg:top-32">
-            <h3 className="text-2xl font-display text-[#0B1D3A] mb-6">Who We're Looking For</h3>
+            <h3 className="text-2xl font-display text-[#1A1F2B] mb-6">Who We're Looking For</h3>
             <p className="text-muted-foreground mb-4">
               No college degree required. No bootcamp tuition. We're not looking for people who already know how to code — we're looking for people who want to solve problems and own the outcome. If you have a high school diploma or GED and the drive to act, you're exactly who we want.
             </p>
@@ -294,7 +294,7 @@ export default function Home() {
               ].map((tag, i) => (
                 <span 
                   key={i} 
-                  className="px-4 py-2 bg-[#FAF7F2] text-[#0B1D3A] rounded-full text-sm font-medium border border-[#0B1D3A]/10 hover:bg-[#0B1D3A] hover:text-white transition-colors cursor-default"
+                  className="px-4 py-2 bg-[#F5F3EF] text-[#1A1F2B] rounded-full text-sm font-medium border border-[#1A1F2B]/10 hover:bg-[#1A1F2B] hover:text-white transition-colors cursor-default"
                   data-testid={`tag-candidate-${i}`}
                 >
                   {tag}
@@ -304,7 +304,7 @@ export default function Home() {
 
             <Link href="/apply/fellowship">
               <Button 
-                className="w-full bg-[#14B8A6] text-[#0B1D3A] font-bold rounded-full h-14 text-lg"
+                className="w-full bg-[#0D7377] text-white font-bold rounded-full h-14 text-lg"
                 data-testid="button-apply-fellowship"
               >
                 <UserPlus className="mr-2 w-5 h-5" />
@@ -317,16 +317,16 @@ export default function Home() {
       </Section>
 
       <Section background="white">
-        <div className="bg-slate-50 rounded-3xl p-8 md:p-16 text-center border border-slate-200">
-          <Code2 className="w-12 h-12 text-[#0B1D3A] mx-auto mb-6" />
-          <h2 className="text-3xl md:text-4xl font-display text-[#0B1D3A] mb-4" data-testid="text-proposal-heading">
+        <div className="bg-[#F5F3EF] rounded-3xl p-8 md:p-16 text-center border border-slate-200">
+          <Code2 className="w-12 h-12 text-[#1A1F2B] mx-auto mb-6" />
+          <h2 className="text-3xl md:text-4xl font-display text-[#1A1F2B] mb-4" data-testid="text-proposal-heading">
             Read the full story.
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
             Handlekraft Digital is just getting started. Our proposal covers everything — our mission, how we operate, how we fund the work, and where we're headed. We'd love your thoughts and your support.
           </p>
           <Button 
-            className="bg-[#0B1D3A] hover:bg-[#0B1D3A]/90 text-white font-bold rounded-full px-8 py-6 h-auto"
+            className="bg-[#1A1F2B] hover:bg-[#1A1F2B]/90 text-white font-bold rounded-full px-8 py-6 h-auto"
             onClick={() => window.open('/proposal.pdf', '_blank')}
             data-testid="button-download-proposal"
           >
@@ -336,8 +336,9 @@ export default function Home() {
         </div>
       </Section>
 
-      <section id="get-involved" className="py-24 bg-gradient-to-br from-[#0B1D3A] to-[#1a3b6e] text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#14B8A6] rounded-full mix-blend-screen filter blur-[150px] opacity-20 pointer-events-none" />
+      <section id="get-involved" className="py-24 bg-gradient-to-br from-[#1A1F2B] to-[#2a3040] text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#0D7377] rounded-full mix-blend-screen filter blur-[150px] opacity-15 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#D4A843] rounded-full mix-blend-screen filter blur-[120px] opacity-10 pointer-events-none" />
         
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
           <h2 className="text-4xl md:text-6xl font-display mb-8" data-testid="text-cta-heading">
@@ -354,7 +355,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
             <Button 
               size="lg" 
-              className="bg-[#14B8A6] hover:bg-[#14B8A6]/90 text-[#0B1D3A] font-bold text-lg px-8 py-8 h-auto rounded-xl shadow-lg hover:shadow-[#14B8A6]/30 transition-all w-full sm:w-auto"
+              className="bg-[#D4A843] hover:bg-[#D4A843]/90 text-[#1A1F2B] font-bold text-lg px-8 py-8 h-auto rounded-xl shadow-lg hover:shadow-[#D4A843]/30 transition-all w-full sm:w-auto"
               onClick={() => window.location.href = "mailto:donate@handlekraft.ai?subject=Founding%20Sponsor%20Inquiry"}
               data-testid="button-founding-sponsor"
             >

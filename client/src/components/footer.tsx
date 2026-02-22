@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { Mail, Github, Linkedin, Twitter } from "lucide-react";
+import { Wordmark } from "@/components/wordmark";
 import logoImg from "@/assets/images/logo.png";
 
 export function Footer() {
@@ -9,12 +10,10 @@ export function Footer() {
         <div className="col-span-1 md:col-span-2">
           <Link href="/" className="flex items-center gap-3 mb-6 cursor-pointer">
             <img src={logoImg} alt="Handlekraft Digital logo" className="w-10 h-10 rounded-lg" />
-            <span className="text-white font-display text-2xl tracking-wide">
-              Handlekraft Digital
-            </span>
+            <Wordmark size="md" className="text-white" showTagline taglineClassName="text-[#14B8A6]/70" />
           </Link>
           <p className="max-w-md text-sm leading-relaxed mb-2">
-            <span className="italic text-white/40">Handlekraft</span> — Norwegian for <span className="text-white/80">the power to act</span>.
+            <span className="italic text-white/40">Handləkraft</span> — Norwegian for <span className="text-white/80">the power to act</span>.
           </p>
           <p className="max-w-md text-sm leading-relaxed mb-4">
             A 501(c)(3) nonprofit initiative. All donations are tax-deductible.

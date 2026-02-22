@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Code2, GraduationCap, Users, HeartHandshake, ArrowDown, Mail, Building2, UserPlus, Home as HomeIcon, Heart, Handshake, UtensilsCrossed, Baby, Shield, Landmark, Building, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
+import { Wordmark } from "@/components/wordmark";
 import logoImg from "@/assets/images/logo.png";
 
 export default function Home() {
@@ -34,15 +35,12 @@ export default function Home() {
               Early-Stage 501(c)(3) Nonprofit Initiative
             </div>
             
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-display leading-[1.1] mb-8" data-testid="text-hero-heading">
-              The Power <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#14B8A6] to-emerald-200">
-                to Act
-              </span>
-            </h1>
+            <div className="flex justify-center mb-6" data-testid="text-hero-heading">
+              <Wordmark size="hero" className="text-white" showTagline taglineClassName="text-[#14B8A6] text-center" />
+            </div>
 
             <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-4 font-light leading-relaxed" data-testid="text-hero-subtitle">
-              <span className="italic text-white/50">Handlekraft</span> is Norwegian for <span className="text-[#14B8A6] font-medium">the power to act on your own behalf</span>. We give that power to the people and organizations who need it most.
+              <span className="italic text-white/50">Handl&#x259;kraft</span> is Norwegian for <span className="text-[#14B8A6] font-medium">the power to act on your own behalf</span>. We give that power to the people and organizations who need it most.
             </p>
 
             <p className="text-lg text-white/50 max-w-xl mx-auto mb-10 font-light">

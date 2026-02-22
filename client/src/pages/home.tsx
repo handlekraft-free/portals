@@ -7,6 +7,10 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Wordmark } from "@/components/wordmark";
 import logoImg from "@/assets/images/logo.png";
+import vikingWave from "@/assets/images/viking-wave.png";
+import vikingCoding from "@/assets/images/viking-coding.png";
+import vikingShield from "@/assets/images/viking-shield.png";
+import vikingTriumph from "@/assets/images/viking-triumph.png";
 
 export default function Home() {
   return (
@@ -122,6 +126,14 @@ export default function Home() {
           >
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#0D7377] rounded-full opacity-20 blur-2xl group-hover:scale-150 transition-transform duration-1000" />
             
+            <motion.img 
+              src={vikingWave} 
+              alt="" 
+              className="absolute -top-6 -right-2 w-20 h-20 z-20 opacity-90 pointer-events-none"
+              initial={{ rotate: -10 }}
+              animate={{ rotate: [-10, 5, -10] }}
+              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+            />
             <h3 className="text-2xl font-display mb-4 relative z-10">Handle + Kraft</h3>
             <p className="text-white/60 text-sm mb-8 relative z-10 italic">Norwegian: to act + power = the power to act</p>
             <ul className="space-y-6 relative z-10">
@@ -220,7 +232,14 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="text-center mt-12">
+        <div className="text-center mt-12 relative">
+          <motion.img 
+            src={vikingShield} 
+            alt="" 
+            className="w-16 h-16 mx-auto mb-4 opacity-80"
+            animate={{ y: [0, -6, 0] }}
+            transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+          />
           <Link href="/apply/client">
             <Button 
               size="lg"
@@ -311,6 +330,13 @@ export default function Home() {
               </Button>
             </Link>
             <p className="text-xs text-muted-foreground text-center mt-3">Only a HS diploma or GED required. All backgrounds welcome.</p>
+            <motion.img 
+              src={vikingCoding} 
+              alt="" 
+              className="w-24 h-24 mx-auto mt-6 opacity-70"
+              animate={{ y: [0, -4, 0] }}
+              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+            />
           </div>
         </div>
       </Section>
@@ -340,6 +366,13 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#D4A843] rounded-full mix-blend-screen filter blur-[120px] opacity-10 pointer-events-none" />
         
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
+          <motion.img 
+            src={vikingTriumph} 
+            alt="" 
+            className="w-20 h-20 mx-auto mb-6 opacity-80"
+            animate={{ scale: [1, 1.08, 1] }}
+            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+          />
           <h2 className="text-4xl md:text-6xl font-display mb-8" data-testid="text-cta-heading">
             Be part of something good.
           </h2>

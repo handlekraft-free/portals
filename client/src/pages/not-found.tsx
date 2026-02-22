@@ -19,7 +19,7 @@ export default function NotFound() {
 
           <div className="mt-8 flex justify-end">
              <Link href="/">
-              <Button className="bg-[#0B1D3A] text-white hover:bg-[#0B1D3A]/90">Return to Home</Button>
+              <Button className="bg-[#1A1F2B] text-white hover:bg-[#1A1F2B]/90">Return to Home</Button>
             </Link>
           </div>
         </CardContent>

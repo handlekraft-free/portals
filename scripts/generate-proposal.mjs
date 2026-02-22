@@ -14,8 +14,8 @@ const doc = new PDFDocument({
 const output = fs.createWriteStream('client/public/proposal.pdf');
 doc.pipe(output);
 
-const navy = '#0B1D3A';
-const teal = '#14B8A6';
+const navy = '#1A1F2B';
+const teal = '#0D7377';
 const darkGray = '#333333';
 const medGray = '#555555';
 const lightGray = '#888888';

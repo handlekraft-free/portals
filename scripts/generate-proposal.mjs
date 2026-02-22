@@ -1,5 +1,6 @@
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
+import path from 'path';
 
 const doc = new PDFDocument({
   size: 'letter',
@@ -16,9 +17,16 @@ doc.pipe(output);
 
 const navy = '#1A1F2B';
 const teal = '#0D7377';
+const gold = '#D4A843';
 const darkGray = '#333333';
 const medGray = '#555555';
 const lightGray = '#888888';
+const offWhite = '#F5F3EF';
+
+const vikingShip = path.resolve('scripts/assets/viking-ship-building.png');
+const vikingKey = path.resolve('scripts/assets/viking-key.png');
+const vikingMentor = path.resolve('scripts/assets/viking-mentoring.png');
+const logoPath = path.resolve('client/src/assets/images/logo.png');
 
 function heading(text, size = 24) {
   doc.font('Helvetica-Bold').fontSize(size).fillColor(navy).text(text);
@@ -51,9 +59,22 @@ function divider() {
   doc.moveDown(0.8);
 }
 
+function goldDivider() {
+  doc.moveDown(0.5);
+  const y = doc.y;
+  doc.strokeColor(gold).lineWidth(1.5).moveTo(72, y).lineTo(540, y).stroke();
+  doc.moveDown(0.8);
+}
+
 function checkPage(needed = 120) {
   if (doc.y + needed > 700) {
     doc.addPage();
+  }
+}
+
+function addImage(imgPath, x, y, width) {
+  if (fs.existsSync(imgPath)) {
+    doc.image(imgPath, x, y, { width });
   }
 }
 
@@ -62,38 +83,52 @@ function checkPage(needed = 120) {
 // ===========================
 doc.rect(0, 0, 612, 792).fill(navy);
 
-doc.fontSize(14).fillColor(teal).font('Helvetica')
-  .text('ORGANIZATIONAL PROPOSAL', 72, 200, { characterSpacing: 4 });
+doc.rect(0, 0, 612, 6).fill(gold);
+
+if (fs.existsSync(logoPath)) {
+  doc.image(logoPath, 256, 80, { width: 100 });
+}
+
+doc.fontSize(12).fillColor(gold).font('Helvetica')
+  .text('ORGANIZATIONAL PROPOSAL', 72, 200, { characterSpacing: 4, align: 'center' });
 
 doc.moveDown(1);
-doc.fontSize(42).fillColor('#FFFFFF').font('Helvetica-Bold')
-  .text('Handlekraft\nDigital', 72, 240);
+doc.fontSize(52).fillColor('#FFFFFF').font('Helvetica-Bold')
+  .text('handlekraft', 72, 240, { align: 'center' });
 
-doc.moveDown(0.5);
-doc.fontSize(13).fillColor(teal).font('Helvetica')
-  .text('handle · kraft — Norwegian: the power to act', 72);
+doc.moveDown(0.3);
+doc.fontSize(14).fillColor(gold).font('Helvetica')
+  .text('handle · kraft — Norwegian: the power to act', 72, undefined, { align: 'center' });
 
 doc.moveDown(1.5);
 doc.fontSize(14).fillColor('#FFFFFF').font('Helvetica').opacity(0.7)
-  .text('Free Software & Websites for Community Organizations.\nProduct-Focused Training for Aspiring Problem Solvers.', 72);
+  .text('Free Software & Websites for Community Organizations.', 72, undefined, { align: 'center' });
+doc.fontSize(14).fillColor('#FFFFFF').font('Helvetica').opacity(0.7)
+  .text('Product-Focused Training for Aspiring Problem Solvers.', 72, undefined, { align: 'center' });
 
 doc.opacity(1);
-doc.moveDown(4);
 
-doc.fontSize(11).fillColor(teal).font('Helvetica-Bold')
-  .text('501(c)(3) Nonprofit Initiative', 72);
+if (fs.existsSync(vikingShip)) {
+  doc.image(vikingShip, 106, 430, { width: 400 });
+}
+
+doc.fontSize(11).fillColor(gold).font('Helvetica-Bold')
+  .text('501(c)(3) Nonprofit Initiative', 72, 680, { align: 'center' });
 doc.fontSize(11).fillColor('#FFFFFF').font('Helvetica').opacity(0.6)
-  .text('Founding Stage — 2026', 72);
+  .text('Founding Stage — 2026', 72, undefined, { align: 'center' });
 doc.opacity(1);
 
-doc.fontSize(10).fillColor('#FFFFFF').font('Helvetica').opacity(0.4)
-  .text('This is a living document. We welcome questions, ideas, and conversations.', 72, 700);
+doc.fontSize(9).fillColor('#FFFFFF').font('Helvetica').opacity(0.4)
+  .text('This is a living document. We welcome questions, ideas, and conversations.', 72, 740, { align: 'center' });
 doc.opacity(1);
 
 // ===========================
 // TABLE OF CONTENTS
 // ===========================
 doc.addPage();
+
+doc.rect(0, 0, 612, 6).fill(teal);
+
 heading('Table of Contents', 28);
 spacer(0.5);
 
@@ -113,8 +148,8 @@ const tocItems = [
 ];
 
 tocItems.forEach(([num, title, page]) => {
-  doc.font('Helvetica').fontSize(12).fillColor(darkGray)
-    .text(`${num}.  ${title}`, 72, doc.y, { continued: false });
+  doc.font('Helvetica-Bold').fontSize(12).fillColor(teal).text(`${num}.`, 72, doc.y, { continued: true, width: 30 });
+  doc.font('Helvetica').fontSize(12).fillColor(darkGray).text(`  ${title}`, { continued: false });
   doc.moveDown(0.4);
 });
 
@@ -123,7 +158,7 @@ tocItems.forEach(([num, title, page]) => {
 // ===========================
 doc.addPage();
 heading('1. Executive Summary');
-divider();
+goldDivider();
 
 body('handlekraft is an early-stage 501(c)(3) nonprofit that pairs aspiring product builders with community organizations that need help — creating free, custom software and websites that give organizations the power to act.');
 
@@ -149,7 +184,9 @@ bullet('Dual impact: software delivery + career development');
 // ===========================
 doc.addPage();
 heading('2. The Problem');
-divider();
+goldDivider();
+
+addImage(vikingKey, 440, 72, 80);
 
 subheading('The Technology Gap');
 body('Thousands of community organizations — homeless shelters, free clinics, food banks, youth mentorship programs, veteran service organizations — and underfunded state and local government agencies rely on manual processes to manage life-changing work. They track client intake on paper. They manage case files in shared spreadsheets. They communicate via sticky notes and whiteboard schedules.');
@@ -177,7 +214,7 @@ body('This shift means the most valuable skill isn\'t memorizing syntax or maste
 // ===========================
 doc.addPage();
 heading('3. Our Approach');
-divider();
+goldDivider();
 
 body('handlekraft works as a simple, powerful cycle:');
 
@@ -201,7 +238,7 @@ body('Each graduating class strengthens our ability to help more organizations a
 // ===========================
 doc.addPage();
 heading('4. Three Ways We Deliver Agency');
-divider();
+goldDivider();
 
 subheading('1. Free Software & Web Design');
 body('We work like a caring software consultancy — but the bill is always $0. What we build:');
@@ -238,7 +275,7 @@ body('Over time, handlekraft becomes a self-sustaining engine for community tech
 // ===========================
 doc.addPage();
 heading('5. Who We Serve');
-divider();
+goldDivider();
 
 subheading('Organizations We Help');
 body('We serve nonprofits, community service organizations, and underserved state and local government agencies — any organization doing good work on a tight budget that could use the power to act.');
@@ -255,7 +292,7 @@ const orgs = [
 ];
 
 orgs.forEach(([name, desc]) => {
-  doc.font('Helvetica-Bold').fontSize(11).fillColor(navy).text(name, { continued: true });
+  doc.font('Helvetica-Bold').fontSize(11).fillColor(teal).text(name, { continued: true });
   doc.font('Helvetica').fillColor(darkGray).text(` — ${desc}`);
   doc.moveDown(0.3);
 });
@@ -283,7 +320,9 @@ body('The only prerequisites are a high school diploma or GED, basic computer li
 // ===========================
 doc.addPage();
 heading('6. The Fellowship Program');
-divider();
+goldDivider();
+
+addImage(vikingMentor, 430, 72, 90);
 
 subheading('Phase 1: Foundations (Weeks 1-4)');
 body('Fellows complete a supportive foundational program focused on understanding how software products work and how to build them with AI-powered tools:');
@@ -325,7 +364,7 @@ bullet('Job search support and interview preparation');
 // ===========================
 doc.addPage();
 heading('7. The AI Advantage');
-divider();
+goldDivider();
 
 body('handlekraft is built for this moment. Agentic engineering — where AI handles more and more of the deep technical implementation — is transforming software development. We\'re not fighting that trend. We\'re riding it.');
 
@@ -354,7 +393,7 @@ bullet('As AI capabilities accelerate, our model scales with them — every adva
 // ===========================
 doc.addPage();
 heading('8. Operating Model');
-divider();
+goldDivider();
 
 subheading('Year 1: Getting Started');
 bullet('Establish 501(c)(3) status and organizational infrastructure');
@@ -385,7 +424,7 @@ bullet('Publish impact report and case studies');
 // ===========================
 doc.addPage();
 heading('9. Funding Strategy');
-divider();
+goldDivider();
 
 body('handlekraft is 100% donation-funded in its founding stage. Our funding approach grows with the organization:');
 
@@ -410,7 +449,7 @@ body('We believe in full transparency. Our annual budget, expenditures, and impa
 // ===========================
 doc.addPage();
 heading('10. Founding Team');
-divider();
+goldDivider();
 
 body('handlekraft was founded by a father-son team who believe the best things in life are built together.');
 
@@ -433,7 +472,10 @@ bullet('Advisory council members from the communities we serve');
 // ===========================
 checkPage(300);
 heading('11. Implementation Timeline');
-divider();
+goldDivider();
+
+addImage(vikingShip, 106, doc.y, 400);
+doc.moveDown(12);
 
 const timeline = [
   ['Q2 2026', 'File 501(c)(3) application. Recruit founding board members and sponsors. Finalize curriculum.'],
@@ -446,7 +488,7 @@ const timeline = [
 
 timeline.forEach(([period, desc]) => {
   checkPage(80);
-  doc.font('Helvetica-Bold').fontSize(12).fillColor(teal).text(period);
+  doc.font('Helvetica-Bold').fontSize(12).fillColor(gold).text(period);
   doc.font('Helvetica').fontSize(11).fillColor(darkGray).text(desc, { lineGap: 3 });
   doc.moveDown(0.6);
 });
@@ -456,7 +498,7 @@ timeline.forEach(([period, desc]) => {
 // ===========================
 doc.addPage();
 heading('12. How You Can Help');
-divider();
+goldDivider();
 
 body('handlekraft is just getting started. We need people who believe in this vision to help us bring it to life. Here\'s how you can be part of it:');
 
@@ -480,13 +522,13 @@ subheading('Apply for the Fellowship');
 body('If you have a high school diploma or GED, curiosity, and the drive to learn — we want to meet you. No college degree required. No tuition. Non-traditional candidates are exactly who we\'re looking for.');
 
 spacer(1);
-divider();
+goldDivider();
 spacer(0.5);
 
 doc.font('Helvetica-Bold').fontSize(14).fillColor(navy)
   .text('Get in Touch', { align: 'center' });
 doc.moveDown(0.5);
-doc.font('Helvetica').fontSize(12).fillColor(darkGray)
+doc.font('Helvetica').fontSize(12).fillColor(teal)
   .text('hello@handlekraft.ai', { align: 'center' });
 doc.moveDown(0.3);
 doc.font('Helvetica').fontSize(10).fillColor(lightGray)

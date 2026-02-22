@@ -31,7 +31,7 @@ export default function Home() {
             transition={{ duration: 0.8 }}
           >
             <div className="flex justify-center mb-8">
-              <img src={logoImg} alt="handlekraft" className="w-20 h-20 rounded-2xl shadow-2xl" data-testid="img-hero-logo" />
+              <img src={logoImg} alt="handlekraft" className="w-36 h-36 rounded-3xl shadow-2xl" data-testid="img-hero-logo" />
             </div>
 
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-sm font-medium mb-8 backdrop-blur-sm" data-testid="text-badge">

@@ -72,9 +72,9 @@ export default function ApplyClient() {
           </Button>
         </Link>
 
-        <h1 className="text-4xl font-display text-[#0B1D3A] mb-2" data-testid="text-client-heading">Get a Buddy</h1>
+        <h1 className="text-4xl font-display text-[#0B1D3A] mb-2" data-testid="text-client-heading">Request Free Help</h1>
         <p className="text-lg text-muted-foreground mb-8">
-          Tell us about your organization and what you need. Whether it's a website, an intake system, or something else entirely — we'd love to help. Everything we build is free.
+          Tell us about your organization and what you need. Whether it's a website, an intake system, or something else entirely — we'd love to help you gain the power to act. Everything we build is free.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">

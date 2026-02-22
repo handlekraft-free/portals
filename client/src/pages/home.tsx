@@ -2,7 +2,7 @@ import { Navbar } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Code2, GraduationCap, Users, HeartHandshake, ArrowDown, Mail, Building2, UserPlus, Home as HomeIcon, Heart, Handshake, UtensilsCrossed, Baby, Shield, Landmark, Building, HandHeart } from "lucide-react";
+import { ArrowRight, CheckCircle2, Code2, GraduationCap, Users, HeartHandshake, ArrowDown, Mail, Building2, UserPlus, Home as HomeIcon, Heart, Handshake, UtensilsCrossed, Baby, Shield, Landmark, Building, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import logoImg from "@/assets/images/logo.png";
@@ -26,7 +26,7 @@ export default function Home() {
             transition={{ duration: 0.8 }}
           >
             <div className="flex justify-center mb-8">
-              <img src={logoImg} alt="The Buddy Promise" className="w-20 h-20 rounded-2xl shadow-2xl" data-testid="img-hero-logo" />
+              <img src={logoImg} alt="Handlekraft Digital" className="w-20 h-20 rounded-2xl shadow-2xl" data-testid="img-hero-logo" />
             </div>
 
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-sm font-medium mb-8 backdrop-blur-sm" data-testid="text-badge">
@@ -35,14 +35,18 @@ export default function Home() {
             </div>
             
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-display leading-[1.1] mb-8" data-testid="text-hero-heading">
-              A Promise to <br />
+              The Power <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#14B8A6] to-emerald-200">
-                Build Together
+                to Act
               </span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-10 font-light leading-relaxed" data-testid="text-hero-subtitle">
-              We pair aspiring product builders with community organizations that need help — creating free software and websites side by side, like buddies do.
+            <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-4 font-light leading-relaxed" data-testid="text-hero-subtitle">
+              <span className="italic text-white/50">Handlekraft</span> is Norwegian for <span className="text-[#14B8A6] font-medium">the power to act on your own behalf</span>. We give that power to the people and organizations who need it most.
+            </p>
+
+            <p className="text-lg text-white/50 max-w-xl mx-auto mb-10 font-light">
+              Free software for community organizations. Real careers for aspiring problem solvers. Agency for everyone.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
@@ -96,7 +100,7 @@ export default function Home() {
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div>
             <SectionHeader 
-              title="Everyone deserves a buddy in their corner." 
+              title="Agency changes everything." 
               className="mb-8"
             />
             <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
@@ -104,10 +108,10 @@ export default function Home() {
                 Thousands of community organizations — shelters, clinics, food banks — and underfunded local agencies rely on spreadsheets and paper to manage work that changes lives. The software they need is out of reach. The people who could build it are out of opportunities.
               </p>
               <p>
-                We believe the best way to learn is by helping someone. And the best way to get help is from someone who genuinely cares. AI-powered tools mean motivated people can own and deliver real products faster than ever — you don't need a CS degree to solve real problems.
+                We believe the most powerful thing you can give someone is the ability to act. For organizations, that means custom tools that actually fit their work. For aspiring builders, it means real projects, real mentorship, and a real path forward. AI-powered tools mean motivated people can own and deliver real products faster than ever — you don't need a CS degree to solve real problems.
               </p>
               <p className="font-semibold text-[#0B1D3A]">
-                The Buddy Promise brings these two worlds together — pairing people who want to solve problems with organizations that need a hand.
+                Handlekraft Digital brings these two worlds together — giving organizations the tools to act, and giving people the skills to build them.
               </p>
             </div>
           </div>
@@ -120,13 +124,14 @@ export default function Home() {
           >
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#14B8A6] rounded-full opacity-20 blur-2xl group-hover:scale-150 transition-transform duration-1000" />
             
-            <h3 className="text-2xl font-display mb-8 relative z-10">How The Buddy Promise Works</h3>
+            <h3 className="text-2xl font-display mb-4 relative z-10">Handle + Kraft</h3>
+            <p className="text-white/60 text-sm mb-8 relative z-10 italic">Norwegian: to act + power = the power to act</p>
             <ul className="space-y-6 relative z-10">
               {[
                 "A community organization tells us what they need — a website, a scheduling tool, a better way to track clients.",
                 "We pair them with aspiring product builders who own the solution end to end — using AI-powered tools with senior guidance every step of the way.",
                 "The organization gets a custom tool that fits their work. The fellow gets real experience and a portfolio of products they're proud of.",
-                "Graduates pay it forward — mentoring the next group of buddies."
+                "Graduates pay it forward — mentoring the next cohort, strengthening the cycle."
               ].map((step, i) => (
                 <li key={i} className="flex gap-4 items-start">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#14B8A6] text-[#0B1D3A] font-bold flex items-center justify-center text-sm">
@@ -142,8 +147,8 @@ export default function Home() {
 
       <Section id="what-we-do" background="white">
         <SectionHeader 
-          title="Three ways we keep our promise." 
-          subtitle="Every product we build serves two purposes: helping an organization and launching a career."
+          title="Three ways we deliver agency." 
+          subtitle="Every product we build serves two purposes: giving an organization the power to act, and launching a career."
           centered
         />
         
@@ -161,7 +166,7 @@ export default function Home() {
             },
             {
               icon: HeartHandshake,
-              title: "A Growing Family",
+              title: "A Growing Community",
               desc: "As fellows grow, they mentor the next group. Each graduating class strengthens our ability to help more organizations and welcome more learners. Everyone lifts everyone."
             }
           ].map((card, i) => (
@@ -186,7 +191,7 @@ export default function Home() {
       <Section id="who-we-serve" background="navy">
         <SectionHeader 
           title="Built for the people who build our communities." 
-          subtitle="If your organization runs on shoestring technology and a whole lot of heart, we'd love to help."
+          subtitle="If your organization runs on shoestring technology and a whole lot of heart, we'd love to give you the power to act."
           className="text-white"
         />
 
@@ -222,10 +227,10 @@ export default function Home() {
             <Button 
               size="lg"
               className="bg-[#14B8A6] text-[#0B1D3A] font-bold text-lg rounded-full px-8 h-14"
-              data-testid="button-get-buddy"
+              data-testid="button-get-started"
             >
-              <HandHeart className="mr-2 w-5 h-5" />
-              Get a Buddy — Apply for Free Help <ArrowRight className="ml-2 w-5 h-5" />
+              <Zap className="mr-2 w-5 h-5" />
+              Request Free Help <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </Link>
         </div>
@@ -273,7 +278,7 @@ export default function Home() {
           <div className="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-100 lg:sticky lg:top-32">
             <h3 className="text-2xl font-display text-[#0B1D3A] mb-6">Who We're Looking For</h3>
             <p className="text-muted-foreground mb-4">
-              No college degree required. No bootcamp tuition. We're not looking for people who already know how to code — we're looking for people who want to solve problems and own the outcome. If you have a high school diploma or GED and the heart to help, you're exactly who we want as a buddy.
+              No college degree required. No bootcamp tuition. We're not looking for people who already know how to code — we're looking for people who want to solve problems and own the outcome. If you have a high school diploma or GED and the drive to act, you're exactly who we want.
             </p>
             
             <div className="flex flex-wrap gap-2 mb-8">
@@ -320,7 +325,7 @@ export default function Home() {
             Read the full story.
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            The Buddy Promise is just getting started. Our proposal covers everything — our mission, how we operate, how we fund the work, and where we're headed. We'd love your thoughts and your support.
+            Handlekraft Digital is just getting started. Our proposal covers everything — our mission, how we operate, how we fund the work, and where we're headed. We'd love your thoughts and your support.
           </p>
           <Button 
             className="bg-[#0B1D3A] hover:bg-[#0B1D3A]/90 text-white font-bold rounded-full px-8 py-6 h-auto"
@@ -341,7 +346,7 @@ export default function Home() {
             Be part of something good.
           </h2>
           <p className="text-xl md:text-2xl text-white/80 mb-6 font-light leading-relaxed">
-            Whether you want to sponsor our work, volunteer your skills, apply for the fellowship, or connect us with an organization that needs help — there's a place for you in The Buddy Promise.
+            Whether you want to sponsor our work, volunteer your skills, apply for the fellowship, or connect us with an organization that needs help — there's a place for you at Handlekraft Digital.
           </p>
 
           <p className="text-lg text-white/60 mb-12 font-light">
@@ -352,7 +357,7 @@ export default function Home() {
             <Button 
               size="lg" 
               className="bg-[#14B8A6] hover:bg-[#14B8A6]/90 text-[#0B1D3A] font-bold text-lg px-8 py-8 h-auto rounded-xl shadow-lg hover:shadow-[#14B8A6]/30 transition-all w-full sm:w-auto"
-              onClick={() => window.location.href = "mailto:donate@thebuddypromise.org?subject=Founding%20Sponsor%20Inquiry"}
+              onClick={() => window.location.href = "mailto:donate@handlekraft.ai?subject=Founding%20Sponsor%20Inquiry"}
               data-testid="button-founding-sponsor"
             >
               <HeartHandshake className="mr-2 w-6 h-6" />
@@ -362,7 +367,7 @@ export default function Home() {
               variant="outline"
               size="lg" 
               className="bg-transparent border-white/30 hover:bg-white/10 text-white font-bold text-lg px-8 py-8 h-auto rounded-xl transition-all w-full sm:w-auto"
-              onClick={() => window.location.href = "mailto:hello@thebuddypromise.org?subject=Board%20Member%20Interest"}
+              onClick={() => window.location.href = "mailto:hello@handlekraft.ai?subject=Board%20Member%20Interest"}
               data-testid="button-join-board"
             >
               <Building2 className="mr-2 w-6 h-6" />
@@ -375,10 +380,10 @@ export default function Home() {
                 variant="outline"
                 size="lg" 
                 className="bg-transparent border-white/30 text-white font-bold text-lg px-8 py-8 h-auto rounded-xl w-full sm:w-auto"
-                data-testid="button-cta-get-buddy"
+                data-testid="button-cta-request-help"
               >
-                <HandHeart className="mr-2 w-6 h-6" />
-                Get a Buddy (Free Help)
+                <Zap className="mr-2 w-6 h-6" />
+                Request Free Help
               </Button>
             </Link>
             <Link href="/apply/fellowship">
@@ -398,7 +403,7 @@ export default function Home() {
               variant="outline"
               size="lg" 
               className="bg-transparent border-white/30 text-white font-bold text-lg px-8 py-8 h-auto rounded-xl w-full sm:w-auto"
-              onClick={() => window.location.href = "mailto:hello@thebuddypromise.org"}
+              onClick={() => window.location.href = "mailto:hello@handlekraft.ai"}
               data-testid="button-conversation"
             >
               <Mail className="mr-2 w-6 h-6" />
@@ -407,7 +412,7 @@ export default function Home() {
           </div>
 
           <p className="mt-12 text-sm text-white/40">
-            The Buddy Promise is a 501(c)(3) nonprofit initiative. All donations are tax-deductible.
+            Handlekraft Digital is a 501(c)(3) nonprofit initiative. All donations are tax-deductible.
           </p>
         </div>
       </section>

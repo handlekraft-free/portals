@@ -20,9 +20,9 @@ export function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: "Our Promise", href: "#mission" },
+    { name: "Our Mission", href: "#mission" },
     { name: "What We Do", href: "#what-we-do" },
-    { name: "Who We Help", href: "#who-we-serve" },
+    { name: "Who We Serve", href: "#who-we-serve" },
     { name: "Fellowship", href: "#training" },
   ];
 
@@ -46,9 +46,9 @@ export function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-            <img src={logoImg} alt="The Buddy Promise logo" className="w-10 h-10 rounded-lg shadow-lg" />
+            <img src={logoImg} alt="Handlekraft Digital logo" className="w-10 h-10 rounded-lg shadow-lg" />
             <span className="text-white font-display text-2xl tracking-wide" data-testid="text-brand-name">
-              The Buddy Promise
+              Handlekraft Digital
             </span>
           </Link>
 

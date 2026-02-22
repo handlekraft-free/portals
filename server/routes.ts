@@ -45,7 +45,7 @@ export async function registerRoutes(
   // Seed default admin if none exists
   const existingAdmin = await storage.getAdminByUsername("admin");
   if (!existingAdmin) {
-    await storage.createAdmin("admin", "buddypromise2026");
+    await storage.createAdmin("admin", "handlekraft2026");
   }
 
   // --- Public application endpoints ---

@@ -5,9 +5,9 @@ const doc = new PDFDocument({
   size: 'letter',
   margins: { top: 72, bottom: 72, left: 72, right: 72 },
   info: {
-    Title: 'The Buddy Promise — Organizational Proposal',
-    Author: 'The Buddy Promise',
-    Subject: 'Founding Proposal for The Buddy Promise 501(c)(3)',
+    Title: 'Handlekraft Digital — Organizational Proposal',
+    Author: 'Handlekraft Digital',
+    Subject: 'Founding Proposal for Handlekraft Digital 501(c)(3)',
   }
 });
 
@@ -67,7 +67,11 @@ doc.fontSize(14).fillColor(teal).font('Helvetica')
 
 doc.moveDown(1);
 doc.fontSize(42).fillColor('#FFFFFF').font('Helvetica-Bold')
-  .text('The Buddy\nPromise', 72, 240);
+  .text('Handlekraft\nDigital', 72, 240);
+
+doc.moveDown(0.5);
+doc.fontSize(13).fillColor(teal).font('Helvetica')
+  .text('handle · kraft — Norwegian: the power to act', 72);
 
 doc.moveDown(1.5);
 doc.fontSize(14).fillColor('#FFFFFF').font('Helvetica').opacity(0.7)
@@ -97,7 +101,7 @@ const tocItems = [
   ['1', 'Executive Summary', 3],
   ['2', 'The Problem', 3],
   ['3', 'Our Approach', 4],
-  ['4', 'Three Ways We Help', 5],
+  ['4', 'Three Ways We Deliver Agency', 5],
   ['5', 'Who We Serve', 6],
   ['6', 'The Fellowship Program', 7],
   ['7', 'The AI Advantage', 8],
@@ -121,16 +125,16 @@ doc.addPage();
 heading('1. Executive Summary');
 divider();
 
-body('The Buddy Promise is an early-stage 501(c)(3) nonprofit that pairs aspiring product builders with community organizations that need help — creating free, custom software and websites side by side, like buddies do.');
+body('Handlekraft Digital is an early-stage 501(c)(3) nonprofit that pairs aspiring product builders with community organizations that need help — creating free, custom software and websites that give organizations the power to act.');
 
 body('We exist at the intersection of two needs that belong together:');
 
 bullet('Community organizations and local agencies are underserved by technology — running critical work on spreadsheets, paper forms, and outdated systems they can\'t afford to replace.');
 bullet('Talented people from non-traditional backgrounds are locked out of tech careers by an industry that too often values credentials over capability.');
 
-body('The Buddy Promise brings these two worlds together. Our fellows learn to own products from idea to delivery — using AI-powered tools to solve real problems for real organizations, with caring expert supervision at every step. Organizations receive powerful, custom tools at no cost. Fellows gain verifiable experience, a professional portfolio, and a genuine pathway into tech.');
+body('Handlekraft Digital brings these two worlds together. Our fellows learn to own products from idea to delivery — using AI-powered tools to solve real problems for real organizations, with caring expert supervision at every step. Organizations receive powerful, custom tools at no cost. Fellows gain verifiable experience, a professional portfolio, and a genuine pathway into tech.');
 
-body('Founded by a father-son team — a retiring Service-Disabled Veteran-Owned Small Business (SDVOSB) software entrepreneur and his son — The Buddy Promise combines decades of enterprise software experience with a deep belief that the best way to learn is by helping someone who needs it.');
+body('Founded by a father-son team — a retiring Service-Disabled Veteran-Owned Small Business (SDVOSB) software entrepreneur and his son — Handlekraft Digital combines decades of enterprise software experience with a deep belief that the best way to learn is by helping someone who needs it.');
 
 subheading('Key Facts');
 bullet('Cost to organizations: $0');
@@ -160,13 +164,13 @@ body('Right now, the tech industry is in the middle of a historic shift. AI tool
 
 body('The challenge is that talented people from non-traditional backgrounds — career changers, veterans, formerly incarcerated individuals, single parents, GED holders, and self-taught learners — often can\'t get that first real opportunity to prove what they can do. Bootcamps and community college programs build foundational skills, but without professional experience and a real portfolio, graduates cycle through rejection.');
 
-body('The Buddy Promise exists to close that gap right now — so that when the industry is ready, our fellows already are. We give them real projects, real mentorship, and real skills so they\'re not waiting for an opportunity. They\'re building one.');
+body('Handlekraft Digital exists to close that gap right now — so that when the industry is ready, our fellows already are. We give them real projects, real mentorship, and real skills so they\'re not waiting for an opportunity. They\'re building one.');
 
 checkPage(180);
 subheading('The Emerging Capability');
 body('AI-powered development tools — GitHub Copilot, Cursor, Replit, and others — have fundamentally changed what it means to build software. Agentic engineering is accelerating fast: AI handles more and more of the deep technical implementation, while humans focus on understanding problems, designing solutions, and owning the product.');
 
-body('This shift means the most valuable skill isn\'t memorizing syntax or mastering low-level architecture — it\'s knowing how to apply emerging tools to solve real problems. With the right guidance and real-world projects, motivated people can reach professional competency in weeks rather than years. The Buddy Promise trains people for where the industry is heading, not where it\'s been.');
+body('This shift means the most valuable skill isn\'t memorizing syntax or mastering low-level architecture — it\'s knowing how to apply emerging tools to solve real problems. With the right guidance and real-world projects, motivated people can reach professional competency in weeks rather than years. Handlekraft Digital trains people for where the industry is heading, not where it\'s been.');
 
 // ===========================
 // 3. OUR APPROACH
@@ -175,7 +179,7 @@ doc.addPage();
 heading('3. Our Approach');
 divider();
 
-body('The Buddy Promise works as a simple, warm cycle:');
+body('Handlekraft Digital works as a simple, powerful cycle:');
 
 spacer(0.3);
 subheading('Step 1: Listen');
@@ -188,15 +192,15 @@ subheading('Step 3: Deliver with Care');
 body('Organizations receive custom-built tools — intake systems, scheduling platforms, donor dashboards, websites, workflow automation — tailored to their needs. We provide training and support to make sure adoption sticks.');
 
 subheading('Step 4: Pay It Forward');
-body('As fellows grow, they take on more complex products and begin mentoring the next group. Graduates leave with a real portfolio of products they owned, real references, and the ability to leverage emerging tools to solve any problem. Many transition into paid tech careers — and some come back to help the next buddy.');
+body('As fellows grow, they take on more complex products and begin mentoring the next group. Graduates leave with a real portfolio of products they owned, real references, and the ability to leverage emerging tools to solve any problem. Many transition into paid tech careers — and some come back to help the next cohort.');
 
-body('Each graduating class strengthens our ability to help more organizations and welcome more learners. That\'s the promise.');
+body('Each graduating class strengthens our ability to help more organizations and welcome more learners. That\'s the handlekraft — the power to act, multiplied.');
 
 // ===========================
-// 4. THREE WAYS WE HELP
+// 4. THREE WAYS WE DELIVER AGENCY
 // ===========================
 doc.addPage();
-heading('4. Three Ways We Help');
+heading('4. Three Ways We Deliver Agency');
 divider();
 
 subheading('1. Free Software & Web Design');
@@ -221,13 +225,13 @@ bullet('No tuition. No college degree required. Only a high school diploma or GE
 body('Non-traditional candidates — GED holders, career changers, veterans, formerly incarcerated individuals, single parents, self-taught learners — are exactly who we\'re looking for.');
 
 checkPage(160);
-subheading('3. A Growing Family');
+subheading('3. A Growing Community');
 body('As fellows advance, they mentor the next group. This creates a cycle that lifts everyone:');
 bullet('Our capacity to help organizations grows with each graduating class');
 bullet('More organizations get the tools they need');
 bullet('More people gain real-world experience and launch careers');
 bullet('Graduates often return as volunteer mentors');
-body('Over time, The Buddy Promise becomes a self-sustaining engine for community technology and product-focused career development.');
+body('Over time, Handlekraft Digital becomes a self-sustaining engine for community technology and product-focused career development.');
 
 // ===========================
 // 5. WHO WE SERVE
@@ -237,7 +241,7 @@ heading('5. Who We Serve');
 divider();
 
 subheading('Organizations We Help');
-body('We serve nonprofits, community service organizations, and underserved state and local government agencies — any organization doing good work on a tight budget that could use a technology buddy.');
+body('We serve nonprofits, community service organizations, and underserved state and local government agencies — any organization doing good work on a tight budget that could use the power to act.');
 
 const orgs = [
   ['Shelters', 'Homeless shelters and transitional housing programs'],
@@ -306,7 +310,7 @@ body('As fellows advance, they step into bigger roles:');
 bullet('Take on more complex products and higher-level architectural decisions');
 bullet('Begin reviewing work from newer fellows');
 bullet('Serve as product leads on smaller projects');
-bullet('Mentor the next group of buddies');
+bullet('Mentor the next cohort');
 
 checkPage(140);
 subheading('Phase 4: Launch Your Career');
@@ -324,7 +328,7 @@ doc.addPage();
 heading('7. The AI Advantage');
 divider();
 
-body('The Buddy Promise is built for this moment. Agentic engineering — where AI handles more and more of the deep technical implementation — is transforming software development. We\'re not fighting that trend. We\'re riding it.');
+body('Handlekraft Digital is built for this moment. Agentic engineering — where AI handles more and more of the deep technical implementation — is transforming software development. We\'re not fighting that trend. We\'re riding it.');
 
 body('Our philosophy is simple: AI agents do the deep stuff. Our fellows focus on what matters most — understanding the problem, designing the right solution, and owning the product. We teach people to apply emerging tools with a practical understanding of the architectures underneath, not to compete with AI on implementation.');
 
@@ -384,7 +388,7 @@ doc.addPage();
 heading('9. Funding Strategy');
 divider();
 
-body('The Buddy Promise is 100% donation-funded in its founding stage. Our funding approach grows with the organization:');
+body('Handlekraft Digital is 100% donation-funded in its founding stage. Our funding approach grows with the organization:');
 
 subheading('Founding Stage (Year 1)');
 bullet('Founding sponsors — companies and individuals who want to support workforce development and community technology');
@@ -409,7 +413,7 @@ doc.addPage();
 heading('10. Founding Team');
 divider();
 
-body('The Buddy Promise was founded by a father-son team who believe the best things in life are built together.');
+body('Handlekraft Digital was founded by a father-son team who believe the best things in life are built together.');
 
 subheading('Founder');
 body('A retiring Service-Disabled Veteran-Owned Small Business (SDVOSB) software entrepreneur with decades of experience building enterprise software solutions. His career spans government contracting, commercial software development, and small business leadership. He brings deep expertise in project management, client relations, and software architecture — along with a lifelong commitment to giving back.');
@@ -418,7 +422,7 @@ subheading('Co-Founder');
 body('Working alongside his father, the co-founder brings modern product development skills, deep experience with AI-powered and agentic development tools, and a genuine passion for making tech careers accessible to people from all backgrounds.');
 
 checkPage(140);
-subheading('We\'re Growing Our Family');
+subheading('We\'re Growing Our Team');
 body('We are actively looking for:');
 bullet('Founding board members with experience in nonprofit governance, workforce development, or technology');
 bullet('Founding sponsors who want to help shape this from day one');
@@ -455,10 +459,10 @@ doc.addPage();
 heading('12. How You Can Help');
 divider();
 
-body('The Buddy Promise is just getting started. We need people who believe in this vision to help us bring it to life. Here\'s how you can be part of it:');
+body('Handlekraft Digital is just getting started. We need people who believe in this vision to help us bring it to life. Here\'s how you can be part of it:');
 
 subheading('Become a Founding Sponsor');
-body('Founding sponsors help shape The Buddy Promise from the ground up. Your support goes directly to building software for community organizations and launching careers for people who deserve a chance. Founding sponsors are recognized in all materials and have a voice in our direction.');
+body('Founding sponsors help shape Handlekraft Digital from the ground up. Your support goes directly to building software for community organizations and launching careers for people who deserve a chance. Founding sponsors are recognized in all materials and have a voice in our direction.');
 
 checkPage(160);
 subheading('Join Our Board');
@@ -470,7 +474,7 @@ body('Senior engineers and experienced developers can volunteer as code reviewer
 
 checkPage(160);
 subheading('Refer an Organization');
-body('Know a nonprofit, community organization, or local agency that could use a technology buddy? Send them our way. We want to hear from any organization doing good work on a tight budget.');
+body('Know a nonprofit, community organization, or local agency that could use the power to act? Send them our way. We want to hear from any organization doing good work on a tight budget.');
 
 checkPage(160);
 subheading('Apply for the Fellowship');
@@ -484,15 +488,15 @@ doc.font('Helvetica-Bold').fontSize(14).fillColor(navy)
   .text('Get in Touch', { align: 'center' });
 doc.moveDown(0.5);
 doc.font('Helvetica').fontSize(12).fillColor(darkGray)
-  .text('hello@thebuddypromise.org', { align: 'center' });
+  .text('hello@handlekraft.ai', { align: 'center' });
 doc.moveDown(0.3);
 doc.font('Helvetica').fontSize(10).fillColor(lightGray)
-  .text('The Buddy Promise is a 501(c)(3) nonprofit initiative.', { align: 'center' });
+  .text('Handlekraft Digital is a 501(c)(3) nonprofit initiative.', { align: 'center' });
 doc.font('Helvetica').fontSize(10).fillColor(lightGray)
   .text('All donations are tax-deductible.', { align: 'center' });
 doc.moveDown(0.3);
 doc.font('Helvetica').fontSize(10).fillColor(lightGray)
-  .text('Founded by a father-son team. Powered by kindness, code, and community.', { align: 'center' });
+  .text('Founded by a father-son team. Powered by agency, code, and community.', { align: 'center' });
 
 doc.end();
 

@@ -162,7 +162,7 @@ checkPage(200);
 subheading('The Opportunity Gap');
 body('Right now, the tech industry is in the middle of a historic shift. AI tools are reshaping how software gets built, and companies are rethinking what their teams look like. Entry-level hiring has tightened — but this is a moment, not a permanent condition. The door will swing open again, and when it does, the people who are ready will walk through it.');
 
-body('The challenge is that talented people from non-traditional backgrounds — career changers, veterans, formerly incarcerated individuals, single parents, GED holders, and self-taught learners — often can\'t get that first real opportunity to prove what they can do. Bootcamps and community college programs build foundational skills, but without professional experience and a real portfolio, graduates cycle through rejection.');
+body('The challenge is that talented people from non-traditional backgrounds — career changers, veterans, single parents, GED holders, and self-taught learners — often can\'t get that first real opportunity to prove what they can do. Bootcamps and community college programs build foundational skills, but without professional experience and a real portfolio, graduates cycle through rejection.');
 
 body('Handlekraft Digital exists to close that gap right now — so that when the industry is ready, our fellows already are. We give them real projects, real mentorship, and real skills so they\'re not waiting for an opportunity. They\'re building one.');
 
@@ -222,7 +222,7 @@ bullet('Immediate placement on real products with senior mentorship');
 bullet('Fellows own their projects end to end: scoping, building, delivering, and supporting');
 bullet('A portfolio of deployed, live products — not classroom exercises');
 bullet('No tuition. No college degree required. Only a high school diploma or GED.');
-body('Non-traditional candidates — GED holders, career changers, veterans, formerly incarcerated individuals, single parents, self-taught learners — are exactly who we\'re looking for.');
+body('Non-traditional candidates — GED holders, career changers, veterans, single parents, self-taught learners — are exactly who we\'re looking for.');
 
 checkPage(160);
 subheading('3. A Growing Community');
@@ -268,7 +268,6 @@ const candidates = [
   'GED holders and high school graduates',
   'Career changers from non-tech industries',
   'Veterans transitioning to civilian careers',
-  'Formerly incarcerated individuals seeking stable employment',
   'Single parents returning to the workforce',
   'Self-taught learners without formal credentials',
   'Underemployed workers seeking upward mobility',

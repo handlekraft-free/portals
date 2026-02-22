@@ -284,7 +284,6 @@ export default function Home() {
                 "GED Holders",
                 "Career Changers",
                 "Veterans",
-                "Formerly Incarcerated",
                 "Single Parents",
                 "Self-Taught Learners",
                 "Underemployed Workers",

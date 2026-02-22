@@ -5,9 +5,9 @@ const doc = new PDFDocument({
   size: 'letter',
   margins: { top: 72, bottom: 72, left: 72, right: 72 },
   info: {
-    Title: 'Handlekraft Digital — Organizational Proposal',
-    Author: 'Handlekraft Digital',
-    Subject: 'Founding Proposal for Handlekraft Digital 501(c)(3)',
+    Title: 'handlekraft — Organizational Proposal',
+    Author: 'handlekraft',
+    Subject: 'Founding Proposal for handlekraft 501(c)(3)',
   }
 });
 
@@ -125,16 +125,16 @@ doc.addPage();
 heading('1. Executive Summary');
 divider();
 
-body('Handlekraft Digital is an early-stage 501(c)(3) nonprofit that pairs aspiring product builders with community organizations that need help — creating free, custom software and websites that give organizations the power to act.');
+body('handlekraft is an early-stage 501(c)(3) nonprofit that pairs aspiring product builders with community organizations that need help — creating free, custom software and websites that give organizations the power to act.');
 
 body('We exist at the intersection of two needs that belong together:');
 
 bullet('Community organizations and local agencies are underserved by technology — running critical work on spreadsheets, paper forms, and outdated systems they can\'t afford to replace.');
 bullet('Talented people from non-traditional backgrounds are locked out of tech careers by an industry that too often values credentials over capability.');
 
-body('Handlekraft Digital brings these two worlds together. Our fellows learn to own products from idea to delivery — using AI-powered tools to solve real problems for real organizations, with caring expert supervision at every step. Organizations receive powerful, custom tools at no cost. Fellows gain verifiable experience, a professional portfolio, and a genuine pathway into tech.');
+body('handlekraft brings these two worlds together. Our fellows learn to own products from idea to delivery — using AI-powered tools to solve real problems for real organizations, with caring expert supervision at every step. Organizations receive powerful, custom tools at no cost. Fellows gain verifiable experience, a professional portfolio, and a genuine pathway into tech.');
 
-body('Founded by a father-son team — a retiring Service-Disabled Veteran-Owned Small Business (SDVOSB) software entrepreneur and his son — Handlekraft Digital combines decades of enterprise software experience with a deep belief that the best way to learn is by helping someone who needs it.');
+body('Founded by a father-son team — a retiring Service-Disabled Veteran-Owned Small Business (SDVOSB) software entrepreneur and his son — handlekraft combines decades of enterprise software experience with a deep belief that the best way to learn is by helping someone who needs it.');
 
 subheading('Key Facts');
 bullet('Cost to organizations: $0');
@@ -164,13 +164,13 @@ body('Right now, the tech industry is in the middle of a historic shift. AI tool
 
 body('The challenge is that talented people from non-traditional backgrounds — career changers, veterans, single parents, GED holders, and self-taught learners — often can\'t get that first real opportunity to prove what they can do. Bootcamps and community college programs build foundational skills, but without professional experience and a real portfolio, graduates cycle through rejection.');
 
-body('Handlekraft Digital exists to close that gap right now — so that when the industry is ready, our fellows already are. We give them real projects, real mentorship, and real skills so they\'re not waiting for an opportunity. They\'re building one.');
+body('handlekraft exists to close that gap right now — so that when the industry is ready, our fellows already are. We give them real projects, real mentorship, and real skills so they\'re not waiting for an opportunity. They\'re building one.');
 
 checkPage(180);
 subheading('The Emerging Capability');
 body('AI-powered development tools — GitHub Copilot, Cursor, Replit, and others — have fundamentally changed what it means to build software. Agentic engineering is accelerating fast: AI handles more and more of the deep technical implementation, while humans focus on understanding problems, designing solutions, and owning the product.');
 
-body('This shift means the most valuable skill isn\'t memorizing syntax or mastering low-level architecture — it\'s knowing how to apply emerging tools to solve real problems. With the right guidance and real-world projects, motivated people can reach professional competency in weeks rather than years. Handlekraft Digital trains people for where the industry is heading, not where it\'s been.');
+body('This shift means the most valuable skill isn\'t memorizing syntax or mastering low-level architecture — it\'s knowing how to apply emerging tools to solve real problems. With the right guidance and real-world projects, motivated people can reach professional competency in weeks rather than years. handlekraft trains people for where the industry is heading, not where it\'s been.');
 
 // ===========================
 // 3. OUR APPROACH
@@ -179,7 +179,7 @@ doc.addPage();
 heading('3. Our Approach');
 divider();
 
-body('Handlekraft Digital works as a simple, powerful cycle:');
+body('handlekraft works as a simple, powerful cycle:');
 
 spacer(0.3);
 subheading('Step 1: Listen');
@@ -231,7 +231,7 @@ bullet('Our capacity to help organizations grows with each graduating class');
 bullet('More organizations get the tools they need');
 bullet('More people gain real-world experience and launch careers');
 bullet('Graduates often return as volunteer mentors');
-body('Over time, Handlekraft Digital becomes a self-sustaining engine for community technology and product-focused career development.');
+body('Over time, handlekraft becomes a self-sustaining engine for community technology and product-focused career development.');
 
 // ===========================
 // 5. WHO WE SERVE
@@ -327,7 +327,7 @@ doc.addPage();
 heading('7. The AI Advantage');
 divider();
 
-body('Handlekraft Digital is built for this moment. Agentic engineering — where AI handles more and more of the deep technical implementation — is transforming software development. We\'re not fighting that trend. We\'re riding it.');
+body('handlekraft is built for this moment. Agentic engineering — where AI handles more and more of the deep technical implementation — is transforming software development. We\'re not fighting that trend. We\'re riding it.');
 
 body('Our philosophy is simple: AI agents do the deep stuff. Our fellows focus on what matters most — understanding the problem, designing the right solution, and owning the product. We teach people to apply emerging tools with a practical understanding of the architectures underneath, not to compete with AI on implementation.');
 
@@ -387,7 +387,7 @@ doc.addPage();
 heading('9. Funding Strategy');
 divider();
 
-body('Handlekraft Digital is 100% donation-funded in its founding stage. Our funding approach grows with the organization:');
+body('handlekraft is 100% donation-funded in its founding stage. Our funding approach grows with the organization:');
 
 subheading('Founding Stage (Year 1)');
 bullet('Founding sponsors — companies and individuals who want to support workforce development and community technology');
@@ -412,7 +412,7 @@ doc.addPage();
 heading('10. Founding Team');
 divider();
 
-body('Handlekraft Digital was founded by a father-son team who believe the best things in life are built together.');
+body('handlekraft was founded by a father-son team who believe the best things in life are built together.');
 
 subheading('Founder');
 body('A retiring Service-Disabled Veteran-Owned Small Business (SDVOSB) software entrepreneur with decades of experience building enterprise software solutions. His career spans government contracting, commercial software development, and small business leadership. He brings deep expertise in project management, client relations, and software architecture — along with a lifelong commitment to giving back.');
@@ -458,10 +458,10 @@ doc.addPage();
 heading('12. How You Can Help');
 divider();
 
-body('Handlekraft Digital is just getting started. We need people who believe in this vision to help us bring it to life. Here\'s how you can be part of it:');
+body('handlekraft is just getting started. We need people who believe in this vision to help us bring it to life. Here\'s how you can be part of it:');
 
 subheading('Become a Founding Sponsor');
-body('Founding sponsors help shape Handlekraft Digital from the ground up. Your support goes directly to building software for community organizations and launching careers for people who deserve a chance. Founding sponsors are recognized in all materials and have a voice in our direction.');
+body('Founding sponsors help shape handlekraft from the ground up. Your support goes directly to building software for community organizations and launching careers for people who deserve a chance. Founding sponsors are recognized in all materials and have a voice in our direction.');
 
 checkPage(160);
 subheading('Join Our Board');
@@ -490,7 +490,7 @@ doc.font('Helvetica').fontSize(12).fillColor(darkGray)
   .text('hello@handlekraft.ai', { align: 'center' });
 doc.moveDown(0.3);
 doc.font('Helvetica').fontSize(10).fillColor(lightGray)
-  .text('Handlekraft Digital is a 501(c)(3) nonprofit initiative.', { align: 'center' });
+  .text('handlekraft is a 501(c)(3) nonprofit initiative.', { align: 'center' });
 doc.font('Helvetica').fontSize(10).fillColor(lightGray)
   .text('All donations are tax-deductible.', { align: 'center' });
 doc.moveDown(0.3);

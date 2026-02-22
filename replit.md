@@ -1,6 +1,6 @@
 # Overview
 
-**Handlekraft Digital** (Norwegian: handle=to act, kraft=power — "the power to act") is a full-stack web application for an early-stage 501(c)(3) nonprofit that provides free custom software and websites to community organizations while training product-focused problem solvers who leverage AI tools. The site includes a scroll-based landing page, public application forms (fellowship and client "Request Free Help"), and an admin dashboard for managing application queues. Domain: handlekraft.ai.
+**handlekraft** (Norwegian: handle=to act, kraft=power — "the power to act") is a full-stack web application for an early-stage 501(c)(3) nonprofit that provides free custom software and websites to community organizations while training product-focused problem solvers who leverage AI tools. The site includes a scroll-based landing page, public application forms (fellowship and client "Request Free Help"), and an admin dashboard for managing application queues. Domain: handlekraft.ai.
 
 # User Preferences
 

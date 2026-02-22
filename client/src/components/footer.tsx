@@ -9,7 +9,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
         <div className="col-span-1 md:col-span-2">
           <Link href="/" className="flex items-center gap-3 mb-6 cursor-pointer">
-            <img src={logoImg} alt="Handlekraft Digital logo" className="w-10 h-10 rounded-lg" />
+            <img src={logoImg} alt="handlekraft logo" className="w-10 h-10 rounded-lg" />
             <Wordmark size="md" className="text-white" showTagline taglineClassName="text-[#D4A843]/70" />
           </Link>
           <p className="max-w-md text-sm leading-relaxed mb-2">
@@ -45,7 +45,7 @@ export function Footer() {
             <li><a href="mailto:hello@handlekraft.ai" className="hover:text-[#D4A843] transition-colors">hello@handlekraft.ai</a></li>
             <li>San Francisco, CA</li>
             <li className="pt-4 text-xs opacity-50">
-              &copy; {new Date().getFullYear()} Handlekraft Digital. All rights reserved.
+              &copy; {new Date().getFullYear()} handlekraft. All rights reserved.
             </li>
           </ul>
         </div>

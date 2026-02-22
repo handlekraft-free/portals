@@ -129,7 +129,7 @@ export default function Home() {
             <motion.img 
               src={vikingWave} 
               alt="" 
-              className="absolute -top-6 -right-2 w-20 h-20 z-20 opacity-90 pointer-events-none"
+              className="absolute -top-10 -right-4 w-[120px] h-[120px] z-20 opacity-90 pointer-events-none"
               initial={{ rotate: -10 }}
               animate={{ rotate: [-10, 5, -10] }}
               transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
@@ -236,7 +236,7 @@ export default function Home() {
           <motion.img 
             src={vikingShield} 
             alt="" 
-            className="w-16 h-16 mx-auto mb-4 opacity-80"
+            className="w-24 h-24 mx-auto mb-4 opacity-80"
             animate={{ y: [0, -6, 0] }}
             transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
           />
@@ -333,7 +333,7 @@ export default function Home() {
             <motion.img 
               src={vikingCoding} 
               alt="" 
-              className="w-24 h-24 mx-auto mt-6 opacity-70"
+              className="w-36 h-36 mx-auto mt-6 opacity-70"
               animate={{ y: [0, -4, 0] }}
               transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
             />
@@ -369,7 +369,7 @@ export default function Home() {
           <motion.img 
             src={vikingTriumph} 
             alt="" 
-            className="w-20 h-20 mx-auto mb-6 opacity-80"
+            className="w-[120px] h-[120px] mx-auto mb-6 opacity-80"
             animate={{ scale: [1, 1.08, 1] }}
             transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
           />

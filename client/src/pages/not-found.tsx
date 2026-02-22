@@ -8,7 +8,7 @@ export default function NotFound() {
     <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md mx-4 shadow-xl border-border/50">
         <CardContent className="pt-6 text-center">
-          <img src={vikingLost} alt="" className="w-24 h-24 mx-auto mb-4" />
+          <img src={vikingLost} alt="" className="w-36 h-36 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-foreground font-display mb-2">Page Not Found</h1>
 
           <p className="text-sm text-muted-foreground font-body">

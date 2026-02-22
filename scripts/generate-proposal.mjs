@@ -19,18 +19,35 @@ const navy = '#1A1F2B';
 const teal = '#0D7377';
 const gold = '#D4A843';
 const darkGray = '#333333';
-const medGray = '#555555';
 const lightGray = '#888888';
-const offWhite = '#F5F3EF';
+const pageWidth = 612;
+const contentLeft = 72;
+const contentRight = 540;
 
-const vikingShip = path.resolve('scripts/assets/viking-ship-building.png');
-const vikingKey = path.resolve('scripts/assets/viking-key.png');
-const vikingMentor = path.resolve('scripts/assets/viking-mentoring.png');
+const img = (name) => path.resolve(`scripts/assets/${name}.png`);
 const logoPath = path.resolve('client/src/assets/images/logo.png');
+
+function safeImage(imgPath, x, y, width) {
+  if (fs.existsSync(imgPath)) {
+    doc.image(imgPath, x, y, { width });
+  }
+}
 
 function heading(text, size = 24) {
   doc.font('Helvetica-Bold').fontSize(size).fillColor(navy).text(text);
   doc.moveDown(0.5);
+}
+
+function sectionStart(title, vikingName) {
+  const vikingPath = img(vikingName);
+  if (fs.existsSync(vikingPath)) {
+    doc.image(vikingPath, contentRight - 50, contentLeft - 8, { width: 55 });
+  }
+  doc.font('Helvetica-Bold').fontSize(24).fillColor(navy).text(title);
+  doc.moveDown(0.3);
+  const y = doc.y;
+  doc.strokeColor(gold).lineWidth(1.5).moveTo(contentLeft, y).lineTo(contentRight, y).stroke();
+  doc.moveDown(0.8);
 }
 
 function subheading(text, size = 16) {
@@ -52,113 +69,88 @@ function spacer(n = 1) {
   doc.moveDown(n);
 }
 
-function divider() {
-  doc.moveDown(0.5);
-  const y = doc.y;
-  doc.strokeColor('#ddd').lineWidth(0.5).moveTo(72, y).lineTo(540, y).stroke();
-  doc.moveDown(0.8);
-}
-
-function goldDivider() {
-  doc.moveDown(0.5);
-  const y = doc.y;
-  doc.strokeColor(gold).lineWidth(1.5).moveTo(72, y).lineTo(540, y).stroke();
-  doc.moveDown(0.8);
-}
-
 function checkPage(needed = 120) {
   if (doc.y + needed > 700) {
     doc.addPage();
   }
 }
 
-function addImage(imgPath, x, y, width) {
-  if (fs.existsSync(imgPath)) {
-    doc.image(imgPath, x, y, { width });
-  }
-}
-
 // ===========================
 // COVER PAGE
 // ===========================
-doc.rect(0, 0, 612, 792).fill(navy);
-
-doc.rect(0, 0, 612, 6).fill(gold);
+doc.rect(0, 0, pageWidth, 792).fill(navy);
+doc.rect(0, 0, pageWidth, 6).fill(gold);
 
 if (fs.existsSync(logoPath)) {
   doc.image(logoPath, 256, 80, { width: 100 });
 }
 
 doc.fontSize(12).fillColor(gold).font('Helvetica')
-  .text('ORGANIZATIONAL PROPOSAL', 72, 200, { characterSpacing: 4, align: 'center' });
+  .text('ORGANIZATIONAL PROPOSAL', contentLeft, 200, { characterSpacing: 4, align: 'center' });
 
 doc.moveDown(1);
 doc.fontSize(52).fillColor('#FFFFFF').font('Helvetica-Bold')
-  .text('handlekraft', 72, 240, { align: 'center' });
+  .text('handlekraft', contentLeft, 240, { align: 'center' });
 
 doc.moveDown(0.3);
 doc.fontSize(14).fillColor(gold).font('Helvetica')
-  .text('handle · kraft — Norwegian: the power to act', 72, undefined, { align: 'center' });
+  .text('handle · kraft — Norwegian: the power to act', contentLeft, undefined, { align: 'center' });
 
 doc.moveDown(1.5);
 doc.fontSize(14).fillColor('#FFFFFF').font('Helvetica').opacity(0.7)
-  .text('Free Software & Websites for Community Organizations.', 72, undefined, { align: 'center' });
+  .text('Free Software & Websites for Community Organizations.', contentLeft, undefined, { align: 'center' });
 doc.fontSize(14).fillColor('#FFFFFF').font('Helvetica').opacity(0.7)
-  .text('Product-Focused Training for Aspiring Problem Solvers.', 72, undefined, { align: 'center' });
-
+  .text('Product-Focused Training for Aspiring Problem Solvers.', contentLeft, undefined, { align: 'center' });
 doc.opacity(1);
 
-if (fs.existsSync(vikingShip)) {
-  doc.image(vikingShip, 106, 430, { width: 400 });
-}
+safeImage(img('viking-ship-building'), 106, 430, 400);
 
 doc.fontSize(11).fillColor(gold).font('Helvetica-Bold')
-  .text('501(c)(3) Nonprofit Initiative', 72, 680, { align: 'center' });
+  .text('501(c)(3) Nonprofit Initiative', contentLeft, 680, { align: 'center' });
 doc.fontSize(11).fillColor('#FFFFFF').font('Helvetica').opacity(0.6)
-  .text('Founding Stage — 2026', 72, undefined, { align: 'center' });
+  .text('Founding Stage — 2026', contentLeft, undefined, { align: 'center' });
 doc.opacity(1);
 
 doc.fontSize(9).fillColor('#FFFFFF').font('Helvetica').opacity(0.4)
-  .text('This is a living document. We welcome questions, ideas, and conversations.', 72, 740, { align: 'center' });
+  .text('This is a living document. We welcome questions, ideas, and conversations.', contentLeft, 740, { align: 'center' });
 doc.opacity(1);
 
 // ===========================
 // TABLE OF CONTENTS
 // ===========================
 doc.addPage();
-
-doc.rect(0, 0, 612, 6).fill(teal);
+doc.rect(0, 0, pageWidth, 6).fill(teal);
 
 heading('Table of Contents', 28);
-spacer(0.5);
+spacer(0.3);
 
 const tocItems = [
-  ['1', 'Executive Summary', 3],
-  ['2', 'The Problem', 3],
-  ['3', 'Our Approach', 4],
-  ['4', 'Three Ways We Deliver Agency', 5],
-  ['5', 'Who We Serve', 6],
-  ['6', 'The Fellowship Program', 7],
-  ['7', 'The AI Advantage', 8],
-  ['8', 'Operating Model', 9],
-  ['9', 'Funding Strategy', 10],
-  ['10', 'Founding Team', 11],
-  ['11', 'Implementation Timeline', 11],
-  ['12', 'How You Can Help', 12],
+  ['1', 'Executive Summary'],
+  ['2', 'The Problem'],
+  ['3', 'Our Approach'],
+  ['4', 'Three Ways We Deliver Agency'],
+  ['5', 'Who We Serve'],
+  ['6', 'The Fellowship Program'],
+  ['7', 'The AI Advantage'],
+  ['8', 'Operating Model'],
+  ['9', 'Funding Strategy'],
+  ['10', 'Founding Team'],
+  ['11', 'Implementation Timeline'],
+  ['12', 'How You Can Help'],
 ];
 
-tocItems.forEach(([num, title, page]) => {
-  doc.font('Helvetica-Bold').fontSize(12).fillColor(teal).text(`${num}.`, 72, doc.y, { continued: true, width: 30 });
-  doc.font('Helvetica').fontSize(12).fillColor(darkGray).text(`  ${title}`, { continued: false });
-  doc.moveDown(0.4);
+tocItems.forEach(([num, title]) => {
+  const y = doc.y;
+  doc.font('Helvetica-Bold').fontSize(13).fillColor(gold).text(num, contentLeft, y);
+  doc.font('Helvetica').fontSize(13).fillColor(darkGray).text(title, contentLeft + 30, y);
+  doc.moveDown(0.6);
 });
 
 // ===========================
 // 1. EXECUTIVE SUMMARY
 // ===========================
 doc.addPage();
-heading('1. Executive Summary');
-goldDivider();
+sectionStart('1. Executive Summary', 'viking-scroll');
 
 body('handlekraft is an early-stage 501(c)(3) nonprofit that pairs aspiring product builders with community organizations that need help — creating free, custom software and websites that give organizations the power to act.');
 
@@ -183,10 +175,7 @@ bullet('Dual impact: software delivery + career development');
 // 2. THE PROBLEM
 // ===========================
 doc.addPage();
-heading('2. The Problem');
-goldDivider();
-
-addImage(vikingKey, 440, 72, 80);
+sectionStart('2. The Problem', 'viking-search');
 
 subheading('The Technology Gap');
 body('Thousands of community organizations — homeless shelters, free clinics, food banks, youth mentorship programs, veteran service organizations — and underfunded state and local government agencies rely on manual processes to manage life-changing work. They track client intake on paper. They manage case files in shared spreadsheets. They communicate via sticky notes and whiteboard schedules.');
@@ -213,8 +202,7 @@ body('This shift means the most valuable skill isn\'t memorizing syntax or maste
 // 3. OUR APPROACH
 // ===========================
 doc.addPage();
-heading('3. Our Approach');
-goldDivider();
+sectionStart('3. Our Approach', 'viking-idea');
 
 body('handlekraft works as a simple, powerful cycle:');
 
@@ -237,8 +225,7 @@ body('Each graduating class strengthens our ability to help more organizations a
 // 4. THREE WAYS WE DELIVER AGENCY
 // ===========================
 doc.addPage();
-heading('4. Three Ways We Deliver Agency');
-goldDivider();
+sectionStart('4. Three Ways We Deliver Agency', 'viking-builder');
 
 subheading('1. Free Software & Web Design');
 body('We work like a caring software consultancy — but the bill is always $0. What we build:');
@@ -274,8 +261,7 @@ body('Over time, handlekraft becomes a self-sustaining engine for community tech
 // 5. WHO WE SERVE
 // ===========================
 doc.addPage();
-heading('5. Who We Serve');
-goldDivider();
+sectionStart('5. Who We Serve', 'viking-community');
 
 subheading('Organizations We Help');
 body('We serve nonprofits, community service organizations, and underserved state and local government agencies — any organization doing good work on a tight budget that could use the power to act.');
@@ -319,10 +305,7 @@ body('The only prerequisites are a high school diploma or GED, basic computer li
 // 6. THE FELLOWSHIP PROGRAM
 // ===========================
 doc.addPage();
-heading('6. The Fellowship Program');
-goldDivider();
-
-addImage(vikingMentor, 430, 72, 90);
+sectionStart('6. The Fellowship Program', 'viking-mentoring');
 
 subheading('Phase 1: Foundations (Weeks 1-4)');
 body('Fellows complete a supportive foundational program focused on understanding how software products work and how to build them with AI-powered tools:');
@@ -363,8 +346,7 @@ bullet('Job search support and interview preparation');
 // 7. THE AI ADVANTAGE
 // ===========================
 doc.addPage();
-heading('7. The AI Advantage');
-goldDivider();
+sectionStart('7. The AI Advantage', 'viking-tech');
 
 body('handlekraft is built for this moment. Agentic engineering — where AI handles more and more of the deep technical implementation — is transforming software development. We\'re not fighting that trend. We\'re riding it.');
 
@@ -392,8 +374,7 @@ bullet('As AI capabilities accelerate, our model scales with them — every adva
 // 8. OPERATING MODEL
 // ===========================
 doc.addPage();
-heading('8. Operating Model');
-goldDivider();
+sectionStart('8. Operating Model', 'viking-flag');
 
 subheading('Year 1: Getting Started');
 bullet('Establish 501(c)(3) status and organizational infrastructure');
@@ -423,8 +404,7 @@ bullet('Publish impact report and case studies');
 // 9. FUNDING STRATEGY
 // ===========================
 doc.addPage();
-heading('9. Funding Strategy');
-goldDivider();
+sectionStart('9. Funding Strategy', 'viking-treasure');
 
 body('handlekraft is 100% donation-funded in its founding stage. Our funding approach grows with the organization:');
 
@@ -448,8 +428,7 @@ body('We believe in full transparency. Our annual budget, expenditures, and impa
 // 10. FOUNDING TEAM
 // ===========================
 doc.addPage();
-heading('10. Founding Team');
-goldDivider();
+sectionStart('10. Founding Team', 'viking-handshake');
 
 body('handlekraft was founded by a father-son team who believe the best things in life are built together.');
 
@@ -470,12 +449,8 @@ bullet('Advisory council members from the communities we serve');
 // ===========================
 // 11. IMPLEMENTATION TIMELINE
 // ===========================
-checkPage(300);
-heading('11. Implementation Timeline');
-goldDivider();
-
-addImage(vikingShip, 106, doc.y, 400);
-doc.moveDown(12);
+doc.addPage();
+sectionStart('11. Implementation Timeline', 'viking-ship-building');
 
 const timeline = [
   ['Q2 2026', 'File 501(c)(3) application. Recruit founding board members and sponsors. Finalize curriculum.'],
@@ -497,8 +472,7 @@ timeline.forEach(([period, desc]) => {
 // 12. HOW YOU CAN HELP
 // ===========================
 doc.addPage();
-heading('12. How You Can Help');
-goldDivider();
+sectionStart('12. How You Can Help', 'viking-welcome');
 
 body('handlekraft is just getting started. We need people who believe in this vision to help us bring it to life. Here\'s how you can be part of it:');
 
@@ -522,8 +496,9 @@ subheading('Apply for the Fellowship');
 body('If you have a high school diploma or GED, curiosity, and the drive to learn — we want to meet you. No college degree required. No tuition. Non-traditional candidates are exactly who we\'re looking for.');
 
 spacer(1);
-goldDivider();
-spacer(0.5);
+const divY = doc.y;
+doc.strokeColor(gold).lineWidth(1.5).moveTo(contentLeft, divY).lineTo(contentRight, divY).stroke();
+spacer(1);
 
 doc.font('Helvetica-Bold').fontSize(14).fillColor(navy)
   .text('Get in Touch', { align: 'center' });

@@ -27,7 +27,7 @@ export function Wordmark({ className, size = "md", showTagline = false, taglineC
   return (
     <div className="flex flex-col" data-testid="wordmark">
       <span className={cn("font-display tracking-wide leading-none", sizes[size], className)}>
-        handl&#x259;kraft
+        handlecraft.ai
       </span>
       {showTagline && (
         <span className={cn("uppercase tracking-[0.25em] font-body font-medium mt-1", taglineSizes[size], taglineClassName)}>

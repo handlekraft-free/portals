@@ -31,7 +31,7 @@ export default function Home() {
             transition={{ duration: 0.8 }}
           >
             <div className="flex justify-center mb-8">
-              <img src={logoImg} alt="handlekraft" className="w-36 h-36 rounded-3xl shadow-2xl" data-testid="img-hero-logo" />
+              <img src={logoImg} alt="handlecraft.ai" className="w-36 h-36 rounded-3xl shadow-2xl" data-testid="img-hero-logo" />
             </div>
 
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-sm font-medium mb-8 backdrop-blur-sm" data-testid="text-badge">
@@ -113,7 +113,7 @@ export default function Home() {
                 We believe the most powerful thing you can give someone is the ability to act. For organizations, that means custom tools that actually fit their work. For aspiring builders, it means real projects, real mentorship, and a real path forward. AI-powered tools mean motivated people can own and deliver real products faster than ever — you don't need a CS degree to solve real problems.
               </p>
               <p className="font-semibold text-[#1A1F2B]">
-                handlekraft brings these two worlds together — giving organizations the tools to act, and giving people the skills to build them.
+                handlecraft.ai brings these two worlds together — giving organizations the tools to act, and giving people the skills to build them.
               </p>
             </div>
           </div>
@@ -348,7 +348,7 @@ export default function Home() {
             Read the full story.
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            handlekraft is just getting started. Our proposal covers everything — our mission, how we operate, how we fund the work, and where we're headed. We'd love your thoughts and your support.
+            handlecraft.ai is just getting started. Our proposal covers everything — our mission, how we operate, how we fund the work, and where we're headed. We'd love your thoughts and your support.
           </p>
           <Button 
             className="bg-[#1A1F2B] hover:bg-[#1A1F2B]/90 text-white font-bold rounded-full px-8 py-6 h-auto"
@@ -377,7 +377,7 @@ export default function Home() {
             Be part of something good.
           </h2>
           <p className="text-xl md:text-2xl text-white/80 mb-6 font-light leading-relaxed">
-            Whether you want to sponsor our work, volunteer your skills, apply for the fellowship, or connect us with an organization that needs help — there's a place for you at handlekraft.
+            Whether you want to sponsor our work, volunteer your skills, apply for the fellowship, or connect us with an organization that needs help — there's a place for you at handlecraft.ai.
           </p>
 
           <p className="text-lg text-white/60 mb-12 font-light">
@@ -443,7 +443,7 @@ export default function Home() {
           </div>
 
           <p className="mt-12 text-sm text-white/40">
-            handlekraft is a 501(c)(3) nonprofit initiative. All donations are tax-deductible.
+            handlecraft.ai is a 501(c)(3) nonprofit initiative. All donations are tax-deductible.
           </p>
         </div>
       </section>

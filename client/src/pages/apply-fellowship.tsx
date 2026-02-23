@@ -44,7 +44,7 @@ export default function ApplyFellowship() {
           <CheckCircle2 className="w-16 h-16 text-[#0D7377] mx-auto mb-6" />
           <h1 className="text-4xl font-display text-[#1A1F2B] mb-4" data-testid="text-fellowship-success">Application Received!</h1>
           <p className="text-lg text-muted-foreground mb-8">
-            Thank you for applying to the Handlekraft Fellowship. We'll review your application and be in touch soon. We're excited to learn more about you.
+            Thank you for applying to the handlecraft.ai Fellowship. We'll review your application and be in touch soon. We're excited to learn more about you.
           </p>
           <Link href="/">
             <Button data-testid="button-back-home">
@@ -69,7 +69,7 @@ export default function ApplyFellowship() {
 
         <h1 className="text-4xl font-display text-[#1A1F2B] mb-2" data-testid="text-fellowship-heading">Apply for the Fellowship</h1>
         <p className="text-lg text-muted-foreground mb-8">
-          No college degree required. No tuition. Just a willingness to show up, learn, and build something meaningful. We're looking for problem solvers, not programmers — people ready to claim their <span className="italic">handlekraft</span>.
+          No college degree required. No tuition. Just a willingness to show up, learn, and build something meaningful. We're looking for problem solvers, not programmers — people ready to claim their agency.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -113,7 +113,7 @@ export default function ApplyFellowship() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="motivation">Why do you want to join the Handlekraft Fellowship? *</Label>
+            <Label htmlFor="motivation">Why do you want to join the handlecraft.ai Fellowship? *</Label>
             <Textarea
               id="motivation"
               name="motivation"

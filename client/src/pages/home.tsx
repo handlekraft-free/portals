@@ -205,7 +205,7 @@ export default function Home() {
           centered
         />
         <div className="relative max-w-3xl mx-auto">
-          <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#0D7377] via-[#D4A843] to-[#0D7377] md:-translate-x-px" />
+          <div className="absolute left-6 md:left-1/2 top-0 w-0.5 bg-gradient-to-b from-[#0D7377] via-[#D4A843] to-[#D4A843] md:-translate-x-px" style={{ bottom: '2rem' }} />
           {[
             {
               step: "1",

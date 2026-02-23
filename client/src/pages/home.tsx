@@ -3,7 +3,7 @@ import { Navbar } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Code2, GraduationCap, Users, HeartHandshake, ArrowDown, Mail, Building2, UserPlus, Home as HomeIcon, Heart, Handshake, UtensilsCrossed, Baby, Shield, Landmark, Building, Zap } from "lucide-react";
+import { ArrowRight, CheckCircle2, Code2, GraduationCap, Users, HeartHandshake, ArrowDown, Mail, Building2, UserPlus, Home as HomeIcon, Heart, Handshake, UtensilsCrossed, Baby, Shield, Landmark, Building, Zap, LifeBuoy } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Wordmark } from "@/components/wordmark";
@@ -231,6 +231,13 @@ export default function Home() {
               desc: "The organization gets a custom tool built around their real needs — free of charge. The fellow gets a portfolio piece and real-world experience.",
               icon: CheckCircle2,
             },
+            {
+              step: "5",
+              title: "Ongoing Support & Training",
+              desc: "We don't disappear after launch. Organizations can receive updates and support as resources allow — or opt for training so their team can sustain and evolve the product themselves.",
+              icon: LifeBuoy,
+              terminal: true,
+            },
           ].map((item, i) => (
             <motion.div
               key={i}
@@ -238,22 +245,34 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className={`relative flex items-start gap-6 mb-12 ${
+              className={`relative flex items-start gap-6 ${
+                item.terminal ? "mb-0" : "mb-12"
+              } ${
                 i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
               }`}
             >
               <div className="hidden md:block md:w-1/2" />
               <div className="relative z-10 flex-shrink-0">
-                <div className="w-12 h-12 rounded-full bg-[#0D7377] text-white font-bold flex items-center justify-center text-lg shadow-lg border-4 border-[#F5F3EF]">
-                  {item.step}
-                </div>
+                {item.terminal ? (
+                  <div className="w-14 h-14 rounded-full bg-[#D4A843] text-white font-bold flex items-center justify-center text-lg shadow-lg border-4 border-[#F5F3EF] ring-4 ring-[#D4A843]/20">
+                    {item.step}
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-[#0D7377] text-white font-bold flex items-center justify-center text-lg shadow-lg border-4 border-[#F5F3EF]">
+                    {item.step}
+                  </div>
+                )}
               </div>
-              <div className="md:w-1/2 bg-white rounded-2xl p-6 shadow-lg border border-slate-100" data-testid={`card-how-it-works-${i}`}>
+              <div className={`md:w-1/2 rounded-2xl p-6 shadow-lg border ${
+                item.terminal
+                  ? "bg-gradient-to-br from-[#1A1F2B] to-[#2a3040] border-[#D4A843]/30 text-white"
+                  : "bg-white border-slate-100"
+              }`} data-testid={`card-how-it-works-${i}`}>
                 <div className="flex items-center gap-3 mb-2">
-                  <item.icon className="w-5 h-5 text-[#D4A843]" />
-                  <h3 className="text-lg font-bold text-[#1A1F2B]" data-testid={`text-how-step-${i}`}>{item.title}</h3>
+                  <item.icon className={`w-5 h-5 ${item.terminal ? "text-[#D4A843]" : "text-[#D4A843]"}`} />
+                  <h3 className={`text-lg font-bold ${item.terminal ? "text-white" : "text-[#1A1F2B]"}`} data-testid={`text-how-step-${i}`}>{item.title}</h3>
                 </div>
-                <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
+                <p className={`text-sm leading-relaxed ${item.terminal ? "text-slate-300" : "text-muted-foreground"}`}>{item.desc}</p>
               </div>
             </motion.div>
           ))}

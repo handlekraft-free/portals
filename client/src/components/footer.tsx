@@ -25,7 +25,7 @@ export function Footer() {
             <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-[#0D7377] hover:text-white transition-colors"><Twitter size={18} /></a>
             <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-[#0D7377] hover:text-white transition-colors"><Github size={18} /></a>
             <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-[#0D7377] hover:text-white transition-colors"><Linkedin size={18} /></a>
-            <a href="mailto:hello@handlekraft.ai" className="p-2 bg-white/5 rounded-full hover:bg-[#0D7377] hover:text-white transition-colors"><Mail size={18} /></a>
+            <a href="mailto:robert@retired.email" className="p-2 bg-white/5 rounded-full hover:bg-[#0D7377] hover:text-white transition-colors"><Mail size={18} /></a>
           </div>
         </div>
         
@@ -42,8 +42,8 @@ export function Footer() {
         <div>
           <h4 className="text-white font-bold mb-6">Contact</h4>
           <ul className="space-y-4 text-sm">
-            <li><a href="mailto:hello@handlekraft.ai" className="hover:text-[#D4A843] transition-colors">hello@handlekraft.ai</a></li>
-            <li>San Francisco, CA</li>
+            <li><a href="mailto:robert@retired.email" className="hover:text-[#D4A843] transition-colors">robert@retired.email</a></li>
+            <li>San Diego, CA</li>
             <li className="pt-4 text-xs opacity-50">
               &copy; {new Date().getFullYear()} handlekraft. All rights reserved.
             </li>

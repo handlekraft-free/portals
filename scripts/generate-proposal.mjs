@@ -504,7 +504,7 @@ doc.font('Helvetica-Bold').fontSize(14).fillColor(navy)
   .text('Get in Touch', { align: 'center' });
 doc.moveDown(0.5);
 doc.font('Helvetica').fontSize(12).fillColor(teal)
-  .text('hello@handlekraft.ai', { align: 'center' });
+  .text('robert@retired.email', { align: 'center' });
 doc.moveDown(0.3);
 doc.font('Helvetica').fontSize(10).fillColor(lightGray)
   .text('handlekraft is a 501(c)(3) nonprofit initiative.', { align: 'center' });

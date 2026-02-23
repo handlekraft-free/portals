@@ -388,7 +388,7 @@ export default function Home() {
             <Button 
               size="lg" 
               className="bg-[#D4A843] hover:bg-[#D4A843]/90 text-[#1A1F2B] font-bold text-lg px-8 py-8 h-auto rounded-xl shadow-lg hover:shadow-[#D4A843]/30 transition-all w-full sm:w-auto"
-              onClick={() => window.location.href = "mailto:donate@handlekraft.ai?subject=Founding%20Sponsor%20Inquiry"}
+              onClick={() => window.location.href = "mailto:robert@retired.email?subject=Founding%20Sponsor%20Inquiry"}
               data-testid="button-founding-sponsor"
             >
               <HeartHandshake className="mr-2 w-6 h-6" />
@@ -398,7 +398,7 @@ export default function Home() {
               variant="outline"
               size="lg" 
               className="bg-transparent border-white/30 hover:bg-white/10 text-white font-bold text-lg px-8 py-8 h-auto rounded-xl transition-all w-full sm:w-auto"
-              onClick={() => window.location.href = "mailto:hello@handlekraft.ai?subject=Board%20Member%20Interest"}
+              onClick={() => window.location.href = "mailto:robert@retired.email?subject=Board%20Member%20Interest"}
               data-testid="button-join-board"
             >
               <Building2 className="mr-2 w-6 h-6" />
@@ -434,7 +434,7 @@ export default function Home() {
               variant="outline"
               size="lg" 
               className="bg-transparent border-white/30 text-white font-bold text-lg px-8 py-8 h-auto rounded-xl w-full sm:w-auto"
-              onClick={() => window.location.href = "mailto:hello@handlekraft.ai"}
+              onClick={() => window.location.href = "mailto:robert@retired.email"}
               data-testid="button-conversation"
             >
               <Mail className="mr-2 w-6 h-6" />

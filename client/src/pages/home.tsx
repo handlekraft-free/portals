@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Navbar } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import { Section, SectionHeader } from "@/components/ui/section";
@@ -13,6 +14,7 @@ import vikingShield from "@/assets/images/viking-shield.png";
 import vikingTriumph from "@/assets/images/viking-triumph.png";
 
 export default function Home() {
+  useEffect(() => { document.title = "handlecraft.ai — The Power to Act"; }, []);
   return (
     <div className="min-h-screen font-body selection:bg-[#0D7377] selection:text-white">
       <Navbar />

@@ -9,11 +9,11 @@ export function Footer() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
         <div className="col-span-1 md:col-span-2">
           <Link href="/" className="flex items-center gap-3 mb-6 cursor-pointer">
-            <img src={logoImg} alt="handlecraft.ai logo" className="w-12 h-12 rounded-lg" />
+            <img src={logoImg} alt="handlekraft.ai logo" className="w-12 h-12 rounded-lg" />
             <Wordmark size="md" className="text-white" showTagline taglineClassName="text-[#D4A843]/70" />
           </Link>
           <p className="max-w-md text-sm leading-relaxed mb-2">
-            <span className="italic text-white/40">handlecraft.ai</span> — <span className="text-white/80">the power to act</span>.
+            <span className="italic text-white/40">handlekraft.ai</span> — <span className="text-white/80">the power to act</span>.
           </p>
           <p className="max-w-md text-sm leading-relaxed mb-4">
             A 501(c)(3) nonprofit initiative. All donations are tax-deductible.
@@ -45,7 +45,7 @@ export function Footer() {
             <li><a href="mailto:robert@retired.email" className="hover:text-[#D4A843] transition-colors">robert@retired.email</a></li>
             <li>San Diego, CA</li>
             <li className="pt-4 text-xs opacity-50">
-              &copy; {new Date().getFullYear()} handlecraft.ai. All rights reserved.
+              &copy; {new Date().getFullYear()} handlekraft.ai. All rights reserved.
             </li>
           </ul>
         </div>

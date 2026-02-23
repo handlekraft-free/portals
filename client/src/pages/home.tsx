@@ -7,6 +7,7 @@ import { ArrowRight, CheckCircle2, Code2, GraduationCap, Users, HeartHandshake, 
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Wordmark } from "@/components/wordmark";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import logoImg from "@/assets/images/logo.png";
 import vikingProud from "@/assets/images/viking-proud.png";
 import vikingCoding from "@/assets/images/viking-coding.png";
@@ -14,7 +15,7 @@ import vikingShield from "@/assets/images/viking-shield.png";
 import vikingTriumph from "@/assets/images/viking-triumph.png";
 
 export default function Home() {
-  useEffect(() => { document.title = "handlecraft.ai — The Power to Act"; }, []);
+  useEffect(() => { document.title = "handlekraft.ai — The Power to Act"; }, []);
   return (
     <div className="min-h-screen font-body selection:bg-[#0D7377] selection:text-white">
       <Navbar />
@@ -33,7 +34,7 @@ export default function Home() {
             transition={{ duration: 0.8 }}
           >
             <div className="flex justify-center mb-8">
-              <img src={logoImg} alt="handlecraft.ai" className="w-36 h-36 rounded-3xl shadow-2xl" data-testid="img-hero-logo" />
+              <img src={logoImg} alt="handlekraft.ai" className="w-36 h-36 rounded-3xl shadow-2xl" data-testid="img-hero-logo" />
             </div>
 
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-sm font-medium mb-8 backdrop-blur-sm" data-testid="text-badge">
@@ -115,7 +116,7 @@ export default function Home() {
                 We believe the most powerful thing you can give someone is the ability to act. For organizations, that means custom tools that actually fit their work. For aspiring builders, it means real projects, real mentorship, and a real path forward. AI-powered tools mean motivated people can own and deliver real products faster than ever — you don't need a CS degree to solve real problems.
               </p>
               <p className="font-semibold text-[#1A1F2B]">
-                handlecraft.ai brings these two worlds together — giving organizations the tools to act, and giving people the skills to build them.
+                handlekraft.ai brings these two worlds together — giving organizations the tools to act, and giving people the skills to build them.
               </p>
             </div>
           </div>
@@ -192,6 +193,68 @@ export default function Home() {
               <p className="text-muted-foreground leading-relaxed">
                 {card.desc}
               </p>
+            </motion.div>
+          ))}
+        </div>
+      </Section>
+
+      <Section id="how-it-works" background="cream">
+        <SectionHeader
+          title="How it works."
+          subtitle="From first contact to finished product — here's the journey."
+          centered
+        />
+        <div className="relative max-w-3xl mx-auto">
+          <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#0D7377] via-[#D4A843] to-[#0D7377] md:-translate-x-px" />
+          {[
+            {
+              step: "1",
+              title: "Organization Reaches Out",
+              desc: "A community organization tells us what they need — a website, a scheduling tool, a client tracker, or something else entirely.",
+              icon: Mail,
+            },
+            {
+              step: "2",
+              title: "We Scope the Project",
+              desc: "Our team works with the organization to understand their workflow, define the product, and set clear goals — no jargon, no guesswork.",
+              icon: Code2,
+            },
+            {
+              step: "3",
+              title: "A Fellow Owns It",
+              desc: "We pair the project with a fellow who takes ownership end-to-end. AI agents handle the heavy coding while the fellow drives product decisions.",
+              icon: UserPlus,
+            },
+            {
+              step: "4",
+              title: "Product Delivered",
+              desc: "The organization gets a custom tool built around their real needs — free of charge. The fellow gets a portfolio piece and real-world experience.",
+              icon: CheckCircle2,
+            },
+          ].map((item, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className={`relative flex items-start gap-6 mb-12 ${
+                i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
+              }`}
+            >
+              <div className="hidden md:block md:w-1/2" />
+              <div className="relative z-10 flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-[#0D7377] text-white font-bold flex items-center justify-center text-lg shadow-lg border-4 border-[#F5F3EF]">
+                  {item.step}
+                </div>
+              </div>
+              <div className="md:w-1/2 bg-white rounded-2xl p-6 shadow-lg border border-slate-100" data-testid={`card-how-it-works-${i}`}>
+                <div className="flex items-center gap-3 mb-2">
+                  <item.icon className="w-5 h-5 text-[#D4A843]" />
+                  <h3 className="text-lg font-bold text-[#1A1F2B]" data-testid={`text-how-step-${i}`}>{item.title}</h3>
+                </div>
+                <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -347,7 +410,7 @@ export default function Home() {
             Read the full story.
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            handlecraft.ai is just getting started. Our proposal covers everything — our mission, how we operate, how we fund the work, and where we're headed. We'd love your thoughts and your support.
+            handlekraft.ai is just getting started. Our proposal covers everything — our mission, how we operate, how we fund the work, and where we're headed. We'd love your thoughts and your support.
           </p>
           <Button 
             className="bg-[#1A1F2B] hover:bg-[#1A1F2B]/90 text-white font-bold rounded-full px-8 py-6 h-auto"
@@ -357,6 +420,57 @@ export default function Home() {
             Download Our Proposal (PDF) <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
           <p className="text-sm text-muted-foreground mt-4">This is a living document. We welcome questions, ideas, and conversations.</p>
+        </div>
+      </Section>
+
+      <Section id="faq" background="cream">
+        <SectionHeader
+          title="Frequently asked questions."
+          subtitle="Everything you need to know about handlekraft.ai and how we work."
+          centered
+        />
+        <div className="max-w-2xl mx-auto">
+          <Accordion type="single" collapsible className="space-y-3">
+            {[
+              {
+                q: "Is this really free for organizations?",
+                a: "Yes, 100%. We're a 501(c)(3) nonprofit funded by donations. Organizations never pay a dime for the software we build. That's the whole point — we exist to give community organizations the tools they need without adding to their costs."
+              },
+              {
+                q: "What kind of software do you build?",
+                a: "Websites, client intake systems, scheduling tools, donor management platforms, dashboards, workflow automation — whatever the organization actually needs. Every project is scoped around their real work, not a template."
+              },
+              {
+                q: "Do I need coding experience to apply for the fellowship?",
+                a: "Not at all. We're looking for problem solvers, not programmers. If you have a high school diploma or GED and the motivation to learn, that's enough. AI tools handle the deep technical work — fellows focus on understanding the problem and owning the product."
+              },
+              {
+                q: "How long is the fellowship?",
+                a: "The fellowship is self-paced but typically runs 3-6 months. You'll start with foundations, move into real projects quickly, and graduate when you've built a portfolio you're proud of."
+              },
+              {
+                q: "How is this different from a coding bootcamp?",
+                a: "Bootcamps teach you to code. We teach you to solve problems and deliver products. Our fellows leverage AI agents for the technical heavy lifting and focus on product thinking, communication, and ownership. And unlike bootcamps, there's no tuition."
+              },
+              {
+                q: "How can I support handlekraft.ai?",
+                a: "We're looking for founding sponsors, board members, and volunteers. You can also spread the word or connect us with organizations that could use our help. Reach out via the Get Involved section below."
+              },
+              {
+                q: "Who founded handlekraft.ai?",
+                a: "handlekraft.ai was founded by a father-son team who believe that motivated people — armed with the right tools and mentorship — can solve real problems for real communities. We're building something good, together."
+              },
+            ].map((item, i) => (
+              <AccordionItem key={i} value={`faq-${i}`} className="bg-white rounded-xl border border-slate-100 px-6 shadow-sm" data-testid={`faq-item-${i}`}>
+                <AccordionTrigger className="text-left text-[#1A1F2B] font-semibold hover:no-underline" data-testid={`button-faq-toggle-${i}`}>
+                  {item.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground leading-relaxed">
+                  {item.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </Section>
 
@@ -376,7 +490,7 @@ export default function Home() {
             Be part of something good.
           </h2>
           <p className="text-xl md:text-2xl text-white/80 mb-6 font-light leading-relaxed">
-            Whether you want to sponsor our work, volunteer your skills, apply for the fellowship, or connect us with an organization that needs help — there's a place for you at handlecraft.ai.
+            Whether you want to sponsor our work, volunteer your skills, apply for the fellowship, or connect us with an organization that needs help — there's a place for you at handlekraft.ai.
           </p>
 
           <p className="text-lg text-white/60 mb-12 font-light">
@@ -442,7 +556,7 @@ export default function Home() {
           </div>
 
           <p className="mt-12 text-sm text-white/40">
-            handlecraft.ai is a 501(c)(3) nonprofit initiative. All donations are tax-deductible.
+            handlekraft.ai is a 501(c)(3) nonprofit initiative. All donations are tax-deductible.
           </p>
         </div>
       </section>

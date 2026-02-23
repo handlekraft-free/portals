@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 import { LogOut, Star, ArrowUpDown, Eye } from "lucide-react";
 import type { FellowshipApplication, ClientApplication } from "@shared/schema";
 
@@ -105,7 +106,22 @@ function FellowshipQueue() {
     },
   });
 
-  if (isLoading) return <div className="p-8 text-center text-muted-foreground">Loading...</div>;
+  if (isLoading) return (
+    <div className="p-6 space-y-4">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="flex items-center gap-4">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-6 w-16 rounded-full" />
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-4 w-12" />
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-8 w-8 rounded" />
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <>
@@ -258,7 +274,23 @@ function ClientQueue() {
     },
   });
 
-  if (isLoading) return <div className="p-8 text-center text-muted-foreground">Loading...</div>;
+  if (isLoading) return (
+    <div className="p-6 space-y-4">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="flex items-center gap-4">
+          <Skeleton className="h-4 w-36" />
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-6 w-16 rounded-full" />
+          <Skeleton className="h-6 w-16 rounded-full" />
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-4 w-12" />
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-8 w-8 rounded" />
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <>
@@ -399,6 +431,7 @@ function ClientQueue() {
 }
 
 export default function Admin() {
+  useEffect(() => { document.title = "Admin Dashboard | handlekraft.ai"; }, []);
   const { data: admin, isLoading } = useQuery({
     queryKey: ["/api/admin/me"],
     queryFn: getQueryFn({ on401: "returnNull" }),
@@ -416,7 +449,15 @@ export default function Admin() {
     });
   }
 
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-[#1A1F2B] text-white">Loading...</div>;
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-[#1A1F2B]">
+      <div className="space-y-4 w-full max-w-sm">
+        <Skeleton className="h-8 w-48 mx-auto bg-white/10" />
+        <Skeleton className="h-4 w-32 mx-auto bg-white/10" />
+        <Skeleton className="h-10 w-full bg-white/10" />
+      </div>
+    </div>
+  );
 
   if (!isAuthenticated) {
     return <LoginForm onLogin={() => { setLoggedIn(true); queryClient.invalidateQueries({ queryKey: ["/api/admin/me"] }); }} />;
@@ -425,7 +466,7 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-gray-50 font-body">
       <header className="bg-[#1A1F2B] text-white px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-display" data-testid="text-admin-heading">handlecraft.ai — Admin</h1>
+        <h1 className="text-xl font-display" data-testid="text-admin-heading">handlekraft.ai — Admin</h1>
         <Button variant="ghost" className="text-white/70" onClick={handleLogout} data-testid="button-logout">
           <LogOut className="mr-2 w-4 h-4" /> Sign Out
         </Button>

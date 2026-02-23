@@ -129,7 +129,7 @@ export default function Home() {
             <img 
               src={vikingProud} 
               alt="" 
-              className="absolute -top-10 -right-4 w-[120px] h-[120px] z-20 opacity-90 pointer-events-none"
+              className="absolute top-4 right-4 w-[100px] h-[100px] z-20 opacity-90 pointer-events-none"
             />
             <h3 className="text-2xl font-display mb-4 relative z-10">Handle + Kraft</h3>
             <p className="text-white/60 text-sm mb-8 relative z-10 italic">Norwegian: to act + power = the power to act</p>

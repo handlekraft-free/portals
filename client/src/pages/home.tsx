@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Wordmark } from "@/components/wordmark";
 import logoImg from "@/assets/images/logo.png";
-import vikingWave from "@/assets/images/viking-wave.png";
+import vikingProud from "@/assets/images/viking-proud.png";
 import vikingCoding from "@/assets/images/viking-coding.png";
 import vikingShield from "@/assets/images/viking-shield.png";
 import vikingTriumph from "@/assets/images/viking-triumph.png";
@@ -126,13 +126,10 @@ export default function Home() {
           >
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#0D7377] rounded-full opacity-20 blur-2xl group-hover:scale-150 transition-transform duration-1000" />
             
-            <motion.img 
-              src={vikingWave} 
+            <img 
+              src={vikingProud} 
               alt="" 
               className="absolute -top-10 -right-4 w-[120px] h-[120px] z-20 opacity-90 pointer-events-none"
-              initial={{ rotate: -10 }}
-              animate={{ rotate: [-10, 5, -10] }}
-              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
             />
             <h3 className="text-2xl font-display mb-4 relative z-10">Handle + Kraft</h3>
             <p className="text-white/60 text-sm mb-8 relative z-10 italic">Norwegian: to act + power = the power to act</p>

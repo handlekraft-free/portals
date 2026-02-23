@@ -465,7 +465,7 @@ export default function Home() {
               },
               {
                 q: "How long is the fellowship?",
-                a: "The fellowship is self-paced but typically runs 3-6 months. You'll start with foundations, move into real projects quickly, and graduate when you've built a portfolio you're proud of."
+                a: "The fellowship runs 2-4 weeks, depending on cohort size. You'll move through foundations quickly, dive into real projects, and graduate with a portfolio you're proud of."
               },
               {
                 q: "How is this different from a coding bootcamp?",

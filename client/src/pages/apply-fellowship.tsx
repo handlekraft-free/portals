@@ -13,7 +13,7 @@ import { ArrowLeft, CheckCircle2, Send } from "lucide-react";
 import { Link } from "wouter";
 
 export default function ApplyFellowship() {
-  useEffect(() => { document.title = "Apply for the Fellowship | handlekraft.ai"; }, []);
+  useEffect(() => { document.title = "Apply for the Fellowship | handləkraft.ai"; }, []);
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
 
@@ -46,7 +46,7 @@ export default function ApplyFellowship() {
           <CheckCircle2 className="w-16 h-16 text-[#0D7377] mx-auto mb-6" />
           <h1 className="text-4xl font-display text-[#1A1F2B] mb-4" data-testid="text-fellowship-success">Application Received!</h1>
           <p className="text-lg text-muted-foreground mb-8">
-            Thank you for applying to the handlekraft.ai Fellowship. We'll review your application and be in touch soon. We're excited to learn more about you.
+            Thank you for applying to the handləkraft.ai Fellowship. We'll review your application and be in touch soon. We're excited to learn more about you.
           </p>
           <Link href="/">
             <Button data-testid="button-back-home">
@@ -115,7 +115,7 @@ export default function ApplyFellowship() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="motivation">Why do you want to join the handlekraft.ai Fellowship? *</Label>
+            <Label htmlFor="motivation">Why do you want to join the handləkraft.ai Fellowship? *</Label>
             <Textarea
               id="motivation"
               name="motivation"

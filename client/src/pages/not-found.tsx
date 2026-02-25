@@ -5,7 +5,7 @@ import { Link } from "wouter";
 import vikingLost from "@/assets/images/viking-lost.png";
 
 export default function NotFound() {
-  useEffect(() => { document.title = "Page Not Found | handlekraft.ai"; }, []);
+  useEffect(() => { document.title = "Page Not Found | handləkraft.ai"; }, []);
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md mx-4 shadow-xl border-border/50">

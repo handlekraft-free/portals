@@ -15,7 +15,7 @@ import vikingShield from "@/assets/images/viking-shield.png";
 import vikingTriumph from "@/assets/images/viking-triumph.png";
 
 export default function Home() {
-  useEffect(() => { document.title = "handlekraft.ai — The Power to Act"; }, []);
+  useEffect(() => { document.title = "handləkraft.ai — The Power to Act"; }, []);
   return (
     <div className="min-h-screen font-body selection:bg-[#0D7377] selection:text-white">
       <Navbar />
@@ -116,7 +116,7 @@ export default function Home() {
                 We believe the most powerful thing you can give someone is the ability to act. For organizations, that means custom tools that actually fit their work. For aspiring builders, it means real projects, real mentorship, and a real path forward. AI-powered tools mean motivated people can own and deliver real products faster than ever — you don't need a CS degree to solve real problems.
               </p>
               <p className="font-semibold text-[#1A1F2B]">
-                handlekraft.ai brings these two worlds together — giving organizations the tools to act, and giving people the skills to build them.
+                handləkraft.ai brings these two worlds together — giving organizations the tools to act, and giving people the skills to build them.
               </p>
             </div>
           </div>
@@ -429,7 +429,7 @@ export default function Home() {
             Read the full story.
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            handlekraft.ai is just getting started. Our proposal covers everything — our mission, how we operate, how we fund the work, and where we're headed. We'd love your thoughts and your support.
+            handləkraft.ai is just getting started. Our proposal covers everything — our mission, how we operate, how we fund the work, and where we're headed. We'd love your thoughts and your support.
           </p>
           <Button 
             className="bg-[#1A1F2B] hover:bg-[#1A1F2B]/90 text-white font-bold rounded-full px-8 py-6 h-auto"
@@ -445,7 +445,7 @@ export default function Home() {
       <Section id="faq" background="cream">
         <SectionHeader
           title="Frequently asked questions."
-          subtitle="Everything you need to know about handlekraft.ai and how we work."
+          subtitle="Everything you need to know about handləkraft.ai and how we work."
           centered
         />
         <div className="max-w-2xl mx-auto">
@@ -472,12 +472,12 @@ export default function Home() {
                 a: "Bootcamps teach you to code. We teach you to solve problems and deliver products. Our fellows leverage AI agents for the technical heavy lifting and focus on product thinking, communication, and ownership. And unlike bootcamps, there's no tuition."
               },
               {
-                q: "How can I support handlekraft.ai?",
+                q: "How can I support handləkraft.ai?",
                 a: "We're looking for founding sponsors, board members, and volunteers. You can also spread the word or connect us with organizations that could use our help. Reach out via the Get Involved section below."
               },
               {
-                q: "Who founded handlekraft.ai?",
-                a: "handlekraft.ai was founded by a father-son team who believe that motivated people — armed with the right tools and mentorship — can solve real problems for real communities. We're building something good, together."
+                q: "Who founded handləkraft.ai?",
+                a: "handləkraft.ai was founded by a father-son team who believe that motivated people — armed with the right tools and mentorship — can solve real problems for real communities. We're building something good, together."
               },
             ].map((item, i) => (
               <AccordionItem key={i} value={`faq-${i}`} className="bg-white rounded-xl border border-slate-100 px-6 shadow-sm" data-testid={`faq-item-${i}`}>
@@ -509,7 +509,7 @@ export default function Home() {
             Be part of something good.
           </h2>
           <p className="text-xl md:text-2xl text-white/80 mb-6 font-light leading-relaxed">
-            Whether you want to sponsor our work, volunteer your skills, apply for the fellowship, or connect us with an organization that needs help — there's a place for you at handlekraft.ai.
+            Whether you want to sponsor our work, volunteer your skills, apply for the fellowship, or connect us with an organization that needs help — there's a place for you at handləkraft.ai.
           </p>
 
           <p className="text-lg text-white/60 mb-12 font-light">
@@ -575,7 +575,7 @@ export default function Home() {
           </div>
 
           <p className="mt-12 text-sm text-white/40">
-            handlekraft.ai is a 501(c)(3) nonprofit initiative. All donations are tax-deductible.
+            handləkraft.ai is a 501(c)(3) nonprofit initiative. All donations are tax-deductible.
           </p>
         </div>
       </section>

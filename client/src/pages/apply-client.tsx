@@ -14,7 +14,7 @@ import { ArrowLeft, CheckCircle2, Send } from "lucide-react";
 import { Link } from "wouter";
 
 export default function ApplyClient() {
-  useEffect(() => { document.title = "Request Free Help | handlekraft.ai"; }, []);
+  useEffect(() => { document.title = "Request Free Help | handləkraft.ai"; }, []);
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
   const [orgType, setOrgType] = useState("");

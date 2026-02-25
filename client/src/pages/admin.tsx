@@ -431,7 +431,7 @@ function ClientQueue() {
 }
 
 export default function Admin() {
-  useEffect(() => { document.title = "Admin Dashboard | handlekraft.ai"; }, []);
+  useEffect(() => { document.title = "Admin Dashboard | handləkraft.ai"; }, []);
   const { data: admin, isLoading } = useQuery({
     queryKey: ["/api/admin/me"],
     queryFn: getQueryFn({ on401: "returnNull" }),
@@ -466,7 +466,7 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-gray-50 font-body">
       <header className="bg-[#1A1F2B] text-white px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-display" data-testid="text-admin-heading">handlekraft.ai — Admin</h1>
+        <h1 className="text-xl font-display" data-testid="text-admin-heading">handləkraft.ai — Admin</h1>
         <Button variant="ghost" className="text-white/70" onClick={handleLogout} data-testid="button-logout">
           <LogOut className="mr-2 w-4 h-4" /> Sign Out
         </Button>

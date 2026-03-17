@@ -6,6 +6,9 @@ import pg from "pg";
 import bcrypt from "bcryptjs";
 import { storage } from "./storage";
 import { insertFellowshipApplicationSchema, insertClientApplicationSchema } from "@shared/schema";
+import { users, expenseCategories } from "@shared/schema";
+import { db } from "./db";
+import { sql, count } from "drizzle-orm";
 import { z } from "zod";
 
 // New portal route modules
@@ -52,10 +55,77 @@ export async function registerRoutes(
     })
   );
 
+  // Ensure any schema additions added after initial deployment exist
+  try {
+    const migrationPool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+    await migrationPool.query(`
+      ALTER TABLE kanban_card_comments ADD COLUMN IF NOT EXISTS edited_at timestamp;
+      CREATE TABLE IF NOT EXISTS kanban_card_attachments (
+        id serial PRIMARY KEY,
+        card_id integer NOT NULL,
+        uploaded_by integer NOT NULL,
+        file_name text NOT NULL,
+        file_path text NOT NULL,
+        file_size integer NOT NULL,
+        mime_type text NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS can_approve boolean DEFAULT false;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS approver_id integer;
+      ALTER TABLE time_reports ADD COLUMN IF NOT EXISTS mode varchar;
+      ALTER TABLE time_reports ADD COLUMN IF NOT EXISTS simple_day_hours text;
+      ALTER TABLE time_reports ADD COLUMN IF NOT EXISTS notes text;
+    `);
+    await migrationPool.end();
+    console.log("[migrate] ✓ Schema patches applied");
+  } catch (e: any) {
+    console.error("[migrate] Schema patch error:", e.message);
+  }
+
   // Seed default legacy admin if none exists
   const existingAdmin = await storage.getAdminByUsername("admin");
   if (!existingAdmin) {
     await storage.createAdmin("admin", "handlekraft2026");
+  }
+
+  // Seed default portal users if table is empty
+  try {
+    const [{ value: userCount }] = await db.select({ value: count() }).from(users);
+    if (Number(userCount) === 0) {
+      console.log("[seed] Portal users table is empty — seeding default accounts…");
+      const hash = async (pw: string) => bcrypt.hash(pw, 12);
+      await db.insert(users).values([
+        { email: "admin@handlekraft.ai", passwordHash: await hash("Admin1234!"), role: "admin", firstName: "Admin", lastName: "User", status: "active", canApprove: true },
+        { email: "employee1@handlekraft.ai", passwordHash: await hash("Employee1!"), role: "employee", firstName: "Jordan", lastName: "Lee", status: "active" },
+        { email: "employee2@handlekraft.ai", passwordHash: await hash("Employee1!"), role: "employee", firstName: "Sam", lastName: "Torres", status: "active" },
+        { email: "client1@handlekraft.ai", passwordHash: await hash("Client123!"), role: "client", firstName: "River", lastName: "Park", status: "active" },
+        { email: "student1@handlekraft.ai", passwordHash: await hash("Student1!"), role: "student", firstName: "Alex", lastName: "Rivera", status: "active" },
+      ]);
+      console.log("[seed] ✓ Portal users seeded");
+    }
+  } catch (e: any) {
+    console.error("[seed] Could not seed portal users:", e.message);
+  }
+
+  // Seed default expense categories if empty
+  try {
+    const [{ value: catCount }] = await db.select({ value: count() }).from(expenseCategories);
+    if (Number(catCount) === 0) {
+      await db.insert(expenseCategories).values([
+        { name: "Travel", qbAccountCode: "6200", qbAccountName: "Travel & Transportation", description: "Flights, hotels, mileage" },
+        { name: "Meals", qbAccountCode: "6210", qbAccountName: "Meals & Entertainment", description: "Business meals and client entertainment" },
+        { name: "Office Supplies", qbAccountCode: "6220", qbAccountName: "Office Supplies", description: "Paper, pens, printer ink, etc." },
+        { name: "Software", qbAccountCode: "6230", qbAccountName: "Software & Subscriptions", description: "SaaS tools, licenses, subscriptions" },
+        { name: "Professional Development", qbAccountCode: "6240", qbAccountName: "Professional Development", description: "Courses, books, conferences" },
+        { name: "Marketing", qbAccountCode: "6250", qbAccountName: "Marketing & Advertising", description: "Ads, design, print materials" },
+        { name: "Equipment", qbAccountCode: "6260", qbAccountName: "Equipment & Hardware", description: "Computers, peripherals, tools" },
+        { name: "Utilities", qbAccountCode: "6270", qbAccountName: "Utilities", description: "Internet, phone, electricity" },
+        { name: "Miscellaneous", qbAccountCode: "6999", qbAccountName: "Miscellaneous", description: "Other business expenses" },
+      ]);
+      console.log("[seed] ✓ Expense categories seeded");
+    }
+  } catch (e: any) {
+    console.error("[seed] Could not seed expense categories:", e.message);
   }
 
   // ── New Portal API Routes ──────────────────────────────────────────────────

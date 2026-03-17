@@ -301,4 +301,116 @@ router.patch("/reports/:id/reject", async (req, res) => {
   res.json({ success: true, data: report });
 });
 
+// ── Monthly Report ────────────────────────────────────────────────────────────
+
+router.get("/monthly-report", async (req, res) => {
+  const userId = req.user!.userId;
+  const role = req.user!.role;
+  const { month, employeeId } = req.query; // month = "2026-03"
+
+  if (!month || !/^\d{4}-\d{2}$/.test(month as string)) {
+    return res.status(400).json({ success: false, error: "month param required in YYYY-MM format" });
+  }
+
+  const [year, mon] = (month as string).split("-").map(Number);
+  const monthStart = new Date(year, mon - 1, 1);
+  const monthEnd = new Date(year, mon, 0, 23, 59, 59, 999);
+
+  // Check if current user is manager/admin
+  const [currentUser] = await db.select().from(users).where(eq(users.id, userId));
+  const isManager = role === "admin" || currentUser?.canApprove;
+
+  // Determine which employees to include
+  let employeeFilter: number[] | null = null;
+  if (!isManager) {
+    employeeFilter = [userId]; // regular employees only see themselves
+  } else if (employeeId && employeeId !== "all") {
+    employeeFilter = [parseInt(employeeId as string)];
+  }
+  // else: all employees (admin/manager with employeeId="all")
+
+  // Fetch all timesheets in the month range
+  const allReports = await db
+    .select({
+      id: timeReports.id,
+      employeeId: timeReports.employeeId,
+      periodStart: timeReports.periodStart,
+      periodEnd: timeReports.periodEnd,
+      totalHours: timeReports.totalHours,
+      status: timeReports.status,
+      mode: timeReports.mode,
+      simpleDayHours: timeReports.simpleDayHours,
+      notes: timeReports.notes,
+      submittedAt: timeReports.submittedAt,
+      approvedAt: timeReports.approvedAt,
+      employeeFirstName: users.firstName,
+      employeeLastName: users.lastName,
+      employeeEmail: users.email,
+    })
+    .from(timeReports)
+    .innerJoin(users, eq(timeReports.employeeId, users.id))
+    .where(
+      and(
+        gte(timeReports.periodStart, monthStart),
+        lte(timeReports.periodStart, monthEnd),
+        ...(employeeFilter ? [inArray(timeReports.employeeId, employeeFilter)] : [])
+      )
+    )
+    .orderBy(asc(users.firstName), asc(timeReports.periodStart));
+
+  // Group by employee
+  const byEmployee = new Map<number, any>();
+  for (const r of allReports) {
+    if (!byEmployee.has(r.employeeId)) {
+      byEmployee.set(r.employeeId, {
+        id: r.employeeId,
+        firstName: r.employeeFirstName,
+        lastName: r.employeeLastName,
+        email: r.employeeEmail,
+        timesheets: [],
+        monthTotalHours: 0,
+        approvedHours: 0,
+        pendingHours: 0,
+        rejectedHours: 0,
+      });
+    }
+    const emp = byEmployee.get(r.employeeId)!;
+    const hrs = parseFloat(r.totalHours || "0");
+    emp.timesheets.push(r);
+    emp.monthTotalHours += hrs;
+    if (r.status === "approved") emp.approvedHours += hrs;
+    else if (r.status === "submitted") emp.pendingHours += hrs;
+    else if (r.status === "rejected") emp.rejectedHours += hrs;
+  }
+
+  // CSV export?
+  if (req.query.format === "csv") {
+    const rows = [["Employee", "Email", "Week Start", "Week End", "Total Hours", "Status", "Mode", "Notes"]];
+    for (const r of allReports) {
+      rows.push([
+        `${r.employeeFirstName} ${r.employeeLastName}`,
+        r.employeeEmail,
+        r.periodStart.toISOString().split("T")[0],
+        r.periodEnd.toISOString().split("T")[0],
+        r.totalHours || "0",
+        r.status || "",
+        r.mode || "",
+        r.notes || "",
+      ]);
+    }
+    const csv = rows.map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", `attachment; filename=timesheet-report-${month}.csv`);
+    return res.send(csv);
+  }
+
+  res.json({
+    success: true,
+    data: {
+      month: month as string,
+      employees: Array.from(byEmployee.values()),
+    },
+  });
+});
+
 export default router;

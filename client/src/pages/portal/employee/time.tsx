@@ -1,11 +1,12 @@
-import { useEffect, useState, useCallback } from "react";
+import { Fragment, useEffect, useState, useCallback } from "react";
 import { EmployeeLayout } from "@/components/portal/EmployeeLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import {
   Clock, Play, Square, Plus, Trash2, Check, X, ChevronLeft,
-  ChevronRight, Send, ThumbsUp, ThumbsDown, FileText, AlertCircle
+  ChevronRight, Send, ThumbsUp, ThumbsDown, FileText, AlertCircle,
+  BarChart3, Download, Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -533,12 +534,238 @@ function ApprovalsPanel() {
   );
 }
 
+// ── Monthly Reports Panel ─────────────────────────────────────────────────────
+
+function ReportsPanel({ canApprove }: { canApprove: boolean }) {
+  const now = new Date();
+  const [monthDate, setMonthDate] = useState(new Date(now.getFullYear(), now.getMonth(), 1));
+  const [employeeId, setEmployeeId] = useState("all");
+  const [report, setReport] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [expandedEmp, setExpandedEmp] = useState<number | null>(null);
+
+  const monthStr = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, "0")}`;
+  const monthLabel = monthDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const url = canApprove
+      ? `/api/time/monthly-report?month=${monthStr}&employeeId=${employeeId}`
+      : `/api/time/monthly-report?month=${monthStr}`;
+    const res = await apiRequest("GET", url);
+    if (res.success) setReport(res.data);
+    setLoading(false);
+  }, [monthStr, employeeId, canApprove]);
+
+  useEffect(() => { load(); }, [load]);
+
+  function prevMonth() { setMonthDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1)); }
+  function nextMonth() {
+    const next = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1);
+    if (next <= new Date(now.getFullYear(), now.getMonth(), 1)) setMonthDate(next);
+  }
+  const isCurrentMonth = monthDate.getFullYear() === now.getFullYear() && monthDate.getMonth() === now.getMonth();
+
+  function downloadCSV() {
+    const url = canApprove
+      ? `/api/time/monthly-report?month=${monthStr}&employeeId=${employeeId}&format=csv`
+      : `/api/time/monthly-report?month=${monthStr}&format=csv`;
+    window.open(url, "_blank");
+  }
+
+  // Build all week labels that appear in data
+  const allWeekStarts = Array.from(new Set(
+    (report?.employees || []).flatMap((e: any) => e.timesheets.map((t: any) => t.periodStart.split("T")[0]))
+  )).sort() as string[];
+
+  const employees: any[] = report?.employees || [];
+
+  return (
+    <div className="space-y-5">
+      {/* Controls */}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+        <div className="flex items-center gap-2">
+          <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500" data-testid="button-prev-month">
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <div className="text-center min-w-36">
+            <p className="font-semibold text-[#1A1F2B] text-sm">{monthLabel}</p>
+            {isCurrentMonth && <p className="text-xs text-[#0D7377]">Current Month</p>}
+          </div>
+          <button onClick={nextMonth} disabled={isCurrentMonth} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 disabled:opacity-30" data-testid="button-next-month">
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex gap-2 items-center flex-wrap">
+          {canApprove && employees.length > 0 && (
+            <select
+              value={employeeId}
+              onChange={e => setEmployeeId(e.target.value)}
+              className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 min-w-44"
+              data-testid="select-report-employee"
+            >
+              <option value="all">All Employees</option>
+              {employees.map((e: any) => (
+                <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
+              ))}
+            </select>
+          )}
+          <Button variant="outline" onClick={downloadCSV} className="gap-2 text-sm" data-testid="button-export-report">
+            <Download className="w-4 h-4" /> Export CSV
+          </Button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-16 bg-white rounded-xl animate-pulse" />)}</div>
+      ) : employees.length === 0 ? (
+        <div className="text-center py-16 text-slate-400">
+          <BarChart3 className="w-12 h-12 mx-auto mb-3 opacity-30" />
+          <p className="text-sm">No timesheets found for {monthLabel}.</p>
+          <p className="text-xs mt-1 text-slate-300">Timesheets must be submitted to appear here.</p>
+        </div>
+      ) : (
+        <>
+          {/* Summary cards */}
+          {canApprove && employeeId === "all" && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { label: "Total Hours", value: employees.reduce((s: number, e: any) => s + e.monthTotalHours, 0).toFixed(1), color: "text-[#1A1F2B]" },
+                { label: "Approved", value: employees.reduce((s: number, e: any) => s + e.approvedHours, 0).toFixed(1), color: "text-green-600" },
+                { label: "Pending Review", value: employees.reduce((s: number, e: any) => s + e.pendingHours, 0).toFixed(1), color: "text-blue-600" },
+                { label: "Employees", value: employees.length, color: "text-[#0D7377]" },
+              ].map(s => (
+                <Card key={s.label} className="border-0 shadow-sm">
+                  <CardContent className="pt-3 pb-3">
+                    <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
+                    <p className="text-xs text-slate-500">{s.label}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Report table */}
+          <Card className="border-0 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 border-b">
+                  <tr>
+                    {canApprove && employeeId === "all" && <th className="text-left p-3 pl-4 text-slate-500 font-medium whitespace-nowrap">Employee</th>}
+                    {allWeekStarts.map(ws => (
+                      <th key={ws} className="text-center p-3 text-slate-500 font-medium whitespace-nowrap text-xs">
+                        Wk of {fmtDate(new Date(ws + "T12:00:00"))}
+                      </th>
+                    ))}
+                    <th className="text-right p-3 pr-4 text-slate-500 font-medium">Total</th>
+                    <th className="text-right p-3 pr-4 text-slate-500 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {employees.map((emp: any) => {
+                    const weekMap = new Map<string, any>();
+                    for (const ts of emp.timesheets) {
+                      weekMap.set(ts.periodStart.split("T")[0], ts);
+                    }
+                    const isExpanded = expandedEmp === emp.id;
+                    return (
+                      <Fragment key={emp.id}>
+                        <tr
+                          className="border-b last:border-0 hover:bg-slate-50 cursor-pointer transition-colors"
+                          onClick={() => setExpandedEmp(isExpanded ? null : emp.id)}
+                          data-testid={`report-row-${emp.id}`}
+                        >
+                          {canApprove && employeeId === "all" && (
+                            <td className="p-3 pl-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-full bg-[#0D7377] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                  {emp.firstName[0]}{emp.lastName[0]}
+                                </div>
+                                <div>
+                                  <p className="font-medium text-[#1A1F2B]">{emp.firstName} {emp.lastName}</p>
+                                  <p className="text-xs text-slate-400">{emp.email}</p>
+                                </div>
+                              </div>
+                            </td>
+                          )}
+                          {allWeekStarts.map(ws => {
+                            const ts = weekMap.get(ws);
+                            return (
+                              <td key={ws} className="p-3 text-center">
+                                {ts ? (
+                                  <span className={`font-semibold ${ts.status === "approved" ? "text-green-600" : ts.status === "rejected" ? "text-red-500" : ts.status === "submitted" ? "text-blue-600" : "text-slate-400"}`}>
+                                    {parseFloat(ts.totalHours).toFixed(0)}h
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-300">—</span>
+                                )}
+                              </td>
+                            );
+                          })}
+                          <td className="p-3 pr-4 text-right">
+                            <span className="font-bold text-[#1A1F2B]">{emp.monthTotalHours.toFixed(1)}h</span>
+                          </td>
+                          <td className="p-3 pr-4 text-right">
+                            <div className="flex flex-col gap-0.5 items-end">
+                              {emp.approvedHours > 0 && <span className="text-xs text-green-600">{emp.approvedHours.toFixed(0)}h approved</span>}
+                              {emp.pendingHours > 0 && <span className="text-xs text-blue-600">{emp.pendingHours.toFixed(0)}h pending</span>}
+                              {emp.rejectedHours > 0 && <span className="text-xs text-red-500">{emp.rejectedHours.toFixed(0)}h rejected</span>}
+                            </div>
+                          </td>
+                        </tr>
+                        {isExpanded && (
+                          <tr key={`${emp.id}-detail`} className="bg-slate-50/50">
+                            <td colSpan={allWeekStarts.length + (canApprove && employeeId === "all" ? 3 : 2)} className="px-4 pb-4 pt-2">
+                              <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Weekly Breakdown</p>
+                              <div className="space-y-2">
+                                {emp.timesheets.map((ts: any) => {
+                                  const dayHours = ts.simpleDayHours ? (() => { try { return JSON.parse(ts.simpleDayHours); } catch { return null; } })() : null;
+                                  return (
+                                    <div key={ts.id} className="bg-white rounded-lg px-3 py-2 shadow-sm flex flex-wrap gap-3 items-center">
+                                      <div className="min-w-32">
+                                        <p className="text-xs font-medium text-[#1A1F2B]">
+                                          {fmtDate(new Date(ts.periodStart + "T12:00:00"))} – {fmtDate(new Date(ts.periodEnd + "T12:00:00"))}
+                                        </p>
+                                        <p className="text-xs text-slate-400 capitalize">{ts.mode} · <span className={STATUS_COLORS[ts.status]?.includes("green") ? "text-green-600" : ts.status === "submitted" ? "text-blue-600" : "text-slate-500"}>{ts.status}</span></p>
+                                      </div>
+                                      {dayHours && (
+                                        <div className="flex gap-1.5 flex-wrap">
+                                          {DAY_KEYS.map(k => dayHours[k] > 0 && (
+                                            <span key={k} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{DAY_LABELS[k]} {dayHours[k]}h</span>
+                                          ))}
+                                        </div>
+                                      )}
+                                      <span className="ml-auto font-bold text-sm text-[#1A1F2B]">{parseFloat(ts.totalHours).toFixed(0)}h</span>
+                                      {ts.notes && <p className="w-full text-xs text-slate-400 italic">"{ts.notes}"</p>}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          <p className="text-xs text-slate-400 text-center">Click any row to expand weekly detail. Hours highlighted in <span className="text-green-600">green</span> are approved, <span className="text-blue-600">blue</span> are pending review.</p>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ── Main Time Page ────────────────────────────────────────────────────────────
 
 function TimeContent() {
   const { user } = useAuth();
   const [timesheetMode, setTimesheetMode] = useState<"simple" | "project">("simple");
-  const [tab, setTab] = useState<"current" | "history" | "approvals">("current");
+  const [tab, setTab] = useState<"current" | "history" | "approvals" | "reports">("current");
   const [weekStart, setWeekStart] = useState<Date>(getMondayOfWeek());
   const [historyKey, setHistoryKey] = useState(0);
 
@@ -555,6 +782,7 @@ function TimeContent() {
   const tabs = [
     { key: "current", label: "Current Timesheet" },
     { key: "history", label: "My History" },
+    { key: "reports", label: "Monthly Reports" },
     ...(canApprove ? [{ key: "approvals", label: "Approvals Queue" }] : []),
   ];
 
@@ -625,6 +853,7 @@ function TimeContent() {
       )}
 
       {tab === "history" && <HistoryPanel key={historyKey} />}
+      {tab === "reports" && <ReportsPanel canApprove={canApprove} />}
       {tab === "approvals" && <ApprovalsPanel />}
     </div>
   );

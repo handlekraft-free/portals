@@ -92,6 +92,8 @@ router.get("/me", requireAuth, async (req, res) => {
       lastName: user.lastName,
       mustChangePassword: user.mustChangePassword,
       status: user.status,
+      canApprove: user.canApprove,
+      approverId: user.approverId,
     },
   });
 });

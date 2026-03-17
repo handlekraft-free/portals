@@ -77,6 +77,8 @@ export const users = pgTable("portal_users", {
   lockedUntil: timestamp("locked_until"),
   lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  canApprove: boolean("can_approve").default(false),
+  approverId: integer("approver_id"),
 });
 export type PortalUser = typeof users.$inferSelect;
 export type InsertPortalUser = typeof users.$inferInsert;
@@ -116,7 +118,7 @@ export const timeEntries = pgTable("time_entries", {
 });
 export type TimeEntry = typeof timeEntries.$inferSelect;
 
-export const timeReportStatusEnum = pgEnum("time_report_status", ["draft", "submitted", "approved"]);
+export const timeReportStatusEnum = pgEnum("time_report_status", ["draft", "submitted", "approved", "rejected"]);
 
 export const timeReports = pgTable("time_reports", {
   id: serial("id").primaryKey(),
@@ -126,6 +128,9 @@ export const timeReports = pgTable("time_reports", {
   totalHours: numeric("total_hours", { precision: 10, scale: 2 }).default("0"),
   totalBillable: numeric("total_billable", { precision: 10, scale: 2 }).default("0"),
   status: timeReportStatusEnum("status").default("draft"),
+  mode: varchar("mode", { length: 20 }).default("simple"),
+  simpleDayHours: text("simple_day_hours"),
+  notes: text("notes"),
   submittedAt: timestamp("submitted_at"),
   approvedBy: integer("approved_by"),
   approvedAt: timestamp("approved_at"),

@@ -11,7 +11,7 @@ router.use(requireAdmin as any);
 
 // GET /api/admin/portal-users
 router.get("/", async (_req, res) => {
-  const all = await db.select({ id: users.id, email: users.email, firstName: users.firstName, lastName: users.lastName, role: users.role, status: users.status, lastLogin: users.lastLogin, createdAt: users.createdAt }).from(users).orderBy(desc(users.createdAt));
+  const all = await db.select({ id: users.id, email: users.email, firstName: users.firstName, lastName: users.lastName, role: users.role, status: users.status, lastLogin: users.lastLogin, createdAt: users.createdAt, canApprove: users.canApprove, approverId: users.approverId }).from(users).orderBy(desc(users.createdAt));
   const stats = { admin: 0, employee: 0, client: 0, student: 0 };
   for (const u of all) { if (u.role in stats) stats[u.role as keyof typeof stats]++; }
   res.json({ success: true, data: all, stats });
@@ -31,8 +31,13 @@ router.post("/", async (req, res) => {
 });
 
 router.patch("/:id", async (req, res) => {
-  const { role, status } = req.body;
-  const [user] = await db.update(users).set({ ...(role && { role }), ...(status && { status }) }).where(eq(users.id, parseInt(req.params.id))).returning({ id: users.id, email: users.email, role: users.role, status: users.status });
+  const { role, status, canApprove, approverId } = req.body;
+  const updates: Record<string, any> = {};
+  if (role !== undefined) updates.role = role;
+  if (status !== undefined) updates.status = status;
+  if (canApprove !== undefined) updates.canApprove = canApprove;
+  if (approverId !== undefined) updates.approverId = approverId === null ? null : parseInt(approverId);
+  const [user] = await db.update(users).set(updates).where(eq(users.id, parseInt(req.params.id))).returning({ id: users.id, email: users.email, role: users.role, status: users.status, canApprove: users.canApprove, approverId: users.approverId });
   if (!user) return res.status(404).json({ success: false, error: "User not found" });
   res.json({ success: true, data: user });
 });

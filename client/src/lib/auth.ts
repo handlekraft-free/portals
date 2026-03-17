@@ -6,6 +6,8 @@ export interface PortalUser {
   lastName: string;
   mustChangePassword?: boolean;
   status?: string;
+  canApprove?: boolean;
+  approverId?: number | null;
 }
 
 export async function getCurrentUser(): Promise<PortalUser | null> {

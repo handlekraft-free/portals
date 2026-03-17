@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { EmployeeLayout } from "@/components/portal/EmployeeLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
-import { Users, Plus, Search, Download, RefreshCw, Edit, UserX, Key, Check, X } from "lucide-react";
+import { Users, Plus, Search, Download, Edit, UserX, Key, Check, X, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,7 @@ function AdminUsersContent() {
   const [showCreate, setShowCreate] = useState(false);
   const [editUser, setEditUser] = useState<any>(null);
   const [form, setForm] = useState<UserForm>({ firstName: "", lastName: "", email: "", role: "employee", password: "" });
-  const [editForm, setEditForm] = useState<{ role: string; status: string }>({ role: "", status: "" });
+  const [editForm, setEditForm] = useState<{ role: string; status: string; canApprove: boolean; approverId: string }>({ role: "", status: "", canApprove: false, approverId: "" });
   const [selected, setSelected] = useState<Set<number>>(new Set());
 
   useEffect(() => { document.title = "Portal Users | handləkraft.ai"; load(); }, []);
@@ -45,7 +45,9 @@ function AdminUsersContent() {
   }
 
   async function updateUser(id: number) {
-    const res = await apiRequest("PATCH", `/api/admin/portal-users/${id}`, editForm);
+    const payload: any = { role: editForm.role, status: editForm.status, canApprove: editForm.canApprove };
+    if (editForm.approverId !== "") payload.approverId = editForm.approverId === "none" ? null : parseInt(editForm.approverId);
+    const res = await apiRequest("PATCH", `/api/admin/portal-users/${id}`, payload);
     if (res.success) { setEditUser(null); load(); }
   }
 
@@ -179,25 +181,43 @@ function AdminUsersContent() {
                       </div>
                     </td>
                     <td className="p-3 text-slate-500">{u.email}</td>
-                    <td className="p-3"><Badge className={`text-xs ${ROLE_COLORS[u.role] || ""}`}>{u.role}</Badge></td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-1.5">
+                        <Badge className={`text-xs ${ROLE_COLORS[u.role] || ""}`}>{u.role}</Badge>
+                        {u.canApprove && <span title="Can approve timesheets"><ShieldCheck className="w-3.5 h-3.5 text-[#0D7377]" /></span>}
+                      </div>
+                    </td>
                     <td className="p-3"><Badge className={`text-xs ${STATUS_COLORS[u.status] || ""}`}>{u.status}</Badge></td>
-                    <td className="p-3 text-slate-400 text-xs">{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString() : "Never"}</td>
+                    <td className="p-3 text-slate-400 text-xs">{u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : "Never"}</td>
                     <td className="p-3">
                       <div className="flex items-center gap-1">
                         {editUser?.id === u.id ? (
-                          <div className="flex items-center gap-1">
+                          <div className="flex flex-wrap items-center gap-1">
                             <select value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))} className="border border-slate-200 rounded px-1.5 py-1 text-xs" data-testid={`select-edit-role-${u.id}`}>
                               <option value="employee">employee</option><option value="client">client</option><option value="student">student</option><option value="admin">admin</option>
                             </select>
                             <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))} className="border border-slate-200 rounded px-1.5 py-1 text-xs" data-testid={`select-edit-status-${u.id}`}>
-                              <option value="active">active</option><option value="inactive">inactive</option><option value="suspended">suspended</option>
+                              <option value="active">active</option><option value="inactive">inactive</option>
+                            </select>
+                            {(editForm.role === "employee" || editForm.role === "admin") && (
+                              <label className="flex items-center gap-1 text-xs text-slate-600 cursor-pointer" title="Can approve timesheets">
+                                <input type="checkbox" checked={editForm.canApprove} onChange={e => setEditForm(f => ({ ...f, canApprove: e.target.checked }))} data-testid={`checkbox-can-approve-${u.id}`} />
+                                <ShieldCheck className="w-3 h-3 text-[#0D7377]" /> Approver
+                              </label>
+                            )}
+                            <select value={editForm.approverId} onChange={e => setEditForm(f => ({ ...f, approverId: e.target.value }))} className="border border-slate-200 rounded px-1.5 py-1 text-xs" data-testid={`select-approver-${u.id}`} title="Assign approver">
+                              <option value="">No approver</option>
+                              <option value="none">— Remove approver</option>
+                              {users.filter(a => (a.canApprove || a.role === "admin") && a.id !== u.id).map(a => (
+                                <option key={a.id} value={a.id}>{a.firstName} {a.lastName}</option>
+                              ))}
                             </select>
                             <button onClick={() => updateUser(u.id)} className="p-1 rounded bg-[#0D7377] text-white" data-testid={`button-save-edit-${u.id}`}><Check className="w-3 h-3" /></button>
                             <button onClick={() => setEditUser(null)} className="p-1 rounded hover:bg-slate-100" data-testid={`button-cancel-edit-${u.id}`}><X className="w-3 h-3" /></button>
                           </div>
                         ) : (
                           <>
-                            <button onClick={() => { setEditUser(u); setEditForm({ role: u.role, status: u.status }); }} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600" title="Edit" data-testid={`button-edit-${u.id}`}><Edit className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => { setEditUser(u); setEditForm({ role: u.role, status: u.status, canApprove: u.canApprove || false, approverId: u.approverId ? String(u.approverId) : "" }); }} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600" title="Edit" data-testid={`button-edit-${u.id}`}><Edit className="w-3.5 h-3.5" /></button>
                             <button onClick={() => resetPassword(u.id)} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-amber-500" title="Reset password" data-testid={`button-reset-pwd-${u.id}`}><Key className="w-3.5 h-3.5" /></button>
                             <button onClick={() => deactivateUser(u.id)} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-red-500" title="Deactivate" data-testid={`button-deactivate-${u.id}`}><UserX className="w-3.5 h-3.5" /></button>
                           </>

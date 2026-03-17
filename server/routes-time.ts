@@ -2,7 +2,7 @@ import type { Router } from "express";
 import { Router as createRouter } from "express";
 import { db } from "./db";
 import { timeEntries, timeReports, projects, users } from "@shared/schema";
-import { eq, and, desc, asc, gte, lte } from "drizzle-orm";
+import { eq, and, desc, asc, gte, lte, or, inArray } from "drizzle-orm";
 import { requireAuth, requireEmployee } from "./auth-middleware";
 
 const router: Router = createRouter();
@@ -32,6 +32,24 @@ router.patch("/projects/:id", async (req, res) => {
 router.delete("/projects/:id", async (req, res) => {
   await db.update(projects).set({ active: false }).where(eq(projects.id, parseInt(req.params.id)));
   res.json({ success: true, data: null });
+});
+
+// ── Approvers ────────────────────────────────────────────────────────────────
+
+router.get("/approvers", async (req, res) => {
+  const approvers = await db.select({
+    id: users.id,
+    firstName: users.firstName,
+    lastName: users.lastName,
+    email: users.email,
+    role: users.role,
+  }).from(users).where(
+    and(
+      eq(users.status, "active"),
+      or(eq(users.canApprove, true), eq(users.role, "admin"))
+    )
+  ).orderBy(asc(users.firstName));
+  res.json({ success: true, data: approvers });
 });
 
 // ── Time Entries ─────────────────────────────────────────────────────────────
@@ -95,9 +113,7 @@ router.delete("/entries/:id", async (req, res) => {
 router.post("/timer/start", async (req, res) => {
   const userId = req.user!.userId;
   const { projectId, taskDescription } = req.body;
-  // Stop any existing running timer
   await db.update(timeEntries).set({ isRunning: false, endTime: new Date() }).where(and(eq(timeEntries.userId, userId), eq(timeEntries.isRunning, true)));
-  // Start new timer
   const [entry] = await db.insert(timeEntries).values({
     userId,
     projectId: projectId || null,
@@ -161,50 +177,126 @@ router.get("/export/csv", async (req, res) => {
   res.send(csv);
 });
 
-// Time reports (timesheets)
+// ── Time Reports (Timesheets) ─────────────────────────────────────────────────
+
+// List reports: employees see own, managers/admins see reports where they are the approver or admin sees all
 router.get("/reports", async (req, res) => {
   const userId = req.user!.userId;
   const role = req.user!.role;
-  let reports;
-  if (role === "admin") {
-    reports = await db.select().from(timeReports).orderBy(desc(timeReports.periodStart));
-  } else {
-    reports = await db.select().from(timeReports).where(eq(timeReports.employeeId, userId)).orderBy(desc(timeReports.periodStart));
+
+  // Fetch the current user to check canApprove
+  const [currentUser] = await db.select().from(users).where(eq(users.id, userId));
+  const isManager = role === "admin" || currentUser?.canApprove;
+
+  if (isManager && req.query.all === "1") {
+    // Return all pending/submitted reports for managers to approve
+    const reports = await db.select({
+      id: timeReports.id,
+      employeeId: timeReports.employeeId,
+      periodStart: timeReports.periodStart,
+      periodEnd: timeReports.periodEnd,
+      totalHours: timeReports.totalHours,
+      status: timeReports.status,
+      mode: timeReports.mode,
+      simpleDayHours: timeReports.simpleDayHours,
+      notes: timeReports.notes,
+      submittedAt: timeReports.submittedAt,
+      approvedBy: timeReports.approvedBy,
+      approvedAt: timeReports.approvedAt,
+      rejectReason: timeReports.rejectReason,
+      employeeFirstName: users.firstName,
+      employeeLastName: users.lastName,
+      employeeEmail: users.email,
+    })
+      .from(timeReports)
+      .innerJoin(users, eq(timeReports.employeeId, users.id))
+      .where(
+        role === "admin"
+          ? eq(timeReports.status, "submitted")
+          : and(eq(timeReports.status, "submitted"), eq(users.approverId, userId))
+      )
+      .orderBy(desc(timeReports.submittedAt));
+    return res.json({ success: true, data: reports });
   }
-  res.json({ success: true, data: reports });
+
+  // Employee: own reports
+  const myReports = await db.select().from(timeReports)
+    .where(eq(timeReports.employeeId, userId))
+    .orderBy(desc(timeReports.periodStart));
+  res.json({ success: true, data: myReports });
 });
 
 router.post("/reports", async (req, res) => {
   const userId = req.user!.userId;
-  const { periodStart, periodEnd, totalHours, totalBillable } = req.body;
+  const { periodStart, periodEnd, totalHours, mode, simpleDayHours, notes } = req.body;
+  if (!periodStart || !periodEnd) return res.status(400).json({ success: false, error: "Period start and end required" });
+
   const [report] = await db.insert(timeReports).values({
     employeeId: userId,
     periodStart: new Date(periodStart),
     periodEnd: new Date(periodEnd),
     totalHours: totalHours || "0",
-    totalBillable: totalBillable || "0",
+    totalBillable: "0",
     status: "draft",
+    mode: mode || "simple",
+    simpleDayHours: simpleDayHours ? JSON.stringify(simpleDayHours) : null,
+    notes: notes || null,
   }).returning();
   res.status(201).json({ success: true, data: report });
 });
 
+router.patch("/reports/:id", async (req, res) => {
+  const userId = req.user!.userId;
+  const reportId = parseInt(req.params.id);
+  const [existing] = await db.select().from(timeReports).where(and(eq(timeReports.id, reportId), eq(timeReports.employeeId, userId)));
+  if (!existing) return res.status(404).json({ success: false, error: "Report not found" });
+  if (existing.status !== "draft") return res.status(400).json({ success: false, error: "Only draft reports can be edited" });
+
+  const { totalHours, simpleDayHours, notes } = req.body;
+  const [report] = await db.update(timeReports).set({
+    totalHours: totalHours !== undefined ? totalHours : existing.totalHours,
+    simpleDayHours: simpleDayHours !== undefined ? JSON.stringify(simpleDayHours) : existing.simpleDayHours,
+    notes: notes !== undefined ? notes : existing.notes,
+  }).where(eq(timeReports.id, reportId)).returning();
+  res.json({ success: true, data: report });
+});
+
 router.patch("/reports/:id/submit", async (req, res) => {
   const userId = req.user!.userId;
-  const [report] = await db.update(timeReports).set({ status: "submitted", submittedAt: new Date() }).where(and(eq(timeReports.id, parseInt(req.params.id)), eq(timeReports.employeeId, userId))).returning();
+  const reportId = parseInt(req.params.id);
+  const { totalHours, simpleDayHours, notes } = req.body;
+  const [report] = await db.update(timeReports).set({
+    status: "submitted",
+    submittedAt: new Date(),
+    totalHours: totalHours !== undefined ? totalHours : undefined,
+    simpleDayHours: simpleDayHours !== undefined ? JSON.stringify(simpleDayHours) : undefined,
+    notes: notes !== undefined ? notes : undefined,
+  }).where(and(eq(timeReports.id, reportId), eq(timeReports.employeeId, userId))).returning();
   if (!report) return res.status(404).json({ success: false, error: "Report not found" });
   res.json({ success: true, data: report });
 });
 
 router.patch("/reports/:id/approve", async (req, res) => {
   const approverId = req.user!.userId;
+  const role = req.user!.role;
+  const [currentUser] = await db.select().from(users).where(eq(users.id, approverId));
+  if (role !== "admin" && !currentUser?.canApprove) {
+    return res.status(403).json({ success: false, error: "Not authorized to approve timesheets" });
+  }
   const [report] = await db.update(timeReports).set({ status: "approved", approvedBy: approverId, approvedAt: new Date() }).where(eq(timeReports.id, parseInt(req.params.id))).returning();
   if (!report) return res.status(404).json({ success: false, error: "Report not found" });
   res.json({ success: true, data: report });
 });
 
 router.patch("/reports/:id/reject", async (req, res) => {
+  const approverId = req.user!.userId;
+  const role = req.user!.role;
+  const [currentUser] = await db.select().from(users).where(eq(users.id, approverId));
+  if (role !== "admin" && !currentUser?.canApprove) {
+    return res.status(403).json({ success: false, error: "Not authorized to reject timesheets" });
+  }
   const { reason } = req.body;
-  const [report] = await db.update(timeReports).set({ status: "draft", rejectReason: reason || "Rejected" }).where(eq(timeReports.id, parseInt(req.params.id))).returning();
+  const [report] = await db.update(timeReports).set({ status: "rejected", rejectReason: reason || "Rejected" }).where(eq(timeReports.id, parseInt(req.params.id))).returning();
   if (!report) return res.status(404).json({ success: false, error: "Report not found" });
   res.json({ success: true, data: report });
 });

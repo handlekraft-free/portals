@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Clock, Kanban, Receipt, Ticket,
-  BookOpen, LogOut, Menu, X, Users, Bell
+  BookOpen, LogOut, Menu, X, Users, Bell, UserPlus, Shield
 } from "lucide-react";
 import logoImg from "@/assets/images/logo.png";
 
@@ -18,7 +18,7 @@ const navItems = [
 ];
 
 const adminItems = [
-  { href: "/portal/admin/users", icon: <Users className="w-4 h-4" />, label: "Portal Users" },
+  { href: "/portal/admin/users", icon: <UserPlus className="w-4 h-4" />, label: "Manage Users" },
 ];
 
 export function EmployeeLayout({ children }: { children: React.ReactNode }) {

@@ -208,9 +208,22 @@ export const kanbanCardComments = pgTable("kanban_card_comments", {
   cardId: integer("card_id").notNull(),
   userId: integer("user_id").notNull(),
   content: text("content").notNull(),
+  editedAt: timestamp("edited_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 export type KanbanCardComment = typeof kanbanCardComments.$inferSelect;
+
+export const kanbanCardAttachments = pgTable("kanban_card_attachments", {
+  id: serial("id").primaryKey(),
+  cardId: integer("card_id").notNull(),
+  uploadedBy: integer("uploaded_by").notNull(),
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type KanbanCardAttachment = typeof kanbanCardAttachments.$inferSelect;
 
 // ─── Expenses ─────────────────────────────────────────────────────────────────
 

@@ -1,0 +1,212 @@
+import type { Router } from "express";
+import { Router as createRouter } from "express";
+import { db } from "./db";
+import { timeEntries, timeReports, projects, users } from "@shared/schema";
+import { eq, and, desc, asc, gte, lte } from "drizzle-orm";
+import { requireAuth, requireEmployee } from "./auth-middleware";
+
+const router: Router = createRouter();
+router.use(requireEmployee as any);
+
+// ── Projects ────────────────────────────────────────────────────────────────
+
+router.get("/projects", async (req, res) => {
+  const all = await db.select().from(projects).where(eq(projects.active, true)).orderBy(asc(projects.name));
+  res.json({ success: true, data: all });
+});
+
+router.post("/projects", async (req, res) => {
+  const { name, clientId, color, hourlyRate, budgetHours } = req.body;
+  if (!name) return res.status(400).json({ success: false, error: "Name required" });
+  const [p] = await db.insert(projects).values({ name, clientId: clientId || null, color: color || "#0D7377", hourlyRate: hourlyRate || "0", budgetHours: budgetHours || "0" }).returning();
+  res.status(201).json({ success: true, data: p });
+});
+
+router.patch("/projects/:id", async (req, res) => {
+  const { name, clientId, color, hourlyRate, budgetHours, active } = req.body;
+  const [p] = await db.update(projects).set({ name, clientId, color, hourlyRate, budgetHours, active }).where(eq(projects.id, parseInt(req.params.id))).returning();
+  if (!p) return res.status(404).json({ success: false, error: "Project not found" });
+  res.json({ success: true, data: p });
+});
+
+router.delete("/projects/:id", async (req, res) => {
+  await db.update(projects).set({ active: false }).where(eq(projects.id, parseInt(req.params.id)));
+  res.json({ success: true, data: null });
+});
+
+// ── Time Entries ─────────────────────────────────────────────────────────────
+
+router.get("/entries", async (req, res) => {
+  const userId = req.user!.userId;
+  const entries = await db.select().from(timeEntries).where(eq(timeEntries.userId, userId)).orderBy(desc(timeEntries.createdAt));
+  res.json({ success: true, data: entries });
+});
+
+router.post("/entries", async (req, res) => {
+  const userId = req.user!.userId;
+  const { projectId, taskDescription, startTime, endTime, durationMinutes, billable, hourlyRate, notes } = req.body;
+  if (!taskDescription) return res.status(400).json({ success: false, error: "Task description required" });
+  const [entry] = await db.insert(timeEntries).values({
+    userId,
+    projectId: projectId || null,
+    taskDescription,
+    startTime: startTime ? new Date(startTime) : null,
+    endTime: endTime ? new Date(endTime) : null,
+    durationMinutes: durationMinutes || null,
+    billable: billable || false,
+    hourlyRate: hourlyRate || null,
+    notes: notes || null,
+    status: "draft",
+  }).returning();
+  res.status(201).json({ success: true, data: entry });
+});
+
+router.patch("/entries/:id", async (req, res) => {
+  const userId = req.user!.userId;
+  const entryId = parseInt(req.params.id);
+  const [existing] = await db.select().from(timeEntries).where(and(eq(timeEntries.id, entryId), eq(timeEntries.userId, userId)));
+  if (!existing) return res.status(404).json({ success: false, error: "Entry not found" });
+  if (existing.status !== "draft") return res.status(400).json({ success: false, error: "Only draft entries can be edited" });
+  const { projectId, taskDescription, startTime, endTime, durationMinutes, billable, hourlyRate, notes } = req.body;
+  const [entry] = await db.update(timeEntries).set({
+    projectId: projectId !== undefined ? projectId : existing.projectId,
+    taskDescription: taskDescription || existing.taskDescription,
+    startTime: startTime ? new Date(startTime) : existing.startTime,
+    endTime: endTime ? new Date(endTime) : existing.endTime,
+    durationMinutes: durationMinutes !== undefined ? durationMinutes : existing.durationMinutes,
+    billable: billable !== undefined ? billable : existing.billable,
+    hourlyRate: hourlyRate !== undefined ? hourlyRate : existing.hourlyRate,
+    notes: notes !== undefined ? notes : existing.notes,
+  }).where(eq(timeEntries.id, entryId)).returning();
+  res.json({ success: true, data: entry });
+});
+
+router.delete("/entries/:id", async (req, res) => {
+  const userId = req.user!.userId;
+  const entryId = parseInt(req.params.id);
+  const [existing] = await db.select().from(timeEntries).where(and(eq(timeEntries.id, entryId), eq(timeEntries.userId, userId)));
+  if (!existing) return res.status(404).json({ success: false, error: "Entry not found" });
+  if (existing.status !== "draft") return res.status(400).json({ success: false, error: "Only draft entries can be deleted" });
+  await db.delete(timeEntries).where(eq(timeEntries.id, entryId));
+  res.json({ success: true, data: null });
+});
+
+// Timer start/stop
+router.post("/timer/start", async (req, res) => {
+  const userId = req.user!.userId;
+  const { projectId, taskDescription } = req.body;
+  // Stop any existing running timer
+  await db.update(timeEntries).set({ isRunning: false, endTime: new Date() }).where(and(eq(timeEntries.userId, userId), eq(timeEntries.isRunning, true)));
+  // Start new timer
+  const [entry] = await db.insert(timeEntries).values({
+    userId,
+    projectId: projectId || null,
+    taskDescription: taskDescription || "Running timer",
+    startTime: new Date(),
+    isRunning: true,
+    status: "draft",
+  }).returning();
+  res.status(201).json({ success: true, data: entry });
+});
+
+router.post("/timer/stop", async (req, res) => {
+  const userId = req.user!.userId;
+  const [running] = await db.select().from(timeEntries).where(and(eq(timeEntries.userId, userId), eq(timeEntries.isRunning, true)));
+  if (!running) return res.status(404).json({ success: false, error: "No running timer" });
+  const now = new Date();
+  const durationMs = now.getTime() - (running.startTime?.getTime() || now.getTime());
+  const durationMinutes = Math.round(durationMs / 60000);
+  const [entry] = await db.update(timeEntries).set({ isRunning: false, endTime: now, durationMinutes }).where(eq(timeEntries.id, running.id)).returning();
+  res.json({ success: true, data: entry });
+});
+
+router.get("/timer/running", async (req, res) => {
+  const userId = req.user!.userId;
+  const [running] = await db.select().from(timeEntries).where(and(eq(timeEntries.userId, userId), eq(timeEntries.isRunning, true)));
+  res.json({ success: true, data: running || null });
+});
+
+// Weekly summary
+router.get("/weekly", async (req, res) => {
+  const userId = req.user!.userId;
+  const weekStart = req.query.start ? new Date(req.query.start as string) : new Date();
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 7);
+  const entries = await db.select().from(timeEntries).where(
+    and(eq(timeEntries.userId, userId), gte(timeEntries.startTime, weekStart), lte(timeEntries.startTime, weekEnd))
+  );
+  res.json({ success: true, data: entries });
+});
+
+// Export CSV
+router.get("/export/csv", async (req, res) => {
+  const userId = req.user!.userId;
+  const entries = await db.select().from(timeEntries).where(eq(timeEntries.userId, userId)).orderBy(asc(timeEntries.startTime));
+  const rows = [["Date", "Project", "Task", "Duration (min)", "Billable", "Hourly Rate", "Status", "Notes"]];
+  for (const e of entries) {
+    rows.push([
+      e.startTime?.toISOString().split("T")[0] || "",
+      String(e.projectId || ""),
+      e.taskDescription,
+      String(e.durationMinutes || ""),
+      e.billable ? "Yes" : "No",
+      String(e.hourlyRate || ""),
+      e.status || "",
+      e.notes || "",
+    ]);
+  }
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+  res.setHeader("Content-Type", "text/csv");
+  res.setHeader("Content-Disposition", "attachment; filename=time-entries.csv");
+  res.send(csv);
+});
+
+// Time reports (timesheets)
+router.get("/reports", async (req, res) => {
+  const userId = req.user!.userId;
+  const role = req.user!.role;
+  let reports;
+  if (role === "admin") {
+    reports = await db.select().from(timeReports).orderBy(desc(timeReports.periodStart));
+  } else {
+    reports = await db.select().from(timeReports).where(eq(timeReports.employeeId, userId)).orderBy(desc(timeReports.periodStart));
+  }
+  res.json({ success: true, data: reports });
+});
+
+router.post("/reports", async (req, res) => {
+  const userId = req.user!.userId;
+  const { periodStart, periodEnd, totalHours, totalBillable } = req.body;
+  const [report] = await db.insert(timeReports).values({
+    employeeId: userId,
+    periodStart: new Date(periodStart),
+    periodEnd: new Date(periodEnd),
+    totalHours: totalHours || "0",
+    totalBillable: totalBillable || "0",
+    status: "draft",
+  }).returning();
+  res.status(201).json({ success: true, data: report });
+});
+
+router.patch("/reports/:id/submit", async (req, res) => {
+  const userId = req.user!.userId;
+  const [report] = await db.update(timeReports).set({ status: "submitted", submittedAt: new Date() }).where(and(eq(timeReports.id, parseInt(req.params.id)), eq(timeReports.employeeId, userId))).returning();
+  if (!report) return res.status(404).json({ success: false, error: "Report not found" });
+  res.json({ success: true, data: report });
+});
+
+router.patch("/reports/:id/approve", async (req, res) => {
+  const approverId = req.user!.userId;
+  const [report] = await db.update(timeReports).set({ status: "approved", approvedBy: approverId, approvedAt: new Date() }).where(eq(timeReports.id, parseInt(req.params.id))).returning();
+  if (!report) return res.status(404).json({ success: false, error: "Report not found" });
+  res.json({ success: true, data: report });
+});
+
+router.patch("/reports/:id/reject", async (req, res) => {
+  const { reason } = req.body;
+  const [report] = await db.update(timeReports).set({ status: "draft", rejectReason: reason || "Rejected" }).where(eq(timeReports.id, parseInt(req.params.id))).returning();
+  if (!report) return res.status(404).json({ success: false, error: "Report not found" });
+  res.json({ success: true, data: report });
+});
+
+export default router;

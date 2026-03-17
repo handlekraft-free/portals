@@ -3,19 +3,72 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/context/AuthContext";
 import Home from "@/pages/home";
 import ApplyFellowship from "@/pages/apply-fellowship";
 import ApplyClient from "@/pages/apply-client";
 import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
+import LoginPage from "@/pages/portal/login";
+
+// Employee Portal
+import EmployeeDashboard from "@/pages/portal/employee/dashboard";
+import EmployeeTime from "@/pages/portal/employee/time";
+import EmployeeKanban from "@/pages/portal/employee/kanban";
+import EmployeeExpenses from "@/pages/portal/employee/expenses";
+import EmployeeTickets from "@/pages/portal/employee/tickets";
+import EmployeeLMS from "@/pages/portal/employee/lms";
+
+// Client Portal
+import ClientDashboard from "@/pages/portal/client/dashboard";
+import ClientFiles from "@/pages/portal/client/files";
+import ClientMessages from "@/pages/portal/client/messages";
+import ClientTickets from "@/pages/portal/client/tickets";
+
+// Student Portal
+import StudentDashboard from "@/pages/portal/student/dashboard";
+import StudentCourses from "@/pages/portal/student/courses";
+import StudentFiles from "@/pages/portal/student/files";
+import StudentAnnouncements from "@/pages/portal/student/announcements";
+
+// Admin Portal
+import AdminUsers from "@/pages/portal/admin/users";
 
 function Router() {
   return (
     <Switch>
+      {/* Public */}
       <Route path="/" component={Home} />
       <Route path="/apply/fellowship" component={ApplyFellowship} />
       <Route path="/apply/client" component={ApplyClient} />
       <Route path="/admin" component={Admin} />
+
+      {/* Portal Login */}
+      <Route path="/login" component={LoginPage} />
+
+      {/* Employee Portal */}
+      <Route path="/portal/employee/dashboard" component={EmployeeDashboard} />
+      <Route path="/portal/employee/time" component={EmployeeTime} />
+      <Route path="/portal/employee/kanban" component={EmployeeKanban} />
+      <Route path="/portal/employee/expenses" component={EmployeeExpenses} />
+      <Route path="/portal/employee/tickets" component={EmployeeTickets} />
+      <Route path="/portal/employee/lms" component={EmployeeLMS} />
+
+      {/* Client Portal */}
+      <Route path="/portal/client/dashboard" component={ClientDashboard} />
+      <Route path="/portal/client/files" component={ClientFiles} />
+      <Route path="/portal/client/messages" component={ClientMessages} />
+      <Route path="/portal/client/tickets" component={ClientTickets} />
+
+      {/* Student Portal */}
+      <Route path="/portal/student/dashboard" component={StudentDashboard} />
+      <Route path="/portal/student/courses" component={StudentCourses} />
+      <Route path="/portal/student/files" component={StudentFiles} />
+      <Route path="/portal/student/announcements" component={StudentAnnouncements} />
+
+      {/* Admin Portal */}
+      <Route path="/portal/admin/users" component={AdminUsers} />
+
       <Route component={NotFound} />
     </Switch>
   );
@@ -25,8 +78,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
+        <AuthProvider>
+          <Toaster />
+          <Router />
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

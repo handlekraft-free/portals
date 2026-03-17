@@ -8,13 +8,23 @@ import { storage } from "./storage";
 import { insertFellowshipApplicationSchema, insertClientApplicationSchema } from "@shared/schema";
 import { z } from "zod";
 
+// New portal route modules
+import authRoutes from "./routes-auth";
+import timeRoutes from "./routes-time";
+import kanbanRoutes from "./routes-kanban";
+import expenseRoutes from "./routes-expenses";
+import clientPortalRoutes from "./routes-client-portal";
+import studentRoutes from "./routes-student";
+import lmsRoutes from "./routes-lms";
+import userMgmtRoutes from "./routes-user-mgmt";
+
 declare module "express-session" {
   interface SessionData {
     adminId: number;
   }
 }
 
-function requireAdmin(req: Request, res: Response, next: NextFunction) {
+function requireAdminSession(req: Request, res: Response, next: NextFunction) {
   if (!req.session.adminId) {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -42,13 +52,23 @@ export async function registerRoutes(
     })
   );
 
-  // Seed default admin if none exists
+  // Seed default legacy admin if none exists
   const existingAdmin = await storage.getAdminByUsername("admin");
   if (!existingAdmin) {
     await storage.createAdmin("admin", "handlekraft2026");
   }
 
-  // --- Public application endpoints ---
+  // ── New Portal API Routes ──────────────────────────────────────────────────
+  app.use("/api/auth", authRoutes);
+  app.use("/api/time", timeRoutes);
+  app.use("/api/kanban", kanbanRoutes);
+  app.use("/api/expenses", expenseRoutes);
+  app.use("/api", clientPortalRoutes);
+  app.use("/api/student", studentRoutes);
+  app.use("/api/lms", lmsRoutes);
+  app.use("/api/admin/portal-users", userMgmtRoutes);
+
+  // ── Public application endpoints (existing) ───────────────────────────────
 
   app.post("/api/fellowship-applications", async (req: Request, res: Response) => {
     try {
@@ -76,7 +96,7 @@ export async function registerRoutes(
     }
   });
 
-  // --- Admin auth endpoints ---
+  // ── Legacy Admin auth endpoints (existing /admin page) ────────────────────
 
   app.post("/api/admin/login", async (req: Request, res: Response) => {
     const { username, password } = req.body;
@@ -104,20 +124,18 @@ export async function registerRoutes(
     res.json({ id: req.session.adminId });
   });
 
-  // --- Admin queue endpoints ---
-
-  app.get("/api/admin/fellowship-applications", requireAdmin, async (_req: Request, res: Response) => {
+  app.get("/api/admin/fellowship-applications", requireAdminSession, async (_req: Request, res: Response) => {
     const apps = await storage.getFellowshipApplications();
     res.json(apps);
   });
 
-  app.get("/api/admin/fellowship-applications/:id", requireAdmin, async (req: Request, res: Response) => {
+  app.get("/api/admin/fellowship-applications/:id", requireAdminSession, async (req: Request, res: Response) => {
     const app = await storage.getFellowshipApplication(parseInt(req.params.id));
     if (!app) return res.status(404).json({ message: "Not found" });
     res.json(app);
   });
 
-  app.patch("/api/admin/fellowship-applications/:id", requireAdmin, async (req: Request, res: Response) => {
+  app.patch("/api/admin/fellowship-applications/:id", requireAdminSession, async (req: Request, res: Response) => {
     const { status, rating, priority, adminNotes } = req.body;
     const app = await storage.updateFellowshipApplication(parseInt(req.params.id), {
       ...(status !== undefined && { status }),
@@ -129,18 +147,18 @@ export async function registerRoutes(
     res.json(app);
   });
 
-  app.get("/api/admin/client-applications", requireAdmin, async (_req: Request, res: Response) => {
+  app.get("/api/admin/client-applications", requireAdminSession, async (_req: Request, res: Response) => {
     const apps = await storage.getClientApplications();
     res.json(apps);
   });
 
-  app.get("/api/admin/client-applications/:id", requireAdmin, async (req: Request, res: Response) => {
+  app.get("/api/admin/client-applications/:id", requireAdminSession, async (req: Request, res: Response) => {
     const app = await storage.getClientApplication(parseInt(req.params.id));
     if (!app) return res.status(404).json({ message: "Not found" });
     res.json(app);
   });
 
-  app.patch("/api/admin/client-applications/:id", requireAdmin, async (req: Request, res: Response) => {
+  app.patch("/api/admin/client-applications/:id", requireAdminSession, async (req: Request, res: Response) => {
     const { status, rating, priority, adminNotes } = req.body;
     const app = await storage.updateClientApplication(parseInt(req.params.id), {
       ...(status !== undefined && { status }),

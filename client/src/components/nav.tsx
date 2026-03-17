@@ -66,6 +66,15 @@ export function Navbar() {
                 {link.name}
               </a>
             ))}
+            <Link href="/login">
+              <Button
+                variant="outline"
+                className="border-white/40 text-white hover:bg-white/10 hover:border-white/70 rounded-full px-5 text-sm font-medium transition-all"
+                data-testid="button-portal-login"
+              >
+                Login
+              </Button>
+            </Link>
             <Button 
               className="bg-[#D4A843] hover:bg-[#D4A843]/90 text-[#1A1F2B] font-bold rounded-full px-6 hover:shadow-lg hover:shadow-[#D4A843]/20 transition-all"
               onClick={() => handleNavClick("#get-involved")}

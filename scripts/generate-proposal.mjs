@@ -108,7 +108,7 @@ safeImage(img('viking-ship-building'), 106, 430, 400);
 doc.fontSize(11).fillColor(gold).font('Helvetica-Bold')
   .text('501(c)(3) Nonprofit Initiative', contentLeft, 680, { align: 'center' });
 doc.fontSize(11).fillColor('#FFFFFF').font('Helvetica').opacity(0.6)
-  .text('Founding Stage — 2026', contentLeft, undefined, { align: 'center' });
+  .text('Launching September 1, 2026', contentLeft, undefined, { align: 'center' });
 doc.opacity(1);
 
 doc.fontSize(9).fillColor('#FFFFFF').font('Helvetica').opacity(0.4)
@@ -376,29 +376,31 @@ bullet('As AI capabilities accelerate, our model scales with them — every adva
 doc.addPage();
 sectionStart('8. Operating Model', 'viking-flag');
 
-subheading('Year 1: Getting Started');
-bullet('Establish 501(c)(3) status and organizational infrastructure');
-bullet('Recruit founding board members and advisory council');
-bullet('Secure founding sponsors');
-bullet('Launch pilot cohort of 5-8 fellows');
-bullet('Complete 3-5 pilot projects for local organizations');
-bullet('Document processes, curriculum, and quality standards');
+subheading('Year 1: Walking Before We Run (Launches September 1, 2026)');
+body('Year 1 is about getting the foundation right. We are not trying to build the full program on day one. Our goals are to operate soundly, support our first fellows and organizations well, and learn what we need to learn to grow responsibly.');
+bullet('Complete all legal, HR, and compliance infrastructure before operations begin');
+bullet('Launch a small first cohort — the right size to mentor well, not to impress');
+bullet('Complete 2-3 pilot projects for local organizations, with real care for quality');
+bullet('Learn what good looks like for our clients, our fellows, and our team');
+bullet('Set real Year 2 milestones together as a board, based on what we learn');
+body('We do not need a full curriculum, a polished website, or any of the Year 2 and 3 ambitions in hand on September 1. The real milestones will be set by the board once we have our feet under us.');
 
 checkPage(200);
-subheading('Year 2: Growing');
-bullet('Scale to 2 cohorts per year (10-16 fellows total)');
-bullet('Complete 8-12 projects for community organizations and local agencies');
+subheading('Year 2: Finding Our Stride');
+bullet('Scale cohort size based on mentor capacity and what we learned in Year 1');
+bullet('Complete more projects for community organizations and local agencies');
 bullet('Track and publish employment outcomes for graduates');
-bullet('Begin applying for government and foundation grants');
+bullet('Begin applying for foundation and government workforce development grants');
 bullet('Expand mentor network to include volunteer senior engineers');
 
 checkPage(200);
-subheading('Year 3: Expanding');
-bullet('Scale to 3-4 cohorts per year');
+subheading('Year 3 and Beyond: Expanding Our Reach');
+bullet('Scale cohorts as infrastructure and funding allow');
 bullet('Explore geographic expansion or remote delivery');
 bullet('Develop partnerships with employers for graduate placement');
 bullet('Pursue government contracts for civic technology projects');
 bullet('Publish impact report and case studies');
+body('The Year 2 and 3 vision is directional, not a firm commitment. Pace and ambition will be set by the board together.');
 
 // ===========================
 // 9. FUNDING STRATEGY
@@ -452,21 +454,70 @@ bullet('Advisory council members from the communities we serve');
 doc.addPage();
 sectionStart('11. Implementation Timeline', 'viking-ship-building');
 
-const timeline = [
-  ['Q2 2026', 'File 501(c)(3) application. Recruit founding board members and sponsors. Finalize curriculum.'],
-  ['Q3 2026', 'Launch pilot cohort (5-8 fellows). Begin first 3 client projects. Build mentor network.'],
-  ['Q4 2026', 'Complete pilot projects. Gather impact data. Begin second cohort intake.'],
-  ['Q1 2027', 'Publish first impact report. Apply for foundation and government grants. Plan Year 2 growth.'],
-  ['2027-2028', 'Scale to 2-3 cohorts/year. Expand into civic technology projects. Develop employer partnerships.'],
-  ['2029', 'Explore geographic expansion. Launch alumni mentorship program. Pursue sustainable revenue through government contracts.'],
-];
+body('Between now and our September 1 launch, our founding team will handle all the legwork. What the board provides is review, advice, and presence at four meetings. Below is the shape of what\'s coming — nothing will catch anyone off guard.');
 
-timeline.forEach(([period, desc]) => {
-  checkPage(80);
-  doc.font('Helvetica-Bold').fontSize(12).fillColor(gold).text(period);
-  doc.font('Helvetica').fontSize(11).fillColor(darkGray).text(desc, { lineGap: 3 });
-  doc.moveDown(0.6);
-});
+subheading('April – May 2026: Foundations');
+const aprilMay = [
+  'Engage nonprofit and employment attorneys',
+  'File Articles of Incorporation; obtain EIN; file state charitable and tax-exemption registrations',
+  'Draft bylaws and seat the founding board',
+  'Open bank account and set up bookkeeping',
+  'Commission compensation comparability study',
+  'Select PEO (Professional Employer Organization) to handle payroll, benefits, workers\' comp, and HR compliance',
+  'Board Meeting #1: ratify bylaws, elect officers, adopt conflict of interest policy, approve banking and initial budget framework',
+];
+aprilMay.forEach(t => bullet(t));
+spacer(0.5);
+
+checkPage(200);
+subheading('June 2026: Filings and Commitments');
+const june = [
+  'File IRS Form 1023 for 501(c)(3) status',
+  'Bind D&O and general liability insurance',
+  'Sign PEO agreement and begin onboarding',
+  'Execute founder gift agreement',
+  'Board Meeting #2: approve Year 1 budget, approve staff compensation (founder recused), approve gift agreement structure',
+];
+june.forEach(t => bullet(t));
+spacer(0.5);
+
+checkPage(200);
+subheading('July 2026: Documentation');
+const july = [
+  'Finalize employee handbook, offer letters, student program agreement, and client nonprofit agreement',
+  'Confirm benefits and workers\' comp coverage through PEO',
+  'Board Meeting #3: approve offer letters, employee handbook, and program agreements',
+];
+july.forEach(t => bullet(t));
+spacer(0.5);
+
+checkPage(200);
+subheading('August 2026: Final Readiness');
+const august = [
+  'Complete I-9/W-4 processes and payroll dry-run',
+  'Confirm all insurance is active',
+  'Board Meeting #4: final readiness check and go/no-go confirmation',
+];
+august.forEach(t => bullet(t));
+spacer(0.5);
+
+checkPage(100);
+doc.font('Helvetica-Bold').fontSize(14).fillColor(teal).text('September 1, 2026 — Operations Begin');
+doc.moveDown(0.4);
+body('This is the date we\'ve been building toward. Staff onboarded, infrastructure in place, and our first fellows and client organizations ready to begin. A few important notes: we do not need the 501(c)(3) determination letter in hand by September — the application filed is sufficient, and donors are ready on that basis. We also do not need a full curriculum, a polished website, or any of the Year 2 and 3 ambitions. We are walking, not running, this first year — and we\'ll set our real milestones together as a board.');
+spacer(0.5);
+
+checkPage(160);
+subheading('Year 2 and Beyond');
+const future = [
+  'Scale to 2 cohorts per year as infrastructure and funding mature',
+  'Track and publish employment outcomes for graduates',
+  'Apply for foundation and government workforce development grants',
+  'Expand mentor network to include volunteer senior engineers',
+  'Explore civic technology partnerships and employer placement agreements',
+];
+future.forEach(t => bullet(t));
+body('The pace and ambition of Years 2 and 3 will be set by the board together, based on what we learn in Year 1. The vision is clear — the milestones are ours to define.');
 
 // ===========================
 // 12. HOW YOU CAN HELP

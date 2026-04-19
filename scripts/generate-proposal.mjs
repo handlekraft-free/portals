@@ -130,13 +130,14 @@ const tocItems = [
   ['3', 'Our Approach'],
   ['4', 'Three Ways We Deliver Agency'],
   ['5', 'Who We Serve'],
-  ['6', 'The Fellowship Program'],
+  ['6', 'The Fellowship Program — Two-Tier Training'],
   ['7', 'The AI Advantage'],
   ['8', 'Operating Model'],
   ['9', 'Funding Strategy'],
   ['10', 'Founding Team'],
   ['11', 'Implementation Timeline'],
   ['12', 'How You Can Help'],
+  ['—', 'Program Documents & Source Links'],
 ];
 
 tocItems.forEach(([num, title]) => {
@@ -307,40 +308,75 @@ body('The only prerequisites are a high school diploma or GED, basic computer li
 doc.addPage();
 sectionStart('6. The Fellowship Program', 'viking-mentoring');
 
-subheading('Phase 1: Foundations (Weeks 1-4)');
-body('Fellows complete a supportive foundational program focused on understanding how software products work and how to build them with AI-powered tools:');
-bullet('How software products are structured: databases, interfaces, logic, and workflows');
-bullet('Working with AI development tools: directing agents, reviewing output, iterating on solutions');
-bullet('Understanding architectures at a practical level — enough to make smart decisions, not to build from scratch');
-bullet('Version control and collaborative workflows');
-bullet('Product thinking: scoping problems, designing solutions, and delivering value');
-body('The emphasis is on learning by doing. Fellows build small functional products from day one — using AI tools for the deep technical work while they focus on solving problems and owning the outcome.');
+body('handlekraft\'s training runs in two tiers — a foundational program open to anyone with a GED or diploma, and a deeper technical program for those ready to go further. Learners move at their own pace, and not every Tier 1 graduate needs to enter Tier 2. Both programs are free.');
 
-checkPage(200);
-subheading('Phase 2: Real Products (Weeks 5-12)');
-body('Fellows are paired with real client products under caring senior supervision:');
-bullet('Own actual products being built for community organizations — from requirements to delivery');
-bullet('Follow professional workflow: sprints, standups, retrospectives');
-bullet('Use AI agents for implementation while focusing on product decisions and quality');
-bullet('Build a portfolio of live, deployed products with real impact');
-bullet('Receive regular feedback, encouragement, and mentorship');
+checkPage(100);
+subheading('Tier 1 — Foundational Applied AI');
+body('6 weeks · 16 hours/week · 96 total hours · Evenings, online · Target launch: Q4 2026');
+doc.moveDown(0.2);
+body('Tier 1 is designed for non-traditional learners — career changers, veterans, GED holders, and self-taught candidates — who may never have written a line of code. Prerequisites are a high school diploma or GED, basic computer literacy, and willingness to show up and help. The program delivers 96 structured hours across six weeks of weeknight sessions, keeping it accessible to people who work full time.');
 
-checkPage(200);
-subheading('Phase 3: Grow & Give Back (Weeks 13+)');
-body('As fellows advance, they step into bigger roles:');
-bullet('Take on more complex products and higher-level architectural decisions');
-bullet('Begin reviewing work from newer fellows');
-bullet('Serve as product leads on smaller projects');
-bullet('Mentor the next cohort');
+const tier1weeks = [
+  ['Week 0', 'Onboarding & Setup', 'Account setup, workspace fluency, code of conduct, loaner laptop logistics.'],
+  ['Week 1', 'Personal AI Fluency', 'Using Claude for daily tasks; rewritten resume and personal learning log.'],
+  ['Week 2', 'Reading a Business', 'Discovery interviews, systems thinking, written assessment with three prioritized recommendations.'],
+  ['Week 3', 'Lightweight Automation', 'AI-assisted Office/Sheets workflows; Wix-style website improvements.'],
+  ['Week 4', 'SEO, Social & Content', 'Practical SEO audit; two-week content calendar for a sample organization.'],
+  ['Week 5', 'Prototyping with Replit', 'Direct an AI agent to build and deploy a working web prototype addressing a real pain point.'],
+  ['Week 6', 'Client Communication & Demo', 'Written recommendation, 10-minute presentation to an external audience, full portfolio package.'],
+];
+
+spacer(0.3);
+tier1weeks.forEach(([week, theme, desc]) => {
+  checkPage(70);
+  const y = doc.y;
+  doc.font('Helvetica-Bold').fontSize(11).fillColor(teal).text(week, contentLeft, y, { width: 70, continued: false });
+  doc.font('Helvetica-Bold').fontSize(11).fillColor(navy).text(theme, contentLeft + 75, y, { continued: false });
+  doc.y = doc.y;
+  doc.font('Helvetica').fontSize(10).fillColor(darkGray).text(desc, contentLeft + 75, doc.y, { lineGap: 2 });
+  doc.moveDown(0.5);
+});
 
 checkPage(140);
-subheading('Phase 4: Launch Your Career');
-body('Graduates leave the program with:');
-bullet('A portfolio of 3-5 deployed, real-world products they owned end to end');
-bullet('Verifiable professional experience in a team environment');
-bullet('The ability to leverage AI-powered tools to build and ship products — the skill employers increasingly need');
-bullet('Professional references from senior engineers');
-bullet('Job search support and interview preparation');
+body('Graduates leave Tier 1 with a portfolio of six artifacts, a written reference from the instructor, and eligibility for short-term paid consulting engagements with partner organizations as opportunities arise. Strong graduates are priority candidates for Tier 2.');
+
+checkPage(220);
+doc.addPage();
+subheading('Tier 2 — Applied Claude Code');
+body('4 weeks · 16 hours/week · 64 total hours · Evenings, online · Target launch: Q2 2027');
+doc.moveDown(0.2);
+body('Tier 2 is a program for people who are ready to build and ship real software — not a coding bootcamp, but a program for learning to own software in a world where the AI writes most of the code. It serves two overlapping audiences: Tier 1 graduates who demonstrated aptitude and want to go deeper technically, and mid-career knowledge workers (analysts, operations leaders, career changers) who want to retool substantively around agentic development. The two groups learn well together.');
+
+const tier2weeks = [
+  ['Week 1', 'The Agentic Mindset', 'Breaking old habits; directing and reviewing Claude Code at feature scope; scoped project brief and first working feature.'],
+  ['Week 2', 'Working in Real Codebases', 'Navigating unfamiliar code with AI assistance; Git depth — branches, pull requests, code review; reviewed PR on a practice codebase.'],
+  ['Week 3', 'Shipping Something Real', 'Taking a learner\'s own project to a deployed state; deployment fundamentals; internal demo day.'],
+  ['Week 4', 'Professional Practice', 'Documentation that matters; handoff and support; the handlekraft client workflow; final demo to an external audience plus portfolio walkthrough.'],
+];
+
+spacer(0.3);
+tier2weeks.forEach(([week, theme, desc]) => {
+  checkPage(70);
+  const y = doc.y;
+  doc.font('Helvetica-Bold').fontSize(11).fillColor(teal).text(week, contentLeft, y, { width: 70, continued: false });
+  doc.font('Helvetica-Bold').fontSize(11).fillColor(navy).text(theme, contentLeft + 75, y, { continued: false });
+  doc.font('Helvetica').fontSize(10).fillColor(darkGray).text(desc, contentLeft + 75, doc.y, { lineGap: 2 });
+  doc.moveDown(0.5);
+});
+
+checkPage(140);
+body('Tier 2 is a later-stage draft than Tier 1, shared for board awareness rather than decision. Its detailed design will be revisited after at least one Tier 1 cohort has run and once a volunteer lead has been identified. The Tier 2 curriculum will be co-developed with that volunteer lead — not imposed on them after the fact.');
+
+checkPage(180);
+subheading('The Full Pathway');
+const pathway = [
+  'Tier 1 complete → Portfolio of six real artifacts, written reference, alumni community, short-term paid engagement eligibility',
+  'Tier 2 complete → Deployed application, pull request history, written recommendation to a notional client, professional reference',
+  'Fellowship → Unpaid or paid roles on handlekraft client projects for graduates who demonstrate exceptional aptitude',
+  'Mentorship → Exceptional graduates are invited back to support future Tier 1 and Tier 2 cohorts',
+];
+pathway.forEach(p => bullet(p));
+body('Every step in the pathway is optional. Learners who complete Tier 1 and return to their existing careers have still gained real, verifiable skills. The program is designed to meet people where they are.');
 
 // ===========================
 // 7. THE AI ADVANTAGE
@@ -564,6 +600,59 @@ doc.font('Helvetica').fontSize(10).fillColor(lightGray)
 doc.moveDown(0.3);
 doc.font('Helvetica').fontSize(10).fillColor(lightGray)
   .text('Founded by a father-son team. Powered by agency, code, and community.', { align: 'center' });
+
+// ===========================
+// SOURCE DOCUMENTS
+// ===========================
+doc.addPage();
+doc.rect(0, 0, pageWidth, 6).fill(gold);
+spacer(1);
+
+doc.font('Helvetica-Bold').fontSize(20).fillColor(navy).text('Program Documents', { align: 'center' });
+doc.moveDown(0.5);
+doc.font('Helvetica').fontSize(11).fillColor(lightGray)
+  .text('The following source documents are referenced in this proposal and available for download.', { align: 'center', lineGap: 3 });
+doc.moveDown(2);
+
+const docs = [
+  {
+    title: 'Tier 1 Training Plan — Foundational Applied AI',
+    subtitle: 'Draft for Board Review · 6 weeks · Target launch Q4 2026',
+    url: 'https://handlekraft.ai/docs/handlekraft-tier1-training-plan.docx',
+    desc: 'Full curriculum including weekly structure, learning outcomes, artifact descriptions, assessment approach, open questions for the board, and instructor notes for the pilot cohort.',
+  },
+  {
+    title: 'Tier 2 Training Plan — Applied Claude Code',
+    subtitle: 'Early Draft for Board Awareness · 4 weeks · Target launch Q2 2027',
+    url: 'https://handlekraft.ai/docs/handlekraft-tier2-training-plan.docx',
+    desc: 'Program overview, audience profile, guiding philosophy, weekly structure, learner outcomes, open questions, and post-program pathway. Shared for board awareness rather than decision.',
+  },
+];
+
+docs.forEach((d, i) => {
+  checkPage(160);
+  const boxY = doc.y;
+  doc.rect(contentLeft, boxY, contentRight - contentLeft, 2).fill(i === 0 ? teal : gold);
+  doc.moveDown(0.8);
+
+  doc.font('Helvetica-Bold').fontSize(14).fillColor(navy).text(d.title);
+  doc.moveDown(0.2);
+  doc.font('Helvetica').fontSize(10).fillColor(lightGray).text(d.subtitle);
+  doc.moveDown(0.4);
+  doc.font('Helvetica').fontSize(11).fillColor(darkGray).text(d.desc, { lineGap: 3 });
+  doc.moveDown(0.6);
+
+  doc.font('Helvetica').fontSize(11).fillColor(teal)
+    .text('Download: ' + d.url, { link: d.url, underline: true });
+  doc.moveDown(1.5);
+});
+
+doc.moveDown(1);
+const refDivY = doc.y;
+doc.strokeColor(gold).lineWidth(1).moveTo(contentLeft, refDivY).lineTo(contentRight, refDivY).stroke();
+doc.moveDown(0.8);
+doc.font('Helvetica').fontSize(9).fillColor(lightGray)
+  .text('These documents are living drafts. Board input is welcomed and will shape the final versions.', { align: 'center' });
 
 doc.end();
 

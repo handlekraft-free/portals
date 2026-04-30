@@ -201,6 +201,8 @@ export const kanbanCards = pgTable("kanban_cards", {
   title: text("title").notNull(),
   description: text("description"),
   assignedTo: integer("assigned_to"),
+  reviewerId: integer("reviewer_id"),
+  interestRating: integer("interest_rating"),
   dueDate: timestamp("due_date"),
   priority: cardPriorityEnum("priority").default("medium"),
   labels: text("labels").array(),

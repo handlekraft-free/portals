@@ -75,6 +75,8 @@ export async function registerRoutes(
       ALTER TABLE time_reports ADD COLUMN IF NOT EXISTS mode varchar;
       ALTER TABLE time_reports ADD COLUMN IF NOT EXISTS simple_day_hours text;
       ALTER TABLE time_reports ADD COLUMN IF NOT EXISTS notes text;
+      ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS reviewer_id integer;
+      ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS interest_rating integer;
     `);
     await migrationPool.end();
     console.log("[migrate] ✓ Schema patches applied");

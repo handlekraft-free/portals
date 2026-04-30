@@ -18,17 +18,91 @@ const kanbanStorage = multer.diskStorage({
 });
 const uploadAttachment = multer({ storage: kanbanStorage, limits: { fileSize: 25 * 1024 * 1024 } });
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function userInitials(u: any) {
-  return `${u?.firstName?.[0] || ""}${u?.lastName?.[0] || ""}`.toUpperCase();
-}
-
-// ── Portal Users (for assignee picker) ───────────────────────────────────────
+// ── Portal Users (for assignee/reviewer picker) ───────────────────────────────
 
 router.get("/users", async (_req, res) => {
   const all = await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName, email: users.email, role: users.role }).from(users).where(eq(users.status, "active")).orderBy(asc(users.firstName));
   res.json({ success: true, data: all });
+});
+
+// ── My Tasks ──────────────────────────────────────────────────────────────────
+
+router.get("/my-tasks", async (req, res) => {
+  const userId = req.user!.userId;
+
+  // Cards assigned to me (any column)
+  const assignedCards = await db.select().from(kanbanCards).where(
+    and(eq(kanbanCards.assignedTo, userId), eq(kanbanCards.archived, false))
+  );
+
+  // Cards where I'm the reviewer AND the column title contains "In Review"
+  const reviewerCards = await db.select().from(kanbanCards).where(
+    and(eq(kanbanCards.reviewerId, userId), eq(kanbanCards.archived, false))
+  );
+
+  // For reviewer cards, filter to only "In Review" columns
+  const allColumnIds = [...new Set([
+    ...assignedCards.map(c => c.columnId),
+    ...reviewerCards.map(c => c.columnId),
+  ])];
+
+  const allBoardIds = [...new Set([
+    ...assignedCards.map(c => c.boardId),
+    ...reviewerCards.map(c => c.boardId),
+  ])];
+
+  let columnMap: Record<number, any> = {};
+  let boardMap: Record<number, any> = {};
+  let userMap: Record<number, any> = {};
+
+  if (allColumnIds.length > 0) {
+    const cols = await db.select().from(kanbanColumns).where(inArray(kanbanColumns.id, allColumnIds));
+    for (const c of cols) columnMap[c.id] = c;
+  }
+  if (allBoardIds.length > 0) {
+    const bds = await db.select().from(kanbanBoards).where(inArray(kanbanBoards.id, allBoardIds));
+    for (const b of bds) boardMap[b.id] = b;
+  }
+
+  // Collect all user IDs for assignee/reviewer lookup
+  const allUserIds = [...new Set([
+    ...assignedCards.flatMap(c => [c.assignedTo, c.reviewerId, c.createdBy].filter(Boolean) as number[]),
+    ...reviewerCards.flatMap(c => [c.assignedTo, c.reviewerId, c.createdBy].filter(Boolean) as number[]),
+  ])];
+  if (allUserIds.length > 0) {
+    const us = await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName }).from(users).where(inArray(users.id, allUserIds));
+    for (const u of us) userMap[u.id] = u;
+  }
+
+  // Filter reviewer cards to "In Review" columns only
+  const inReviewReviewerCards = reviewerCards.filter(c => {
+    const col = columnMap[c.columnId];
+    return col && col.title.toLowerCase().includes("in review");
+  });
+
+  // Merge and deduplicate
+  const seen = new Set<number>();
+  const allTasks: any[] = [];
+
+  for (const card of assignedCards) {
+    if (!seen.has(card.id)) {
+      seen.add(card.id);
+      allTasks.push({ ...card, role: "assignee", column: columnMap[card.columnId], board: boardMap[card.boardId], assignee: card.assignedTo ? userMap[card.assignedTo] : null, reviewer: card.reviewerId ? userMap[card.reviewerId] : null });
+    }
+  }
+
+  for (const card of inReviewReviewerCards) {
+    if (!seen.has(card.id)) {
+      seen.add(card.id);
+      allTasks.push({ ...card, role: "reviewer", column: columnMap[card.columnId], board: boardMap[card.boardId], assignee: card.assignedTo ? userMap[card.assignedTo] : null, reviewer: card.reviewerId ? userMap[card.reviewerId] : null });
+    } else {
+      // Already in list as assignee — add reviewer flag
+      const existing = allTasks.find(t => t.id === card.id);
+      if (existing) existing.role = "both";
+    }
+  }
+
+  res.json({ success: true, data: allTasks });
 });
 
 // ── Teams ─────────────────────────────────────────────────────────────────────
@@ -116,19 +190,38 @@ router.get("/boards/:id", async (req, res) => {
   const cardIds = cards.map(c => c.id);
   let commentCounts: Record<number, number> = {};
   let attachmentCounts: Record<number, number> = {};
-  let assigneeMap: Record<number, any> = {};
+  let userLookup: Record<number, any> = {};
+
   if (cardIds.length > 0) {
     const allComments = await db.select({ cardId: kanbanCardComments.cardId }).from(kanbanCardComments).where(inArray(kanbanCardComments.cardId, cardIds));
     for (const c of allComments) commentCounts[c.cardId] = (commentCounts[c.cardId] || 0) + 1;
     const allAttachments = await db.select({ cardId: kanbanCardAttachments.cardId }).from(kanbanCardAttachments).where(inArray(kanbanCardAttachments.cardId, cardIds));
     for (const a of allAttachments) attachmentCounts[a.cardId] = (attachmentCounts[a.cardId] || 0) + 1;
-    const assigneeIds = [...new Set(cards.filter(c => c.assignedTo).map(c => c.assignedTo!))];
-    if (assigneeIds.length > 0) {
-      const assignees = await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName }).from(users).where(inArray(users.id, assigneeIds));
-      for (const a of assignees) assigneeMap[a.id] = a;
+
+    // Collect all user IDs (assignees + reviewers)
+    const userIds = [...new Set(cards.flatMap(c => [c.assignedTo, c.reviewerId].filter(Boolean) as number[]))];
+    if (userIds.length > 0) {
+      const us = await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName }).from(users).where(inArray(users.id, userIds));
+      for (const u of us) userLookup[u.id] = u;
     }
   }
-  res.json({ success: true, data: { ...board, columns: columns.map(col => ({ ...col, cards: cards.filter(c => c.columnId === col.id).map(card => ({ ...card, commentCount: commentCounts[card.id] || 0, attachmentCount: attachmentCounts[card.id] || 0, assignee: card.assignedTo ? assigneeMap[card.assignedTo] : null })) })) } });
+
+  res.json({
+    success: true,
+    data: {
+      ...board,
+      columns: columns.map(col => ({
+        ...col,
+        cards: cards.filter(c => c.columnId === col.id).map(card => ({
+          ...card,
+          commentCount: commentCounts[card.id] || 0,
+          attachmentCount: attachmentCounts[card.id] || 0,
+          assignee: card.assignedTo ? userLookup[card.assignedTo] : null,
+          reviewer: card.reviewerId ? userLookup[card.reviewerId] : null,
+        }))
+      }))
+    }
+  });
 });
 
 router.patch("/boards/:id", async (req, res) => {
@@ -168,12 +261,14 @@ router.delete("/columns/:id", async (req, res) => {
 
 router.post("/cards", async (req, res) => {
   const userId = req.user!.userId;
-  const { columnId, boardId, title, description, assignedTo, dueDate, priority, labels } = req.body;
+  const { columnId, boardId, title, description, assignedTo, reviewerId, interestRating, dueDate, priority, labels } = req.body;
   if (!columnId || !boardId || !title) return res.status(400).json({ success: false, error: "columnId, boardId, and title required" });
   const existing = await db.select().from(kanbanCards).where(and(eq(kanbanCards.columnId, parseInt(columnId)), eq(kanbanCards.archived, false)));
   const [card] = await db.insert(kanbanCards).values({
     columnId: parseInt(columnId), boardId: parseInt(boardId), title, description: description || null,
-    assignedTo: assignedTo || null, dueDate: dueDate ? new Date(dueDate) : null,
+    assignedTo: assignedTo || null, reviewerId: reviewerId || null,
+    interestRating: interestRating !== undefined && interestRating !== null ? parseInt(interestRating) : null,
+    dueDate: dueDate ? new Date(dueDate) : null,
     priority: priority || "medium", labels: labels || [], position: existing.length, createdBy: userId,
   }).returning();
   res.status(201).json({ success: true, data: card });
@@ -186,25 +281,32 @@ router.get("/cards/:id", async (req, res) => {
   const comments = await db.select({ id: kanbanCardComments.id, content: kanbanCardComments.content, createdAt: kanbanCardComments.createdAt, editedAt: kanbanCardComments.editedAt, userId: kanbanCardComments.userId, firstName: users.firstName, lastName: users.lastName }).from(kanbanCardComments).leftJoin(users, eq(kanbanCardComments.userId, users.id)).where(eq(kanbanCardComments.cardId, cardId)).orderBy(asc(kanbanCardComments.createdAt));
   const attachments = await db.select({ id: kanbanCardAttachments.id, fileName: kanbanCardAttachments.fileName, fileSize: kanbanCardAttachments.fileSize, mimeType: kanbanCardAttachments.mimeType, createdAt: kanbanCardAttachments.createdAt, uploadedBy: kanbanCardAttachments.uploadedBy, firstName: users.firstName, lastName: users.lastName }).from(kanbanCardAttachments).leftJoin(users, eq(kanbanCardAttachments.uploadedBy, users.id)).where(eq(kanbanCardAttachments.cardId, cardId)).orderBy(asc(kanbanCardAttachments.createdAt));
   let assignee = null;
+  let reviewer = null;
   if (card.assignedTo) {
     const [u] = await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName, email: users.email }).from(users).where(eq(users.id, card.assignedTo));
     assignee = u;
+  }
+  if (card.reviewerId) {
+    const [u] = await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName, email: users.email }).from(users).where(eq(users.id, card.reviewerId));
+    reviewer = u;
   }
   let creator = null;
   if (card.createdBy) {
     const [u] = await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName }).from(users).where(eq(users.id, card.createdBy));
     creator = u;
   }
-  res.json({ success: true, data: { ...card, comments, attachments, assignee, creator } });
+  res.json({ success: true, data: { ...card, comments, attachments, assignee, reviewer, creator } });
 });
 
 router.patch("/cards/:id", async (req, res) => {
-  const { columnId, title, description, assignedTo, dueDate, priority, labels, position, archived } = req.body;
+  const { columnId, title, description, assignedTo, reviewerId, interestRating, dueDate, priority, labels, position, archived } = req.body;
   const [card] = await db.update(kanbanCards).set({
     ...(columnId !== undefined && { columnId: parseInt(columnId) }),
     ...(title !== undefined && { title }),
     ...(description !== undefined && { description }),
     ...(assignedTo !== undefined && { assignedTo: assignedTo || null }),
+    ...(reviewerId !== undefined && { reviewerId: reviewerId || null }),
+    ...(interestRating !== undefined && { interestRating: interestRating !== null ? parseInt(interestRating) : null }),
     ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
     ...(priority !== undefined && { priority }),
     ...(labels !== undefined && { labels }),

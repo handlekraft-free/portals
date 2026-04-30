@@ -364,7 +364,7 @@ function CalendarContent() {
                     onClick={() => {
                       setViewYear(d.getFullYear());
                       setViewMonth(d.getMonth());
-                      setSelected(m);
+                      selectMeeting(m);
                     }}
                     className={`w-full flex items-center gap-2 py-1.5 text-left hover:bg-slate-50 rounded px-1 -mx-1 transition-colors ${isPast ? "opacity-50" : ""}`}
                     data-testid={`all-meetings-${m.id}`}

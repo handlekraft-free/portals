@@ -42,6 +42,8 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
   const [showNoticeForm, setShowNoticeForm] = useState(false);
   const [noticeMethod, setNoticeMethod] = useState("email");
   const [noticeNotes, setNoticeNotes] = useState("");
+  const [showWaiverForm, setShowWaiverForm] = useState(false);
+  const [waiverMemberId, setWaiverMemberId] = useState("");
   const [showAttendance, setShowAttendance] = useState(false);
   const [attendance, setAttendance] = useState<Record<number, { attendance: string; method: string }>>({});
   const [editAgenda, setEditAgenda] = useState<number | null>(null);
@@ -92,6 +94,23 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
     setShowNoticeForm(false); setNoticeNotes(""); loadDetail();
   }
 
+  async function recordWaiver() {
+    if (!waiverMemberId) return;
+    const member = boardMembers.find((m: any) => String(m.id) === String(waiverMemberId));
+    const memberName = member ? `${member.firstName} ${member.lastName}` : "Unknown";
+    await apiRequest("POST", `/api/board/meetings/${meeting.id}/notice`, {
+      method: "waived",
+      notes: `Waiver filed by: ${memberName}`,
+      waivedUserId: parseInt(waiverMemberId),
+    });
+    setShowWaiverForm(false); setWaiverMemberId(""); loadDetail();
+  }
+
+  async function markAsHeld() {
+    await apiRequest("PATCH", `/api/board/meetings/${meeting.id}`, { status: "held" });
+    loadDetail(); onRefresh();
+  }
+
   async function saveAttendance() {
     const records = boardMembers.map(m => ({
       userId: m.id,
@@ -135,11 +154,16 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
             )}
           </div>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap items-center">
           <Badge className={TYPE_COLORS[detail.meetingType] || ""}>
             {detail.meetingType?.charAt(0).toUpperCase() + detail.meetingType?.slice(1)}
           </Badge>
           <Badge className={STATUS_COLORS[detail.status] || ""}>{detail.status}</Badge>
+          {isAdmin && detail.status === "scheduled" && (
+            <Button size="sm" variant="outline" className="h-7 text-xs gap-1 border-green-300 text-green-700 hover:bg-green-50" onClick={markAsHeld} data-testid="button-mark-held">
+              <Check className="w-3 h-3" /> Mark as Held
+            </Button>
+          )}
         </div>
       </div>
 
@@ -208,6 +232,56 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
               <input value={noticeNotes} onChange={e => setNoticeNotes(e.target.value)} placeholder="Notes (optional)" className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-notice-notes" />
             </div>
           )}
+
+          {/* Waiver-of-Notice section */}
+          {(() => {
+            const waivers = detail.notices?.filter((n: any) => n.method === "waived") ?? [];
+            return (
+              <div className="mt-3 pt-3 border-t border-slate-100" data-testid="notice-waivers-section">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    Waivers of Notice ({waivers.length})
+                  </p>
+                  {isAdmin && (
+                    <Button size="sm" variant="outline" className="h-6 text-xs gap-1" onClick={() => setShowWaiverForm(!showWaiverForm)} data-testid="button-add-waiver">
+                      <Plus className="w-3 h-3" /> Add Waiver
+                    </Button>
+                  )}
+                </div>
+                {waivers.length === 0 && !showWaiverForm && (
+                  <p className="text-xs text-slate-400 italic">No waivers recorded</p>
+                )}
+                {waivers.length > 0 && (
+                  <div className="space-y-1">
+                    {waivers.map((w: any) => (
+                      <div key={w.id} className="flex items-center gap-2 text-xs text-slate-600" data-testid={`waiver-row-${w.id}`}>
+                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-300 shrink-0" />
+                        <span>{w.notes?.replace("Waiver filed by: ", "") || "Unknown"}</span>
+                        <span className="text-slate-400 ml-auto">{new Date(w.sent_at || w.sentAt).toLocaleDateString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {showWaiverForm && (
+                  <div className="mt-2 flex gap-2">
+                    <select
+                      value={waiverMemberId}
+                      onChange={e => setWaiverMemberId(e.target.value)}
+                      className="flex-1 border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                      data-testid="select-waiver-member"
+                    >
+                      <option value="">Select director…</option>
+                      {boardMembers.map((m: any) => (
+                        <option key={m.id} value={m.id}>{m.firstName} {m.lastName}</option>
+                      ))}
+                    </select>
+                    <Button size="sm" className="bg-indigo-500 text-white h-8" onClick={recordWaiver} data-testid="button-confirm-waiver">Record</Button>
+                    <Button size="sm" variant="outline" className="h-8" onClick={() => setShowWaiverForm(false)}>Cancel</Button>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
 
@@ -258,8 +332,8 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
         </Card>
       )}
 
-      {/* Attendance recording (admin, after meeting) */}
-      {isAdmin && (detail.status === "held" || detail.status === "scheduled") && (
+      {/* Attendance recording (admin only, unlocked after meeting is marked as held) */}
+      {isAdmin && detail.status === "held" && (
         <Card className="border-0 shadow-sm mb-4">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between mb-3">

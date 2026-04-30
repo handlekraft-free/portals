@@ -31,13 +31,19 @@ router.post("/", async (req, res) => {
 });
 
 router.patch("/:id", async (req, res) => {
-  const { role, status, canApprove, approverId } = req.body;
+  const { role, status, canApprove, approverId, boardPosition, termStart, termEnd, committees, isInterestedDirector, bio } = req.body;
   const updates: Record<string, any> = {};
   if (role !== undefined) updates.role = role;
   if (status !== undefined) updates.status = status;
   if (canApprove !== undefined) updates.canApprove = canApprove;
   if (approverId !== undefined) updates.approverId = approverId === null ? null : parseInt(approverId);
-  const [user] = await db.update(users).set(updates).where(eq(users.id, parseInt(req.params.id))).returning({ id: users.id, email: users.email, role: users.role, status: users.status, canApprove: users.canApprove, approverId: users.approverId });
+  if (boardPosition !== undefined) updates.boardPosition = boardPosition || null;
+  if (termStart !== undefined) updates.termStart = termStart ? new Date(termStart) : null;
+  if (termEnd !== undefined) updates.termEnd = termEnd ? new Date(termEnd) : null;
+  if (committees !== undefined) updates.committees = Array.isArray(committees) ? committees : [];
+  if (isInterestedDirector !== undefined) updates.isInterestedDirector = isInterestedDirector;
+  if (bio !== undefined) updates.bio = bio || null;
+  const [user] = await db.update(users).set(updates).where(eq(users.id, parseInt(req.params.id))).returning({ id: users.id, email: users.email, role: users.role, status: users.status, canApprove: users.canApprove, approverId: users.approverId, boardPosition: users.boardPosition, termStart: users.termStart, termEnd: users.termEnd, committees: users.committees });
   if (!user) return res.status(404).json({ success: false, error: "User not found" });
   res.json({ success: true, data: user });
 });

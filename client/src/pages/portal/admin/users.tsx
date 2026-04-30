@@ -113,6 +113,11 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
     status: user.status,
     canApprove: user.canApprove || false,
     approverId: user.approverId ? String(user.approverId) : "",
+    boardPosition: user.boardPosition || "",
+    termStart: user.termStart ? user.termStart.split("T")[0] : "",
+    termEnd: user.termEnd ? user.termEnd.split("T")[0] : "",
+    committees: user.committees ? (Array.isArray(user.committees) ? user.committees.join(", ") : user.committees) : "",
+    isInterestedDirector: user.isInterestedDirector || false,
   });
   const [saving, setSaving] = useState(false);
   const [resetPwd, setResetPwd] = useState("");
@@ -126,6 +131,13 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
     const payload: any = { role: form.role, status: form.status, canApprove: form.canApprove };
     if (form.approverId === "") payload.approverId = null;
     else payload.approverId = parseInt(form.approverId);
+    if (form.role === "board" || form.role === "admin") {
+      payload.boardPosition = form.boardPosition || null;
+      payload.termStart = form.termStart || null;
+      payload.termEnd = form.termEnd || null;
+      payload.committees = form.committees ? form.committees.split(",").map((s: string) => s.trim()).filter(Boolean) : [];
+      payload.isInterestedDirector = form.isInterestedDirector;
+    }
     await apiRequest("PATCH", `/api/admin/portal-users/${user.id}`, payload);
     setSaving(false);
     onSaved();
@@ -177,6 +189,38 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
               </select>
             </div>
           </div>
+
+          {/* Board Member Settings */}
+          {(form.role === "board" || form.role === "admin") && (
+            <div className="bg-indigo-50 rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-indigo-600" />
+                <p className="text-sm font-semibold text-[#1A1F2B]">Board Member Details</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-500 mb-1.5 block">Board Position / Title</label>
+                <input value={form.boardPosition} onChange={e => setForm(f => ({ ...f, boardPosition: e.target.value }))} placeholder="e.g. Chair, Treasurer, Secretary" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid={`input-board-position-${user.id}`} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-slate-500 mb-1.5 block">Term Start</label>
+                  <input type="date" value={form.termStart} onChange={e => setForm(f => ({ ...f, termStart: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid={`input-term-start-${user.id}`} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-500 mb-1.5 block">Term End</label>
+                  <input type="date" value={form.termEnd} onChange={e => setForm(f => ({ ...f, termEnd: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid={`input-term-end-${user.id}`} />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-500 mb-1.5 block">Committees (comma-separated)</label>
+                <input value={form.committees} onChange={e => setForm(f => ({ ...f, committees: e.target.value }))} placeholder="Finance, Governance, Audit…" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid={`input-committees-${user.id}`} />
+              </div>
+              <label className="flex items-center gap-2 text-sm cursor-pointer" data-testid={`checkbox-interested-director-${user.id}`}>
+                <input type="checkbox" checked={form.isInterestedDirector} onChange={e => setForm(f => ({ ...f, isInterestedDirector: e.target.checked }))} className="rounded border-slate-300" />
+                <span className="text-slate-600">Interested director (has potential conflicts of interest)</span>
+              </label>
+            </div>
+          )}
 
           {/* Manager Settings */}
           {(form.role === "employee" || form.role === "admin") && (

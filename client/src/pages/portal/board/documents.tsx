@@ -29,7 +29,7 @@ function DocumentsContent() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ title: "", description: "", documentType: "report", confidentiality: "board_only" });
+  const [form, setForm] = useState({ title: "", description: "", category: "report", confidentiality: "board_only" });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filter, setFilter] = useState<string>("all");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -50,11 +50,11 @@ function DocumentsContent() {
     const fd = new FormData();
     fd.append("title", form.title);
     fd.append("description", form.description);
-    fd.append("documentType", form.documentType);
+    fd.append("category", form.category);
     fd.append("confidentiality", form.confidentiality);
     if (selectedFile) fd.append("file", selectedFile);
     await fetch("/api/board/documents", { method: "POST", body: fd, credentials: "include" });
-    setShowCreate(false); setForm({ title: "", description: "", documentType: "report", confidentiality: "board_only" }); setSelectedFile(null);
+    setShowCreate(false); setForm({ title: "", description: "", category: "report", confidentiality: "board_only" }); setSelectedFile(null);
     loadDocs(); setUploading(false);
   }
 
@@ -63,8 +63,8 @@ function DocumentsContent() {
     loadDocs();
   }
 
-  const types = ["all", ...Array.from(new Set(docs.map(d => d.documentType)))];
-  const filtered = filter === "all" ? docs : docs.filter(d => d.documentType === filter);
+  const types = ["all", ...Array.from(new Set(docs.map(d => d.category)))];
+  const filtered = filter === "all" ? docs : docs.filter(d => d.category === filter);
 
   if (loading) return <div className="space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="h-20 bg-white rounded-xl animate-pulse" />)}</div>;
 
@@ -85,7 +85,7 @@ function DocumentsContent() {
             <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Document title" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-doc-title" />
             <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Description (optional)" rows={2} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none" data-testid="textarea-doc-desc" />
             <div className="grid grid-cols-2 gap-2">
-              <select value={form.documentType} onChange={e => setForm(f => ({ ...f, documentType: e.target.value }))} className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="select-doc-type">
+              <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="select-doc-category">
                 <option value="policy">Policy</option>
                 <option value="report">Report</option>
                 <option value="financial">Financial</option>
@@ -133,7 +133,7 @@ function DocumentsContent() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-semibold text-sm text-[#1A1F2B] truncate">{doc.title}</p>
-                      <Badge className={`${DOC_TYPE_COLORS[doc.documentType] || ""} text-xs capitalize`}>{doc.documentType}</Badge>
+                      <Badge className={`${DOC_TYPE_COLORS[doc.category] || ""} text-xs capitalize`}>{doc.category}</Badge>
                       <Badge className={`${CONFIDENTIALITY_COLORS[doc.confidentiality] || ""} text-xs flex items-center gap-0.5`}>
                         <Lock className="w-2.5 h-2.5" />{doc.confidentiality.replace("_", " ")}
                       </Badge>

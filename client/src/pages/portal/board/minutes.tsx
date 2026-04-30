@@ -25,9 +25,9 @@ function MinutesContent() {
   const [editingMinutes, setEditingMinutes] = useState(false);
   const [minutesText, setMinutesText] = useState("");
   const [addingMotion, setAddingMotion] = useState(false);
-  const [motionForm, setMotionForm] = useState({ text: "", movedBy: "", secondedBy: "", result: "pending" });
+  const [motionForm, setMotionForm] = useState({ motionText: "", passed: false, votesFor: 0, votesAgainst: 0, votesAbstain: 0 });
   const [addingAction, setAddingAction] = useState(false);
-  const [actionForm, setActionForm] = useState({ description: "", dueDate: "" });
+  const [actionForm, setActionForm] = useState({ title: "", description: "", dueDate: "" });
 
   useEffect(() => {
     document.title = "Board Minutes | handləkraft.ai";
@@ -50,15 +50,15 @@ function MinutesContent() {
   }
 
   async function addMotion() {
-    if (!minutes || !motionForm.text.trim()) return;
+    if (!minutes || !motionForm.motionText.trim()) return;
     const r = await apiRequest("POST", `/api/board/minutes/${minutes.id}/motions`, motionForm);
-    if (r.success) { setMinutes((m: any) => ({ ...m, motions: [...(m.motions || []), r.data] })); setMotionForm({ text: "", movedBy: "", secondedBy: "", result: "pending" }); setAddingMotion(false); }
+    if (r.success) { setMinutes((m: any) => ({ ...m, motions: [...(m.motions || []), r.data] })); setMotionForm({ motionText: "", passed: false, votesFor: 0, votesAgainst: 0, votesAbstain: 0 }); setAddingMotion(false); }
   }
 
   async function addActionItem() {
-    if (!minutes || !actionForm.description.trim()) return;
+    if (!minutes || !actionForm.title.trim()) return;
     const r = await apiRequest("POST", `/api/board/minutes/${minutes.id}/action-items`, actionForm);
-    if (r.success) { setMinutes((m: any) => ({ ...m, actionItems: [...(m.actionItems || []), r.data] })); setActionForm({ description: "", dueDate: "" }); setAddingAction(false); }
+    if (r.success) { setMinutes((m: any) => ({ ...m, actionItems: [...(m.actionItems || []), r.data] })); setActionForm({ title: "", description: "", dueDate: "" }); setAddingAction(false); }
   }
 
   if (loading) return <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-16 bg-white rounded-xl animate-pulse" />)}</div>;
@@ -102,31 +102,28 @@ function MinutesContent() {
               {minutes.motions?.map((m: any) => (
                 <div key={m.id} className="p-3 bg-slate-50 rounded-lg" data-testid={`motion-${m.id}`}>
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-medium text-[#1A1F2B]">{m.text}</p>
-                    <Badge className={`${RESULT_COLORS[m.result] || ""} text-xs capitalize shrink-0`}>{m.result}</Badge>
+                    <p className="text-sm font-medium text-[#1A1F2B]">{m.motionText}</p>
+                    <Badge className={`${m.passed ? RESULT_COLORS.passed : RESULT_COLORS.failed} text-xs capitalize shrink-0`}>{m.passed ? "Passed" : "Not Passed"}</Badge>
                   </div>
                   <div className="flex gap-4 mt-1.5 text-xs text-slate-400 flex-wrap">
-                    {m.movedBy && <span>Moved by: {m.movedBy}</span>}
-                    {m.secondedBy && <span>Seconded: {m.secondedBy}</span>}
-                    {(m.voteFor > 0 || m.voteAgainst > 0) && <span>Vote: {m.voteFor}–{m.voteAgainst}{m.voteAbstain > 0 ? `–${m.voteAbstain}` : ""}</span>}
+                    {(m.votesFor > 0 || m.votesAgainst > 0) && <span>Vote: {m.votesFor}–{m.votesAgainst}{m.votesAbstain > 0 ? `–${m.votesAbstain}` : ""}</span>}
+                    {m.recusedDirectors && <span>Recused: {m.recusedDirectors}</span>}
                   </div>
                 </div>
               ))}
             </div>
             {addingMotion && (
               <div className="mt-3 space-y-2 border-t border-slate-200 pt-3">
-                <input value={motionForm.text} onChange={e => setMotionForm(f => ({ ...f, text: e.target.value }))} placeholder="Motion text" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-motion-text" />
-                <div className="grid grid-cols-2 gap-2">
-                  <input value={motionForm.movedBy} onChange={e => setMotionForm(f => ({ ...f, movedBy: e.target.value }))} placeholder="Moved by" className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="input-motion-moved" />
-                  <input value={motionForm.secondedBy} onChange={e => setMotionForm(f => ({ ...f, secondedBy: e.target.value }))} placeholder="Seconded by" className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="input-motion-seconded" />
+                <input value={motionForm.motionText} onChange={e => setMotionForm(f => ({ ...f, motionText: e.target.value }))} placeholder="Motion text…" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-motion-text" />
+                <div className="grid grid-cols-3 gap-2">
+                  <input type="number" min={0} value={motionForm.votesFor} onChange={e => setMotionForm(f => ({ ...f, votesFor: parseInt(e.target.value) || 0 }))} placeholder="Votes For" className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="input-votes-for" />
+                  <input type="number" min={0} value={motionForm.votesAgainst} onChange={e => setMotionForm(f => ({ ...f, votesAgainst: parseInt(e.target.value) || 0 }))} placeholder="Votes Against" className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="input-votes-against" />
+                  <input type="number" min={0} value={motionForm.votesAbstain} onChange={e => setMotionForm(f => ({ ...f, votesAbstain: parseInt(e.target.value) || 0 }))} placeholder="Abstain" className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="input-votes-abstain" />
                 </div>
-                <select value={motionForm.result} onChange={e => setMotionForm(f => ({ ...f, result: e.target.value }))} className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="select-motion-result">
-                  <option value="pending">Pending</option>
-                  <option value="passed">Passed</option>
-                  <option value="failed">Failed</option>
-                  <option value="tabled">Tabled</option>
-                  <option value="withdrawn">Withdrawn</option>
-                </select>
+                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                  <input type="checkbox" checked={motionForm.passed} onChange={e => setMotionForm(f => ({ ...f, passed: e.target.checked }))} className="rounded" data-testid="checkbox-motion-passed" />
+                  Motion passed
+                </label>
                 <div className="flex gap-2">
                   <Button size="sm" className="bg-indigo-500 text-white" onClick={addMotion} data-testid="button-save-motion">Add Motion</Button>
                   <Button size="sm" variant="outline" onClick={() => setAddingMotion(false)}>Cancel</Button>
@@ -151,7 +148,8 @@ function MinutesContent() {
                 <div key={a.id} className="flex items-start gap-2 py-2 border-b border-slate-100 last:border-0" data-testid={`action-${a.id}`}>
                   <Check className="w-4 h-4 text-teal-400 mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-sm text-[#1A1F2B]">{a.description}</p>
+                    <p className="text-sm font-medium text-[#1A1F2B]">{a.title}</p>
+                    {a.description && <p className="text-xs text-slate-500">{a.description}</p>}
                     {a.dueDate && <p className="text-xs text-slate-400">Due: {new Date(a.dueDate).toLocaleDateString()}</p>}
                   </div>
                 </div>
@@ -159,7 +157,8 @@ function MinutesContent() {
             </div>
             {addingAction && (
               <div className="mt-3 space-y-2 border-t border-slate-200 pt-3">
-                <input value={actionForm.description} onChange={e => setActionForm(f => ({ ...f, description: e.target.value }))} placeholder="Action item description" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-action-desc" />
+                <input value={actionForm.title} onChange={e => setActionForm(f => ({ ...f, title: e.target.value }))} placeholder="Action item title (required)" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-action-title" />
+                <input value={actionForm.description} onChange={e => setActionForm(f => ({ ...f, description: e.target.value }))} placeholder="Description (optional)" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="input-action-desc" />
                 <input type="date" value={actionForm.dueDate} onChange={e => setActionForm(f => ({ ...f, dueDate: e.target.value }))} className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="input-action-due" />
                 <div className="flex gap-2">
                   <Button size="sm" className="bg-indigo-500 text-white" onClick={addActionItem} data-testid="button-save-action">Add Item</Button>

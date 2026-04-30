@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, CalendarDays, FileText, ScrollText, CheckSquare,
-  Scale, LogOut, Menu, X, Bell, Users, FileSignature,
+  FileSignature, LogOut, Menu, Users, Scale, DollarSign, Settings, Shield,
 } from "lucide-react";
 import logoImg from "@/assets/images/logo.png";
 
@@ -16,6 +16,12 @@ const navItems = [
   { href: "/portal/board/action-items", icon: <CheckSquare className="w-4 h-4" />, label: "Action Items" },
   { href: "/portal/board/consents", icon: <FileSignature className="w-4 h-4" />, label: "Written Consents" },
   { href: "/portal/board/members", icon: <Users className="w-4 h-4" />, label: "Board Members" },
+  { href: "/portal/board/financials", icon: <DollarSign className="w-4 h-4" />, label: "Financials" },
+];
+
+const adminItems = [
+  { href: "/portal/board/roster", icon: <Shield className="w-4 h-4" />, label: "Manage Roster" },
+  { href: "/portal/board/settings", icon: <Settings className="w-4 h-4" />, label: "Board Settings" },
 ];
 
 export function BoardLayout({ children }: { children: React.ReactNode }) {
@@ -28,11 +34,16 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
     window.location.href = "/login";
   };
 
+  const isActive = (href: string) => location === href || location.startsWith(href + "/");
+
   const navLinkClass = (href: string) =>
     `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors no-underline ${
-      location === href || location.startsWith(href + "/")
-        ? "bg-indigo-500 text-white"
-        : "text-white/60 hover:bg-white/10 hover:text-white"
+      isActive(href) ? "bg-indigo-500 text-white" : "text-white/60 hover:bg-white/10 hover:text-white"
+    }`;
+
+  const adminLinkClass = (href: string) =>
+    `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors no-underline ${
+      isActive(href) ? "bg-amber-500/90 text-white" : "text-white/50 hover:bg-white/10 hover:text-white/80"
     }`;
 
   const SidebarContent = () => (
@@ -54,6 +65,21 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
             <span>{item.label}</span>
           </Link>
         ))}
+
+        {/* Admin-only section */}
+        {user?.role === "admin" && (
+          <>
+            <div className="pt-3 pb-1 px-2">
+              <p className="text-white/30 text-xs uppercase tracking-widest font-semibold">Board Admin</p>
+            </div>
+            {adminItems.map(item => (
+              <Link key={item.href} href={item.href} className={adminLinkClass(item.href)} onClick={() => setSidebarOpen(false)}>
+                {item.icon}
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </>
+        )}
       </nav>
 
       <div className="p-3 border-t border-white/10">
@@ -63,7 +89,7 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-white text-xs font-medium truncate">{user?.firstName} {user?.lastName}</p>
-            <p className="text-indigo-300 text-xs truncate capitalize">{user?.role === "board" ? "Board Member" : user?.role}</p>
+            <p className="text-indigo-300 text-xs truncate">{user?.role === "board" ? "Board Member" : "Admin"}</p>
           </div>
         </div>
         <Button variant="ghost" size="sm" onClick={handleLogout} className="w-full text-white/60 hover:text-white hover:bg-white/10 gap-2 justify-start text-xs" data-testid="button-logout">
@@ -75,19 +101,15 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex bg-[#F5F3EF]">
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
-      <aside className={`fixed top-0 left-0 h-full w-56 bg-[#1A1F2B] z-50 flex flex-col transition-transform duration-200 md:relative md:translate-x-0 md:flex ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed top-0 left-0 h-full w-56 bg-[#1A1F2B] z-50 flex flex-col transition-transform duration-200 md:relative md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
         <SidebarContent />
       </aside>
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile topbar */}
         <header className="md:hidden bg-[#1A1F2B] px-4 py-3 flex items-center gap-3 sticky top-0 z-30">
           <button onClick={() => setSidebarOpen(true)} className="text-white/60 hover:text-white" data-testid="button-open-sidebar">
             <Menu className="w-5 h-5" />
@@ -96,7 +118,6 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
           <Scale className="w-5 h-5 text-indigo-400" />
         </header>
 
-        {/* Page content */}
         <main className="flex-1 p-4 md:p-6 overflow-auto">
           {children}
         </main>

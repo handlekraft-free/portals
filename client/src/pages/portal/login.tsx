@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { login, getPortalPath } from "@/lib/auth";
+import { login, getPortalPath, changePassword } from "@/lib/auth";
+import type { PortalUser } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Briefcase, Building2, GraduationCap, Eye, EyeOff, ArrowLeft, Shield, Scale } from "lucide-react";
+import { Briefcase, Building2, GraduationCap, Eye, EyeOff, ArrowLeft, Shield, Scale, KeyRound, CheckCircle2 } from "lucide-react";
 import logoImg from "@/assets/images/logo.png";
 
 type Role = "employee" | "client" | "student" | "board";
@@ -20,16 +21,31 @@ const roles: { id: Role; label: string; icon: React.ReactNode; desc: string; col
 export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { user, setUser, loading } = useAuth();
+
+  // Step 1 — role picker
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+
+  // Step 2 — credentials
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Step 3 — forced password change
+  const [pendingUser, setPendingUser] = useState<PortalUser | null>(null);
+  const [loginPassword, setLoginPassword] = useState(""); // the password they used to sign in
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [changeError, setChangeError] = useState("");
+  const [changeDone, setChangeDone] = useState(false);
+  const [changingPw, setChangingPw] = useState(false);
+
   useEffect(() => {
     document.title = "Login | handləkraft.ai";
-    if (!loading && user) setLocation(getPortalPath(user.role));
+    if (!loading && user && !user.mustChangePassword) setLocation(getPortalPath(user.role));
   }, [user, loading, setLocation]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -40,9 +56,45 @@ export default function LoginPage() {
     setSubmitting(false);
     if ("error" in result) {
       setError(result.error);
+    } else if (result.user.mustChangePassword) {
+      // Hold the login password so we can use it as "currentPassword" in step 3
+      setLoginPassword(password);
+      setPendingUser(result.user);
+      setUser(result.user); // set in context so cookie is live
     } else {
       setUser(result.user);
       setLocation(getPortalPath(result.user.role));
+    }
+  }
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setChangeError("");
+    if (newPassword.length < 8) {
+      setChangeError("Password must be at least 8 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setChangeError("Passwords don't match.");
+      return;
+    }
+    if (newPassword === loginPassword) {
+      setChangeError("Your new password must be different from your temporary one.");
+      return;
+    }
+    setChangingPw(true);
+    const result = await changePassword(loginPassword, newPassword);
+    setChangingPw(false);
+    if (result.error) {
+      setChangeError(result.error);
+    } else {
+      setChangeDone(true);
+      // Brief success moment, then navigate
+      setTimeout(() => {
+        const updated = { ...pendingUser!, mustChangePassword: false };
+        setUser(updated);
+        setLocation(getPortalPath(updated.role));
+      }, 1500);
     }
   }
 
@@ -65,7 +117,94 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-2xl">
-          {!selectedRole ? (
+
+          {/* ── Step 3: Forced password change ─────────────────────────── */}
+          {pendingUser ? (
+            changeDone ? (
+              <div className="flex flex-col items-center py-6 gap-3">
+                <CheckCircle2 className="w-12 h-12 text-emerald-400" />
+                <p className="text-white font-semibold text-lg">Password updated!</p>
+                <p className="text-white/50 text-sm text-center">Taking you to your portal…</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col items-center mb-5 gap-2">
+                  <div className="w-10 h-10 rounded-full bg-[#0D7377]/20 flex items-center justify-center">
+                    <KeyRound className="w-5 h-5 text-[#0D7377]" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-white text-center">Set your password</h2>
+                  <p className="text-white/50 text-sm text-center">
+                    Welcome, {pendingUser.firstName}! Your account has a temporary password.
+                    Choose something secure and memorable before you dive in.
+                  </p>
+                </div>
+                <form onSubmit={handleChangePassword} className="space-y-4">
+                  <div>
+                    <Label className="text-white/70 text-sm">New password</Label>
+                    <div className="relative mt-1">
+                      <Input
+                        type={showNew ? "text" : "password"}
+                        value={newPassword}
+                        onChange={e => setNewPassword(e.target.value)}
+                        placeholder="Min. 8 characters"
+                        required
+                        autoFocus
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#0D7377] pr-10"
+                        data-testid="input-new-password"
+                      />
+                      <button type="button" onClick={() => setShowNew(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60">
+                        {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {/* Strength hint */}
+                    {newPassword.length > 0 && (
+                      <p className={`text-xs mt-1 ${newPassword.length >= 12 ? "text-emerald-400" : newPassword.length >= 8 ? "text-yellow-400" : "text-red-400"}`}>
+                        {newPassword.length >= 12 ? "Strong" : newPassword.length >= 8 ? "Good" : "Too short"}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-white/70 text-sm">Confirm new password</Label>
+                    <div className="relative mt-1">
+                      <Input
+                        type={showConfirm ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={e => setConfirmPassword(e.target.value)}
+                        placeholder="Repeat your new password"
+                        required
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#0D7377] pr-10"
+                        data-testid="input-confirm-password"
+                      />
+                      <button type="button" onClick={() => setShowConfirm(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60">
+                        {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {confirmPassword.length > 0 && newPassword !== confirmPassword && (
+                      <p className="text-xs mt-1 text-red-400">Passwords don't match yet</p>
+                    )}
+                    {confirmPassword.length > 0 && newPassword === confirmPassword && newPassword.length >= 8 && (
+                      <p className="text-xs mt-1 text-emerald-400">Passwords match ✓</p>
+                    )}
+                  </div>
+                  {changeError && (
+                    <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-3 py-2 rounded-lg" data-testid="text-change-error">
+                      {changeError}
+                    </div>
+                  )}
+                  <Button
+                    type="submit"
+                    disabled={changingPw || newPassword !== confirmPassword || newPassword.length < 8}
+                    className="w-full bg-[#0D7377] hover:bg-[#0D7377]/90 text-white font-semibold py-2.5 rounded-xl"
+                    data-testid="button-set-password"
+                  >
+                    {changingPw ? "Saving…" : "Set my password & continue"}
+                  </Button>
+                </form>
+              </>
+            )
+
+          /* ── Step 1: Role picker ──────────────────────────────────────── */
+          ) : !selectedRole ? (
             <>
               <h2 className="text-lg font-semibold text-white mb-1 text-center">Who are you?</h2>
               <p className="text-white/40 text-sm text-center mb-6">Select your account type to continue</p>
@@ -91,6 +230,8 @@ export default function LoginPage() {
                 </a>
               </div>
             </>
+
+          /* ── Step 2: Email + password ─────────────────────────────────── */
           ) : (
             <>
               <button onClick={() => { setSelectedRole(null); setError(""); }} className="flex items-center gap-1 text-white/40 hover:text-white/60 text-sm mb-4 transition-colors" data-testid="button-back-role">

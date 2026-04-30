@@ -72,6 +72,32 @@ router.post("/login", async (req, res) => {
   });
 });
 
+// POST /api/auth/change-password
+router.post("/change-password", requireAuth, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ success: false, error: "Both current and new password are required." });
+  }
+  if (newPassword.length < 8) {
+    return res.status(400).json({ success: false, error: "New password must be at least 8 characters." });
+  }
+
+  const [user] = await db.select().from(users).where(eq(users.id, req.user!.userId));
+  if (!user) return res.status(404).json({ success: false, error: "User not found." });
+
+  const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!valid) {
+    return res.status(401).json({ success: false, error: "Current password is incorrect." });
+  }
+
+  const newHash = await bcrypt.hash(newPassword, 12);
+  await db.update(users)
+    .set({ passwordHash: newHash, mustChangePassword: false })
+    .where(eq(users.id, user.id));
+
+  return res.json({ success: true, data: null });
+});
+
 // POST /api/auth/logout
 router.post("/logout", (req, res) => {
   res.clearCookie("hk_token");

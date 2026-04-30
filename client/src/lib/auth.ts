@@ -45,6 +45,22 @@ export async function logout(): Promise<void> {
   await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
 }
 
+export async function changePassword(currentPassword: string, newPassword: string): Promise<{ error?: string }> {
+  try {
+    const res = await fetch("/api/auth/change-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword, newPassword }),
+      credentials: "include",
+    });
+    const data = await res.json();
+    if (data.success) return {};
+    return { error: data.error || "Failed to change password." };
+  } catch {
+    return { error: "Network error. Please try again." };
+  }
+}
+
 export function getPortalPath(role: string): string {
   switch (role) {
     case "admin": return "/portal/employee/dashboard";

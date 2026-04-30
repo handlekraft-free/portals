@@ -331,21 +331,6 @@ router.get("/my-action-items", async (req, res) => {
   res.json({ success: true, data: items });
 });
 
-router.post("/minutes/:id/action-items", requireAdmin as any, async (req, res) => {
-  const minutesId = parseInt(req.params.id);
-  const { title, description, assignedTo, dueDate } = req.body;
-  if (!title) return res.status(400).json({ success: false, error: "Title required" });
-  const [item] = await db.insert(boardActionItems).values({
-    title,
-    description: description || null,
-    assignedTo: assignedTo ? parseInt(assignedTo) : null,
-    dueDate: dueDate ? new Date(dueDate) : null,
-    sourceMinutesId: minutesId,
-    createdBy: req.user!.userId,
-  }).returning();
-  res.status(201).json({ success: true, data: item });
-});
-
 router.patch("/action-items/:id", async (req, res) => {
   const itemId = parseInt(req.params.id);
   const userId = req.user!.userId;
@@ -838,6 +823,8 @@ router.post("/minutes/:id/motions", requireAdmin as any, async (req, res) => {
     recusedDirectors: recusedDirectors || null,
     position: position ?? 0,
   }).returning();
+  const full = await getMinutesFull(minutesId);
+  saveVersionSnapshot(minutesId, req.user!.userId, full).catch(() => {});
   res.status(201).json({ success: true, data: motion });
 });
 
@@ -858,6 +845,8 @@ router.patch("/minutes/:id/motions/:motionId", requireAdmin as any, async (req, 
     ...(passed !== undefined && { passed: !!passed }),
     ...(recusedDirectors !== undefined && { recusedDirectors }),
   }).where(and(eq(boardMinutesMotions.id, motionId), eq(boardMinutesMotions.minutesId, minutesId))).returning();
+  const full = await getMinutesFull(minutesId);
+  saveVersionSnapshot(minutesId, req.user!.userId, full).catch(() => {});
   res.json({ success: true, data: updated });
 });
 
@@ -867,6 +856,8 @@ router.delete("/minutes/:id/motions/:motionId", requireAdmin as any, async (req,
   const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, minutesId));
   if (existing?.status === "approved") return res.status(403).json({ success: false, error: "Approved minutes are locked" });
   await db.delete(boardMinutesMotions).where(and(eq(boardMinutesMotions.id, motionId), eq(boardMinutesMotions.minutesId, minutesId)));
+  const full = await getMinutesFull(minutesId);
+  saveVersionSnapshot(minutesId, req.user!.userId, full).catch(() => {});
   res.json({ success: true, data: null });
 });
 
@@ -885,7 +876,6 @@ router.post("/minutes/:id/action-items", requireAdmin as any, async (req, res) =
     dueDate: dueDate ? new Date(dueDate) : null,
     createdBy: req.user!.userId,
   }).returning();
-  // Also write to global boardActionItems
   await db.insert(boardActionItems).values({
     title,
     description: description || null,
@@ -894,6 +884,8 @@ router.post("/minutes/:id/action-items", requireAdmin as any, async (req, res) =
     sourceMinutesId: minutesId,
     createdBy: req.user!.userId,
   });
+  const full = await getMinutesFull(minutesId);
+  saveVersionSnapshot(minutesId, req.user!.userId, full).catch(() => {});
   res.status(201).json({ success: true, data: item });
 });
 
@@ -911,6 +903,8 @@ router.patch("/minutes/:id/action-items/:itemId", requireAdmin as any, async (re
     ...(status !== undefined && { status }),
     ...(status === "done" && { completedAt: new Date() }),
   }).where(and(eq(boardMinutesActionItems.id, itemId), eq(boardMinutesActionItems.minutesId, minutesId))).returning();
+  const full = await getMinutesFull(minutesId);
+  saveVersionSnapshot(minutesId, req.user!.userId, full).catch(() => {});
   res.json({ success: true, data: updated });
 });
 
@@ -920,12 +914,14 @@ router.delete("/minutes/:id/action-items/:itemId", requireAdmin as any, async (r
   const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, minutesId));
   if (existing?.status === "approved") return res.status(403).json({ success: false, error: "Approved minutes are locked" });
   await db.delete(boardMinutesActionItems).where(and(eq(boardMinutesActionItems.id, itemId), eq(boardMinutesActionItems.minutesId, minutesId)));
+  const full = await getMinutesFull(minutesId);
+  saveVersionSnapshot(minutesId, req.user!.userId, full).catch(() => {});
   res.json({ success: true, data: null });
 });
 
 // ── Meeting Packet PDF ────────────────────────────────────────────────────────
 
-router.get("/meetings/:id/packet", async (req, res) => {
+router.post("/meetings/:id/packet", async (req, res) => {
   const meetingId = parseInt(req.params.id);
   const [meeting] = await db.select().from(boardMeetings).where(eq(boardMeetings.id, meetingId));
   if (!meeting) return res.status(404).json({ success: false, error: "Meeting not found" });

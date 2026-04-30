@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
@@ -6,7 +6,8 @@ import { useAuth } from "@/context/AuthContext";
 import {
   ScrollText, Plus, ChevronRight, ArrowLeft, Check, Gavel,
   FileText, Clock, Download, History, Send, Lock, Pencil, Trash2,
-  X, ChevronDown, ChevronUp, Users, ClipboardList,
+  X, ChevronDown, ChevronUp, Users, ClipboardList, AlertTriangle,
+  Info, Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -125,8 +126,19 @@ function MotionForm({ boardMembers, onSave, onCancel, initial }: {
     passed: initial?.passed ?? false,
     recusedDirectors: initial?.recusedDirectors ?? "",
   });
+
+  const interestedDirectors = boardMembers.filter(m => m.isInterestedDirector);
+
   return (
     <div className="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+      {interestedDirectors.length > 0 && (
+        <div className="flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+          <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-500" />
+          <span>
+            <strong>COI Notice:</strong> {interestedDirectors.map(d => `${d.firstName} ${d.lastName}`).join(", ")} {interestedDirectors.length === 1 ? "has" : "have"} a flagged conflict of interest. Review recusal requirements before recording this motion.
+          </span>
+        </div>
+      )}
       <textarea
         value={form.motionText}
         onChange={e => setForm(f => ({ ...f, motionText: e.target.value }))}
@@ -161,9 +173,9 @@ function MotionForm({ boardMembers, onSave, onCancel, initial }: {
         ))}
       </div>
       <div>
-        <label className="text-xs text-slate-500 font-medium">Recused directors (optional)</label>
+        <label className="text-xs text-slate-500 font-medium">Recused directors (if any)</label>
         <input value={form.recusedDirectors} onChange={e => setForm(f => ({ ...f, recusedDirectors: e.target.value }))}
-          placeholder="e.g. Jane Doe (conflict of interest)"
+          placeholder="e.g. Jane Doe — conflict of interest"
           className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none mt-0.5" data-testid="input-recused" />
       </div>
       <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer" data-testid="label-motion-passed">
@@ -230,28 +242,28 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
   const [saving, setSaving] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
-  // Structured content
   const [content, setContent] = useState<Record<string, any>>({});
-
-  // Attendance
-  const [attendance, setAttendance] = useState<Record<number, "present" | "absent" | "excused">>({});
-
-  // Motions
+  const [attendance, setAttendance] = useState<Record<number, { attendance: string; participationMethod: string; waivedNotice: boolean }>>({});
   const [addingMotion, setAddingMotion] = useState(false);
   const [editingMotion, setEditingMotion] = useState<number | null>(null);
-
-  // Action items
   const [addingAction, setAddingAction] = useState(false);
   const [editingAction, setEditingAction] = useState<number | null>(null);
-
-  // Reports array
   const [reports, setReports] = useState<Array<{ title: string; presenter: string; content: string }>>([]);
+
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const minutesRef = useRef<any>(null);
+  const contentRef = useRef<Record<string, any>>({});
+  const reportsRef = useRef<Array<any>>([]);
 
   const locked = minutes?.status === "approved";
 
+  useEffect(() => { minutesRef.current = minutes; }, [minutes]);
+  useEffect(() => { contentRef.current = content; }, [content]);
+  useEffect(() => { reportsRef.current = reports; }, [reports]);
+
   useEffect(() => {
     async function load() {
-      const [minsRes, membersRes, attendeeRes] = await Promise.all([
+      const [minsRes, membersRes, meetingRes] = await Promise.all([
         apiRequest("GET", `/api/board/meetings/${meeting.id}/minutes`),
         apiRequest("GET", "/api/board/members"),
         apiRequest("GET", `/api/board/meetings/${meeting.id}`),
@@ -264,46 +276,62 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
         setReports(parsed.reports ?? []);
       }
       // Pre-fill attendance from meeting attendees
-      if (attendeeRes.success && attendeeRes.data?.attendees?.length) {
+      if (meetingRes.success && meetingRes.data?.attendees?.length) {
         const map: Record<number, any> = {};
-        for (const a of attendeeRes.data.attendees) map[a.userId] = a.attendance ?? "present";
+        for (const a of meetingRes.data.attendees) {
+          map[a.userId] = {
+            attendance: a.attendance ?? "present",
+            participationMethod: a.participationMethod ?? "in_person",
+            waivedNotice: a.waivedNotice ?? false,
+          };
+        }
         setAttendance(map);
       }
       setLoading(false);
     }
     load();
+    return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
   }, [meeting.id]);
 
-  const contentJson = useCallback(() => JSON.stringify({ ...content, reports }), [content, reports]);
+  const contentJson = useCallback(() =>
+    JSON.stringify({ ...contentRef.current, reports: reportsRef.current }),
+  []);
 
   async function ensureMinutes(): Promise<any> {
-    if (minutes) return minutes;
+    if (minutesRef.current) return minutesRef.current;
     const r = await apiRequest("POST", `/api/board/meetings/${meeting.id}/minutes`, {});
-    if (r.success) { setMinutes(r.data); return r.data; }
+    if (r.success) { setMinutes(r.data); minutesRef.current = r.data; return r.data; }
     return null;
   }
 
-  async function saveDraft() {
+  async function saveDraft(silent = false) {
     setSaving(true);
     const m = await ensureMinutes();
     if (!m) { setSaving(false); return; }
     const r = await apiRequest("PATCH", `/api/board/minutes/${m.id}`, {
       content: contentJson(),
-      quorumPresent: content.quorumPresent,
-      quorumCount: content.quorumCount,
-      adjournmentTime: content.adjournmentTime || null,
+      quorumPresent: contentRef.current.quorumPresent,
+      quorumCount: contentRef.current.quorumCount,
+      adjournmentTime: contentRef.current.adjournmentTime || null,
     });
     if (r.success) {
       setMinutes(r.data);
-      toast({ title: "Minutes saved", description: "Draft saved successfully." });
+      minutesRef.current = r.data;
+      if (!silent) toast({ title: "Minutes saved", description: "Draft saved successfully." });
     }
     setSaving(false);
+  }
+
+  function scheduleAutoSave() {
+    if (!isAdmin || locked) return;
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => saveDraft(true), 2000);
   }
 
   async function submitForApproval() {
     const m = await ensureMinutes();
     if (!m) return;
-    await saveDraft();
+    await saveDraft(true);
     const r = await apiRequest("POST", `/api/board/minutes/${m.id}/submit`, {});
     if (r.success) { setMinutes((prev: any) => ({ ...prev, status: "pending_approval" })); toast({ title: "Submitted", description: "Minutes submitted for board approval." }); }
     else toast({ title: "Error", description: r.error, variant: "destructive" });
@@ -314,6 +342,25 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
     const r = await apiRequest("POST", `/api/board/minutes/${minutes.id}/approve`, {});
     if (r.success) { setMinutes((prev: any) => ({ ...prev, status: "approved", approvedAt: new Date() })); toast({ title: "Approved", description: "Minutes have been officially approved and locked." }); }
     else toast({ title: "Error", description: r.error, variant: "destructive" });
+  }
+
+  async function downloadPacket() {
+    const m = minutesRef.current;
+    toast({ title: "Generating packet…", description: "Your PDF is being prepared." });
+    const res = await fetch(`/api/board/meetings/${meeting.id}/packet`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    if (!res.ok) { toast({ title: "Error", description: "Could not generate packet.", variant: "destructive" }); return; }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `board-packet-meeting-${meeting.id}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function addMotion(data: any) {
@@ -356,12 +403,8 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
     setMinutes((prev: any) => ({ ...prev, actionItems: prev.actionItems.filter((a: any) => a.id !== itemId) }));
   }
 
-  function addReport() {
-    setReports(r => [...r, { title: "", presenter: "", content: "" }]);
-  }
-  function removeReport(i: number) {
-    setReports(r => r.filter((_, idx) => idx !== i));
-  }
+  function addReport() { setReports(r => [...r, { title: "", presenter: "", content: "" }]); }
+  function removeReport(i: number) { setReports(r => r.filter((_, idx) => idx !== i)); }
 
   if (loading) return (
     <div className="space-y-4">
@@ -370,7 +413,9 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
     </div>
   );
 
-  const meetingDate = new Date(meeting.scheduledAt).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  const meetingDate = new Date(meeting.scheduledAt).toLocaleDateString("en-US", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
+  });
 
   return (
     <div>
@@ -397,11 +442,23 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
               <History className="w-3.5 h-3.5" /> History
             </Button>
           )}
-          <a href={`/api/board/meetings/${meeting.id}/packet`} target="_blank" rel="noreferrer">
-            <Button size="sm" variant="outline" className="h-8 text-xs gap-1 border-indigo-200 text-indigo-600 hover:bg-indigo-50" data-testid="button-download-packet">
-              <Download className="w-3.5 h-3.5" /> Download Packet
-            </Button>
-          </a>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs gap-1 border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+            onClick={downloadPacket}
+            data-testid="button-download-packet"
+          >
+            <Download className="w-3.5 h-3.5" /> Download Packet
+          </Button>
+        </div>
+      </div>
+
+      {/* Legal governance guidance banner */}
+      <div className="flex items-start gap-2.5 p-3 mb-4 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-800" data-testid="governance-banner">
+        <Info className="w-4 h-4 shrink-0 mt-0.5 text-indigo-500" />
+        <div>
+          <strong>Governance Reminder:</strong> Minutes are the official legal record of board decisions. Record all motions with mover, seconder, and vote counts. Directors with conflicts of interest must declare and recuse. Approved minutes are locked and may only be amended by board vote at a subsequent meeting.
         </div>
       </div>
 
@@ -420,6 +477,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
             {meeting.location && <div><p className="text-xs text-slate-400">Location</p><p className="text-sm text-slate-700">{meeting.location}</p></div>}
             {meeting.platform && <div><p className="text-xs text-slate-400">Platform</p><p className="text-sm text-slate-700">{meeting.platform}</p></div>}
             <div><p className="text-xs text-slate-400">Quorum required</p><p className="text-sm text-slate-700">{meeting.quorumNumber ?? 3} members</p></div>
+            {meeting.noticeMethod && <div><p className="text-xs text-slate-400">Notice sent</p><p className="text-sm text-slate-700">{meeting.noticeMethod}{meeting.noticeSentAt ? ` · ${new Date(meeting.noticeSentAt).toLocaleDateString()}` : ""}</p></div>}
           </CardContent>
         </Card>
 
@@ -432,27 +490,59 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
           </CardHeader>
           <CardContent className="pb-4 space-y-3">
             {boardMembers.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {boardMembers.map(m => (
-                  <div key={m.id} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg" data-testid={`attendee-${m.id}`}>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#1A1F2B] truncate">{m.firstName} {m.lastName}</p>
-                      {m.boardPosition && <p className="text-xs text-slate-400">{m.boardPosition}</p>}
+              <div className="space-y-2">
+                {/* Column headers */}
+                <div className="grid grid-cols-[1fr_120px_120px_90px] gap-2 px-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <span>Director</span>
+                  <span>Attendance</span>
+                  <span>Participation</span>
+                  <span>Notice OK?</span>
+                </div>
+                {boardMembers.map(m => {
+                  const a = attendance[m.id] ?? { attendance: "", participationMethod: "in_person", waivedNotice: false };
+                  return (
+                    <div key={m.id} className="grid grid-cols-[1fr_120px_120px_90px] gap-2 items-center p-2 bg-slate-50 rounded-lg" data-testid={`attendee-${m.id}`}>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-[#1A1F2B] truncate">{m.firstName} {m.lastName}</p>
+                        {m.boardPosition && <p className="text-xs text-slate-400 truncate">{m.boardPosition}</p>}
+                      </div>
+                      <select
+                        value={a.attendance}
+                        onChange={e => setAttendance(prev => ({ ...prev, [m.id]: { ...a, attendance: e.target.value } }))}
+                        disabled={locked || !isAdmin}
+                        className="border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none disabled:opacity-60 w-full"
+                        data-testid={`select-attendance-${m.id}`}
+                      >
+                        <option value="">—</option>
+                        <option value="present">Present</option>
+                        <option value="absent">Absent</option>
+                        <option value="excused">Excused</option>
+                      </select>
+                      <select
+                        value={a.participationMethod}
+                        onChange={e => setAttendance(prev => ({ ...prev, [m.id]: { ...a, participationMethod: e.target.value } }))}
+                        disabled={locked || !isAdmin || a.attendance !== "present"}
+                        className="border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none disabled:opacity-40 w-full"
+                        data-testid={`select-participation-${m.id}`}
+                      >
+                        <option value="in_person">In Person</option>
+                        <option value="remote">Remote</option>
+                      </select>
+                      <div className="flex items-center gap-1.5 justify-center">
+                        <input
+                          type="checkbox"
+                          checked={a.waivedNotice}
+                          onChange={e => setAttendance(prev => ({ ...prev, [m.id]: { ...a, waivedNotice: e.target.checked } }))}
+                          disabled={locked || !isAdmin}
+                          className="rounded disabled:opacity-60"
+                          data-testid={`checkbox-notice-${m.id}`}
+                          title="Director waived notice requirement"
+                        />
+                        <span className="text-xs text-slate-400">Waived</span>
+                      </div>
                     </div>
-                    <select
-                      value={attendance[m.id] ?? ""}
-                      onChange={e => setAttendance(a => ({ ...a, [m.id]: e.target.value as any }))}
-                      disabled={locked || !isAdmin}
-                      className="border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none disabled:opacity-60"
-                      data-testid={`select-attendance-${m.id}`}
-                    >
-                      <option value="">—</option>
-                      <option value="present">Present</option>
-                      <option value="absent">Absent</option>
-                      <option value="excused">Excused</option>
-                    </select>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : <p className="text-sm text-slate-400 italic">No board members found.</p>}
 
@@ -463,7 +553,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                 <input
                   type="checkbox"
                   checked={!!content.quorumPresent}
-                  onChange={e => setContent(c => ({ ...c, quorumPresent: e.target.checked }))}
+                  onChange={e => { setContent(c => ({ ...c, quorumPresent: e.target.checked })); scheduleAutoSave(); }}
                   disabled={locked || !isAdmin}
                   className="rounded"
                   data-testid="checkbox-quorum"
@@ -475,7 +565,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                   type="number"
                   min={0}
                   value={content.quorumCount ?? ""}
-                  onChange={e => setContent(c => ({ ...c, quorumCount: e.target.value }))}
+                  onChange={e => { setContent(c => ({ ...c, quorumCount: e.target.value })); scheduleAutoSave(); }}
                   disabled={locked || !isAdmin}
                   className="w-16 border border-slate-200 rounded px-2 py-1 text-sm focus:outline-none disabled:opacity-60"
                   data-testid="input-quorum-count"
@@ -496,24 +586,24 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
             </CardTitle>
           </CardHeader>
           <CardContent className="pb-4 space-y-4">
-            {/* Call to order */}
             <div>
               <label className="text-xs font-semibold text-slate-500 mb-1 block">Call to Order</label>
               <input
                 value={content.callToOrder ?? ""}
                 onChange={e => setContent(c => ({ ...c, callToOrder: e.target.value }))}
+                onBlur={scheduleAutoSave}
                 disabled={locked}
                 placeholder="e.g. Meeting called to order at 7:00 PM by the Chair."
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50 disabled:text-slate-400"
                 data-testid="input-call-to-order"
               />
             </div>
-            {/* Opening remarks */}
             <div>
-              <label className="text-xs font-semibold text-slate-500 mb-1 block">Opening Remarks</label>
+              <label className="text-xs font-semibold text-slate-500 mb-1 block">Opening Remarks / Announcements</label>
               <textarea
                 value={content.openingRemarks ?? ""}
                 onChange={e => setContent(c => ({ ...c, openingRemarks: e.target.value }))}
+                onBlur={scheduleAutoSave}
                 disabled={locked}
                 placeholder="Any opening remarks or announcements…"
                 rows={3}
@@ -521,7 +611,6 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                 data-testid="textarea-opening-remarks"
               />
             </div>
-            {/* Reports */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-semibold text-slate-500">Reports</label>
@@ -539,6 +628,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                       <input
                         value={report.title}
                         onChange={e => setReports(r => r.map((x, idx) => idx === i ? { ...x, title: e.target.value } : x))}
+                        onBlur={scheduleAutoSave}
                         disabled={locked}
                         placeholder="Report title (e.g. Executive Director Report)"
                         className="flex-1 border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none disabled:bg-white"
@@ -553,6 +643,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                     <input
                       value={report.presenter}
                       onChange={e => setReports(r => r.map((x, idx) => idx === i ? { ...x, presenter: e.target.value } : x))}
+                      onBlur={scheduleAutoSave}
                       disabled={locked}
                       placeholder="Presenter (optional)"
                       className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none disabled:bg-white"
@@ -561,6 +652,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                     <textarea
                       value={report.content}
                       onChange={e => setReports(r => r.map((x, idx) => idx === i ? { ...x, content: e.target.value } : x))}
+                      onBlur={scheduleAutoSave}
                       disabled={locked}
                       placeholder="Report notes and discussion…"
                       rows={3}
@@ -571,12 +663,12 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                 ))}
               </div>
             </div>
-            {/* General business */}
             <div>
               <label className="text-xs font-semibold text-slate-500 mb-1 block">General Business / Other Notes</label>
               <textarea
                 value={content.generalNotes ?? ""}
                 onChange={e => setContent(c => ({ ...c, generalNotes: e.target.value }))}
+                onBlur={scheduleAutoSave}
                 disabled={locked}
                 placeholder="Any other business discussed…"
                 rows={4}
@@ -632,7 +724,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                       {(m.votesFor > 0 || m.votesAgainst > 0 || m.votesAbstain > 0) && (
                         <span>Vote: {m.votesFor} For — {m.votesAgainst} Against — {m.votesAbstain} Abstain</span>
                       )}
-                      {m.recusedDirectors && <span>Recused: {m.recusedDirectors}</span>}
+                      {m.recusedDirectors && <span className="text-amber-600">Recused: {m.recusedDirectors}</span>}
                     </div>
                   </div>
                 )}
@@ -711,7 +803,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
               <input
                 type="datetime-local"
                 value={content.adjournmentTime ?? ""}
-                onChange={e => setContent(c => ({ ...c, adjournmentTime: e.target.value }))}
+                onChange={e => { setContent(c => ({ ...c, adjournmentTime: e.target.value })); scheduleAutoSave(); }}
                 disabled={locked}
                 className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50 disabled:text-slate-400"
                 data-testid="input-adjournment-time"
@@ -725,7 +817,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
           <div className="flex items-center gap-3 pt-2 pb-6 flex-wrap">
             {!locked && (
               <Button
-                onClick={saveDraft}
+                onClick={() => saveDraft(false)}
                 disabled={saving}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5"
                 data-testid="button-save-draft"
@@ -754,11 +846,12 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
               </Button>
             )}
             {locked && (
-              <div className="flex items-center gap-2 text-sm text-green-700 font-medium">
+              <div className="flex items-center gap-2 text-sm text-green-700 font-medium" data-testid="text-approved-status">
                 <Lock className="w-4 h-4" />
                 Minutes approved and locked on {minutes?.approvedAt ? new Date(minutes.approvedAt).toLocaleDateString() : "—"}
               </div>
             )}
+            {saving && <span className="text-xs text-slate-400 animate-pulse">Saving…</span>}
           </div>
         )}
       </div>
@@ -773,6 +866,8 @@ function MinutesContent() {
   const [minutesMap, setMinutesMap] = useState<Record<number, any>>({});
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
+  const [yearFilter, setYearFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
 
   useEffect(() => {
     document.title = "Board Minutes | handləkraft.ai";
@@ -797,26 +892,60 @@ function MinutesContent() {
 
   if (selected) return <MinutesEditor meeting={selected} onBack={() => setSelected(null)} />;
 
+  // Unique years from meeting dates
+  const years = Array.from(new Set(meetings.map(m => new Date(m.scheduledAt).getFullYear().toString()))).sort((a, b) => parseInt(b) - parseInt(a));
+
+  const filtered = meetings.filter(m => {
+    if (yearFilter && new Date(m.scheduledAt).getFullYear().toString() !== yearFilter) return false;
+    if (statusFilter) {
+      const mins = minutesMap[m.id];
+      const s = mins?.status ?? "none";
+      if (statusFilter === "none" && mins) return false;
+      if (statusFilter !== "none" && s !== statusFilter) return false;
+    }
+    return true;
+  });
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-display text-[#1A1F2B]">Meeting Minutes</h1>
           <p className="text-slate-500 text-sm mt-0.5">Select a meeting to view or record minutes.</p>
         </div>
       </div>
 
+      {/* Filters */}
+      <div className="flex items-center gap-2 mb-4" data-testid="minutes-filters">
+        <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+        <select value={yearFilter} onChange={e => setYearFilter(e.target.value)} className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none" data-testid="select-year-filter">
+          <option value="">All Years</option>
+          {years.map(y => <option key={y} value={y}>{y}</option>)}
+        </select>
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none" data-testid="select-status-filter">
+          <option value="">All Statuses</option>
+          <option value="none">No Minutes</option>
+          <option value="draft">Draft</option>
+          <option value="pending_approval">Pending Approval</option>
+          <option value="approved">Approved</option>
+        </select>
+        {(yearFilter || statusFilter) && (
+          <button onClick={() => { setYearFilter(""); setStatusFilter(""); }} className="text-xs text-slate-400 hover:text-slate-600 underline" data-testid="button-clear-filters">Clear</button>
+        )}
+        <span className="text-xs text-slate-400 ml-1">{filtered.length} meeting{filtered.length !== 1 ? "s" : ""}</span>
+      </div>
+
       {loading ? (
         <div className="space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="h-16 bg-white rounded-xl animate-pulse shadow-sm" />)}</div>
-      ) : meetings.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-slate-400">
           <ScrollText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>No past meetings yet.</p>
-          <p className="text-sm mt-1">Hold or schedule meetings first, then record minutes here.</p>
+          <p>{meetings.length === 0 ? "No past meetings yet." : "No meetings match your filters."}</p>
+          {meetings.length === 0 && <p className="text-sm mt-1">Hold or schedule meetings first, then record minutes here.</p>}
         </div>
       ) : (
         <div className="space-y-2">
-          {meetings.map(m => {
+          {filtered.map(m => {
             const mins = minutesMap[m.id];
             return (
               <Card

@@ -28,7 +28,7 @@ router.post("/meetings/:id/rsvp", (_req, res) => res.status(201).json({ success:
 // ── Agenda Items ───────────────────────────────────────────────────────────────
 router.post("/meetings/:id/agenda", requireAdmin as any, (_req, res) => res.status(201).json({ success: true, data: [] }));
 router.patch("/agenda/:id", requireAdmin as any, (_req, res) => res.json({ success: true, data: [] }));
-router.delete("/agenda/:id", requireAdmin as any, (_req, res) => res.json({ success: true }));
+router.delete("/agenda/:id", requireAdmin as any, (_req, res) => res.json({ success: true, data: [] }));
 
 // ── Meeting Attendees ──────────────────────────────────────────────────────────
 router.post("/meetings/:id/attendees", requireAdmin as any, (_req, res) => res.status(201).json({ success: true, data: [] }));

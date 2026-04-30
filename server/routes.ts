@@ -79,8 +79,10 @@ export async function registerRoutes(
       ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS reviewer_id integer;
       ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS interest_rating integer;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS board_position text;
-      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS term_start date;
-      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS term_end date;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS term_start timestamp;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS term_end timestamp;
+      ALTER TABLE portal_users ALTER COLUMN term_start TYPE timestamp USING term_start::timestamp;
+      ALTER TABLE portal_users ALTER COLUMN term_end TYPE timestamp USING term_end::timestamp;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS is_interested_director boolean DEFAULT false;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS committees text[];
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS bio text;

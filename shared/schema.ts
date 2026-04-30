@@ -106,6 +106,20 @@ export const projects = pgTable("projects", {
 });
 export type Project = typeof projects.$inferSelect;
 
+// ─── Charge Codes ─────────────────────────────────────────────────────────────
+
+export const chargeCodes = pgTable("charge_codes", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  color: varchar("color", { length: 20 }).notNull().default("#64748b"),
+  active: boolean("active").notNull().default(true),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type ChargeCode = typeof chargeCodes.$inferSelect;
+export type InsertChargeCode = typeof chargeCodes.$inferInsert;
+
 // ─── Time Tracking ────────────────────────────────────────────────────────────
 
 export const timeEntryStatusEnum = pgEnum("time_entry_status", ["draft", "submitted", "approved", "rejected"]);

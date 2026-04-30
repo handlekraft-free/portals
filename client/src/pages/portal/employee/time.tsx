@@ -45,7 +45,17 @@ function fmtIso(d: Date) {
   return d.toISOString().split("T")[0];
 }
 
-const defaultHours = (): Record<DayKey, number> => ({ mon: 0, tue: 6, wed: 6, thu: 6, fri: 6, sat: 0, sun: 0 });
+const WEEKDAYS: DayKey[] = ["mon", "tue", "wed", "thu", "fri"];
+const emptyDayRow = (): Record<DayKey, number> => ({ mon: 0, tue: 0, wed: 0, thu: 0, fri: 0, sat: 0, sun: 0 });
+const defaultCcHours = (codes: any[]): Record<number, Record<DayKey, number>> => {
+  const result: Record<number, Record<DayKey, number>> = {};
+  codes.forEach((cc, idx) => {
+    const row = emptyDayRow();
+    if (idx === 0) WEEKDAYS.forEach(d => { row[d] = 5; });
+    result[cc.id] = row;
+  });
+  return result;
+};
 const formatDuration = (min: number | null) => min ? `${Math.floor(min / 60)}h ${min % 60}m` : "—";
 const formatTime = (s: number) => `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
@@ -56,20 +66,39 @@ const STATUS_COLORS: Record<string, string> = {
   rejected: "bg-red-100 text-red-700",
 };
 
-// ── Simple Mode Timesheet ─────────────────────────────────────────────────────
+// ── Simple Mode Timesheet (Charge Code Matrix) ────────────────────────────────
 
 function SimpleTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onSubmitted: () => void }) {
-  const [hours, setHours] = useState<Record<DayKey, number>>(defaultHours());
+  const [chargeCodes, setChargeCodes] = useState<any[]>([]);
+  const [ccHours, setCcHours] = useState<Record<number, Record<DayKey, number>>>({});
   const [notes, setNotes] = useState("");
   const [existingReport, setExistingReport] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [codesLoading, setCodesLoading] = useState(true);
 
   const weekEnd = addDays(weekStart, 6);
-  const total = DAY_KEYS.reduce((s, k) => s + (hours[k] || 0), 0);
+
+  const grandTotal = chargeCodes.reduce((s, cc) => {
+    return s + DAY_KEYS.reduce((ds, k) => ds + (ccHours[cc.id]?.[k] || 0), 0);
+  }, 0);
+
+  const dayTotal = (day: DayKey) => chargeCodes.reduce((s, cc) => s + (ccHours[cc.id]?.[day] || 0), 0);
+  const rowTotal = (ccId: number) => DAY_KEYS.reduce((s, k) => s + (ccHours[ccId]?.[k] || 0), 0);
 
   useEffect(() => {
-    loadExisting();
-  }, [weekStart]);
+    loadCodes();
+  }, []);
+
+  useEffect(() => {
+    if (chargeCodes.length > 0) loadExisting();
+  }, [weekStart, chargeCodes.length]);
+
+  async function loadCodes() {
+    setCodesLoading(true);
+    const res = await apiRequest("GET", "/api/time/charge-codes");
+    if (res.success) setChargeCodes(res.data);
+    setCodesLoading(false);
+  }
 
   async function loadExisting() {
     const res = await apiRequest("GET", "/api/time/reports");
@@ -81,15 +110,37 @@ function SimpleTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onS
       if (report) {
         setExistingReport(report);
         if (report.simpleDayHours) {
-          try { setHours(JSON.parse(report.simpleDayHours)); } catch {}
+          try {
+            const parsed = JSON.parse(report.simpleDayHours);
+            // Detect old flat format (e.g. { mon: 5, ... }) vs new keyed format
+            if (parsed && typeof parsed === "object" && !("mon" in parsed)) {
+              // New format: keys are charge code IDs
+              const numericKeyed: Record<number, Record<DayKey, number>> = {};
+              for (const [k, v] of Object.entries(parsed)) {
+                numericKeyed[parseInt(k)] = v as Record<DayKey, number>;
+              }
+              setCcHours(numericKeyed);
+            } else {
+              setCcHours(defaultCcHours(chargeCodes));
+            }
+          } catch { setCcHours(defaultCcHours(chargeCodes)); }
+        } else {
+          setCcHours(defaultCcHours(chargeCodes));
         }
         setNotes(report.notes || "");
       } else {
         setExistingReport(null);
-        setHours(defaultHours());
+        setCcHours(defaultCcHours(chargeCodes));
         setNotes("");
       }
     }
+  }
+
+  function setCell(ccId: number, day: DayKey, val: number) {
+    setCcHours(prev => ({
+      ...prev,
+      [ccId]: { ...(prev[ccId] || emptyDayRow()), [day]: val },
+    }));
   }
 
   const isLocked = existingReport?.status === "submitted" || existingReport?.status === "approved";
@@ -99,13 +150,13 @@ function SimpleTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onS
     const payload = {
       periodStart: weekStart.toISOString(),
       periodEnd: weekEnd.toISOString(),
-      totalHours: String(total),
+      totalHours: String(grandTotal),
       mode: "simple",
-      simpleDayHours: hours,
+      simpleDayHours: ccHours,
       notes,
     };
     if (existingReport) {
-      await apiRequest("PATCH", `/api/time/reports/${existingReport.id}`, { totalHours: String(total), simpleDayHours: hours, notes });
+      await apiRequest("PATCH", `/api/time/reports/${existingReport.id}`, { totalHours: String(grandTotal), simpleDayHours: ccHours, notes });
     } else {
       const res = await apiRequest("POST", "/api/time/reports", payload);
       if (res.success) setExistingReport(res.data);
@@ -118,14 +169,14 @@ function SimpleTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onS
     if (!confirm("Submit this timesheet for approval? You won't be able to edit it after submission.")) return;
     setSaving(true);
     if (existingReport) {
-      await apiRequest("PATCH", `/api/time/reports/${existingReport.id}/submit`, { totalHours: String(total), simpleDayHours: hours, notes });
+      await apiRequest("PATCH", `/api/time/reports/${existingReport.id}/submit`, { totalHours: String(grandTotal), simpleDayHours: ccHours, notes });
     } else {
       const createRes = await apiRequest("POST", "/api/time/reports", {
         periodStart: weekStart.toISOString(),
         periodEnd: weekEnd.toISOString(),
-        totalHours: String(total),
+        totalHours: String(grandTotal),
         mode: "simple",
-        simpleDayHours: hours,
+        simpleDayHours: ccHours,
         notes,
       });
       if (createRes.success) {
@@ -135,6 +186,10 @@ function SimpleTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onS
     setSaving(false);
     await loadExisting();
     onSubmitted();
+  }
+
+  if (codesLoading) {
+    return <div className="space-y-2">{[...Array(4)].map((_, i) => <div key={i} className="h-12 bg-slate-100 rounded-xl animate-pulse" />)}</div>;
   }
 
   return (
@@ -149,53 +204,95 @@ function SimpleTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onS
         </div>
       )}
 
-      {/* Day grid */}
-      <div className="grid grid-cols-7 gap-2">
-        {DAY_KEYS.map((day, i) => {
-          const date = addDays(weekStart, i);
-          const isWeekend = day === "sat" || day === "sun";
-          const isToday = fmtIso(date) === fmtIso(new Date());
-          return (
-            <div key={day} className={`rounded-xl p-3 flex flex-col gap-2 ${isWeekend ? "bg-slate-50 border border-slate-100" : "bg-white border border-slate-200 shadow-sm"} ${isToday ? "ring-2 ring-[#0D7377]" : ""}`}>
-              <div className="text-center">
-                <p className={`text-xs font-semibold uppercase tracking-wide ${isWeekend ? "text-slate-400" : "text-slate-600"}`}>{DAY_LABELS[day]}</p>
-                <p className={`text-xs mt-0.5 ${isToday ? "text-[#0D7377] font-bold" : "text-slate-400"}`}>{fmtDate(date)}</p>
-              </div>
-              <input
-                type="number"
-                min="0"
-                max="24"
-                step="0.5"
-                value={hours[day]}
-                onChange={e => setHours(prev => ({ ...prev, [day]: parseFloat(e.target.value) || 0 }))}
-                disabled={isLocked}
-                data-testid={`input-hours-${day}`}
-                className={`w-full text-center border rounded-lg py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 ${
-                  isLocked ? "bg-slate-50 text-slate-400 cursor-not-allowed" :
-                  hours[day] > 0 ? "border-[#0D7377]/40 text-[#1A1F2B]" : "border-slate-200 text-slate-400"
-                }`}
-              />
-              <p className="text-center text-xs text-slate-400">{hours[day] > 0 ? `${hours[day]}h` : "—"}</p>
-            </div>
-          );
-        })}
+      {/* Charge code matrix grid */}
+      <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+        <table className="w-full text-sm min-w-[640px]">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider w-40">Charge Code</th>
+              {DAY_KEYS.map((day, i) => {
+                const date = addDays(weekStart, i);
+                const isWeekend = day === "sat" || day === "sun";
+                const isToday = fmtIso(date) === fmtIso(new Date());
+                return (
+                  <th key={day} className={`text-center px-2 py-2.5 text-xs font-semibold uppercase tracking-wider ${isWeekend ? "text-slate-400" : isToday ? "text-[#0D7377]" : "text-slate-500"}`}>
+                    <div>{DAY_LABELS[day]}</div>
+                    <div className={`font-normal text-xs mt-0.5 ${isToday ? "font-bold" : "text-slate-400"}`}>{fmtDate(date)}</div>
+                  </th>
+                );
+              })}
+              <th className="text-center px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {chargeCodes.map((cc, rowIdx) => {
+              const rt = rowTotal(cc.id);
+              return (
+                <tr key={cc.id} className={`border-b border-slate-100 ${rowIdx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}`}>
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cc.color }} />
+                      <span className="text-xs font-medium text-[#1A1F2B] leading-tight">{cc.name}</span>
+                    </div>
+                  </td>
+                  {DAY_KEYS.map(day => {
+                    const isWeekend = day === "sat" || day === "sun";
+                    const val = ccHours[cc.id]?.[day] ?? 0;
+                    return (
+                      <td key={day} className={`px-1.5 py-2 text-center ${isWeekend ? "bg-slate-50" : ""}`}>
+                        <input
+                          type="number"
+                          min="0"
+                          max="24"
+                          step="0.5"
+                          value={val || ""}
+                          placeholder="0"
+                          onChange={e => setCell(cc.id, day, parseFloat(e.target.value) || 0)}
+                          disabled={isLocked}
+                          data-testid={`input-cc-${cc.id}-${day}`}
+                          className={`w-14 text-center border rounded-lg py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 ${
+                            isLocked ? "bg-slate-50 text-slate-400 cursor-not-allowed border-slate-100" :
+                            val > 0 ? "border-[#0D7377]/40 text-[#1A1F2B] bg-[#0D7377]/5" : "border-slate-200 text-slate-400"
+                          }`}
+                        />
+                      </td>
+                    );
+                  })}
+                  <td className="px-3 py-2 text-center">
+                    <span className={`text-sm font-bold ${rt > 0 ? "text-[#1A1F2B]" : "text-slate-300"}`}>{rt > 0 ? `${rt}h` : "—"}</span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr className="bg-[#0D7377]/5 border-t-2 border-[#0D7377]/20">
+              <td className="px-4 py-2.5 text-xs font-bold text-slate-500 uppercase tracking-wider">Daily Total</td>
+              {DAY_KEYS.map(day => {
+                const dt = dayTotal(day);
+                const isWeekend = day === "sat" || day === "sun";
+                return (
+                  <td key={day} className={`px-1.5 py-2.5 text-center ${isWeekend ? "bg-slate-50/50" : ""}`}>
+                    <span className={`text-sm font-bold ${dt > 0 ? "text-[#0D7377]" : "text-slate-300"}`}>{dt > 0 ? `${dt}h` : "—"}</span>
+                  </td>
+                );
+              })}
+              <td className="px-3 py-2.5 text-center">
+                <span className="text-base font-extrabold text-[#0D7377]">{grandTotal}h</span>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
 
-      {/* Total + notes */}
+      {/* Notes + actions */}
       <div className="flex gap-4 items-start">
-        <div className="bg-[#0D7377]/10 rounded-xl px-4 py-3 flex items-center gap-3 shrink-0">
-          <Clock className="w-5 h-5 text-[#0D7377]" />
-          <div>
-            <p className="text-xs text-[#0D7377] font-medium">Total</p>
-            <p className="text-xl font-bold text-[#1A1F2B]">{total}h</p>
-          </div>
-        </div>
         <textarea
           value={notes}
           onChange={e => setNotes(e.target.value)}
           disabled={isLocked}
           placeholder="Notes (optional) — any context for your approver"
-          rows={3}
+          rows={2}
           data-testid="input-timesheet-notes"
           className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none disabled:bg-slate-50 disabled:text-slate-400"
         />
@@ -206,7 +303,7 @@ function SimpleTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onS
           <Button onClick={saveDraft} disabled={saving} variant="outline" className="gap-2" data-testid="button-save-draft">
             <FileText className="w-4 h-4" /> Save Draft
           </Button>
-          <Button onClick={submitSheet} disabled={saving || total === 0} className="bg-[#0D7377] text-white gap-2" data-testid="button-submit-timesheet">
+          <Button onClick={submitSheet} disabled={saving || grandTotal === 0} className="bg-[#0D7377] text-white gap-2" data-testid="button-submit-timesheet">
             <Send className="w-4 h-4" /> Submit for Approval
           </Button>
         </div>

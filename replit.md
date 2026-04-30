@@ -27,7 +27,7 @@ Preferred communication style: Simple, everyday language.
 - **Auth (New Portals):** JWT stored in httpOnly cookie `hk_token` via `jsonwebtoken` + `bcryptjs`; middleware in `server/auth-middleware.ts`
 - **Portal API Routes:** Modular route files for each domain:
   - `routes-auth.ts` — POST /api/auth/login, POST /api/auth/logout, GET /api/auth/me
-  - `routes-time.ts` — Time tracking CRUD, timer start/stop, weekly summaries
+  - `routes-time.ts` — Time tracking CRUD, timer start/stop, weekly summaries; GET /api/time/charge-codes
   - `routes-kanban.ts` — Kanban boards/columns/cards/comments/teams
   - `routes-expenses.ts` — Expense reports/items, QB IIF export, approval workflow
   - `routes-client-portal.ts` — Client files, messages, support tickets (client + employee views)

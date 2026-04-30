@@ -4,7 +4,7 @@ import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
 import {
   Users, Plus, Search, Download, Edit, UserX, Key,
-  Check, X, ShieldCheck, UserPlus, ChevronDown, Shield
+  Check, X, ShieldCheck, UserPlus, ChevronDown, Shield, Tag, ToggleLeft, ToggleRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -352,6 +352,143 @@ function ManagersTab({ users, onEdit }: { users: any[]; onEdit: (u: any) => void
   );
 }
 
+// ── Charge Codes Tab ──────────────────────────────────────────────────────────
+
+function ChargeCodeModal({ code, onClose, onSaved }: { code: any | null; onClose: () => void; onSaved: () => void }) {
+  const isEdit = !!code;
+  const [form, setForm] = useState({ name: code?.name || "", description: code?.description || "", color: code?.color || "#0D7377" });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const PRESET_COLORS = ["#0D7377", "#6366f1", "#D4A843", "#ef4444", "#22c55e", "#f97316", "#64748b", "#ec4899"];
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+    const res = isEdit
+      ? await apiRequest("PATCH", `/api/admin/charge-codes/${code.id}`, form)
+      : await apiRequest("POST", "/api/admin/charge-codes", form);
+    setSaving(false);
+    if (res.success) { onSaved(); onClose(); }
+    else setError(res.error || "Failed to save charge code");
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: form.color + "20" }}>
+              <Tag className="w-4 h-4" style={{ color: form.color }} />
+            </div>
+            <h2 className="text-base font-semibold text-[#1A1F2B]">{isEdit ? "Edit Charge Code" : "New Charge Code"}</h2>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
+        </div>
+        <form onSubmit={submit} className="p-6 space-y-4">
+          {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
+          <div>
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Name *</label>
+            <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Working and Available" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-cc-name" />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Description</label>
+            <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Short description for team members…" rows={2} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none" />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Color</label>
+            <div className="flex items-center gap-3 flex-wrap">
+              {PRESET_COLORS.map(c => (
+                <button key={c} type="button" onClick={() => setForm(f => ({ ...f, color: c }))} className={`w-7 h-7 rounded-full border-2 transition-all ${form.color === c ? "border-[#1A1F2B] scale-110" : "border-transparent"}`} style={{ backgroundColor: c }} data-testid={`color-${c.replace("#", "")}`} />
+              ))}
+              <input type="color" value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} className="w-7 h-7 rounded-full cursor-pointer border border-slate-200" title="Custom color" />
+            </div>
+          </div>
+          <div className="flex gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
+            <Button type="submit" className="flex-1 bg-[#0D7377] text-white gap-2" disabled={saving} data-testid="button-save-charge-code">
+              <Check className="w-4 h-4" /> {saving ? "Saving…" : isEdit ? "Save Changes" : "Create Code"}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function ChargeCodesTab() {
+  const [codes, setCodes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editCode, setEditCode] = useState<any>(null);
+
+  useEffect(() => { load(); }, []);
+
+  async function load() {
+    setLoading(true);
+    const res = await apiRequest("GET", "/api/admin/charge-codes");
+    if (res.success) setCodes(res.data);
+    setLoading(false);
+  }
+
+  async function toggleActive(code: any) {
+    await apiRequest("PATCH", `/api/admin/charge-codes/${code.id}`, { active: !code.active });
+    load();
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <p className="text-sm text-slate-500">Charge codes categorize how time is spent on timesheets. Employees select a charge code for each row when logging hours.</p>
+        </div>
+        <Button onClick={() => { setEditCode(null); setShowModal(true); }} className="bg-[#0D7377] text-white gap-2 shrink-0" data-testid="button-create-charge-code">
+          <Plus className="w-4 h-4" /> New Code
+        </Button>
+      </div>
+
+      {loading ? (
+        <div className="space-y-2">{[...Array(4)].map((_, i) => <div key={i} className="h-14 bg-white rounded-xl animate-pulse" />)}</div>
+      ) : codes.length === 0 ? (
+        <div className="text-center py-14 text-slate-400">
+          <Tag className="w-10 h-10 mx-auto mb-2 opacity-30" />
+          <p className="font-medium">No charge codes yet</p>
+          <p className="text-xs mt-0.5">Create codes to categorize how your team logs time.</p>
+        </div>
+      ) : (
+        <Card className="border-0 shadow-sm overflow-hidden">
+          <div className="divide-y divide-slate-100">
+            {codes.map((code: any) => (
+              <div key={code.id} className={`flex items-center gap-4 px-4 py-3.5 hover:bg-slate-50 transition-colors ${!code.active ? "opacity-50" : ""}`} data-testid={`charge-code-row-${code.id}`}>
+                <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: code.color }} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-[#1A1F2B]">{code.name}</p>
+                  {code.description && <p className="text-xs text-slate-400 truncate">{code.description}</p>}
+                </div>
+                <Badge className={`text-xs border-0 shrink-0 ${code.active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>
+                  {code.active ? "Active" : "Inactive"}
+                </Badge>
+                <span className="text-xs text-slate-400 shrink-0">#{code.position + 1}</span>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => { setEditCode(code); setShowModal(true); }} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-[#0D7377] transition-colors" title="Edit" data-testid={`button-edit-cc-${code.id}`}>
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => toggleActive(code)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-amber-600 transition-colors" title={code.active ? "Deactivate" : "Activate"} data-testid={`button-toggle-cc-${code.id}`}>
+                    {code.active ? <ToggleRight className="w-4 h-4 text-[#0D7377]" /> : <ToggleLeft className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {showModal && <ChargeCodeModal code={editCode} onClose={() => { setShowModal(false); setEditCode(null); }} onSaved={load} />}
+    </div>
+  );
+}
+
 // ── Main Content ──────────────────────────────────────────────────────────────
 
 function AdminUsersContent() {
@@ -363,7 +500,7 @@ function AdminUsersContent() {
   const [showCreate, setShowCreate] = useState(false);
   const [editUser, setEditUser] = useState<any>(null);
   const [selected, setSelected] = useState<Set<number>>(new Set());
-  const [activeTab, setActiveTab] = useState<"users" | "managers">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "managers" | "charge-codes">("users");
 
   useEffect(() => { document.title = "Portal Users | handləkraft.ai"; load(); }, []);
 
@@ -401,6 +538,7 @@ function AdminUsersContent() {
   const tabs = [
     { key: "users", label: "All Users", count: users.length },
     { key: "managers", label: "Managers & Reports", count: users.filter(u => u.canApprove || u.role === "admin").length },
+    { key: "charge-codes", label: "Charge Codes", count: null },
   ];
 
   return (
@@ -444,7 +582,7 @@ function AdminUsersContent() {
         {tabs.map(t => (
           <button key={t.key} onClick={() => setActiveTab(t.key as any)} className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px flex items-center gap-1.5 ${activeTab === t.key ? "border-[#0D7377] text-[#0D7377]" : "border-transparent text-slate-500 hover:text-slate-700"}`} data-testid={`tab-${t.key}`}>
             {t.label}
-            {t.count > 0 && <span className={`text-xs rounded-full px-1.5 py-0.5 ${activeTab === t.key ? "bg-[#0D7377] text-white" : "bg-slate-200 text-slate-500"}`}>{t.count}</span>}
+            {t.count != null && t.count > 0 && <span className={`text-xs rounded-full px-1.5 py-0.5 ${activeTab === t.key ? "bg-[#0D7377] text-white" : "bg-slate-200 text-slate-500"}`}>{t.count}</span>}
           </button>
         ))}
       </div>
@@ -452,6 +590,11 @@ function AdminUsersContent() {
       {/* ── Managers Tab ── */}
       {activeTab === "managers" && (
         <ManagersTab users={users} onEdit={setEditUser} />
+      )}
+
+      {/* ── Charge Codes Tab ── */}
+      {activeTab === "charge-codes" && (
+        <ChargeCodesTab />
       )}
 
       {/* ── Users Tab ── */}

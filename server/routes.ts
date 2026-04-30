@@ -6,7 +6,7 @@ import pg from "pg";
 import bcrypt from "bcryptjs";
 import { storage } from "./storage";
 import { insertFellowshipApplicationSchema, insertClientApplicationSchema } from "@shared/schema";
-import { users, expenseCategories } from "@shared/schema";
+import { users, expenseCategories, chargeCodes } from "@shared/schema";
 import { db } from "./db";
 import { sql, count } from "drizzle-orm";
 import { z } from "zod";
@@ -60,6 +60,15 @@ export async function registerRoutes(
   try {
     const migrationPool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
     await migrationPool.query(`
+      CREATE TABLE IF NOT EXISTS charge_codes (
+        id serial PRIMARY KEY,
+        name text NOT NULL,
+        description text,
+        color varchar(20) NOT NULL DEFAULT '#64748b',
+        active boolean NOT NULL DEFAULT true,
+        position integer NOT NULL DEFAULT 0,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
       ALTER TABLE kanban_card_comments ADD COLUMN IF NOT EXISTS edited_at timestamp;
       CREATE TABLE IF NOT EXISTS kanban_card_attachments (
         id serial PRIMARY KEY,
@@ -299,6 +308,22 @@ export async function registerRoutes(
     console.error("[seed] Could not seed expense categories:", e.message);
   }
 
+  // Seed default charge codes if empty
+  try {
+    const [{ value: ccCount }] = await db.select({ value: count() }).from(chargeCodes);
+    if (Number(ccCount) === 0) {
+      await db.insert(chargeCodes).values([
+        { name: "Working and Available", description: "General work hours — on task, in meetings, or available for team needs", color: "#0D7377", position: 0 },
+        { name: "Personal Development Time", description: "Self-directed learning, training, courses, or skill-building", color: "#6366f1", position: 1 },
+        { name: "Paid Time Off (Vacation)", description: "Approved vacation days or scheduled personal time off", color: "#D4A843", position: 2 },
+        { name: "Wellness or Sick Time", description: "Sick leave, mental health days, or approved wellness time", color: "#ef4444", position: 3 },
+      ]);
+      console.log("[seed] ✓ Charge codes seeded");
+    }
+  } catch (e: any) {
+    console.error("[seed] Could not seed charge codes:", e.message);
+  }
+
   // ── New Portal API Routes ──────────────────────────────────────────────────
   app.use("/api/auth", authRoutes);
   app.use("/api/time", timeRoutes);
@@ -309,6 +334,45 @@ export async function registerRoutes(
   app.use("/api/lms", lmsRoutes);
   app.use("/api/admin/portal-users", userMgmtRoutes);
   app.use("/api/board", boardRoutes);
+
+  // ── Admin Charge Code CRUD ────────────────────────────────────────────────
+  const { requireAdmin: reqAdmin } = await import("./auth-middleware");
+  const { eq: eqCC, asc: ascCC } = await import("drizzle-orm");
+
+  app.get("/api/admin/charge-codes", reqAdmin as any, async (_req, res) => {
+    const all = await db.select().from(chargeCodes).orderBy(ascCC(chargeCodes.position));
+    res.json({ success: true, data: all });
+  });
+
+  app.post("/api/admin/charge-codes", reqAdmin as any, async (req, res) => {
+    const { name, description, color, position } = req.body;
+    if (!name) return res.status(400).json({ success: false, error: "Name required" });
+    const existing = await db.select().from(chargeCodes).orderBy(ascCC(chargeCodes.position));
+    const [cc] = await db.insert(chargeCodes).values({
+      name, description: description || null,
+      color: color || "#64748b",
+      position: position ?? existing.length,
+    }).returning();
+    res.status(201).json({ success: true, data: cc });
+  });
+
+  app.patch("/api/admin/charge-codes/:id", reqAdmin as any, async (req, res) => {
+    const { name, description, color, active, position } = req.body;
+    const updates: any = {};
+    if (name !== undefined) updates.name = name;
+    if (description !== undefined) updates.description = description || null;
+    if (color !== undefined) updates.color = color;
+    if (active !== undefined) updates.active = active;
+    if (position !== undefined) updates.position = position;
+    const [cc] = await db.update(chargeCodes).set(updates).where(eqCC(chargeCodes.id, parseInt(req.params.id))).returning();
+    if (!cc) return res.status(404).json({ success: false, error: "Charge code not found" });
+    res.json({ success: true, data: cc });
+  });
+
+  app.delete("/api/admin/charge-codes/:id", reqAdmin as any, async (req, res) => {
+    await db.update(chargeCodes).set({ active: false }).where(eqCC(chargeCodes.id, parseInt(req.params.id)));
+    res.json({ success: true, data: null });
+  });
 
   // ── Public application endpoints (existing) ───────────────────────────────
 

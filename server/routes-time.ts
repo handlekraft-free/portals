@@ -1,7 +1,7 @@
 import type { Router } from "express";
 import { Router as createRouter } from "express";
 import { db } from "./db";
-import { timeEntries, timeReports, projects, users } from "@shared/schema";
+import { timeEntries, timeReports, projects, users, chargeCodes } from "@shared/schema";
 import { eq, and, desc, asc, gte, lte, or, inArray } from "drizzle-orm";
 import { requireAuth, requireEmployee } from "./auth-middleware";
 
@@ -50,6 +50,13 @@ router.get("/approvers", async (req, res) => {
     )
   ).orderBy(asc(users.firstName));
   res.json({ success: true, data: approvers });
+});
+
+// ── Charge Codes ─────────────────────────────────────────────────────────────
+
+router.get("/charge-codes", async (_req, res) => {
+  const all = await db.select().from(chargeCodes).where(eq(chargeCodes.active, true)).orderBy(asc(chargeCodes.position));
+  res.json({ success: true, data: all });
 });
 
 // ── Time Entries ─────────────────────────────────────────────────────────────

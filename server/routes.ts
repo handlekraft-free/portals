@@ -89,6 +89,18 @@ export async function registerRoutes(
     `);
     // Add 'board' enum value (must run outside transaction)
     await migrationPool.query(`ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'board'`);
+    // Create board enum types (idempotent via DO blocks)
+    await migrationPool.query(`
+      DO $$ BEGIN CREATE TYPE board_meeting_type AS ENUM ('regular','special','committee','annual'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+      DO $$ BEGIN CREATE TYPE board_meeting_status AS ENUM ('scheduled','held','cancelled'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+      DO $$ BEGIN CREATE TYPE board_meeting_rsvp AS ENUM ('yes','no','tentative'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+      DO $$ BEGIN CREATE TYPE board_meeting_attendance AS ENUM ('present','absent','excused'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+      DO $$ BEGIN CREATE TYPE board_participation_method AS ENUM ('in_person','remote'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+      DO $$ BEGIN CREATE TYPE board_minutes_status AS ENUM ('draft','pending_approval','approved'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+      DO $$ BEGIN CREATE TYPE board_document_confidentiality AS ENUM ('public','board_only','restricted'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+      DO $$ BEGIN CREATE TYPE board_written_consent_status AS ENUM ('pending','valid','failed'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+      DO $$ BEGIN CREATE TYPE board_written_consent_response AS ENUM ('consent','decline'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+    `);
     // Create board tables (schema-aligned, idempotent)
     await migrationPool.query(`
       CREATE TABLE IF NOT EXISTS board_committees (
@@ -211,6 +223,12 @@ export async function registerRoutes(
       CREATE TABLE IF NOT EXISTS board_document_views (
         id serial PRIMARY KEY, document_id integer NOT NULL, user_id integer NOT NULL,
         viewed_at timestamp DEFAULT now() NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS board_minutes_action_items (
+        id serial PRIMARY KEY, minutes_id integer NOT NULL, title text NOT NULL,
+        description text, assigned_to integer, due_date timestamp,
+        status varchar(20) DEFAULT 'open', created_by integer NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL, completed_at timestamp
       );
     `);
     await migrationPool.end();

@@ -706,6 +706,20 @@ export const boardNotificationPrefs = pgTable("board_notification_prefs", {
 });
 export type BoardNotificationPref = typeof boardNotificationPrefs.$inferSelect;
 
+export const boardMinutesActionItems = pgTable("board_minutes_action_items", {
+  id: serial("id").primaryKey(),
+  minutesId: integer("minutes_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  assignedTo: integer("assigned_to"),
+  dueDate: timestamp("due_date"),
+  status: varchar("status", { length: 20 }).default("open"),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+});
+export type BoardMinutesActionItem = typeof boardMinutesActionItems.$inferSelect;
+
 export const boardMeetingNotices = pgTable("board_meeting_notices", {
   id: serial("id").primaryKey(),
   meetingId: integer("meeting_id").notNull(),

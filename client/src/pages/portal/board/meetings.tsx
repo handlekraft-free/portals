@@ -62,7 +62,7 @@ function MeetingDetail({ meeting, onBack, onRefresh }: { meeting: any; onBack: (
           <div className="flex items-center gap-3 mt-1 text-sm text-slate-500 flex-wrap">
             <span className="flex items-center gap-1"><CalendarDays className="w-3.5 h-3.5" />{new Date(detail.scheduledAt).toLocaleDateString()} at {new Date(detail.scheduledAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
             {detail.location && <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{detail.location}</span>}
-            {detail.videoLink && <a href={detail.videoLink} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-indigo-600 hover:underline"><Video className="w-3.5 h-3.5" />Join Video</a>}
+            {detail.platform && <a href={detail.platform} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-indigo-600 hover:underline"><Video className="w-3.5 h-3.5" />Join Video</a>}
           </div>
         </div>
         <Badge className={STATUS_COLORS[detail.status] || ""}>{detail.status}</Badge>
@@ -146,7 +146,7 @@ function MeetingsContent() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ title: "", scheduledAt: "", location: "", meetingType: "regular", videoLink: "" });
+  const [form, setForm] = useState({ title: "", scheduledAt: "", location: "", meetingType: "regular", platform: "" });
 
   const loadMeetings = () => {
     setLoading(true);
@@ -161,7 +161,7 @@ function MeetingsContent() {
   async function createMeeting() {
     if (!form.title || !form.scheduledAt) return;
     const res = await apiRequest("POST", "/api/board/meetings", form);
-    if (res.success) { setShowCreate(false); setForm({ title: "", scheduledAt: "", location: "", meetingType: "regular", videoLink: "" }); loadMeetings(); }
+    if (res.success) { setShowCreate(false); setForm({ title: "", scheduledAt: "", location: "", meetingType: "regular", platform: "" }); loadMeetings(); }
   }
 
   if (loading) return <div className="space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="h-20 bg-white rounded-xl animate-pulse" />)}</div>;
@@ -195,7 +195,7 @@ function MeetingsContent() {
               </select>
             </div>
             <input value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} placeholder="Location (optional)" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-meeting-location" />
-            <input value={form.videoLink} onChange={e => setForm(f => ({ ...f, videoLink: e.target.value }))} placeholder="Video link (optional)" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-meeting-video" />
+            <input value={form.platform} onChange={e => setForm(f => ({ ...f, platform: e.target.value }))} placeholder="Video link (optional)" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-meeting-video" />
             <div className="flex gap-2">
               <Button className="bg-indigo-500 text-white" onClick={createMeeting} data-testid="button-save-meeting">Schedule</Button>
               <Button variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>

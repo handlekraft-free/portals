@@ -744,6 +744,24 @@ router.post("/meetings/:id/minutes", requireBoard as any, async (req, res) => {
   res.status(201).json({ success: true, data: { ...mins, motions: [], actionItems: [] } });
 });
 
+// Alias: POST /minutes with { meetingId } body (matches task contract POST /api/board/minutes)
+router.post("/minutes", requireBoard as any, async (req, res) => {
+  const meetingId = parseInt(req.body.meetingId);
+  if (!meetingId) return res.status(400).json({ success: false, error: "meetingId required" });
+  const existing = await db.select().from(boardMinutes).where(eq(boardMinutes.meetingId, meetingId));
+  if (existing.length > 0) {
+    const full = await getMinutesFull(existing[0].id);
+    return res.json({ success: true, data: full });
+  }
+  const [mins] = await db.insert(boardMinutes).values({
+    meetingId,
+    createdBy: req.user!.userId,
+    status: "draft",
+  }).returning();
+  auditLog(req.user!.userId, "create", "minutes", mins.id, `Created minutes for meeting ${meetingId}`);
+  res.status(201).json({ success: true, data: { ...mins, motions: [], actionItems: [] } });
+});
+
 router.get("/minutes/:id", async (req, res) => {
   const full = await getMinutesFull(parseInt(req.params.id));
   if (!full) return res.status(404).json({ success: false, error: "Not found" });

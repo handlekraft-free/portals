@@ -34,46 +34,121 @@ function parseContent(content: string | null): Record<string, any> {
 
 // ─── Version History Drawer ───────────────────────────────────────────────────
 
-function SnapshotDetail({ v }: { v: any }) {
-  const content = (() => { try { return JSON.parse(v.content_snapshot ?? "{}"); } catch { return {}; } })();
-  const motions: any[] = (() => { try { return JSON.parse(v.motions_snapshot ?? "[]"); } catch { return []; } })();
+const CONTENT_FIELDS: Array<{ key: string; label: string }> = [
+  { key: "callToOrder", label: "Call to Order" },
+  { key: "openingRemarks", label: "Opening Remarks" },
+  { key: "generalNotes", label: "General Notes" },
+  { key: "absentDirectorsNote", label: "Absent Directors" },
+  { key: "noticeSummary", label: "Notice Summary" },
+  { key: "quorumPresent", label: "Quorum Present?" },
+  { key: "quorumCount", label: "Quorum Count" },
+  { key: "adjournmentTime", label: "Adjournment" },
+];
 
-  const fieldRow = (label: string, value: any) =>
-    value ? (
-      <div key={label} className="grid grid-cols-[120px_1fr] gap-1 py-0.5">
-        <span className="text-xs text-slate-400 font-medium">{label}</span>
-        <span className="text-xs text-slate-700">{String(value)}</span>
-      </div>
-    ) : null;
+function fieldVal(content: Record<string, any>, key: string): string {
+  const v = content[key];
+  if (v === undefined || v === null || v === "") return "";
+  if (typeof v === "boolean") return v ? "Yes" : "No";
+  return String(v);
+}
+
+function SnapshotDiff({ current, prev }: { current: any; prev: any | null }) {
+  const cur = (() => { try { return JSON.parse(current.content_snapshot ?? "{}"); } catch { return {}; } })();
+  const prv = prev ? (() => { try { return JSON.parse(prev.content_snapshot ?? "{}"); } catch { return {}; } })() : null;
+  const curMotions: any[] = (() => { try { return JSON.parse(current.motions_snapshot ?? "[]"); } catch { return []; } })();
+  const prvMotions: any[] = prv ? (() => { try { return JSON.parse(prev?.motions_snapshot ?? "[]"); } catch { return []; } })() : [];
+  const isInitial = prv === null;
+
+  const changedFields = CONTENT_FIELDS.filter(({ key }) => {
+    if (isInitial) return fieldVal(cur, key) !== "";
+    return fieldVal(cur, key) !== fieldVal(prv!, key);
+  });
+  const unchangedFields = isInitial ? [] : CONTENT_FIELDS.filter(({ key }) => fieldVal(cur, key) !== "" && fieldVal(cur, key) === fieldVal(prv!, key));
 
   return (
-    <div className="px-4 pb-3 pt-2 border-t border-slate-100 bg-slate-50 space-y-2 text-xs">
-      <p className="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Content Fields</p>
-      <div className="space-y-0.5">
-        {fieldRow("Call to Order", content.callToOrder)}
-        {fieldRow("Opening Remarks", content.openingRemarks)}
-        {fieldRow("General Notes", content.generalNotes)}
-        {fieldRow("Absent Directors", content.absentDirectorsNote)}
-        {fieldRow("Notice Summary", content.noticeSummary)}
-        {fieldRow("Quorum Present?", content.quorumPresent !== undefined ? (content.quorumPresent ? "Yes" : "No") : undefined)}
-        {fieldRow("Quorum Count", content.quorumCount)}
-        {fieldRow("Adjournment", content.adjournmentTime)}
-        {content.reports?.length > 0 && fieldRow(`Reports (${content.reports.length})`, content.reports.map((r: any) => r.title).join(", "))}
-      </div>
-      {motions.length > 0 && (
+    <div className="px-4 pb-3 pt-2 border-t border-slate-100 bg-slate-50 space-y-2 text-xs" data-testid="snapshot-diff">
+      {isInitial ? (
+        <p className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider">Initial version — all fields shown</p>
+      ) : (
+        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+          Comparing to Version {prev.version_number} · {changedFields.length} field{changedFields.length !== 1 ? "s" : ""} changed
+        </p>
+      )}
+
+      {changedFields.length === 0 && !isInitial && (
+        <p className="text-slate-400 italic">No text field changes (motion or action item may have changed).</p>
+      )}
+
+      {/* Changed / added fields */}
+      {changedFields.map(({ key, label }) => {
+        const oldVal = isInitial ? null : fieldVal(prv!, key);
+        const newVal = fieldVal(cur, key);
+        return (
+          <div key={key} className="rounded border border-amber-200 bg-amber-50 p-2 space-y-1">
+            <p className="font-semibold text-amber-700">{label}</p>
+            {!isInitial && oldVal && (
+              <p className="line-through text-red-500 text-[11px] leading-snug">− {oldVal}</p>
+            )}
+            {newVal && (
+              <p className={`text-[11px] leading-snug ${isInitial ? "text-slate-700" : "text-green-700"}`}>
+                {isInitial ? newVal : `+ ${newVal}`}
+              </p>
+            )}
+            {!isInitial && !newVal && oldVal && (
+              <p className="text-slate-400 italic text-[11px]">(field cleared)</p>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Unchanged fields (collapsed) */}
+      {unchangedFields.length > 0 && (
+        <details className="text-slate-400">
+          <summary className="cursor-pointer select-none text-[10px] font-semibold uppercase tracking-wider">
+            {unchangedFields.length} unchanged field{unchangedFields.length !== 1 ? "s" : ""}
+          </summary>
+          <div className="mt-1 space-y-0.5 pl-2">
+            {unchangedFields.map(({ key, label }) => (
+              <div key={key} className="grid grid-cols-[120px_1fr] gap-1 py-0.5">
+                <span className="text-slate-400">{label}</span>
+                <span className="text-slate-500">{fieldVal(cur, key)}</span>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
+
+      {/* Motions diff */}
+      {(curMotions.length > 0 || prvMotions.length > 0) && (
         <>
           <p className="font-semibold text-slate-500 uppercase tracking-wider text-[10px] pt-1 border-t border-slate-200">
-            Motions ({motions.length})
+            Motions {isInitial ? `(${curMotions.length})` : `(was ${prvMotions.length} → now ${curMotions.length})`}
           </p>
-          {motions.map((m: any, i: number) => (
-            <div key={i} className={`rounded px-2 py-1 ${m.passed ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
-              <span className={`font-semibold ${m.passed ? "text-green-700" : "text-red-700"}`}>
-                #{i + 1} {m.passed ? "PASSED" : "FAILED"}
-              </span>{" "}
-              <span className="text-slate-700">{m.motionText}</span>
-              {(m.votesFor || m.votesAgainst || m.votesAbstain) && (
-                <span className="text-slate-400 ml-1">({m.votesFor}–{m.votesAgainst}–{m.votesAbstain})</span>
-              )}
+          {curMotions.map((m: any, i: number) => {
+            const old = prvMotions[i];
+            const changed = !isInitial && (
+              old?.motionText !== m.motionText ||
+              old?.passed !== m.passed ||
+              old?.votesFor !== m.votesFor ||
+              old?.votesAgainst !== m.votesAgainst
+            );
+            return (
+              <div key={i} className={`rounded px-2 py-1.5 border ${changed ? "border-amber-200 bg-amber-50" : m.passed ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}
+                data-testid={`diff-motion-${i}`}>
+                <span className={`font-semibold ${m.passed ? "text-green-700" : "text-red-700"}`}>
+                  #{i + 1} {m.passed ? "PASSED" : "FAILED"}
+                  {changed && <span className="text-amber-600 font-normal ml-1">(modified)</span>}
+                </span>{" "}
+                <span className="text-slate-700">{m.motionText}</span>
+                {(m.votesFor !== undefined) && (
+                  <span className="text-slate-400 ml-1">({m.votesFor}–{m.votesAgainst}–{m.votesAbstain})</span>
+                )}
+              </div>
+            );
+          })}
+          {!isInitial && prvMotions.slice(curMotions.length).map((_: any, i: number) => (
+            <div key={`removed-${i}`} className="rounded px-2 py-1 border border-red-200 bg-red-50 text-red-500 text-[11px]">
+              Motion #{curMotions.length + i + 1} removed
             </div>
           ))}
         </>
@@ -108,32 +183,40 @@ function HistoryDrawer({ minutesId, onClose }: { minutesId: number; onClose: () 
           </button>
         </div>
         <p className="px-5 py-2 text-xs text-slate-400 border-b border-slate-100">
-          Each version is a read-only snapshot captured when minutes were saved or a motion/action item was modified.
+          Changed fields are highlighted amber. Removed text shown in red, added text in green.
         </p>
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {loading ? (
             [...Array(4)].map((_, i) => <div key={i} className="h-16 bg-slate-100 rounded-lg animate-pulse" />)
           ) : versions.length === 0 ? (
             <p className="text-center text-slate-400 py-8 text-sm">No saved versions yet.</p>
-          ) : versions.map(v => (
-            <div key={v.id} className="border border-slate-200 rounded-lg overflow-hidden" data-testid={`version-${v.id}`}>
-              <button
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 text-left"
-                onClick={() => setExpanded(expanded === v.id ? null : v.id)}
-              >
-                <div>
-                  <p className="text-sm font-semibold text-[#1A1F2B]">Version {v.version_number}</p>
-                  <p className="text-xs text-slate-400">
-                    {new Date(v.saved_at).toLocaleString()} — {v.first_name} {v.last_name}
-                  </p>
-                </div>
-                {expanded === v.id
-                  ? <ChevronUp className="w-4 h-4 text-slate-400" />
-                  : <ChevronDown className="w-4 h-4 text-slate-400" />}
-              </button>
-              {expanded === v.id && <SnapshotDetail v={v} />}
-            </div>
-          ))}
+          ) : versions.map((v, idx) => {
+            const prev = versions[idx + 1] ?? null;
+            return (
+              <div key={v.id} className="border border-slate-200 rounded-lg overflow-hidden" data-testid={`version-${v.id}`}>
+                <button
+                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 text-left"
+                  onClick={() => setExpanded(expanded === v.id ? null : v.id)}
+                  data-testid={`button-expand-version-${v.id}`}
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-[#1A1F2B]">Version {v.version_number}</p>
+                      {idx === 0 && <span className="text-[10px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-semibold">Latest</span>}
+                      {prev === null && <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">Initial</span>}
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      {new Date(v.saved_at).toLocaleString()} — {v.first_name} {v.last_name}
+                    </p>
+                  </div>
+                  {expanded === v.id
+                    ? <ChevronUp className="w-4 h-4 text-slate-400" />
+                    : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                </button>
+                {expanded === v.id && <SnapshotDiff current={v} prev={prev} />}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

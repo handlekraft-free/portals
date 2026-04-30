@@ -3,7 +3,8 @@ import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
-import { ChevronLeft, ChevronRight, CalendarDays, Clock, MapPin, Video, Check, X, Users, Bell, ClipboardList } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays, Clock, MapPin, Video, Check, X, Users, Bell, ClipboardList, FileText, Download } from "lucide-react";
+import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ function CalendarContent() {
   const [selectedDetail, setSelectedDetail] = useState<any>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [selectedDayNum, setSelectedDayNum] = useState<number | null>(null);
+  const [packetDocs, setPacketDocs] = useState<any[]>([]);
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
@@ -88,9 +90,14 @@ function CalendarContent() {
     setSelectedDayNum(null);
     setSelected(m);
     setSelectedDetail(null);
+    setPacketDocs([]);
     setDetailLoading(true);
-    const r = await apiRequest("GET", `/api/board/meetings/${m.id}`);
-    if (r.success) setSelectedDetail(r.data);
+    const [detailRes, packetRes] = await Promise.all([
+      apiRequest("GET", `/api/board/meetings/${m.id}`),
+      apiRequest("GET", `/api/board/meetings/${m.id}/packet-docs`),
+    ]);
+    if (detailRes.success) setSelectedDetail(detailRes.data);
+    if (packetRes.success) setPacketDocs(packetRes.data);
     setDetailLoading(false);
   }
 
@@ -355,6 +362,51 @@ function CalendarContent() {
                         </ol>
                       </div>
                     )}
+
+                    {/* Meeting Packet */}
+                    <div className="pt-1 border-t border-slate-100" data-testid="cal-packet-panel">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+                          <FileText className="w-3.5 h-3.5 text-indigo-500" /> Meeting Packet
+                          {packetDocs.length > 0 && (
+                            <span className="ml-1 text-[10px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded">
+                              {packetDocs.length} doc{packetDocs.length !== 1 ? "s" : ""}
+                            </span>
+                          )}
+                        </p>
+                        <a
+                          href={`/api/board/meetings/${selected?.id}/packet`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                          data-testid="link-download-packet"
+                        >
+                          <Download className="w-3 h-3" /> Download PDF
+                        </a>
+                      </div>
+                      {packetDocs.length === 0 ? (
+                        <p className="text-xs text-slate-400 italic">No documents linked to this packet yet.</p>
+                      ) : (
+                        <ul className="space-y-1">
+                          {packetDocs.map((d: any) => (
+                            <li key={d.id} className="flex items-center gap-2 text-xs text-slate-600" data-testid={`cal-packet-doc-${d.id}`}>
+                              <FileText className="w-3 h-3 text-indigo-300 shrink-0" />
+                              <span className="truncate flex-1">{d.title}</span>
+                              <span className="text-slate-400 capitalize shrink-0">{d.category}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {selected && (
+                        <Link
+                          href={`/portal/board/minutes?meetingId=${selected.id}`}
+                          className="mt-2 flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-700"
+                          data-testid="link-open-minutes"
+                        >
+                          <ClipboardList className="w-3 h-3" /> Open Minutes Editor →
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 )}
               </CardContent>

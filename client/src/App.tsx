@@ -90,6 +90,7 @@ function Router() {
       <Route path="/portal/board/documents" component={BoardDocuments} />
       <Route path="/portal/board/minutes" component={BoardMinutes} />
       <Route path="/portal/board/action-items" component={BoardActionItems} />
+      <Route path="/portal/board/actions" component={BoardActionItems} />
       <Route path="/portal/board/consents" component={BoardConsents} />
       <Route path="/portal/board/members" component={BoardMembers} />
       <Route path="/portal/board/financials" component={BoardFinancials} />

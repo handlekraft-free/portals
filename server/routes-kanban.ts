@@ -41,15 +41,15 @@ router.get("/my-tasks", async (req, res) => {
   );
 
   // For reviewer cards, filter to only "In Review" columns
-  const allColumnIds = [...new Set([
+  const allColumnIds = Array.from(new Set([
     ...assignedCards.map(c => c.columnId),
     ...reviewerCards.map(c => c.columnId),
-  ])];
+  ]));
 
-  const allBoardIds = [...new Set([
+  const allBoardIds = Array.from(new Set([
     ...assignedCards.map(c => c.boardId),
     ...reviewerCards.map(c => c.boardId),
-  ])];
+  ]));
 
   let columnMap: Record<number, any> = {};
   let boardMap: Record<number, any> = {};
@@ -65,10 +65,10 @@ router.get("/my-tasks", async (req, res) => {
   }
 
   // Collect all user IDs for assignee/reviewer lookup
-  const allUserIds = [...new Set([
+  const allUserIds = Array.from(new Set([
     ...assignedCards.flatMap(c => [c.assignedTo, c.reviewerId, c.createdBy].filter(Boolean) as number[]),
     ...reviewerCards.flatMap(c => [c.assignedTo, c.reviewerId, c.createdBy].filter(Boolean) as number[]),
-  ])];
+  ]));
   if (allUserIds.length > 0) {
     const us = await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName }).from(users).where(inArray(users.id, allUserIds));
     for (const u of us) userMap[u.id] = u;
@@ -199,7 +199,7 @@ router.get("/boards/:id", async (req, res) => {
     for (const a of allAttachments) attachmentCounts[a.cardId] = (attachmentCounts[a.cardId] || 0) + 1;
 
     // Collect all user IDs (assignees + reviewers)
-    const userIds = [...new Set(cards.flatMap(c => [c.assignedTo, c.reviewerId].filter(Boolean) as number[]))];
+    const userIds = Array.from(new Set(cards.flatMap(c => [c.assignedTo, c.reviewerId].filter(Boolean) as number[])));
     if (userIds.length > 0) {
       const us = await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName }).from(users).where(inArray(users.id, userIds));
       for (const u of us) userLookup[u.id] = u;
@@ -275,7 +275,7 @@ router.post("/cards", async (req, res) => {
 });
 
 router.get("/cards/:id", async (req, res) => {
-  const cardId = parseInt(req.params.id);
+  const cardId = parseInt(req.params.id as string);
   const [card] = await db.select().from(kanbanCards).where(eq(kanbanCards.id, cardId));
   if (!card) return res.status(404).json({ success: false, error: "Card not found" });
   const comments = await db.select({ id: kanbanCardComments.id, content: kanbanCardComments.content, createdAt: kanbanCardComments.createdAt, editedAt: kanbanCardComments.editedAt, userId: kanbanCardComments.userId, firstName: users.firstName, lastName: users.lastName }).from(kanbanCardComments).leftJoin(users, eq(kanbanCardComments.userId, users.id)).where(eq(kanbanCardComments.cardId, cardId)).orderBy(asc(kanbanCardComments.createdAt));
@@ -359,7 +359,7 @@ router.delete("/comments/:id", async (req, res) => {
 
 router.post("/cards/:id/attachments", uploadAttachment.single("file"), async (req, res) => {
   const userId = req.user!.userId;
-  const cardId = parseInt(req.params.id);
+  const cardId = parseInt(req.params.id as string);
   if (!req.file) return res.status(400).json({ success: false, error: "No file uploaded" });
   const [att] = await db.insert(kanbanCardAttachments).values({
     cardId, uploadedBy: userId, fileName: req.file.originalname,

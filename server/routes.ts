@@ -370,14 +370,14 @@ export async function registerRoutes(
   });
 
   app.get("/api/admin/fellowship-applications/:id", requireAdminSession, async (req: Request, res: Response) => {
-    const app = await storage.getFellowshipApplication(parseInt(req.params.id));
+    const app = await storage.getFellowshipApplication(parseInt(req.params.id as string));
     if (!app) return res.status(404).json({ message: "Not found" });
     res.json(app);
   });
 
   app.patch("/api/admin/fellowship-applications/:id", requireAdminSession, async (req: Request, res: Response) => {
     const { status, rating, priority, adminNotes } = req.body;
-    const app = await storage.updateFellowshipApplication(parseInt(req.params.id), {
+    const app = await storage.updateFellowshipApplication(parseInt(req.params.id as string), {
       ...(status !== undefined && { status }),
       ...(rating !== undefined && { rating: parseInt(rating) }),
       ...(priority !== undefined && { priority: parseInt(priority) }),
@@ -393,14 +393,14 @@ export async function registerRoutes(
   });
 
   app.get("/api/admin/client-applications/:id", requireAdminSession, async (req: Request, res: Response) => {
-    const app = await storage.getClientApplication(parseInt(req.params.id));
+    const app = await storage.getClientApplication(parseInt(req.params.id as string));
     if (!app) return res.status(404).json({ message: "Not found" });
     res.json(app);
   });
 
   app.patch("/api/admin/client-applications/:id", requireAdminSession, async (req: Request, res: Response) => {
     const { status, rating, priority, adminNotes } = req.body;
-    const app = await storage.updateClientApplication(parseInt(req.params.id), {
+    const app = await storage.updateClientApplication(parseInt(req.params.id as string), {
       ...(status !== undefined && { status }),
       ...(rating !== undefined && { rating: parseInt(rating) }),
       ...(priority !== undefined && { priority: parseInt(priority) }),

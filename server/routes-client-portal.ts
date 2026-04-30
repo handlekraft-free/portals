@@ -138,7 +138,7 @@ router.get("/employee/clients/:id/files", requireEmployee as any, async (req, re
 });
 
 router.post("/employee/clients/:id/files", requireEmployee as any, upload.single("file"), async (req, res) => {
-  const clientId = parseInt(req.params.id);
+  const clientId = parseInt(req.params.id as string);
   const empId = req.user!.userId;
   if (!req.file) return res.status(400).json({ success: false, error: "No file uploaded" });
   const [f] = await db.insert(clientFiles).values({

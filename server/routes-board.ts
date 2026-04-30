@@ -235,13 +235,13 @@ router.post("/minutes/:id/action-items", requireAdmin as any, async (req, res) =
   res.status(201).json({ success: true, data: row });
 });
 
-router.patch("/action-items/:id", async (req, res) => {
+router.patch("/action-items/:id", requireAdmin as any, async (req, res) => {
   const { status } = req.body;
   const update: Record<string, any> = {};
   if (status === "complete") update.completedAt = new Date();
   if (status) update.status = status;
   const [row] = await db.update(boardActionItems).set(update)
-    .where(eq(boardActionItems.id, parseInt(req.params.id))).returning();
+    .where(eq(boardActionItems.id, parseInt(req.params.id as string))).returning();
   res.json({ success: true, data: row });
 });
 

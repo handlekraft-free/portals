@@ -115,7 +115,7 @@ router.post("/courses/:id/enroll", async (req, res) => {
 });
 
 router.delete("/courses/:id/enroll/:studentId", async (req, res) => {
-  await db.delete(courseEnrollments).where(and(eq(courseEnrollments.courseId, parseInt(req.params.id)), eq(courseEnrollments.studentId, parseInt(req.params.studentId))));
+  await db.delete(courseEnrollments).where(and(eq(courseEnrollments.courseId, parseInt(req.params.id)), eq(courseEnrollments.studentId, parseInt(req.params.studentId as string))));
   res.json({ success: true, data: null });
 });
 
@@ -134,8 +134,8 @@ router.post("/courses/:id/announcements", async (req, res) => {
 
 router.post("/courses/:courseId/files/:studentId", upload.single("file"), async (req, res) => {
   const instructorId = req.user!.userId;
-  const studentId = parseInt(req.params.studentId);
-  const courseId = parseInt(req.params.courseId);
+  const studentId = parseInt(req.params.studentId as string);
+  const courseId = parseInt(req.params.courseId as string);
   if (!req.file) return res.status(400).json({ success: false, error: "No file uploaded" });
   const [f] = await db.insert(studentFiles).values({
     studentId, uploadedBy: instructorId, filename: req.file.filename, filepath: req.file.path,

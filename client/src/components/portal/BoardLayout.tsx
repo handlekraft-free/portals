@@ -22,12 +22,12 @@ const navItems = [
   { href: "/portal/board/financials", icon: <DollarSign className="w-4 h-4" />, label: "Financials" },
   { href: "/portal/board/forums", icon: <MessageSquare className="w-4 h-4" />, label: "Forums" },
   { href: "/portal/board/onboarding", icon: <BookOpen className="w-4 h-4" />, label: "Onboarding" },
+  { href: "/portal/board/settings", icon: <Settings className="w-4 h-4" />, label: "Board Settings" },
 ];
 
 const adminItems = [
   { href: "/portal/board/roster", icon: <Shield className="w-4 h-4" />, label: "Manage Roster" },
   { href: "/portal/board/members", icon: <Users className="w-4 h-4" />, label: "Board Members" },
-  { href: "/portal/board/settings", icon: <Settings className="w-4 h-4" />, label: "Board Settings" },
 ];
 
 export function BoardLayout({ children }: { children: React.ReactNode }) {

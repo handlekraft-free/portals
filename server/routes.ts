@@ -264,7 +264,7 @@ export async function registerRoutes(
       await db.insert(users).values({
         email: "board1@handlekraft.ai",
         passwordHash: await bcrypt.hash("Board1234!", 12),
-        role: "board" as any,
+        role: "board",
         firstName: "Dana",
         lastName: "Eriksson",
         status: "active",

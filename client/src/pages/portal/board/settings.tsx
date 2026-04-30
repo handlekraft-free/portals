@@ -18,7 +18,7 @@ function BoardSettingsContent() {
 
 export default function BoardSettings() {
   return (
-    <PortalGuard allowedRoles={["admin"]}>
+    <PortalGuard allowedRoles={["admin", "board"]}>
       <BoardLayout><BoardSettingsContent /></BoardLayout>
     </PortalGuard>
   );

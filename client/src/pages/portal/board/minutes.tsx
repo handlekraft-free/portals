@@ -34,6 +34,54 @@ function parseContent(content: string | null): Record<string, any> {
 
 // ─── Version History Drawer ───────────────────────────────────────────────────
 
+function SnapshotDetail({ v }: { v: any }) {
+  const content = (() => { try { return JSON.parse(v.content_snapshot ?? "{}"); } catch { return {}; } })();
+  const motions: any[] = (() => { try { return JSON.parse(v.motions_snapshot ?? "[]"); } catch { return []; } })();
+
+  const fieldRow = (label: string, value: any) =>
+    value ? (
+      <div key={label} className="grid grid-cols-[120px_1fr] gap-1 py-0.5">
+        <span className="text-xs text-slate-400 font-medium">{label}</span>
+        <span className="text-xs text-slate-700">{String(value)}</span>
+      </div>
+    ) : null;
+
+  return (
+    <div className="px-4 pb-3 pt-2 border-t border-slate-100 bg-slate-50 space-y-2 text-xs">
+      <p className="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">Content Fields</p>
+      <div className="space-y-0.5">
+        {fieldRow("Call to Order", content.callToOrder)}
+        {fieldRow("Opening Remarks", content.openingRemarks)}
+        {fieldRow("General Notes", content.generalNotes)}
+        {fieldRow("Absent Directors", content.absentDirectorsNote)}
+        {fieldRow("Notice Summary", content.noticeSummary)}
+        {fieldRow("Quorum Present?", content.quorumPresent !== undefined ? (content.quorumPresent ? "Yes" : "No") : undefined)}
+        {fieldRow("Quorum Count", content.quorumCount)}
+        {fieldRow("Adjournment", content.adjournmentTime)}
+        {content.reports?.length > 0 && fieldRow(`Reports (${content.reports.length})`, content.reports.map((r: any) => r.title).join(", "))}
+      </div>
+      {motions.length > 0 && (
+        <>
+          <p className="font-semibold text-slate-500 uppercase tracking-wider text-[10px] pt-1 border-t border-slate-200">
+            Motions ({motions.length})
+          </p>
+          {motions.map((m: any, i: number) => (
+            <div key={i} className={`rounded px-2 py-1 ${m.passed ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
+              <span className={`font-semibold ${m.passed ? "text-green-700" : "text-red-700"}`}>
+                #{i + 1} {m.passed ? "PASSED" : "FAILED"}
+              </span>{" "}
+              <span className="text-slate-700">{m.motionText}</span>
+              {(m.votesFor || m.votesAgainst || m.votesAbstain) && (
+                <span className="text-slate-400 ml-1">({m.votesFor}–{m.votesAgainst}–{m.votesAbstain})</span>
+              )}
+            </div>
+          ))}
+        </>
+      )}
+    </div>
+  );
+}
+
 function HistoryDrawer({ minutesId, onClose }: { minutesId: number; onClose: () => void }) {
   const [versions, setVersions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,14 +97,19 @@ function HistoryDrawer({ minutesId, onClose }: { minutesId: number; onClose: () 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" data-testid="history-drawer">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col">
+      <div className="relative w-full max-w-lg bg-white h-full shadow-2xl flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
           <div className="flex items-center gap-2">
             <History className="w-4 h-4 text-indigo-500" />
             <h2 className="font-semibold text-[#1A1F2B]">Version History</h2>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600" data-testid="button-close-history"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600" data-testid="button-close-history">
+            <X className="w-5 h-5" />
+          </button>
         </div>
+        <p className="px-5 py-2 text-xs text-slate-400 border-b border-slate-100">
+          Each version is a read-only snapshot captured when minutes were saved or a motion/action item was modified.
+        </p>
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {loading ? (
             [...Array(4)].map((_, i) => <div key={i} className="h-16 bg-slate-100 rounded-lg animate-pulse" />)
@@ -70,36 +123,15 @@ function HistoryDrawer({ minutesId, onClose }: { minutesId: number; onClose: () 
               >
                 <div>
                   <p className="text-sm font-semibold text-[#1A1F2B]">Version {v.version_number}</p>
-                  <p className="text-xs text-slate-400">{new Date(v.saved_at).toLocaleString()} — {v.first_name} {v.last_name}</p>
+                  <p className="text-xs text-slate-400">
+                    {new Date(v.saved_at).toLocaleString()} — {v.first_name} {v.last_name}
+                  </p>
                 </div>
-                {expanded === v.id ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                {expanded === v.id
+                  ? <ChevronUp className="w-4 h-4 text-slate-400" />
+                  : <ChevronDown className="w-4 h-4 text-slate-400" />}
               </button>
-              {expanded === v.id && (
-                <div className="px-4 pb-3 border-t border-slate-100 bg-slate-50">
-                  {v.content_snapshot ? (
-                    <div className="mt-2">
-                      <p className="text-xs font-semibold text-slate-500 mb-1">Content Snapshot:</p>
-                      <p className="text-xs text-slate-600 whitespace-pre-wrap line-clamp-6">
-                        {(() => { try { const p = JSON.parse(v.content_snapshot); return p.generalNotes || p.callToOrder || JSON.stringify(p, null, 2); } catch { return v.content_snapshot; } })()}
-                      </p>
-                    </div>
-                  ) : <p className="text-xs text-slate-400 mt-2 italic">No content snapshot.</p>}
-                  {v.motions_snapshot && (() => {
-                    try {
-                      const motions = JSON.parse(v.motions_snapshot);
-                      if (!motions.length) return null;
-                      return (
-                        <div className="mt-2">
-                          <p className="text-xs font-semibold text-slate-500 mb-1">{motions.length} Motion(s)</p>
-                          {motions.map((m: any, i: number) => (
-                            <p key={i} className="text-xs text-slate-600 truncate">• {m.motionText}</p>
-                          ))}
-                        </div>
-                      );
-                    } catch { return null; }
-                  })()}
-                </div>
-              )}
+              {expanded === v.id && <SnapshotDetail v={v} />}
             </div>
           ))}
         </div>
@@ -135,7 +167,9 @@ function MotionForm({ boardMembers, onSave, onCancel, initial }: {
         <div className="flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
           <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-500" />
           <span>
-            <strong>COI Notice:</strong> {interestedDirectors.map(d => `${d.firstName} ${d.lastName}`).join(", ")} {interestedDirectors.length === 1 ? "has" : "have"} a flagged conflict of interest. Review recusal requirements before recording this motion.
+            <strong>Conflict of Interest Notice:</strong>{" "}
+            {interestedDirectors.map(d => `${d.firstName} ${d.lastName}`).join(", ")}{" "}
+            {interestedDirectors.length === 1 ? "has" : "have"} a flagged conflict of interest on record. Review recusal requirements under your conflict-of-interest policy before recording this vote. Any recusal must be noted below.
           </span>
         </div>
       )}
@@ -150,14 +184,16 @@ function MotionForm({ boardMembers, onSave, onCancel, initial }: {
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="text-xs text-slate-500 font-medium">Moved by</label>
-          <select value={form.moverId} onChange={e => setForm(f => ({ ...f, moverId: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none mt-0.5" data-testid="select-mover">
+          <select value={form.moverId} onChange={e => setForm(f => ({ ...f, moverId: e.target.value }))}
+            className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none mt-0.5" data-testid="select-mover">
             <option value="">— Select —</option>
             {boardMembers.map(m => <option key={m.id} value={m.id}>{m.firstName} {m.lastName}</option>)}
           </select>
         </div>
         <div>
           <label className="text-xs text-slate-500 font-medium">Seconded by</label>
-          <select value={form.seconderId} onChange={e => setForm(f => ({ ...f, seconderId: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none mt-0.5" data-testid="select-seconder">
+          <select value={form.seconderId} onChange={e => setForm(f => ({ ...f, seconderId: e.target.value }))}
+            className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none mt-0.5" data-testid="select-seconder">
             <option value="">— Select —</option>
             {boardMembers.map(m => <option key={m.id} value={m.id}>{m.firstName} {m.lastName}</option>)}
           </select>
@@ -167,23 +203,29 @@ function MotionForm({ boardMembers, onSave, onCancel, initial }: {
         {(["votesFor", "votesAgainst", "votesAbstain"] as const).map((key, i) => (
           <div key={key}>
             <label className="text-xs text-slate-500 font-medium">{["For", "Against", "Abstain"][i]}</label>
-            <input type="number" min={0} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: parseInt(e.target.value) || 0 }))}
-              className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none mt-0.5" data-testid={`input-votes-${key}`} />
+            <input type="number" min={0} value={form[key]}
+              onChange={e => setForm(f => ({ ...f, [key]: parseInt(e.target.value) || 0 }))}
+              className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none mt-0.5"
+              data-testid={`input-votes-${key}`} />
           </div>
         ))}
       </div>
       <div>
         <label className="text-xs text-slate-500 font-medium">Recused directors (if any)</label>
         <input value={form.recusedDirectors} onChange={e => setForm(f => ({ ...f, recusedDirectors: e.target.value }))}
-          placeholder="e.g. Jane Doe — conflict of interest"
-          className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none mt-0.5" data-testid="input-recused" />
+          placeholder="e.g. Jane Doe — conflict of interest per COI policy"
+          className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none mt-0.5"
+          data-testid="input-recused" />
       </div>
-      <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer" data-testid="label-motion-passed">
-        <input type="checkbox" checked={form.passed} onChange={e => setForm(f => ({ ...f, passed: e.target.checked }))} className="rounded" data-testid="checkbox-motion-passed" />
+      <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+        <input type="checkbox" checked={form.passed} onChange={e => setForm(f => ({ ...f, passed: e.target.checked }))}
+          className="rounded" data-testid="checkbox-motion-passed" />
         Motion passed
       </label>
       <div className="flex gap-2">
-        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => onSave(form)} data-testid="button-save-motion">Save Motion</Button>
+        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => onSave(form)} data-testid="button-save-motion">
+          Save Motion
+        </Button>
         <Button size="sm" variant="outline" onClick={onCancel}>Cancel</Button>
       </div>
     </div>
@@ -206,23 +248,35 @@ function ActionItemForm({ boardMembers, onSave, onCancel, initial }: {
   });
   return (
     <div className="space-y-2 p-4 bg-slate-50 rounded-lg border border-slate-200">
-      <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Action item title (required)" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-action-title" />
-      <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Description (optional)" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="input-action-desc" />
+      <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+        placeholder="Action item title (required)"
+        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+        data-testid="input-action-title" />
+      <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+        placeholder="Description (optional)"
+        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none"
+        data-testid="input-action-desc" />
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="text-xs text-slate-500 font-medium">Assigned to</label>
-          <select value={form.assignedTo} onChange={e => setForm(f => ({ ...f, assignedTo: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none mt-0.5" data-testid="select-action-assignee">
+          <select value={form.assignedTo} onChange={e => setForm(f => ({ ...f, assignedTo: e.target.value }))}
+            className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none mt-0.5"
+            data-testid="select-action-assignee">
             <option value="">— Unassigned —</option>
             {boardMembers.map(m => <option key={m.id} value={m.id}>{m.firstName} {m.lastName}</option>)}
           </select>
         </div>
         <div>
           <label className="text-xs text-slate-500 font-medium">Due date</label>
-          <input type="date" value={form.dueDate} onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none mt-0.5" data-testid="input-action-due" />
+          <input type="date" value={form.dueDate} onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
+            className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none mt-0.5"
+            data-testid="input-action-due" />
         </div>
       </div>
       <div className="flex gap-2 pt-1">
-        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => onSave(form)} data-testid="button-save-action">Save Item</Button>
+        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => onSave(form)} data-testid="button-save-action">
+          Save Item
+        </Button>
         <Button size="sm" variant="outline" onClick={onCancel}>Cancel</Button>
       </div>
     </div>
@@ -242,24 +296,29 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
   const [saving, setSaving] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
+  // Structured content fields
   const [content, setContent] = useState<Record<string, any>>({});
+  // Per-member attendance overrides: { [memberId]: { attendance, participationMethod, waivedNotice } }
   const [attendance, setAttendance] = useState<Record<number, { attendance: string; participationMethod: string; waivedNotice: boolean }>>({});
+  const [reports, setReports] = useState<Array<{ title: string; presenter: string; content: string }>>([]);
+
   const [addingMotion, setAddingMotion] = useState(false);
   const [editingMotion, setEditingMotion] = useState<number | null>(null);
   const [addingAction, setAddingAction] = useState(false);
   const [editingAction, setEditingAction] = useState<number | null>(null);
-  const [reports, setReports] = useState<Array<{ title: string; presenter: string; content: string }>>([]);
 
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const minutesRef = useRef<any>(null);
   const contentRef = useRef<Record<string, any>>({});
   const reportsRef = useRef<Array<any>>([]);
+  const attendanceRef = useRef<Record<number, any>>({});
 
   const locked = minutes?.status === "approved";
 
   useEffect(() => { minutesRef.current = minutes; }, [minutes]);
   useEffect(() => { contentRef.current = content; }, [content]);
   useEffect(() => { reportsRef.current = reports; }, [reports]);
+  useEffect(() => { attendanceRef.current = attendance; }, [attendance]);
 
   useEffect(() => {
     async function load() {
@@ -269,23 +328,34 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
         apiRequest("GET", `/api/board/meetings/${meeting.id}`),
       ]);
       setBoardMembers(membersRes.success ? membersRes.data : []);
+
+      // If minutes exist, restore all saved state from content JSON
       if (minsRes.success && minsRes.data) {
         setMinutes(minsRes.data);
         const parsed = parseContent(minsRes.data.content);
-        setContent(parsed);
-        setReports(parsed.reports ?? []);
-      }
-      // Pre-fill attendance from meeting attendees
-      if (meetingRes.success && meetingRes.data?.attendees?.length) {
-        const map: Record<number, any> = {};
-        for (const a of meetingRes.data.attendees) {
-          map[a.userId] = {
-            attendance: a.attendance ?? "present",
-            participationMethod: a.participationMethod ?? "in_person",
-            waivedNotice: a.waivedNotice ?? false,
-          };
+        const { reports: savedReports, attendanceOverrides, ...rest } = parsed;
+        setContent(rest);
+        setReports(savedReports ?? []);
+        if (attendanceOverrides && typeof attendanceOverrides === "object") {
+          setAttendance(attendanceOverrides);
         }
-        setAttendance(map);
+      }
+
+      // Pre-fill attendance from meeting attendees (only for fields not already saved in minutes)
+      if (meetingRes.success && meetingRes.data?.attendees?.length) {
+        setAttendance(prev => {
+          const map: Record<number, any> = { ...prev };
+          for (const a of meetingRes.data.attendees) {
+            if (!map[a.userId]) {
+              map[a.userId] = {
+                attendance: a.attendance ?? "present",
+                participationMethod: a.participationMethod ?? "in_person",
+                waivedNotice: a.waivedNotice ?? false,
+              };
+            }
+          }
+          return map;
+        });
       }
       setLoading(false);
     }
@@ -293,9 +363,13 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
     return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
   }, [meeting.id]);
 
-  const contentJson = useCallback(() =>
-    JSON.stringify({ ...contentRef.current, reports: reportsRef.current }),
-  []);
+  function contentJson() {
+    return JSON.stringify({
+      ...contentRef.current,
+      reports: reportsRef.current,
+      attendanceOverrides: attendanceRef.current,
+    });
+  }
 
   async function ensureMinutes(): Promise<any> {
     if (minutesRef.current) return minutesRef.current;
@@ -308,10 +382,11 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
     setSaving(true);
     const m = await ensureMinutes();
     if (!m) { setSaving(false); return; }
+    // Attendance overrides are serialized into the content JSON so no extra table is needed
     const r = await apiRequest("PATCH", `/api/board/minutes/${m.id}`, {
       content: contentJson(),
-      quorumPresent: contentRef.current.quorumPresent,
-      quorumCount: contentRef.current.quorumCount,
+      quorumPresent: contentRef.current.quorumPresent ?? null,
+      quorumCount: contentRef.current.quorumCount ?? null,
       adjournmentTime: contentRef.current.adjournmentTime || null,
     });
     if (r.success) {
@@ -333,19 +408,22 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
     if (!m) return;
     await saveDraft(true);
     const r = await apiRequest("POST", `/api/board/minutes/${m.id}/submit`, {});
-    if (r.success) { setMinutes((prev: any) => ({ ...prev, status: "pending_approval" })); toast({ title: "Submitted", description: "Minutes submitted for board approval." }); }
-    else toast({ title: "Error", description: r.error, variant: "destructive" });
+    if (r.success) {
+      setMinutes((prev: any) => ({ ...prev, status: "pending_approval" }));
+      toast({ title: "Submitted", description: "Minutes submitted for board approval." });
+    } else toast({ title: "Error", description: r.error, variant: "destructive" });
   }
 
   async function approve() {
     if (!minutes) return;
     const r = await apiRequest("POST", `/api/board/minutes/${minutes.id}/approve`, {});
-    if (r.success) { setMinutes((prev: any) => ({ ...prev, status: "approved", approvedAt: new Date() })); toast({ title: "Approved", description: "Minutes have been officially approved and locked." }); }
-    else toast({ title: "Error", description: r.error, variant: "destructive" });
+    if (r.success) {
+      setMinutes((prev: any) => ({ ...prev, status: "approved", approvedAt: new Date() }));
+      toast({ title: "Approved", description: "Minutes have been officially approved and locked." });
+    } else toast({ title: "Error", description: r.error, variant: "destructive" });
   }
 
   async function downloadPacket() {
-    const m = minutesRef.current;
     toast({ title: "Generating packet…", description: "Your PDF is being prepared." });
     const res = await fetch(`/api/board/meetings/${meeting.id}/packet`, {
       method: "POST",
@@ -353,7 +431,10 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
     });
-    if (!res.ok) { toast({ title: "Error", description: "Could not generate packet.", variant: "destructive" }); return; }
+    if (!res.ok) {
+      toast({ title: "Error", description: "Could not generate packet.", variant: "destructive" });
+      return;
+    }
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -367,14 +448,19 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
     const m = await ensureMinutes();
     if (!m) return;
     const r = await apiRequest("POST", `/api/board/minutes/${m.id}/motions`, data);
-    if (r.success) { setMinutes((prev: any) => ({ ...prev, motions: [...(prev.motions ?? []), r.data] })); setAddingMotion(false); }
-    else toast({ title: "Error", description: r.error, variant: "destructive" });
+    if (r.success) {
+      setMinutes((prev: any) => ({ ...prev, motions: [...(prev.motions ?? []), r.data] }));
+      setAddingMotion(false);
+    } else toast({ title: "Error", description: r.error, variant: "destructive" });
   }
 
   async function updateMotion(motionId: number, data: any) {
     if (!minutes) return;
     const r = await apiRequest("PATCH", `/api/board/minutes/${minutes.id}/motions/${motionId}`, data);
-    if (r.success) { setMinutes((prev: any) => ({ ...prev, motions: prev.motions.map((m: any) => m.id === motionId ? r.data : m) })); setEditingMotion(null); }
+    if (r.success) {
+      setMinutes((prev: any) => ({ ...prev, motions: prev.motions.map((m: any) => m.id === motionId ? r.data : m) }));
+      setEditingMotion(null);
+    }
   }
 
   async function deleteMotion(motionId: number) {
@@ -387,14 +473,19 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
     const m = await ensureMinutes();
     if (!m) return;
     const r = await apiRequest("POST", `/api/board/minutes/${m.id}/action-items`, data);
-    if (r.success) { setMinutes((prev: any) => ({ ...prev, actionItems: [...(prev.actionItems ?? []), r.data] })); setAddingAction(false); }
-    else toast({ title: "Error", description: r.error, variant: "destructive" });
+    if (r.success) {
+      setMinutes((prev: any) => ({ ...prev, actionItems: [...(prev.actionItems ?? []), r.data] }));
+      setAddingAction(false);
+    } else toast({ title: "Error", description: r.error, variant: "destructive" });
   }
 
   async function updateAction(itemId: number, data: any) {
     if (!minutes) return;
     const r = await apiRequest("PATCH", `/api/board/minutes/${minutes.id}/action-items/${itemId}`, data);
-    if (r.success) { setMinutes((prev: any) => ({ ...prev, actionItems: prev.actionItems.map((a: any) => a.id === itemId ? r.data : a) })); setEditingAction(null); }
+    if (r.success) {
+      setMinutes((prev: any) => ({ ...prev, actionItems: prev.actionItems.map((a: any) => a.id === itemId ? r.data : a) }));
+      setEditingAction(null);
+    }
   }
 
   async function deleteAction(itemId: number) {
@@ -421,7 +512,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
     <div>
       {showHistory && minutes && <HistoryDrawer minutesId={minutes.id} onClose={() => setShowHistory(false)} />}
 
-      {/* Back + title */}
+      {/* Back + title bar */}
       <div className="flex items-start justify-between mb-4">
         <div>
           <button onClick={onBack} className="flex items-center gap-1 text-slate-400 hover:text-slate-600 text-sm mb-2" data-testid="button-back-minutes">
@@ -458,13 +549,13 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
       <div className="flex items-start gap-2.5 p-3 mb-4 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-800" data-testid="governance-banner">
         <Info className="w-4 h-4 shrink-0 mt-0.5 text-indigo-500" />
         <div>
-          <strong>Governance Reminder:</strong> Minutes are the official legal record of board decisions. Record all motions with mover, seconder, and vote counts. Directors with conflicts of interest must declare and recuse. Approved minutes are locked and may only be amended by board vote at a subsequent meeting.
+          <strong>Governance &amp; Legal Notice:</strong> These minutes constitute the official legal record of all board decisions and must accurately reflect the proceedings. All directors have the right to inspect and correct the minutes prior to approval. Record all motions with mover, seconder, and vote counts — including abstentions. Directors with a conflict of interest must declare and recuse from the vote. Once approved, minutes may only be amended by a subsequent board vote. Approved minutes are locked in this system.
         </div>
       </div>
 
       <div className="space-y-4">
 
-        {/* ── Header / Meeting Info ── */}
+        {/* ── Meeting Information ── */}
         <Card className="border-0 shadow-sm">
           <CardHeader className="pb-2 pt-4">
             <CardTitle className="text-sm font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
@@ -473,7 +564,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-x-6 gap-y-2 pb-4">
             <div><p className="text-xs text-slate-400">Type</p><p className="text-sm text-slate-700 capitalize">{meeting.meetingType || "Regular"}</p></div>
-            <div><p className="text-xs text-slate-400">Date & Time</p><p className="text-sm text-slate-700">{meetingDate}</p></div>
+            <div><p className="text-xs text-slate-400">Date &amp; Time</p><p className="text-sm text-slate-700">{meetingDate}</p></div>
             {meeting.location && <div><p className="text-xs text-slate-400">Location</p><p className="text-sm text-slate-700">{meeting.location}</p></div>}
             {meeting.platform && <div><p className="text-xs text-slate-400">Platform</p><p className="text-sm text-slate-700">{meeting.platform}</p></div>}
             <div><p className="text-xs text-slate-400">Quorum required</p><p className="text-sm text-slate-700">{meeting.quorumNumber ?? 3} members</p></div>
@@ -485,30 +576,29 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
         <Card className="border-0 shadow-sm">
           <CardHeader className="pb-2 pt-4">
             <CardTitle className="text-sm font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5" /> Attendance & Quorum
+              <Users className="w-3.5 h-3.5" /> Attendance &amp; Quorum
             </CardTitle>
           </CardHeader>
           <CardContent className="pb-4 space-y-3">
             {boardMembers.length > 0 ? (
               <div className="space-y-2">
-                {/* Column headers */}
-                <div className="grid grid-cols-[1fr_120px_120px_90px] gap-2 px-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  <span>Director</span>
-                  <span>Attendance</span>
-                  <span>Participation</span>
-                  <span>Notice OK?</span>
+                <div className="grid grid-cols-[1fr_110px_120px_90px] gap-2 px-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <span>Director</span><span>Attendance</span><span>Participation</span><span>Notice OK?</span>
                 </div>
                 {boardMembers.map(m => {
                   const a = attendance[m.id] ?? { attendance: "", participationMethod: "in_person", waivedNotice: false };
                   return (
-                    <div key={m.id} className="grid grid-cols-[1fr_120px_120px_90px] gap-2 items-center p-2 bg-slate-50 rounded-lg" data-testid={`attendee-${m.id}`}>
+                    <div key={m.id} className="grid grid-cols-[1fr_110px_120px_90px] gap-2 items-center p-2 bg-slate-50 rounded-lg" data-testid={`attendee-${m.id}`}>
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-[#1A1F2B] truncate">{m.firstName} {m.lastName}</p>
                         {m.boardPosition && <p className="text-xs text-slate-400 truncate">{m.boardPosition}</p>}
                       </div>
                       <select
                         value={a.attendance}
-                        onChange={e => setAttendance(prev => ({ ...prev, [m.id]: { ...a, attendance: e.target.value } }))}
+                        onChange={e => {
+                          setAttendance(prev => ({ ...prev, [m.id]: { ...a, attendance: e.target.value } }));
+                          scheduleAutoSave();
+                        }}
                         disabled={locked || !isAdmin}
                         className="border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none disabled:opacity-60 w-full"
                         data-testid={`select-attendance-${m.id}`}
@@ -520,7 +610,10 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                       </select>
                       <select
                         value={a.participationMethod}
-                        onChange={e => setAttendance(prev => ({ ...prev, [m.id]: { ...a, participationMethod: e.target.value } }))}
+                        onChange={e => {
+                          setAttendance(prev => ({ ...prev, [m.id]: { ...a, participationMethod: e.target.value } }));
+                          scheduleAutoSave();
+                        }}
                         disabled={locked || !isAdmin || a.attendance !== "present"}
                         className="border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none disabled:opacity-40 w-full"
                         data-testid={`select-participation-${m.id}`}
@@ -532,7 +625,10 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                         <input
                           type="checkbox"
                           checked={a.waivedNotice}
-                          onChange={e => setAttendance(prev => ({ ...prev, [m.id]: { ...a, waivedNotice: e.target.checked } }))}
+                          onChange={e => {
+                            setAttendance(prev => ({ ...prev, [m.id]: { ...a, waivedNotice: e.target.checked } }));
+                            scheduleAutoSave();
+                          }}
                           disabled={locked || !isAdmin}
                           className="rounded disabled:opacity-60"
                           data-testid={`checkbox-notice-${m.id}`}
@@ -544,41 +640,62 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                   );
                 })}
               </div>
-            ) : <p className="text-sm text-slate-400 italic">No board members found.</p>}
+            ) : (
+              <p className="text-sm text-slate-400 italic">No board members found.</p>
+            )}
 
-            {/* Quorum summary */}
-            <div className="flex items-center gap-4 pt-2 border-t border-slate-100">
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-slate-600 font-medium">Quorum present?</label>
-                <input
-                  type="checkbox"
-                  checked={!!content.quorumPresent}
-                  onChange={e => { setContent(c => ({ ...c, quorumPresent: e.target.checked })); scheduleAutoSave(); }}
-                  disabled={locked || !isAdmin}
-                  className="rounded"
-                  data-testid="checkbox-quorum"
+            {/* Quorum + Notice summary */}
+            <div className="grid grid-cols-1 gap-3 pt-2 border-t border-slate-100">
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-slate-600 font-medium">Quorum present?</label>
+                  <input type="checkbox" checked={!!content.quorumPresent}
+                    onChange={e => { setContent(c => ({ ...c, quorumPresent: e.target.checked })); scheduleAutoSave(); }}
+                    disabled={locked || !isAdmin} className="rounded" data-testid="checkbox-quorum" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-slate-600">Count:</label>
+                  <input type="number" min={0} value={content.quorumCount ?? ""}
+                    onChange={e => { setContent(c => ({ ...c, quorumCount: e.target.value })); scheduleAutoSave(); }}
+                    disabled={locked || !isAdmin}
+                    className="w-16 border border-slate-200 rounded px-2 py-1 text-sm focus:outline-none disabled:opacity-60"
+                    data-testid="input-quorum-count" />
+                </div>
+                {content.quorumPresent && (
+                  <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">Quorum Met</Badge>
+                )}
+              </div>
+              {/* Absent directors narrative + notice note */}
+              <div>
+                <label className="text-xs font-semibold text-slate-500 mb-1 block">Absent Directors — reason / notice note</label>
+                <textarea
+                  value={content.absentDirectorsNote ?? ""}
+                  onChange={e => setContent(c => ({ ...c, absentDirectorsNote: e.target.value }))}
+                  onBlur={scheduleAutoSave}
+                  disabled={locked}
+                  placeholder="e.g. Jane Doe — excused due to illness, notice waived. John Smith — absent without notice."
+                  rows={2}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none disabled:bg-slate-50 disabled:text-slate-400"
+                  data-testid="textarea-absent-directors"
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-slate-600">Count:</label>
+              <div>
+                <label className="text-xs font-semibold text-slate-500 mb-1 block">Meeting Notice Summary</label>
                 <input
-                  type="number"
-                  min={0}
-                  value={content.quorumCount ?? ""}
-                  onChange={e => { setContent(c => ({ ...c, quorumCount: e.target.value })); scheduleAutoSave(); }}
-                  disabled={locked || !isAdmin}
-                  className="w-16 border border-slate-200 rounded px-2 py-1 text-sm focus:outline-none disabled:opacity-60"
-                  data-testid="input-quorum-count"
+                  value={content.noticeSummary ?? ""}
+                  onChange={e => setContent(c => ({ ...c, noticeSummary: e.target.value }))}
+                  onBlur={scheduleAutoSave}
+                  disabled={locked}
+                  placeholder="e.g. Notice provided by email 10 days in advance; all directors acknowledged."
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50 disabled:text-slate-400"
+                  data-testid="input-notice-summary"
                 />
               </div>
-              {content.quorumPresent && (
-                <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">Quorum Met</Badge>
-              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* ── Narrative Notes ── */}
+        {/* ── Meeting Notes ── */}
         <Card className="border-0 shadow-sm">
           <CardHeader className="pb-2 pt-4">
             <CardTitle className="text-sm font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
@@ -611,6 +728,8 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                 data-testid="textarea-opening-remarks"
               />
             </div>
+
+            {/* Reports */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-semibold text-slate-500">Reports</label>
@@ -663,6 +782,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                 ))}
               </div>
             </div>
+
             <div>
               <label className="text-xs font-semibold text-slate-500 mb-1 block">General Business / Other Notes</label>
               <textarea
@@ -710,7 +830,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <Badge className={`text-xs border ${m.passed ? "bg-green-100 text-green-700 border-green-200" : "bg-red-100 text-red-700 border-red-200"}`}>
-                          {m.passed ? <><Check className="w-3 h-3 mr-0.5" />Passed</> : <>Failed</>}
+                          {m.passed ? <><Check className="w-3 h-3 mr-0.5" />Passed</> : "Failed"}
                         </Badge>
                         {!locked && isAdmin && (
                           <>
@@ -816,33 +936,23 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
         {isAdmin && (
           <div className="flex items-center gap-3 pt-2 pb-6 flex-wrap">
             {!locked && (
-              <Button
-                onClick={() => saveDraft(false)}
-                disabled={saving}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5"
-                data-testid="button-save-draft"
-              >
-                {saving ? <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" /> : <FileText className="w-4 h-4" />}
+              <Button onClick={() => saveDraft(false)} disabled={saving}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5" data-testid="button-save-draft">
+                {saving
+                  ? <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                  : <FileText className="w-4 h-4" />}
                 Save Draft
               </Button>
             )}
             {!locked && minutes?.status === "draft" && (
-              <Button
-                onClick={submitForApproval}
-                variant="outline"
-                className="border-amber-300 text-amber-700 hover:bg-amber-50 gap-1.5"
-                data-testid="button-submit-for-approval"
-              >
+              <Button onClick={submitForApproval} variant="outline"
+                className="border-amber-300 text-amber-700 hover:bg-amber-50 gap-1.5" data-testid="button-submit-for-approval">
                 <Send className="w-4 h-4" /> Submit for Approval
               </Button>
             )}
             {!locked && minutes?.status === "pending_approval" && (
-              <Button
-                onClick={approve}
-                className="bg-green-600 hover:bg-green-700 text-white gap-1.5"
-                data-testid="button-approve-minutes"
-              >
-                <Check className="w-4 h-4" /> Approve & Lock Minutes
+              <Button onClick={approve} className="bg-green-600 hover:bg-green-700 text-white gap-1.5" data-testid="button-approve-minutes">
+                <Check className="w-4 h-4" /> Approve &amp; Lock Minutes
               </Button>
             )}
             {locked && (
@@ -876,9 +986,9 @@ function MinutesContent() {
       apiRequest("GET", "/api/board/minutes"),
     ]).then(([mRes, minsRes]) => {
       if (mRes.success) {
-        const past = mRes.data.filter((m: any) =>
-          m.status === "held" || new Date(m.scheduledAt) <= new Date()
-        ).sort((a: any, b: any) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
+        const past = mRes.data
+          .filter((m: any) => m.status === "held" || new Date(m.scheduledAt) <= new Date())
+          .sort((a: any, b: any) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
         setMeetings(past);
       }
       if (minsRes.success) {
@@ -892,8 +1002,9 @@ function MinutesContent() {
 
   if (selected) return <MinutesEditor meeting={selected} onBack={() => setSelected(null)} />;
 
-  // Unique years from meeting dates
-  const years = Array.from(new Set(meetings.map(m => new Date(m.scheduledAt).getFullYear().toString()))).sort((a, b) => parseInt(b) - parseInt(a));
+  const years = Array.from(new Set(
+    meetings.map(m => new Date(m.scheduledAt).getFullYear().toString())
+  )).sort((a, b) => parseInt(b) - parseInt(a));
 
   const filtered = meetings.filter(m => {
     if (yearFilter && new Date(m.scheduledAt).getFullYear().toString() !== yearFilter) return false;
@@ -916,13 +1027,15 @@ function MinutesContent() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-2 mb-4" data-testid="minutes-filters">
+      <div className="flex items-center gap-2 mb-4 flex-wrap" data-testid="minutes-filters">
         <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-        <select value={yearFilter} onChange={e => setYearFilter(e.target.value)} className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none" data-testid="select-year-filter">
+        <select value={yearFilter} onChange={e => setYearFilter(e.target.value)}
+          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none" data-testid="select-year-filter">
           <option value="">All Years</option>
           {years.map(y => <option key={y} value={y}>{y}</option>)}
         </select>
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none" data-testid="select-status-filter">
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none" data-testid="select-status-filter">
           <option value="">All Statuses</option>
           <option value="none">No Minutes</option>
           <option value="draft">Draft</option>
@@ -930,13 +1043,18 @@ function MinutesContent() {
           <option value="approved">Approved</option>
         </select>
         {(yearFilter || statusFilter) && (
-          <button onClick={() => { setYearFilter(""); setStatusFilter(""); }} className="text-xs text-slate-400 hover:text-slate-600 underline" data-testid="button-clear-filters">Clear</button>
+          <button onClick={() => { setYearFilter(""); setStatusFilter(""); }}
+            className="text-xs text-slate-400 hover:text-slate-600 underline" data-testid="button-clear-filters">
+            Clear
+          </button>
         )}
         <span className="text-xs text-slate-400 ml-1">{filtered.length} meeting{filtered.length !== 1 ? "s" : ""}</span>
       </div>
 
       {loading ? (
-        <div className="space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="h-16 bg-white rounded-xl animate-pulse shadow-sm" />)}</div>
+        <div className="space-y-3">
+          {[...Array(4)].map((_, i) => <div key={i} className="h-16 bg-white rounded-xl animate-pulse shadow-sm" />)}
+        </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-slate-400">
           <ScrollText className="w-12 h-12 mx-auto mb-3 opacity-30" />
@@ -948,20 +1066,26 @@ function MinutesContent() {
           {filtered.map(m => {
             const mins = minutesMap[m.id];
             return (
-              <Card
-                key={m.id}
-                className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => setSelected(m)}
-                data-testid={`minutes-meeting-${m.id}`}
-              >
+              <Card key={m.id} className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setSelected(m)} data-testid={`minutes-meeting-${m.id}`}>
                 <CardContent className="py-3">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${mins?.status === "approved" ? "bg-green-100" : mins?.status === "pending_approval" ? "bg-amber-100" : mins ? "bg-indigo-100" : "bg-slate-100"}`}>
-                      <ScrollText className={`w-5 h-5 ${mins?.status === "approved" ? "text-green-600" : mins?.status === "pending_approval" ? "text-amber-600" : mins ? "text-indigo-600" : "text-slate-400"}`} />
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                      mins?.status === "approved" ? "bg-green-100"
+                        : mins?.status === "pending_approval" ? "bg-amber-100"
+                        : mins ? "bg-indigo-100" : "bg-slate-100"
+                    }`}>
+                      <ScrollText className={`w-5 h-5 ${
+                        mins?.status === "approved" ? "text-green-600"
+                          : mins?.status === "pending_approval" ? "text-amber-600"
+                          : mins ? "text-indigo-600" : "text-slate-400"
+                      }`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm text-[#1A1F2B] truncate">{m.title}</p>
-                      <p className="text-xs text-slate-400">{new Date(m.scheduledAt).toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "short", day: "numeric" })}</p>
+                      <p className="text-xs text-slate-400">{new Date(m.scheduledAt).toLocaleDateString("en-US", {
+                        weekday: "short", year: "numeric", month: "short", day: "numeric",
+                      })}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {mins ? (

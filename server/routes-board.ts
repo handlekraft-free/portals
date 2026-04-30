@@ -938,6 +938,8 @@ router.post("/meetings/:id/packet", async (req, res) => {
   if (minutesRows.length > 0) {
     minutesFull = await getMinutesFull(minutesRows[0].id);
   }
+  // Recent board documents (metadata only — files are confidential and not embedded)
+  const packetDocs = await db.select().from(boardDocuments).orderBy(desc(boardDocuments.createdAt)).limit(20);
 
   const navy = "#1A1F2B";
   const teal = "#0D7377";
@@ -1107,6 +1109,31 @@ router.post("/meetings/:id/packet", async (req, res) => {
       if (a.due_date) meta.push(`Due: ${new Date(a.due_date).toLocaleDateString()}`);
       if (meta.length) { doc.fontSize(9).fillColor(lightGray).font("Helvetica").text(meta.join("  |  "), L + 22, doc.y, { width: W - 22 }); }
       doc.moveDown(0.4);
+    });
+  }
+
+  // Board Documents (metadata index — files are confidential, not embedded in PDF)
+  if (packetDocs.length > 0) {
+    sectionHeader("Board Documents Index");
+    doc.fontSize(9).fillColor(lightGray).font("Helvetica").text(
+      "The following documents are available through the Board portal. Files are not embedded here for confidentiality.",
+      L, doc.y, { width: W }
+    );
+    doc.moveDown(0.4);
+    packetDocs.forEach((d: any, i: number) => {
+      checkY(24);
+      const y = doc.y;
+      doc.fontSize(10).fillColor(teal).font("Helvetica-Bold").text(`${i + 1}.`, L, y, { width: 18 });
+      doc.fontSize(10).fillColor(darkGray).font("Helvetica-Bold").text(d.title, L + 22, y, { width: W - 160 });
+      doc.fontSize(9).fillColor(lightGray).font("Helvetica").text(
+        [d.category, d.confidentiality === "board_only" ? "Board Only" : d.confidentiality === "public" ? "Public" : "Confidential",
+          d.created_at ? new Date(d.createdAt).toLocaleDateString() : ""].filter(Boolean).join("  |  "),
+        L + 22, doc.y, { width: W - 22 }
+      );
+      if (d.description) {
+        doc.fontSize(9).fillColor(lightGray).font("Helvetica").text(d.description, L + 22, doc.y, { width: W - 22 });
+      }
+      doc.moveDown(0.3);
     });
   }
 

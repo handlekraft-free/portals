@@ -398,7 +398,7 @@ function MeetingsContent() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ title: "", scheduledAt: "", endTime: "", location: "", meetingType: "regular", platform: "", quorumNumber: "3" });
+  const [form, setForm] = useState({ title: "", scheduledAt: "", endTime: "", location: "", meetingType: "regular", platform: "", quorumNumber: "3", noticeSentAt: "", noticeMethod: "email" });
 
   const loadMeetings = () => {
     setLoading(true);
@@ -423,10 +423,12 @@ function MeetingsContent() {
       ...form,
       quorumNumber: parseInt(form.quorumNumber),
       endTime: form.endTime || undefined,
+      noticeSentAt: form.noticeSentAt || undefined,
+      noticeMethod: form.noticeMethod || undefined,
     });
     if (res.success) {
       setShowCreate(false);
-      setForm({ title: "", scheduledAt: "", endTime: "", location: "", meetingType: "regular", platform: "", quorumNumber: "3" });
+      setForm({ title: "", scheduledAt: "", endTime: "", location: "", meetingType: "regular", platform: "", quorumNumber: "3", noticeSentAt: "", noticeMethod: "email" });
       loadMeetings();
     }
   }
@@ -489,6 +491,21 @@ function MeetingsContent() {
             </div>
             <input value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} placeholder="Location (optional)" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-meeting-location" />
             <input value={form.platform} onChange={e => setForm(f => ({ ...f, platform: e.target.value }))} placeholder="Video conference link (optional)" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-meeting-video" />
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs text-slate-500 block mb-1">Notice Sent Date (optional)</label>
+                <input type="date" value={form.noticeSentAt} onChange={e => setForm(f => ({ ...f, noticeSentAt: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-notice-date" />
+              </div>
+              <div>
+                <label className="text-xs text-slate-500 block mb-1">Notice Method</label>
+                <select value={form.noticeMethod} onChange={e => setForm(f => ({ ...f, noticeMethod: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="select-notice-method">
+                  <option value="email">Email</option>
+                  <option value="mail">Postal Mail</option>
+                  <option value="in_person">In Person</option>
+                  <option value="waived">Waived</option>
+                </select>
+              </div>
+            </div>
             <div className="flex gap-2">
               <Button className="bg-indigo-500 text-white" onClick={createMeeting} data-testid="button-save-meeting">Schedule</Button>
               <Button variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>

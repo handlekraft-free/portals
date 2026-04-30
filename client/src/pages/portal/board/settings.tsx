@@ -11,11 +11,16 @@ import { useToast } from "@/hooks/use-toast";
 function BoardSettingsContent() {
   const [settings, setSettings] = useState<any>({ quorumDefault: 3 });
   const [prefs, setPrefs] = useState<any>({
-    meetingReminders: true,
-    rsvpDeadlineAlerts: true,
-    actionItemReminders: true,
-    documentUploads: true,
-    consentRequests: true,
+    meetingNoticesInApp: true,
+    meetingNoticesEmail: true,
+    actionItemsInApp: true,
+    actionItemsEmail: false,
+    documentUploadsInApp: true,
+    documentUploadsEmail: false,
+    forumActivityInApp: true,
+    forumActivityEmail: false,
+    coiPromptsInApp: true,
+    coiPromptsEmail: true,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -124,11 +129,15 @@ function BoardSettingsContent() {
         </CardHeader>
         <CardContent className="space-y-3">
           {[
-            { key: "meetingReminders", label: "Meeting reminders", desc: "Get notified before upcoming meetings", icon: Calendar },
-            { key: "rsvpDeadlineAlerts", label: "RSVP deadline alerts", desc: "Reminder to RSVP when deadline approaches", icon: Users },
-            { key: "actionItemReminders", label: "Action item reminders", desc: "Alerts when action items are due or overdue", icon: Bell },
-            { key: "documentUploads", label: "New documents", desc: "Notify when new board documents are uploaded", icon: Settings },
-            { key: "consentRequests", label: "Written consent requests", desc: "Alert when a consent vote is opened", icon: Shield },
+            { key: "meetingNoticesInApp", label: "Meeting notices (in-app)", desc: "In-app alerts for upcoming meetings and RSVPs", icon: Calendar },
+            { key: "meetingNoticesEmail", label: "Meeting notices (email)", desc: "Email reminders for upcoming meetings", icon: Calendar },
+            { key: "actionItemsInApp", label: "Action item alerts (in-app)", desc: "In-app alerts when action items are due or overdue", icon: Bell },
+            { key: "actionItemsEmail", label: "Action item alerts (email)", desc: "Email reminders for due/overdue action items", icon: Bell },
+            { key: "documentUploadsInApp", label: "New documents (in-app)", desc: "In-app notification when new board documents are uploaded", icon: Shield },
+            { key: "documentUploadsEmail", label: "New documents (email)", desc: "Email notification for new board documents", icon: Shield },
+            { key: "forumActivityInApp", label: "Forum activity (in-app)", desc: "In-app alerts for new forum topics and replies", icon: Users },
+            { key: "coiPromptsInApp", label: "COI reminders (in-app)", desc: "Annual COI disclosure filing reminders", icon: Settings },
+            { key: "coiPromptsEmail", label: "COI reminders (email)", desc: "Email prompts for COI disclosure filing", icon: Settings },
           ].map(({ key, label, desc, icon: Icon }) => (
             <label key={key} className="flex items-center gap-3 cursor-pointer py-1" data-testid={`toggle-${key}`}>
               <div className="relative">

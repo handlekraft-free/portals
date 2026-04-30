@@ -6,7 +6,7 @@ import { db } from "./db";
 import {
   boardMeetings, boardMeetingRsvps, boardMeetingAttendees, boardAgendaItems,
   boardMeetingNotices, boardActionItems, boardMinutesActionItems,
-  boardDocuments, boardWrittenConsents, users,
+  boardDocuments, boardWrittenConsents, boardNotificationPrefs, users,
 } from "@shared/schema";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
 
@@ -105,7 +105,7 @@ router.get("/meetings", async (req, res) => {
 });
 
 router.post("/meetings", requireAdmin as any, async (req, res) => {
-  const { title, scheduledAt, endTime, location, platform, meetingType, quorumNumber } = req.body;
+  const { title, scheduledAt, endTime, location, platform, meetingType, quorumNumber, noticeSentAt, noticeMethod } = req.body;
   if (!title || !scheduledAt) return res.status(400).json({ success: false, error: "Title and date required" });
   const [meeting] = await db.insert(boardMeetings).values({
     title,
@@ -116,9 +116,23 @@ router.post("/meetings", requireAdmin as any, async (req, res) => {
     meetingType: meetingType || "regular",
     quorumNumber: quorumNumber ? parseInt(quorumNumber) : 3,
     createdBy: req.user!.userId,
+    noticeSentAt: noticeSentAt ? new Date(noticeSentAt) : undefined,
+    noticeMethod: noticeMethod || undefined,
   }).returning();
   auditLog(req.user!.userId, "create", "meeting", meeting.id, `Created: ${title}`);
   res.status(201).json({ success: true, data: meeting });
+});
+
+router.get("/meetings/:id/rsvps", async (req, res) => {
+  const id = parseInt(req.params.id);
+  const rows = await raw(sql`
+    SELECT r.*, u.first_name, u.last_name, u.board_position
+    FROM board_meeting_rsvps r
+    JOIN portal_users u ON u.id = r.user_id
+    WHERE r.meeting_id = ${id}
+    ORDER BY r.response, u.first_name
+  `);
+  res.json({ success: true, data: rows });
 });
 
 router.get("/meetings/:id", async (req, res) => {
@@ -331,14 +345,23 @@ router.post("/minutes/:id/action-items", requireAdmin as any, async (req, res) =
 });
 
 router.patch("/action-items/:id", async (req, res) => {
+  const itemId = parseInt(req.params.id);
+  const userId = req.user!.userId;
+  const isAdmin = req.user!.role === "admin";
+  // Only admin or the assigned user may edit
+  const [existing] = await db.select().from(boardActionItems).where(eq(boardActionItems.id, itemId));
+  if (!existing) return res.status(404).json({ success: false, error: "Not found" });
+  if (!isAdmin && existing.assignedTo !== userId) {
+    return res.status(403).json({ success: false, error: "Not authorized to edit this action item" });
+  }
   const { status, dueDate, title, description } = req.body;
   const [updated] = await db.update(boardActionItems).set({
     ...(status && { status }),
     ...(status === "complete" && { completedAt: new Date() }),
     ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
-    ...(title && { title }),
-    ...(description !== undefined && { description }),
-  }).where(eq(boardActionItems.id, parseInt(req.params.id))).returning();
+    ...(isAdmin && title && { title }),
+    ...(isAdmin && description !== undefined && { description }),
+  }).where(eq(boardActionItems.id, itemId)).returning();
   res.json({ success: true, data: updated });
 });
 
@@ -346,7 +369,7 @@ router.patch("/action-items/:id", async (req, res) => {
 
 router.get("/dashboard", async (req, res) => {
   const userId = req.user!.userId;
-  const now = new Date();
+  const currentYear = new Date().getFullYear();
 
   const [meetings, myActions, recentDocs, openConsents] = await Promise.all([
     db.select().from(boardMeetings).where(
@@ -370,6 +393,36 @@ router.get("/dashboard", async (req, res) => {
     return { ...m, myRsvp: myRsvp?.response ?? null };
   }));
 
+  // Check if COI disclosure filed for current fiscal year
+  const coiRows = await raw(sql`
+    SELECT id FROM board_coi_disclosures WHERE user_id = ${userId} AND fiscal_year = ${currentYear} LIMIT 1
+  `);
+  const coiFiled = coiRows.length > 0;
+
+  // Documents requiring acknowledgment that user hasn't acked
+  const unackedDocs = await raw(sql`
+    SELECT d.id, d.title, d.category, d.created_at
+    FROM board_documents d
+    WHERE d.require_ack = true
+    AND NOT EXISTS (
+      SELECT 1 FROM board_document_acks a WHERE a.document_id = d.id AND a.user_id = ${userId}
+    )
+    ORDER BY d.created_at DESC
+    LIMIT 5
+  `);
+
+  // Open written consents user hasn't responded to
+  const unconsentedVotes = await raw(sql`
+    SELECT c.id, c.title, c.created_at
+    FROM board_written_consents c
+    WHERE c.status = 'pending'
+    AND NOT EXISTS (
+      SELECT 1 FROM board_written_consent_responses r WHERE r.consent_id = c.id AND r.user_id = ${userId}
+    )
+    ORDER BY c.created_at ASC
+    LIMIT 3
+  `);
+
   res.json({
     success: true,
     data: {
@@ -377,6 +430,13 @@ router.get("/dashboard", async (req, res) => {
       myActionItems: myActions,
       recentDocuments: recentDocs,
       openConsents,
+      // Compliance "needs attention" alerts
+      needsAttention: {
+        coiFiled,
+        coiYear: currentYear,
+        unackedDocuments: unackedDocs,
+        pendingConsents: unconsentedVotes,
+      },
     },
   });
 });
@@ -578,11 +638,26 @@ router.get("/notification-prefs", async (req, res) => {
 
 router.patch("/notification-prefs", async (req, res) => {
   const userId = req.user!.userId;
-  const cols = Object.entries(req.body).map(([k, v]) => `${k.replace(/([A-Z])/g, '_$1').toLowerCase()} = ${v}`).join(', ');
-  await db.execute(sql`
-    INSERT INTO board_notification_prefs (user_id) VALUES (${userId})
-    ON CONFLICT (user_id) DO UPDATE SET updated_at = NOW()
-  `);
+  const {
+    meetingNoticesEmail, meetingNoticesInApp,
+    documentUploadsEmail, documentUploadsInApp,
+    actionItemsEmail, actionItemsInApp,
+    forumActivityEmail, forumActivityInApp,
+    coiPromptsEmail, coiPromptsInApp,
+  } = req.body;
+  const vals: any = { userId };
+  if (meetingNoticesEmail !== undefined) vals.meetingNoticesEmail = !!meetingNoticesEmail;
+  if (meetingNoticesInApp !== undefined) vals.meetingNoticesInApp = !!meetingNoticesInApp;
+  if (documentUploadsEmail !== undefined) vals.documentUploadsEmail = !!documentUploadsEmail;
+  if (documentUploadsInApp !== undefined) vals.documentUploadsInApp = !!documentUploadsInApp;
+  if (actionItemsEmail !== undefined) vals.actionItemsEmail = !!actionItemsEmail;
+  if (actionItemsInApp !== undefined) vals.actionItemsInApp = !!actionItemsInApp;
+  if (forumActivityEmail !== undefined) vals.forumActivityEmail = !!forumActivityEmail;
+  if (forumActivityInApp !== undefined) vals.forumActivityInApp = !!forumActivityInApp;
+  if (coiPromptsEmail !== undefined) vals.coiPromptsEmail = !!coiPromptsEmail;
+  if (coiPromptsInApp !== undefined) vals.coiPromptsInApp = !!coiPromptsInApp;
+  await db.insert(boardNotificationPrefs).values(vals)
+    .onConflictDoUpdate({ target: boardNotificationPrefs.userId, set: vals });
   res.json({ success: true, data: null });
 });
 

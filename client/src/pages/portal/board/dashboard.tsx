@@ -3,7 +3,7 @@ import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
-import { CalendarDays, FileText, CheckSquare, ChevronRight, FileSignature, Check, X, Clock, AlertCircle } from "lucide-react";
+import { CalendarDays, FileText, CheckSquare, ChevronRight, FileSignature, Check, X, Clock, AlertCircle, Scale, ShieldAlert } from "lucide-react";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,8 +58,14 @@ function BoardDashboardContent() {
   const actions = data?.myActionItems ?? [];
   const documents = data?.recentDocuments ?? [];
   const consents = data?.openConsents ?? [];
+  const needs = data?.needsAttention ?? {};
   const overdueActions = actions.filter((a: any) => a.dueDate && new Date(a.dueDate) < new Date());
   const needsRsvp = meetings.filter((m: any) => !m.myRsvp);
+  const complianceAlerts = [
+    !needs.coiFiled && { key: "coi", icon: Scale, color: "amber", text: `COI disclosure not filed for ${needs.coiYear}`, href: "/portal/board/conflicts" },
+    ...(needs.unackedDocuments ?? []).map((d: any) => ({ key: `ack-${d.id}`, icon: ShieldAlert, color: "red", text: `Unacknowledged document: "${d.title}"`, href: "/portal/board/documents" })),
+    ...(needs.pendingConsents ?? []).map((c: any) => ({ key: `consent-${c.id}`, icon: FileSignature, color: "purple", text: `Pending consent vote: "${c.title}"`, href: "/portal/board/consents" })),
+  ].filter(Boolean) as { key: string; icon: any; color: string; text: string; href: string }[];
 
   return (
     <div className="space-y-6">
@@ -109,6 +115,38 @@ function BoardDashboardContent() {
           </Link>
         ))}
       </div>
+
+      {/* Compliance "Needs Attention" */}
+      {complianceAlerts.length > 0 && (
+        <Card className="border-0 shadow-sm border-l-4 border-l-amber-400 bg-amber-50/50" data-testid="card-compliance-alerts">
+          <CardContent className="pt-4 pb-4">
+            <p className="text-xs font-bold text-amber-700 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+              <AlertCircle className="w-3.5 h-3.5" /> Governance — Needs Attention
+            </p>
+            <div className="space-y-2">
+              {complianceAlerts.map(alert => {
+                const Icon = alert.icon;
+                const colorMap: Record<string, string> = {
+                  amber: "text-amber-600 bg-amber-100",
+                  red: "text-red-600 bg-red-100",
+                  purple: "text-purple-600 bg-purple-100",
+                };
+                return (
+                  <Link key={alert.key} href={alert.href} className="no-underline">
+                    <div className="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-white/60 transition-colors cursor-pointer" data-testid={`compliance-alert-${alert.key}`}>
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${colorMap[alert.color] || "text-slate-600 bg-slate-100"}`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <p className="text-sm text-slate-700 flex-1">{alert.text}</p>
+                      <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Upcoming Meetings with RSVP */}

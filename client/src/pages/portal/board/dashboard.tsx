@@ -136,7 +136,7 @@ function BoardDashboardContent() {
                 <FileText className="w-4 h-4 text-slate-400 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-[#1A1F2B] truncate">{doc.title}</p>
-                  <p className="text-xs text-slate-400">{doc.documentType} · {new Date(doc.createdAt).toLocaleDateString()}</p>
+                  <p className="text-xs text-slate-400">{doc.category} · {new Date(doc.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
             ))}

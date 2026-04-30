@@ -5,22 +5,28 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, CalendarDays, FileText, ScrollText, CheckSquare,
   FileSignature, LogOut, Menu, Users, Scale, DollarSign, Settings, Shield,
+  BookOpen, MessageSquare, Calendar,
 } from "lucide-react";
 import logoImg from "@/assets/images/logo.png";
 
 const navItems = [
   { href: "/portal/board/dashboard", icon: <LayoutDashboard className="w-4 h-4" />, label: "Dashboard" },
+  { href: "/portal/board/calendar", icon: <Calendar className="w-4 h-4" />, label: "Calendar" },
   { href: "/portal/board/meetings", icon: <CalendarDays className="w-4 h-4" />, label: "Meetings" },
   { href: "/portal/board/documents", icon: <FileText className="w-4 h-4" />, label: "Documents" },
   { href: "/portal/board/minutes", icon: <ScrollText className="w-4 h-4" />, label: "Minutes" },
   { href: "/portal/board/action-items", icon: <CheckSquare className="w-4 h-4" />, label: "Action Items" },
   { href: "/portal/board/consents", icon: <FileSignature className="w-4 h-4" />, label: "Written Consents" },
-  { href: "/portal/board/members", icon: <Users className="w-4 h-4" />, label: "Board Members" },
+  { href: "/portal/board/conflicts", icon: <Scale className="w-4 h-4" />, label: "Conflicts of Interest" },
+  { href: "/portal/board/directory", icon: <Users className="w-4 h-4" />, label: "Directory" },
   { href: "/portal/board/financials", icon: <DollarSign className="w-4 h-4" />, label: "Financials" },
+  { href: "/portal/board/forums", icon: <MessageSquare className="w-4 h-4" />, label: "Forums" },
+  { href: "/portal/board/onboarding", icon: <BookOpen className="w-4 h-4" />, label: "Onboarding" },
 ];
 
 const adminItems = [
   { href: "/portal/board/roster", icon: <Shield className="w-4 h-4" />, label: "Manage Roster" },
+  { href: "/portal/board/members", icon: <Users className="w-4 h-4" />, label: "Board Members" },
   { href: "/portal/board/settings", icon: <Settings className="w-4 h-4" />, label: "Board Settings" },
 ];
 
@@ -66,7 +72,6 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
           </Link>
         ))}
 
-        {/* Admin-only section */}
         {user?.role === "admin" && (
           <>
             <div className="pt-3 pb-1 px-2">
@@ -115,7 +120,6 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
             <Menu className="w-5 h-5" />
           </button>
           <p className="text-white font-semibold text-sm flex-1">Board Portal</p>
-          <Scale className="w-5 h-5 text-indigo-400" />
         </header>
 
         <main className="flex-1 p-4 md:p-6 overflow-auto">

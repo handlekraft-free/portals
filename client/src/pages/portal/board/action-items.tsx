@@ -49,7 +49,8 @@ function ActionItemsContent() {
                       <div className="flex items-start gap-3">
                         <CheckSquare className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-[#1A1F2B]">{item.description}</p>
+                          <p className="text-sm font-medium text-[#1A1F2B]">{item.title}</p>
+                          {item.description && <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>}
                           <p className="text-xs text-red-500 mt-0.5">Overdue: {new Date(item.dueDate).toLocaleDateString()}</p>
                         </div>
                         <Button size="sm" variant="outline" className="h-7 text-xs shrink-0 hover:bg-green-50 hover:text-green-600 hover:border-green-200" onClick={() => markComplete(item.id)} data-testid={`button-complete-${item.id}`}>
@@ -72,7 +73,8 @@ function ActionItemsContent() {
                       <div className="flex items-start gap-3">
                         <CheckSquare className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-[#1A1F2B]">{item.description}</p>
+                          <p className="text-sm font-medium text-[#1A1F2B]">{item.title}</p>
+                          {item.description && <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>}
                           {item.dueDate && <p className="text-xs text-slate-400 mt-0.5">Due: {new Date(item.dueDate).toLocaleDateString()}</p>}
                         </div>
                         <Button size="sm" variant="outline" className="h-7 text-xs shrink-0 hover:bg-green-50 hover:text-green-600 hover:border-green-200" onClick={() => markComplete(item.id)} data-testid={`button-complete-${item.id}`}>

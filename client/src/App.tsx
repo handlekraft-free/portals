@@ -42,6 +42,12 @@ import BoardMembers from "@/pages/portal/board/members";
 import BoardFinancials from "@/pages/portal/board/financials";
 import BoardRoster from "@/pages/portal/board/roster";
 import BoardSettings from "@/pages/portal/board/settings";
+import BoardCalendar from "@/pages/portal/board/calendar";
+import BoardConflicts from "@/pages/portal/board/conflicts";
+import BoardDirectory from "@/pages/portal/board/directory";
+import BoardForums from "@/pages/portal/board/forums";
+import BoardOnboarding from "@/pages/portal/board/onboarding";
+import BoardMinutesDetail from "@/pages/portal/board/minutes-detail";
 
 // Admin Portal
 import AdminUsers from "@/pages/portal/admin/users";
@@ -89,6 +95,12 @@ function Router() {
       <Route path="/portal/board/financials" component={BoardFinancials} />
       <Route path="/portal/board/roster" component={BoardRoster} />
       <Route path="/portal/board/settings" component={BoardSettings} />
+      <Route path="/portal/board/calendar" component={BoardCalendar} />
+      <Route path="/portal/board/conflicts" component={BoardConflicts} />
+      <Route path="/portal/board/directory" component={BoardDirectory} />
+      <Route path="/portal/board/forums" component={BoardForums} />
+      <Route path="/portal/board/onboarding" component={BoardOnboarding} />
+      <Route path="/portal/board/minutes/:id" component={BoardMinutesDetail} />
 
       {/* Admin Portal */}
       <Route path="/portal/admin/users" component={AdminUsers} />

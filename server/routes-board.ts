@@ -124,7 +124,7 @@ router.patch("/meetings/:id", requireAdmin as any, async (req, res) => {
 
 // ── Agenda Items ──────────────────────────────────────────────────────────────
 
-router.post("/meetings/:id/agenda", async (req, res) => {
+router.post("/meetings/:id/agenda", requireAdmin as any, async (req, res) => {
   const meetingId = parseInt(req.params.id);
   const { title, description, duration, presenter } = req.body;
   if (!title) return res.status(400).json({ success: false, error: "Title required" });
@@ -135,7 +135,7 @@ router.post("/meetings/:id/agenda", async (req, res) => {
   res.status(201).json({ success: true, data: row });
 });
 
-router.patch("/agenda/:id", async (req, res) => {
+router.patch("/agenda/:id", requireAdmin as any, async (req, res) => {
   const { title, description, duration, presenter, position } = req.body;
   const [row] = await db.update(boardAgendaItems).set({
     ...(title && { title }),
@@ -203,7 +203,7 @@ router.post("/meetings/:id/minutes", requireAdmin as any, async (req, res) => {
   res.json({ success: true, data: row });
 });
 
-router.post("/minutes/:id/motions", async (req, res) => {
+router.post("/minutes/:id/motions", requireAdmin as any, async (req, res) => {
   const { motionText, passed, votesFor, votesAgainst, votesAbstain } = req.body;
   if (!motionText) return res.status(400).json({ success: false, error: "Motion text required" });
   const existing = await db.select({ position: boardMinutesMotions.position })
@@ -220,7 +220,7 @@ router.post("/minutes/:id/motions", async (req, res) => {
   res.status(201).json({ success: true, data: row });
 });
 
-router.post("/minutes/:id/action-items", async (req, res) => {
+router.post("/minutes/:id/action-items", requireAdmin as any, async (req, res) => {
   const userId = req.user!.userId;
   const { title, description, assignedTo, dueDate } = req.body;
   if (!title) return res.status(400).json({ success: false, error: "Title required" });
@@ -252,7 +252,7 @@ router.get("/documents", async (_req, res) => {
   res.json({ success: true, data: docs });
 });
 
-router.post("/documents", uploadDoc.single("file"), async (req, res) => {
+router.post("/documents", requireAdmin as any, uploadDoc.single("file"), async (req, res) => {
   const userId = req.user!.userId;
   const { title, description, category, confidentiality, requireAck } = req.body;
   if (!title || !category) return res.status(400).json({ success: false, error: "Title and category required" });

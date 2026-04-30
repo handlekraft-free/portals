@@ -705,3 +705,22 @@ export const boardNotificationPrefs = pgTable("board_notification_prefs", {
   coiPromptsInApp: boolean("coi_prompts_in_app").default(true),
 });
 export type BoardNotificationPref = typeof boardNotificationPrefs.$inferSelect;
+
+export const boardMeetingNotices = pgTable("board_meeting_notices", {
+  id: serial("id").primaryKey(),
+  meetingId: integer("meeting_id").notNull(),
+  sentAt: timestamp("sent_at").defaultNow().notNull(),
+  method: varchar("method", { length: 50 }).notNull(),
+  recipientCount: integer("recipient_count").default(0),
+  sentBy: integer("sent_by").notNull(),
+  notes: text("notes"),
+});
+export type BoardMeetingNotice = typeof boardMeetingNotices.$inferSelect;
+
+export const boardDocumentViews = pgTable("board_document_views", {
+  id: serial("id").primaryKey(),
+  documentId: integer("document_id").notNull(),
+  userId: integer("user_id").notNull(),
+  viewedAt: timestamp("viewed_at").defaultNow().notNull(),
+});
+export type BoardDocumentView = typeof boardDocumentViews.$inferSelect;

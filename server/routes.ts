@@ -171,6 +171,47 @@ export async function registerRoutes(
         disclosures text, certified boolean DEFAULT false, submitted_at timestamp DEFAULT now() NOT NULL,
         meeting_id integer, agenda_item_id integer, interest_description text
       );
+      CREATE TABLE IF NOT EXISTS board_forum_topics (
+        id serial PRIMARY KEY, title text NOT NULL, content text NOT NULL,
+        author_id integer NOT NULL, committee_id integer, pinned boolean DEFAULT false,
+        created_at timestamp DEFAULT now() NOT NULL, last_activity_at timestamp DEFAULT now() NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS board_forum_posts (
+        id serial PRIMARY KEY, topic_id integer NOT NULL, author_id integer NOT NULL,
+        content text NOT NULL, created_at timestamp DEFAULT now() NOT NULL, edited_at timestamp
+      );
+      CREATE TABLE IF NOT EXISTS board_financials (
+        id serial PRIMARY KEY, title text NOT NULL, period varchar(20) NOT NULL,
+        as_of_date timestamp NOT NULL, filename text NOT NULL, filepath text NOT NULL,
+        file_size integer, mime_type text, uploaded_by integer NOT NULL,
+        uploaded_at timestamp DEFAULT now() NOT NULL, parent_id integer, notes text
+      );
+      CREATE TABLE IF NOT EXISTS board_onboarding_items (
+        id serial PRIMARY KEY, title text NOT NULL, description text,
+        document_id integer, position integer DEFAULT 0, required boolean DEFAULT true,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS board_onboarding_acks (
+        id serial PRIMARY KEY, item_id integer NOT NULL, user_id integer NOT NULL,
+        acked_at timestamp DEFAULT now() NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS board_notification_prefs (
+        id serial PRIMARY KEY, user_id integer NOT NULL UNIQUE,
+        meeting_notices_email boolean DEFAULT true, meeting_notices_in_app boolean DEFAULT true,
+        document_uploads_email boolean DEFAULT false, document_uploads_in_app boolean DEFAULT true,
+        action_items_email boolean DEFAULT true, action_items_in_app boolean DEFAULT true,
+        forum_activity_email boolean DEFAULT false, forum_activity_in_app boolean DEFAULT true,
+        coi_prompts_email boolean DEFAULT true, coi_prompts_in_app boolean DEFAULT true
+      );
+      CREATE TABLE IF NOT EXISTS board_meeting_notices (
+        id serial PRIMARY KEY, meeting_id integer NOT NULL, sent_at timestamp DEFAULT now() NOT NULL,
+        method varchar(50) NOT NULL, recipient_count integer DEFAULT 0,
+        sent_by integer NOT NULL, notes text
+      );
+      CREATE TABLE IF NOT EXISTS board_document_views (
+        id serial PRIMARY KEY, document_id integer NOT NULL, user_id integer NOT NULL,
+        viewed_at timestamp DEFAULT now() NOT NULL
+      );
     `);
     await migrationPool.end();
     console.log("[migrate] ✓ Schema patches applied");

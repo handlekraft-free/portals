@@ -51,7 +51,8 @@ const defaultCcHours = (codes: any[]): Record<number, Record<DayKey, number>> =>
   const result: Record<number, Record<DayKey, number>> = {};
   codes.forEach((cc, idx) => {
     const row = emptyDayRow();
-    if (idx === 0) WEEKDAYS.forEach(d => { row[d] = 5; });
+    if (idx === 0) { row.mon = 5; row.tue = 5; row.wed = 5; row.thu = 5; }
+    if (idx === 1) { row.fri = 5; }
     result[cc.id] = row;
   });
   return result;

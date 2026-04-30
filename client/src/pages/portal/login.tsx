@@ -5,15 +5,16 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Briefcase, Building2, GraduationCap, Eye, EyeOff, ArrowLeft, Shield } from "lucide-react";
+import { Briefcase, Building2, GraduationCap, Eye, EyeOff, ArrowLeft, Shield, Scale } from "lucide-react";
 import logoImg from "@/assets/images/logo.png";
 
-type Role = "employee" | "client" | "student";
+type Role = "employee" | "client" | "student" | "board";
 
 const roles: { id: Role; label: string; icon: React.ReactNode; desc: string; color: string }[] = [
   { id: "employee", label: "Team Member", icon: <Briefcase className="w-6 h-6" />, desc: "Employees & Staff", color: "border-[#0D7377] bg-[#0D7377]/10 text-[#0D7377]" },
   { id: "client", label: "Client", icon: <Building2 className="w-6 h-6" />, desc: "Organizations we serve", color: "border-[#D4A843] bg-[#D4A843]/10 text-[#D4A843]" },
   { id: "student", label: "Student", icon: <GraduationCap className="w-6 h-6" />, desc: "Fellowship Fellows", color: "border-purple-500 bg-purple-500/10 text-purple-600" },
+  { id: "board", label: "Board Member", icon: <Scale className="w-6 h-6" />, desc: "Board of Directors", color: "border-indigo-400 bg-indigo-500/10 text-indigo-400" },
 ];
 
 export default function LoginPage() {

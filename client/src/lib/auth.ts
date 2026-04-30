@@ -1,13 +1,17 @@
 export interface PortalUser {
   id: number;
   email: string;
-  role: "admin" | "employee" | "client" | "student";
+  role: "admin" | "employee" | "client" | "student" | "board";
   firstName: string;
   lastName: string;
   mustChangePassword?: boolean;
   status?: string;
   canApprove?: boolean;
   approverId?: number | null;
+  boardPosition?: string | null;
+  termStart?: string | null;
+  termEnd?: string | null;
+  isInterestedDirector?: boolean;
 }
 
 export async function getCurrentUser(): Promise<PortalUser | null> {
@@ -47,6 +51,7 @@ export function getPortalPath(role: string): string {
     case "employee": return "/portal/employee/dashboard";
     case "client": return "/portal/client/dashboard";
     case "student": return "/portal/student/dashboard";
+    case "board": return "/portal/board/dashboard";
     default: return "/login";
   }
 }

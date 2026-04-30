@@ -60,7 +60,7 @@ export type AdminUser = typeof adminUsers.$inferSelect;
 
 // ─── Portal Users ──────────────────────────────────────────────────────────────
 
-export const userRoleEnum = pgEnum("user_role", ["admin", "employee", "client", "student"]);
+export const userRoleEnum = pgEnum("user_role", ["admin", "employee", "client", "student", "board"]);
 export const userStatusEnum = pgEnum("user_status", ["active", "inactive", "pending"]);
 
 export const users = pgTable("portal_users", {
@@ -79,6 +79,15 @@ export const users = pgTable("portal_users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   canApprove: boolean("can_approve").default(false),
   approverId: integer("approver_id"),
+  // Board-specific fields
+  termStart: timestamp("term_start"),
+  termEnd: timestamp("term_end"),
+  boardPosition: text("board_position"),
+  committees: text("committees").array(),
+  bio: text("bio"),
+  photoUrl: text("photo_url"),
+  emergencyContact: text("emergency_contact"),
+  isInterestedDirector: boolean("is_interested_director").default(false),
 });
 export type PortalUser = typeof users.$inferSelect;
 export type InsertPortalUser = typeof users.$inferInsert;
@@ -419,3 +428,278 @@ export const announcements = pgTable("announcements", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 export type Announcement = typeof announcements.$inferSelect;
+
+// ─── Board Portal ──────────────────────────────────────────────────────────────
+
+export const boardCommittees = pgTable("board_committees", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type BoardCommittee = typeof boardCommittees.$inferSelect;
+
+export const boardMeetingTypeEnum = pgEnum("board_meeting_type", ["regular", "special", "committee", "annual"]);
+export const boardMeetingStatusEnum = pgEnum("board_meeting_status", ["scheduled", "held", "cancelled"]);
+
+export const boardMeetings = pgTable("board_meetings", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  meetingType: boardMeetingTypeEnum("meeting_type").default("regular"),
+  status: boardMeetingStatusEnum("status").default("scheduled"),
+  scheduledAt: timestamp("scheduled_at").notNull(),
+  endTime: timestamp("end_time"),
+  location: text("location"),
+  platform: text("platform"),
+  quorumNumber: integer("quorum_number").default(3),
+  committeeId: integer("committee_id"),
+  noticeSentAt: timestamp("notice_sent_at"),
+  noticeMethod: varchar("notice_method", { length: 50 }),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type BoardMeeting = typeof boardMeetings.$inferSelect;
+
+export const boardMeetingRsvpEnum = pgEnum("board_meeting_rsvp", ["yes", "no", "tentative"]);
+
+export const boardMeetingRsvps = pgTable("board_meeting_rsvps", {
+  id: serial("id").primaryKey(),
+  meetingId: integer("meeting_id").notNull(),
+  userId: integer("user_id").notNull(),
+  response: boardMeetingRsvpEnum("response").notNull(),
+  respondedAt: timestamp("responded_at").defaultNow().notNull(),
+});
+export type BoardMeetingRsvp = typeof boardMeetingRsvps.$inferSelect;
+
+export const boardMeetingAttendanceEnum = pgEnum("board_meeting_attendance", ["present", "absent", "excused"]);
+export const boardParticipationMethodEnum = pgEnum("board_participation_method", ["in_person", "remote"]);
+
+export const boardMeetingAttendees = pgTable("board_meeting_attendees", {
+  id: serial("id").primaryKey(),
+  meetingId: integer("meeting_id").notNull(),
+  userId: integer("user_id").notNull(),
+  attendance: boardMeetingAttendanceEnum("attendance").default("present"),
+  participationMethod: boardParticipationMethodEnum("participation_method").default("in_person"),
+  waivedNotice: boolean("waived_notice").default(false),
+});
+export type BoardMeetingAttendee = typeof boardMeetingAttendees.$inferSelect;
+
+export const boardAgendaItems = pgTable("board_agenda_items", {
+  id: serial("id").primaryKey(),
+  meetingId: integer("meeting_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  position: integer("position").default(0),
+  duration: integer("duration"),
+  presenter: text("presenter"),
+});
+export type BoardAgendaItem = typeof boardAgendaItems.$inferSelect;
+
+export const boardMinutesStatusEnum = pgEnum("board_minutes_status", ["draft", "pending_approval", "approved"]);
+
+export const boardMinutes = pgTable("board_minutes", {
+  id: serial("id").primaryKey(),
+  meetingId: integer("meeting_id").notNull(),
+  status: boardMinutesStatusEnum("status").default("draft"),
+  content: text("content"),
+  quorumPresent: boolean("quorum_present").default(false),
+  quorumCount: integer("quorum_count"),
+  adjournmentTime: timestamp("adjournment_time"),
+  submittedAt: timestamp("submitted_at"),
+  approvedBy: integer("approved_by"),
+  approvedAt: timestamp("approved_at"),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+export type BoardMinutes = typeof boardMinutes.$inferSelect;
+
+export const boardMinutesMotions = pgTable("board_minutes_motions", {
+  id: serial("id").primaryKey(),
+  minutesId: integer("minutes_id").notNull(),
+  motionText: text("motion_text").notNull(),
+  moverId: integer("mover_id"),
+  seconderId: integer("seconder_id"),
+  votesFor: integer("votes_for").default(0),
+  votesAgainst: integer("votes_against").default(0),
+  votesAbstain: integer("votes_abstain").default(0),
+  recusedDirectors: text("recused_directors"),
+  passed: boolean("passed").default(false),
+  position: integer("position").default(0),
+});
+export type BoardMinutesMotion = typeof boardMinutesMotions.$inferSelect;
+
+export const boardActionItems = pgTable("board_action_items", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  assignedTo: integer("assigned_to"),
+  dueDate: timestamp("due_date"),
+  status: varchar("status", { length: 20 }).default("open"),
+  sourceMinutesId: integer("source_minutes_id"),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+});
+export type BoardActionItem = typeof boardActionItems.$inferSelect;
+
+export const boardDocumentConfidentialityEnum = pgEnum("board_document_confidentiality", ["public", "board_only", "restricted"]);
+
+export const boardDocuments = pgTable("board_documents", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 100 }).notNull(),
+  confidentiality: boardDocumentConfidentialityEnum("confidentiality").default("board_only"),
+  requireAck: boolean("require_ack").default(false),
+  retentionPolicy: text("retention_policy"),
+  uploadedBy: integer("uploaded_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type BoardDocument = typeof boardDocuments.$inferSelect;
+
+export const boardDocumentVersions = pgTable("board_document_versions", {
+  id: serial("id").primaryKey(),
+  documentId: integer("document_id").notNull(),
+  versionNumber: integer("version_number").default(1),
+  filename: text("filename").notNull(),
+  filepath: text("filepath").notNull(),
+  fileSize: integer("file_size"),
+  mimeType: text("mime_type"),
+  uploadedBy: integer("uploaded_by").notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+  notes: text("notes"),
+});
+export type BoardDocumentVersion = typeof boardDocumentVersions.$inferSelect;
+
+export const boardDocumentAcks = pgTable("board_document_acks", {
+  id: serial("id").primaryKey(),
+  documentId: integer("document_id").notNull(),
+  userId: integer("user_id").notNull(),
+  ackedAt: timestamp("acked_at").defaultNow().notNull(),
+});
+export type BoardDocumentAck = typeof boardDocumentAcks.$inferSelect;
+
+export const boardAuditLog = pgTable("board_audit_log", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  action: varchar("action", { length: 50 }).notNull(),
+  resourceType: varchar("resource_type", { length: 50 }),
+  resourceId: integer("resource_id"),
+  detail: text("detail"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type BoardAuditLog = typeof boardAuditLog.$inferSelect;
+
+export const boardWrittenConsentStatusEnum = pgEnum("board_written_consent_status", ["pending", "valid", "failed"]);
+
+export const boardWrittenConsents = pgTable("board_written_consents", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  resolutionFilepath: text("resolution_filepath"),
+  status: boardWrittenConsentStatusEnum("status").default("pending"),
+  excludedDirectors: text("excluded_directors"),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  resolvedAt: timestamp("resolved_at"),
+});
+export type BoardWrittenConsent = typeof boardWrittenConsents.$inferSelect;
+
+export const boardWrittenConsentResponseEnum = pgEnum("board_written_consent_response", ["consent", "decline"]);
+
+export const boardWrittenConsentResponses = pgTable("board_written_consent_responses", {
+  id: serial("id").primaryKey(),
+  consentId: integer("consent_id").notNull(),
+  userId: integer("user_id").notNull(),
+  response: boardWrittenConsentResponseEnum("response").notNull(),
+  reason: text("reason"),
+  respondedAt: timestamp("responded_at").defaultNow().notNull(),
+});
+export type BoardWrittenConsentResponse = typeof boardWrittenConsentResponses.$inferSelect;
+
+export const boardCoiDisclosures = pgTable("board_coi_disclosures", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  fiscalYear: integer("fiscal_year").notNull(),
+  disclosures: text("disclosures"),
+  certified: boolean("certified").default(false),
+  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+  meetingId: integer("meeting_id"),
+  agendaItemId: integer("agenda_item_id"),
+  interestDescription: text("interest_description"),
+});
+export type BoardCoiDisclosure = typeof boardCoiDisclosures.$inferSelect;
+
+export const boardForumTopics = pgTable("board_forum_topics", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  authorId: integer("author_id").notNull(),
+  committeeId: integer("committee_id"),
+  pinned: boolean("pinned").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastActivityAt: timestamp("last_activity_at").defaultNow().notNull(),
+});
+export type BoardForumTopic = typeof boardForumTopics.$inferSelect;
+
+export const boardForumPosts = pgTable("board_forum_posts", {
+  id: serial("id").primaryKey(),
+  topicId: integer("topic_id").notNull(),
+  authorId: integer("author_id").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  editedAt: timestamp("edited_at"),
+});
+export type BoardForumPost = typeof boardForumPosts.$inferSelect;
+
+export const boardFinancials = pgTable("board_financials", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  period: varchar("period", { length: 20 }).notNull(),
+  asOfDate: timestamp("as_of_date").notNull(),
+  filename: text("filename").notNull(),
+  filepath: text("filepath").notNull(),
+  fileSize: integer("file_size"),
+  mimeType: text("mime_type"),
+  uploadedBy: integer("uploaded_by").notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+  parentId: integer("parent_id"),
+  notes: text("notes"),
+});
+export type BoardFinancial = typeof boardFinancials.$inferSelect;
+
+export const boardOnboardingItems = pgTable("board_onboarding_items", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  documentId: integer("document_id"),
+  position: integer("position").default(0),
+  required: boolean("required").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type BoardOnboardingItem = typeof boardOnboardingItems.$inferSelect;
+
+export const boardOnboardingAcks = pgTable("board_onboarding_acks", {
+  id: serial("id").primaryKey(),
+  itemId: integer("item_id").notNull(),
+  userId: integer("user_id").notNull(),
+  ackedAt: timestamp("acked_at").defaultNow().notNull(),
+});
+export type BoardOnboardingAck = typeof boardOnboardingAcks.$inferSelect;
+
+export const boardNotificationPrefs = pgTable("board_notification_prefs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(),
+  meetingNoticesEmail: boolean("meeting_notices_email").default(true),
+  meetingNoticesInApp: boolean("meeting_notices_in_app").default(true),
+  documentUploadsEmail: boolean("document_uploads_email").default(false),
+  documentUploadsInApp: boolean("document_uploads_in_app").default(true),
+  actionItemsEmail: boolean("action_items_email").default(true),
+  actionItemsInApp: boolean("action_items_in_app").default(true),
+  forumActivityEmail: boolean("forum_activity_email").default(false),
+  forumActivityInApp: boolean("forum_activity_in_app").default(true),
+  coiPromptsEmail: boolean("coi_prompts_email").default(true),
+  coiPromptsInApp: boolean("coi_prompts_in_app").default(true),
+});
+export type BoardNotificationPref = typeof boardNotificationPrefs.$inferSelect;

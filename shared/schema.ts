@@ -764,3 +764,14 @@ export const boardMinutesVersions = pgTable("board_minutes_versions", {
   note: text("note"),
 });
 export type BoardMinutesVersion = typeof boardMinutesVersions.$inferSelect;
+
+// Meeting Packet Documents — documents explicitly linked to a meeting packet
+export const boardMeetingPacketDocs = pgTable("board_meeting_packet_docs", {
+  id: serial("id").primaryKey(),
+  meetingId: integer("meeting_id").notNull(),
+  documentId: integer("document_id").notNull(),
+  addedBy: integer("added_by").notNull(),
+  addedAt: timestamp("added_at").defaultNow().notNull(),
+  note: text("note"),
+});
+export type BoardMeetingPacketDoc = typeof boardMeetingPacketDocs.$inferSelect;

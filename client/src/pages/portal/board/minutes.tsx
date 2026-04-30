@@ -289,9 +289,16 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
   const { user } = useAuth();
   const { toast } = useToast();
   const isAdmin = user?.role === "admin";
+  // Board members and admins can draft/submit; only admin can approve
+  const canEdit = user?.role === "admin" || user?.role === "board";
 
   const [minutes, setMinutes] = useState<any>(null);
   const [boardMembers, setBoardMembers] = useState<any[]>([]);
+  const [allDocs, setAllDocs] = useState<any[]>([]);
+  const [packetDocs, setPacketDocs] = useState<any[]>([]);
+  const [addingDoc, setAddingDoc] = useState(false);
+  const [selectedDocId, setSelectedDocId] = useState("");
+  const [docNote, setDocNote] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -322,12 +329,16 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
 
   useEffect(() => {
     async function load() {
-      const [minsRes, membersRes, meetingRes] = await Promise.all([
+      const [minsRes, membersRes, meetingRes, packetDocsRes, allDocsRes] = await Promise.all([
         apiRequest("GET", `/api/board/meetings/${meeting.id}/minutes`),
         apiRequest("GET", "/api/board/members"),
         apiRequest("GET", `/api/board/meetings/${meeting.id}`),
+        apiRequest("GET", `/api/board/meetings/${meeting.id}/packet-docs`),
+        apiRequest("GET", "/api/board/documents"),
       ]);
       setBoardMembers(membersRes.success ? membersRes.data : []);
+      if (packetDocsRes.success) setPacketDocs(packetDocsRes.data);
+      if (allDocsRes.success) setAllDocs(allDocsRes.data);
 
       // If minutes exist, restore all saved state from content JSON
       if (minsRes.success && minsRes.data) {
@@ -398,7 +409,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
   }
 
   function scheduleAutoSave() {
-    if (!isAdmin || locked) return;
+    if (!canEdit || locked) return;
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(() => saveDraft(true), 2000);
   }
@@ -599,7 +610,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                           setAttendance(prev => ({ ...prev, [m.id]: { ...a, attendance: e.target.value } }));
                           scheduleAutoSave();
                         }}
-                        disabled={locked || !isAdmin}
+                        disabled={locked || !canEdit}
                         className="border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none disabled:opacity-60 w-full"
                         data-testid={`select-attendance-${m.id}`}
                       >
@@ -614,7 +625,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                           setAttendance(prev => ({ ...prev, [m.id]: { ...a, participationMethod: e.target.value } }));
                           scheduleAutoSave();
                         }}
-                        disabled={locked || !isAdmin || a.attendance !== "present"}
+                        disabled={locked || !canEdit || a.attendance !== "present"}
                         className="border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none disabled:opacity-40 w-full"
                         data-testid={`select-participation-${m.id}`}
                       >
@@ -629,7 +640,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                             setAttendance(prev => ({ ...prev, [m.id]: { ...a, waivedNotice: e.target.checked } }));
                             scheduleAutoSave();
                           }}
-                          disabled={locked || !isAdmin}
+                          disabled={locked || !canEdit}
                           className="rounded disabled:opacity-60"
                           data-testid={`checkbox-notice-${m.id}`}
                           title="Director waived notice requirement"
@@ -651,13 +662,13 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                   <label className="text-sm text-slate-600 font-medium">Quorum present?</label>
                   <input type="checkbox" checked={!!content.quorumPresent}
                     onChange={e => { setContent(c => ({ ...c, quorumPresent: e.target.checked })); scheduleAutoSave(); }}
-                    disabled={locked || !isAdmin} className="rounded" data-testid="checkbox-quorum" />
+                    disabled={locked || !canEdit} className="rounded" data-testid="checkbox-quorum" />
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-sm text-slate-600">Count:</label>
                   <input type="number" min={0} value={content.quorumCount ?? ""}
                     onChange={e => { setContent(c => ({ ...c, quorumCount: e.target.value })); scheduleAutoSave(); }}
-                    disabled={locked || !isAdmin}
+                    disabled={locked || !canEdit}
                     className="w-16 border border-slate-200 rounded px-2 py-1 text-sm focus:outline-none disabled:opacity-60"
                     data-testid="input-quorum-count" />
                 </div>
@@ -733,7 +744,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-semibold text-slate-500">Reports</label>
-                {!locked && isAdmin && (
+                {!locked && canEdit && (
                   <Button size="sm" variant="outline" className="h-6 text-xs gap-1 px-2" onClick={addReport} data-testid="button-add-report">
                     <Plus className="w-3 h-3" /> Add Report
                   </Button>
@@ -753,7 +764,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                         className="flex-1 border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none disabled:bg-white"
                         data-testid={`input-report-title-${i}`}
                       />
-                      {!locked && isAdmin && (
+                      {!locked && canEdit && (
                         <button onClick={() => removeReport(i)} className="text-slate-400 hover:text-red-500" data-testid={`button-remove-report-${i}`}>
                           <X className="w-4 h-4" />
                         </button>
@@ -806,7 +817,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
               <CardTitle className="text-sm font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
                 <Gavel className="w-3.5 h-3.5" /> Motions ({minutes?.motions?.length ?? 0})
               </CardTitle>
-              {!locked && isAdmin && (
+              {!locked && canEdit && (
                 <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setAddingMotion(true)} data-testid="button-add-motion">
                   <Plus className="w-3 h-3" /> Add Motion
                 </Button>
@@ -832,7 +843,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                         <Badge className={`text-xs border ${m.passed ? "bg-green-100 text-green-700 border-green-200" : "bg-red-100 text-red-700 border-red-200"}`}>
                           {m.passed ? <><Check className="w-3 h-3 mr-0.5" />Passed</> : "Failed"}
                         </Badge>
-                        {!locked && isAdmin && (
+                        {!locked && canEdit && (
                           <>
                             <button onClick={() => setEditingMotion(m.id)} className="text-slate-400 hover:text-indigo-500 ml-1" data-testid={`button-edit-motion-${m.id}`}><Pencil className="w-3.5 h-3.5" /></button>
                             <button onClick={() => deleteMotion(m.id)} className="text-slate-400 hover:text-red-500" data-testid={`button-delete-motion-${m.id}`}><Trash2 className="w-3.5 h-3.5" /></button>
@@ -863,7 +874,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
               <CardTitle className="text-sm font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
                 <ClipboardList className="w-3.5 h-3.5" /> Action Items ({minutes?.actionItems?.length ?? 0})
               </CardTitle>
-              {!locked && isAdmin && (
+              {!locked && canEdit && (
                 <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setAddingAction(true)} data-testid="button-add-action">
                   <Plus className="w-3 h-3" /> Add Item
                 </Button>
@@ -894,7 +905,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                         )}
                       </div>
                     </div>
-                    {!locked && isAdmin && (
+                    {!locked && canEdit && (
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => setEditingAction(a.id)} className="text-slate-400 hover:text-indigo-500" data-testid={`button-edit-action-${a.id}`}><Pencil className="w-3.5 h-3.5" /></button>
                         <button onClick={() => deleteAction(a.id)} className="text-slate-400 hover:text-red-500" data-testid={`button-delete-action-${a.id}`}><Trash2 className="w-3.5 h-3.5" /></button>
@@ -932,8 +943,75 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
           </CardContent>
         </Card>
 
+        {/* ── Packet Documents ── */}
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="pb-2 pt-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5" /> Packet Documents ({packetDocs.length})
+              </CardTitle>
+              {canEdit && !locked && (
+                <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setAddingDoc(v => !v)} data-testid="button-add-packet-doc">
+                  <Plus className="w-3 h-3" /> Link Document
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="pb-4 space-y-2">
+            <p className="text-xs text-slate-400">Documents linked here will appear in the meeting packet PDF.</p>
+            {addingDoc && canEdit && (
+              <div className="flex gap-2 flex-wrap items-end bg-slate-50 border border-slate-200 rounded-lg p-3">
+                <div className="flex-1 min-w-48">
+                  <label className="text-xs text-slate-500 font-medium mb-0.5 block">Select document</label>
+                  <select value={selectedDocId} onChange={e => setSelectedDocId(e.target.value)}
+                    className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none" data-testid="select-packet-doc">
+                    <option value="">— Select a document —</option>
+                    {allDocs.filter((d: any) => !packetDocs.some((p: any) => p.document_id === d.id)).map((d: any) => (
+                      <option key={d.id} value={d.id}>{d.title} ({d.category})</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex-1 min-w-32">
+                  <label className="text-xs text-slate-500 font-medium mb-0.5 block">Note (optional)</label>
+                  <input value={docNote} onChange={e => setDocNote(e.target.value)} placeholder="e.g. For item 3 review"
+                    className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none" data-testid="input-packet-doc-note" />
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white h-8" onClick={async () => {
+                    if (!selectedDocId) return;
+                    const r = await apiRequest("POST", `/api/board/meetings/${meeting.id}/packet-docs`, { documentId: selectedDocId, note: docNote });
+                    if (r.success) { setPacketDocs(d => [...d, r.data]); setSelectedDocId(""); setDocNote(""); setAddingDoc(false); }
+                    else toast({ title: "Error", description: r.error, variant: "destructive" });
+                  }} data-testid="button-confirm-add-doc">Add</Button>
+                  <Button size="sm" variant="outline" className="h-8" onClick={() => { setAddingDoc(false); setSelectedDocId(""); setDocNote(""); }}>Cancel</Button>
+                </div>
+              </div>
+            )}
+            {packetDocs.length === 0 && !addingDoc ? (
+              <p className="text-sm text-slate-400 italic text-center py-2">No documents linked yet. Link board documents to include them in the packet PDF.</p>
+            ) : packetDocs.map((d: any) => (
+              <div key={d.id} className="flex items-start gap-2 py-2 border-b border-slate-100 last:border-0 group" data-testid={`packet-doc-${d.id}`}>
+                <FileText className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-[#1A1F2B] truncate">{d.title}</p>
+                  <p className="text-xs text-slate-400">{d.category} · {d.confidentiality === "board_only" ? "Board Only" : "Confidential"}</p>
+                  {d.note && <p className="text-xs text-indigo-600 italic">{d.note}</p>}
+                </div>
+                {canEdit && !locked && (
+                  <button onClick={async () => {
+                    await apiRequest("DELETE", `/api/board/meetings/${meeting.id}/packet-docs/${d.id}`);
+                    setPacketDocs(prev => prev.filter(p => p.id !== d.id));
+                  }} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5" data-testid={`button-remove-doc-${d.id}`}>
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
         {/* ── Save / Submit / Approve footer ── */}
-        {isAdmin && (
+        {canEdit && (
           <div className="flex items-center gap-3 pt-2 pb-6 flex-wrap">
             {!locked && (
               <Button onClick={() => saveDraft(false)} disabled={saving}
@@ -950,7 +1028,8 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                 <Send className="w-4 h-4" /> Submit for Approval
               </Button>
             )}
-            {!locked && minutes?.status === "pending_approval" && (
+            {/* Approve is admin-only */}
+            {isAdmin && !locked && minutes?.status === "pending_approval" && (
               <Button onClick={approve} className="bg-green-600 hover:bg-green-700 text-white gap-1.5" data-testid="button-approve-minutes">
                 <Check className="w-4 h-4" /> Approve &amp; Lock Minutes
               </Button>

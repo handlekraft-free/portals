@@ -7,7 +7,7 @@ import {
   boardMeetings, boardMeetingRsvps, boardMeetingAttendees, boardAgendaItems,
   boardMeetingNotices, boardActionItems, boardMinutesActionItems,
   boardDocuments, boardWrittenConsents, boardNotificationPrefs, users,
-  boardMinutes, boardMinutesMotions, boardMinutesVersions,
+  boardMinutes, boardMinutesMotions, boardMinutesVersions, boardMeetingPacketDocs,
 } from "@shared/schema";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
 import PDFDocument from "pdfkit";
@@ -54,6 +54,7 @@ router.get("/members", async (_req, res) => {
     bio: users.bio,
     committees: users.committees,
     status: users.status,
+    isInterestedDirector: users.isInterestedDirector,
   }).from(users).where(sql`role IN ('board','admin') AND status = 'active'`).orderBy(asc(users.firstName));
   res.json({ success: true, data: members });
 });
@@ -727,7 +728,7 @@ router.get("/meetings/:id/minutes", async (req, res) => {
   res.json({ success: true, data: full });
 });
 
-router.post("/meetings/:id/minutes", requireAdmin as any, async (req, res) => {
+router.post("/meetings/:id/minutes", requireBoard as any, async (req, res) => {
   const meetingId = parseInt(req.params.id);
   const existing = await db.select().from(boardMinutes).where(eq(boardMinutes.meetingId, meetingId));
   if (existing.length > 0) {
@@ -749,7 +750,7 @@ router.get("/minutes/:id", async (req, res) => {
   res.json({ success: true, data: full });
 });
 
-router.patch("/minutes/:id", requireAdmin as any, async (req, res) => {
+router.patch("/minutes/:id", requireBoard as any, async (req, res) => {
   const id = parseInt(req.params.id);
   const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, id));
   if (!existing) return res.status(404).json({ success: false, error: "Not found" });
@@ -768,7 +769,7 @@ router.patch("/minutes/:id", requireAdmin as any, async (req, res) => {
   res.json({ success: true, data: full });
 });
 
-router.post("/minutes/:id/submit", requireAdmin as any, async (req, res) => {
+router.post("/minutes/:id/submit", requireBoard as any, async (req, res) => {
   const id = parseInt(req.params.id);
   const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, id));
   if (!existing) return res.status(404).json({ success: false, error: "Not found" });
@@ -804,7 +805,7 @@ router.get("/minutes/:id/history", async (req, res) => {
   res.json({ success: true, data: rows });
 });
 
-router.post("/minutes/:id/motions", requireAdmin as any, async (req, res) => {
+router.post("/minutes/:id/motions", requireBoard as any, async (req, res) => {
   const minutesId = parseInt(req.params.id);
   const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, minutesId));
   if (!existing) return res.status(404).json({ success: false, error: "Not found" });
@@ -828,7 +829,7 @@ router.post("/minutes/:id/motions", requireAdmin as any, async (req, res) => {
   res.status(201).json({ success: true, data: motion });
 });
 
-router.patch("/minutes/:id/motions/:motionId", requireAdmin as any, async (req, res) => {
+router.patch("/minutes/:id/motions/:motionId", requireBoard as any, async (req, res) => {
   const minutesId = parseInt(req.params.id);
   const motionId = parseInt(req.params.motionId);
   const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, minutesId));
@@ -850,7 +851,7 @@ router.patch("/minutes/:id/motions/:motionId", requireAdmin as any, async (req, 
   res.json({ success: true, data: updated });
 });
 
-router.delete("/minutes/:id/motions/:motionId", requireAdmin as any, async (req, res) => {
+router.delete("/minutes/:id/motions/:motionId", requireBoard as any, async (req, res) => {
   const minutesId = parseInt(req.params.id);
   const motionId = parseInt(req.params.motionId);
   const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, minutesId));
@@ -861,7 +862,7 @@ router.delete("/minutes/:id/motions/:motionId", requireAdmin as any, async (req,
   res.json({ success: true, data: null });
 });
 
-router.post("/minutes/:id/action-items", requireAdmin as any, async (req, res) => {
+router.post("/minutes/:id/action-items", requireBoard as any, async (req, res) => {
   const minutesId = parseInt(req.params.id);
   const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, minutesId));
   if (!existing) return res.status(404).json({ success: false, error: "Not found" });
@@ -889,7 +890,7 @@ router.post("/minutes/:id/action-items", requireAdmin as any, async (req, res) =
   res.status(201).json({ success: true, data: item });
 });
 
-router.patch("/minutes/:id/action-items/:itemId", requireAdmin as any, async (req, res) => {
+router.patch("/minutes/:id/action-items/:itemId", requireBoard as any, async (req, res) => {
   const minutesId = parseInt(req.params.id);
   const itemId = parseInt(req.params.itemId);
   const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, minutesId));
@@ -908,7 +909,7 @@ router.patch("/minutes/:id/action-items/:itemId", requireAdmin as any, async (re
   res.json({ success: true, data: updated });
 });
 
-router.delete("/minutes/:id/action-items/:itemId", requireAdmin as any, async (req, res) => {
+router.delete("/minutes/:id/action-items/:itemId", requireBoard as any, async (req, res) => {
   const minutesId = parseInt(req.params.id);
   const itemId = parseInt(req.params.itemId);
   const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, minutesId));
@@ -916,6 +917,47 @@ router.delete("/minutes/:id/action-items/:itemId", requireAdmin as any, async (r
   await db.delete(boardMinutesActionItems).where(and(eq(boardMinutesActionItems.id, itemId), eq(boardMinutesActionItems.minutesId, minutesId)));
   const full = await getMinutesFull(minutesId);
   saveVersionSnapshot(minutesId, req.user!.userId, full).catch(() => {});
+  res.json({ success: true, data: null });
+});
+
+// ── Meeting Packet Document Linking ──────────────────────────────────────────
+
+router.get("/meetings/:id/packet-docs", async (req, res) => {
+  const meetingId = parseInt(req.params.id);
+  const rows = await raw(sql`
+    SELECT pd.*, d.title, d.category, d.description, d.confidentiality, d.created_at AS doc_created_at,
+           u.first_name, u.last_name
+    FROM board_meeting_packet_docs pd
+    JOIN board_documents d ON d.id = pd.document_id
+    JOIN portal_users u ON u.id = pd.added_by
+    WHERE pd.meeting_id = ${meetingId}
+    ORDER BY pd.added_at ASC
+  `);
+  res.json({ success: true, data: rows });
+});
+
+router.post("/meetings/:id/packet-docs", requireBoard as any, async (req, res) => {
+  const meetingId = parseInt(req.params.id);
+  const { documentId, note } = req.body;
+  if (!documentId) return res.status(400).json({ success: false, error: "documentId required" });
+  // Prevent duplicates
+  const existing = await db.select().from(boardMeetingPacketDocs)
+    .where(and(eq(boardMeetingPacketDocs.meetingId, meetingId), eq(boardMeetingPacketDocs.documentId, parseInt(documentId))));
+  if (existing.length > 0) return res.status(409).json({ success: false, error: "Document already linked to this packet" });
+  const [row] = await db.insert(boardMeetingPacketDocs).values({
+    meetingId,
+    documentId: parseInt(documentId),
+    addedBy: req.user!.userId,
+    note: note || null,
+  }).returning();
+  res.status(201).json({ success: true, data: row });
+});
+
+router.delete("/meetings/:id/packet-docs/:docId", requireBoard as any, async (req, res) => {
+  const meetingId = parseInt(req.params.id);
+  const docId = parseInt(req.params.docId);
+  await db.delete(boardMeetingPacketDocs)
+    .where(and(eq(boardMeetingPacketDocs.meetingId, meetingId), eq(boardMeetingPacketDocs.id, docId)));
   res.json({ success: true, data: null });
 });
 
@@ -938,8 +980,17 @@ router.post("/meetings/:id/packet", async (req, res) => {
   if (minutesRows.length > 0) {
     minutesFull = await getMinutesFull(minutesRows[0].id);
   }
-  // Recent board documents (metadata only — files are confidential and not embedded)
-  const packetDocs = await db.select().from(boardDocuments).orderBy(desc(boardDocuments.createdAt)).limit(20);
+  // Fetch only documents explicitly linked to this meeting's packet
+  const packetDocs = await raw(sql`
+    SELECT pd.id AS packet_link_id, pd.note AS packet_note,
+           d.id AS document_id, d.title, d.category, d.description, d.confidentiality, d.created_at AS doc_created_at,
+           u.first_name AS added_by_first, u.last_name AS added_by_last
+    FROM board_meeting_packet_docs pd
+    JOIN board_documents d ON d.id = pd.document_id
+    JOIN portal_users u ON u.id = pd.added_by
+    WHERE pd.meeting_id = ${meetingId}
+    ORDER BY pd.added_at ASC
+  `);
 
   const navy = "#1A1F2B";
   const teal = "#0D7377";
@@ -947,7 +998,7 @@ router.post("/meetings/:id/packet", async (req, res) => {
   const darkGray = "#333333";
   const lightGray = "#888888";
 
-  const doc = new PDFDocument({ size: "letter", margins: { top: 72, bottom: 72, left: 72, right: 72 } });
+  const doc = new PDFDocument({ size: "letter", margins: { top: 72, bottom: 72, left: 72, right: 72 }, bufferPages: true });
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader("Content-Disposition", `attachment; filename="board-packet-${meetingId}.pdf"`);
   doc.pipe(res);
@@ -1112,29 +1163,37 @@ router.post("/meetings/:id/packet", async (req, res) => {
     });
   }
 
-  // Board Documents (metadata index — files are confidential, not embedded in PDF)
+  // Packet Documents (only those explicitly linked to this meeting's packet)
   if (packetDocs.length > 0) {
-    sectionHeader("Board Documents Index");
+    sectionHeader("Packet Documents");
     doc.fontSize(9).fillColor(lightGray).font("Helvetica").text(
-      "The following documents are available through the Board portal. Files are not embedded here for confidentiality.",
+      "The following documents have been linked to this meeting packet. Files are available through the Board portal.",
       L, doc.y, { width: W }
     );
     doc.moveDown(0.4);
     packetDocs.forEach((d: any, i: number) => {
-      checkY(24);
+      checkY(30);
       const y = doc.y;
       doc.fontSize(10).fillColor(teal).font("Helvetica-Bold").text(`${i + 1}.`, L, y, { width: 18 });
-      doc.fontSize(10).fillColor(darkGray).font("Helvetica-Bold").text(d.title, L + 22, y, { width: W - 160 });
+      doc.fontSize(10).fillColor(darkGray).font("Helvetica-Bold").text(d.title, L + 22, y, { width: W - 22 });
+      const confLabel = d.confidentiality === "board_only" ? "Board Only" : d.confidentiality === "public" ? "Public" : "Confidential";
       doc.fontSize(9).fillColor(lightGray).font("Helvetica").text(
-        [d.category, d.confidentiality === "board_only" ? "Board Only" : d.confidentiality === "public" ? "Public" : "Confidential",
-          d.created_at ? new Date(d.createdAt).toLocaleDateString() : ""].filter(Boolean).join("  |  "),
+        [d.category, confLabel, d.doc_created_at ? new Date(d.doc_created_at).toLocaleDateString() : ""].filter(Boolean).join("  |  "),
         L + 22, doc.y, { width: W - 22 }
       );
       if (d.description) {
         doc.fontSize(9).fillColor(lightGray).font("Helvetica").text(d.description, L + 22, doc.y, { width: W - 22 });
       }
+      if (d.packet_note) {
+        doc.fontSize(9).fillColor(darkGray).font("Helvetica").text(`Note: ${d.packet_note}`, L + 22, doc.y, { width: W - 22 });
+      }
       doc.moveDown(0.3);
     });
+  } else {
+    checkY(30);
+    doc.moveDown(0.3);
+    doc.fontSize(9).fillColor(lightGray).font("Helvetica-Bold").text("Packet Documents:", L, doc.y);
+    doc.fontSize(9).fillColor(lightGray).font("Helvetica").text("No documents linked to this packet.", L + 110, doc.y - 12, { width: W - 110 });
   }
 
   // Adjournment

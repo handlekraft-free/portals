@@ -106,3 +106,7 @@ Preferred communication style: Simple, everyday language.
 - Student portal: Dashboard with enrolled courses, Course viewer with lesson progress, File management, Announcements feed
 - Admin portal: Full user management table (/portal/admin/users) with create/edit/deactivate/bulk actions
 - Seeded 5 portal users + sample data (boards, time entries, expense reports, tickets, courses, announcements)
+- Built Board portal meeting minutes editor: structured fields (attendance, quorum, call to order, reports, motions, action items, adjournment), draft/submit/approve/lock workflow, version history drawer
+- Added `boardMinutesVersions` table for version snapshots (saved on every patch and approve)
+- Full minutes CRUD API: create, update, submit, approve, history, motion CRUD, action item CRUD (syncs to global boardActionItems)
+- Meeting packet PDF assembler at GET /api/board/meetings/:id/packet — pdfkit-generated PDF with cover page, agenda, attendance, minutes narrative, motions, action items

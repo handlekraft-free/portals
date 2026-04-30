@@ -7,8 +7,10 @@ import {
   boardMeetings, boardMeetingRsvps, boardMeetingAttendees, boardAgendaItems,
   boardMeetingNotices, boardActionItems, boardMinutesActionItems,
   boardDocuments, boardWrittenConsents, boardNotificationPrefs, users,
+  boardMinutes, boardMinutesMotions, boardMinutesVersions,
 } from "@shared/schema";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
+import PDFDocument from "pdfkit";
 
 const router: Router = createRouter();
 router.use(requireBoard as any);
@@ -690,12 +692,445 @@ router.patch("/settings", requireAdmin as any, async (_req, res) => {
   res.json({ success: true, data: null });
 });
 
-// ── Minutes stubs (real impl in Task 3) ──────────────────────────────────────
+// ── Minutes ───────────────────────────────────────────────────────────────────
 
-router.post("/meetings/:id/minutes", requireAdmin as any, (_req, res) => res.status(201).json({ success: true, data: null }));
-router.get("/meetings/:id/minutes", (_req, res) => res.json({ success: true, data: null }));
-router.get("/minutes/:id", (_req, res) => res.json({ success: true, data: null }));
-router.patch("/minutes/:id", requireAdmin as any, (_req, res) => res.json({ success: true, data: null }));
-router.post("/minutes/:id/motions", requireAdmin as any, (_req, res) => res.status(201).json({ success: true, data: null }));
+async function getMinutesFull(minutesId: number) {
+  const [mins] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, minutesId));
+  if (!mins) return null;
+  const motions = await db.select().from(boardMinutesMotions)
+    .where(eq(boardMinutesMotions.minutesId, minutesId)).orderBy(asc(boardMinutesMotions.position));
+  const actionItems = await raw(sql`
+    SELECT ai.*, u.first_name, u.last_name
+    FROM board_minutes_action_items ai
+    LEFT JOIN portal_users u ON u.id = ai.assigned_to
+    WHERE ai.minutes_id = ${minutesId}
+    ORDER BY ai.created_at
+  `);
+  return { ...mins, motions, actionItems };
+}
+
+async function saveVersionSnapshot(minutesId: number, userId: number, mins: any) {
+  const versionRows = await raw<{ max: string }>(sql`
+    SELECT COALESCE(MAX(version_number), 0) AS max FROM board_minutes_versions WHERE minutes_id = ${minutesId}
+  `);
+  const nextVersion = parseInt(versionRows[0]?.max ?? "0") + 1;
+  await db.insert(boardMinutesVersions).values({
+    minutesId,
+    versionNumber: nextVersion,
+    contentSnapshot: mins.content ?? null,
+    motionsSnapshot: JSON.stringify(mins.motions ?? []),
+    savedBy: userId,
+  });
+}
+
+router.get("/minutes", async (_req, res) => {
+  const rows = await raw(sql`
+    SELECT m.*, mt.title AS meeting_title, mt.scheduled_at,
+      (SELECT count(*) FROM board_minutes_motions mo WHERE mo.minutes_id = m.id) AS motion_count
+    FROM board_minutes m
+    JOIN board_meetings mt ON mt.id = m.meeting_id
+    ORDER BY mt.scheduled_at DESC
+  `);
+  res.json({ success: true, data: rows });
+});
+
+router.get("/meetings/:id/minutes", async (req, res) => {
+  const meetingId = parseInt(req.params.id);
+  const rows = await db.select().from(boardMinutes).where(eq(boardMinutes.meetingId, meetingId));
+  if (rows.length === 0) return res.json({ success: true, data: null });
+  const full = await getMinutesFull(rows[0].id);
+  res.json({ success: true, data: full });
+});
+
+router.post("/meetings/:id/minutes", requireAdmin as any, async (req, res) => {
+  const meetingId = parseInt(req.params.id);
+  const existing = await db.select().from(boardMinutes).where(eq(boardMinutes.meetingId, meetingId));
+  if (existing.length > 0) {
+    const full = await getMinutesFull(existing[0].id);
+    return res.json({ success: true, data: full });
+  }
+  const [mins] = await db.insert(boardMinutes).values({
+    meetingId,
+    createdBy: req.user!.userId,
+    status: "draft",
+  }).returning();
+  auditLog(req.user!.userId, "create", "minutes", mins.id, `Created minutes for meeting ${meetingId}`);
+  res.status(201).json({ success: true, data: { ...mins, motions: [], actionItems: [] } });
+});
+
+router.get("/minutes/:id", async (req, res) => {
+  const full = await getMinutesFull(parseInt(req.params.id));
+  if (!full) return res.status(404).json({ success: false, error: "Not found" });
+  res.json({ success: true, data: full });
+});
+
+router.patch("/minutes/:id", requireAdmin as any, async (req, res) => {
+  const id = parseInt(req.params.id);
+  const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, id));
+  if (!existing) return res.status(404).json({ success: false, error: "Not found" });
+  if (existing.status === "approved") return res.status(403).json({ success: false, error: "Approved minutes cannot be edited" });
+
+  const { content, quorumPresent, quorumCount, adjournmentTime } = req.body;
+  const updateData: any = { updatedAt: new Date() };
+  if (content !== undefined) updateData.content = content;
+  if (quorumPresent !== undefined) updateData.quorumPresent = !!quorumPresent;
+  if (quorumCount !== undefined) updateData.quorumCount = quorumCount ? parseInt(quorumCount) : null;
+  if (adjournmentTime !== undefined) updateData.adjournmentTime = adjournmentTime ? new Date(adjournmentTime) : null;
+
+  const [updated] = await db.update(boardMinutes).set(updateData).where(eq(boardMinutes.id, id)).returning();
+  const full = await getMinutesFull(id);
+  await saveVersionSnapshot(id, req.user!.userId, full);
+  res.json({ success: true, data: full });
+});
+
+router.post("/minutes/:id/submit", requireAdmin as any, async (req, res) => {
+  const id = parseInt(req.params.id);
+  const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, id));
+  if (!existing) return res.status(404).json({ success: false, error: "Not found" });
+  if (existing.status !== "draft") return res.status(400).json({ success: false, error: "Only draft minutes can be submitted" });
+  const [updated] = await db.update(boardMinutes).set({ status: "pending_approval", submittedAt: new Date(), updatedAt: new Date() })
+    .where(eq(boardMinutes.id, id)).returning();
+  auditLog(req.user!.userId, "submit", "minutes", id);
+  res.json({ success: true, data: updated });
+});
+
+router.post("/minutes/:id/approve", requireAdmin as any, async (req, res) => {
+  const id = parseInt(req.params.id);
+  const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, id));
+  if (!existing) return res.status(404).json({ success: false, error: "Not found" });
+  if (existing.status === "draft") return res.status(400).json({ success: false, error: "Minutes must be submitted before approving" });
+  const [updated] = await db.update(boardMinutes).set({
+    status: "approved", approvedBy: req.user!.userId, approvedAt: new Date(), updatedAt: new Date(),
+  }).where(eq(boardMinutes.id, id)).returning();
+  auditLog(req.user!.userId, "approve", "minutes", id);
+  const full = await getMinutesFull(id);
+  await saveVersionSnapshot(id, req.user!.userId, full);
+  res.json({ success: true, data: updated });
+});
+
+router.get("/minutes/:id/history", async (req, res) => {
+  const id = parseInt(req.params.id);
+  const rows = await raw(sql`
+    SELECT v.*, u.first_name, u.last_name FROM board_minutes_versions v
+    LEFT JOIN portal_users u ON u.id = v.saved_by
+    WHERE v.minutes_id = ${id}
+    ORDER BY v.version_number DESC
+  `);
+  res.json({ success: true, data: rows });
+});
+
+router.post("/minutes/:id/motions", requireAdmin as any, async (req, res) => {
+  const minutesId = parseInt(req.params.id);
+  const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, minutesId));
+  if (!existing) return res.status(404).json({ success: false, error: "Not found" });
+  if (existing.status === "approved") return res.status(403).json({ success: false, error: "Approved minutes are locked" });
+  const { motionText, moverId, seconderId, votesFor, votesAgainst, votesAbstain, passed, recusedDirectors, position } = req.body;
+  if (!motionText?.trim()) return res.status(400).json({ success: false, error: "Motion text required" });
+  const [motion] = await db.insert(boardMinutesMotions).values({
+    minutesId,
+    motionText,
+    moverId: moverId ? parseInt(moverId) : null,
+    seconderId: seconderId ? parseInt(seconderId) : null,
+    votesFor: votesFor ? parseInt(votesFor) : 0,
+    votesAgainst: votesAgainst ? parseInt(votesAgainst) : 0,
+    votesAbstain: votesAbstain ? parseInt(votesAbstain) : 0,
+    passed: !!passed,
+    recusedDirectors: recusedDirectors || null,
+    position: position ?? 0,
+  }).returning();
+  res.status(201).json({ success: true, data: motion });
+});
+
+router.patch("/minutes/:id/motions/:motionId", requireAdmin as any, async (req, res) => {
+  const minutesId = parseInt(req.params.id);
+  const motionId = parseInt(req.params.motionId);
+  const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, minutesId));
+  if (!existing) return res.status(404).json({ success: false, error: "Not found" });
+  if (existing.status === "approved") return res.status(403).json({ success: false, error: "Approved minutes are locked" });
+  const { motionText, moverId, seconderId, votesFor, votesAgainst, votesAbstain, passed, recusedDirectors } = req.body;
+  const [updated] = await db.update(boardMinutesMotions).set({
+    ...(motionText !== undefined && { motionText }),
+    ...(moverId !== undefined && { moverId: moverId ? parseInt(moverId) : null }),
+    ...(seconderId !== undefined && { seconderId: seconderId ? parseInt(seconderId) : null }),
+    ...(votesFor !== undefined && { votesFor: parseInt(votesFor) }),
+    ...(votesAgainst !== undefined && { votesAgainst: parseInt(votesAgainst) }),
+    ...(votesAbstain !== undefined && { votesAbstain: parseInt(votesAbstain) }),
+    ...(passed !== undefined && { passed: !!passed }),
+    ...(recusedDirectors !== undefined && { recusedDirectors }),
+  }).where(and(eq(boardMinutesMotions.id, motionId), eq(boardMinutesMotions.minutesId, minutesId))).returning();
+  res.json({ success: true, data: updated });
+});
+
+router.delete("/minutes/:id/motions/:motionId", requireAdmin as any, async (req, res) => {
+  const minutesId = parseInt(req.params.id);
+  const motionId = parseInt(req.params.motionId);
+  const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, minutesId));
+  if (existing?.status === "approved") return res.status(403).json({ success: false, error: "Approved minutes are locked" });
+  await db.delete(boardMinutesMotions).where(and(eq(boardMinutesMotions.id, motionId), eq(boardMinutesMotions.minutesId, minutesId)));
+  res.json({ success: true, data: null });
+});
+
+router.post("/minutes/:id/action-items", requireAdmin as any, async (req, res) => {
+  const minutesId = parseInt(req.params.id);
+  const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, minutesId));
+  if (!existing) return res.status(404).json({ success: false, error: "Not found" });
+  if (existing.status === "approved") return res.status(403).json({ success: false, error: "Approved minutes are locked" });
+  const { title, description, assignedTo, dueDate } = req.body;
+  if (!title?.trim()) return res.status(400).json({ success: false, error: "Title required" });
+  const [item] = await db.insert(boardMinutesActionItems).values({
+    minutesId,
+    title,
+    description: description || null,
+    assignedTo: assignedTo ? parseInt(assignedTo) : null,
+    dueDate: dueDate ? new Date(dueDate) : null,
+    createdBy: req.user!.userId,
+  }).returning();
+  // Also write to global boardActionItems
+  await db.insert(boardActionItems).values({
+    title,
+    description: description || null,
+    assignedTo: assignedTo ? parseInt(assignedTo) : null,
+    dueDate: dueDate ? new Date(dueDate) : null,
+    sourceMinutesId: minutesId,
+    createdBy: req.user!.userId,
+  });
+  res.status(201).json({ success: true, data: item });
+});
+
+router.patch("/minutes/:id/action-items/:itemId", requireAdmin as any, async (req, res) => {
+  const minutesId = parseInt(req.params.id);
+  const itemId = parseInt(req.params.itemId);
+  const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, minutesId));
+  if (existing?.status === "approved") return res.status(403).json({ success: false, error: "Approved minutes are locked" });
+  const { title, description, assignedTo, dueDate, status } = req.body;
+  const [updated] = await db.update(boardMinutesActionItems).set({
+    ...(title !== undefined && { title }),
+    ...(description !== undefined && { description }),
+    ...(assignedTo !== undefined && { assignedTo: assignedTo ? parseInt(assignedTo) : null }),
+    ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
+    ...(status !== undefined && { status }),
+    ...(status === "done" && { completedAt: new Date() }),
+  }).where(and(eq(boardMinutesActionItems.id, itemId), eq(boardMinutesActionItems.minutesId, minutesId))).returning();
+  res.json({ success: true, data: updated });
+});
+
+router.delete("/minutes/:id/action-items/:itemId", requireAdmin as any, async (req, res) => {
+  const minutesId = parseInt(req.params.id);
+  const itemId = parseInt(req.params.itemId);
+  const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, minutesId));
+  if (existing?.status === "approved") return res.status(403).json({ success: false, error: "Approved minutes are locked" });
+  await db.delete(boardMinutesActionItems).where(and(eq(boardMinutesActionItems.id, itemId), eq(boardMinutesActionItems.minutesId, minutesId)));
+  res.json({ success: true, data: null });
+});
+
+// ── Meeting Packet PDF ────────────────────────────────────────────────────────
+
+router.get("/meetings/:id/packet", async (req, res) => {
+  const meetingId = parseInt(req.params.id);
+  const [meeting] = await db.select().from(boardMeetings).where(eq(boardMeetings.id, meetingId));
+  if (!meeting) return res.status(404).json({ success: false, error: "Meeting not found" });
+
+  const agendaItems = await db.select().from(boardAgendaItems)
+    .where(eq(boardAgendaItems.meetingId, meetingId)).orderBy(asc(boardAgendaItems.position));
+  const attendees = await raw(sql`
+    SELECT a.*, u.first_name, u.last_name, u.board_position
+    FROM board_meeting_attendees a JOIN portal_users u ON u.id = a.user_id
+    WHERE a.meeting_id = ${meetingId} ORDER BY u.first_name
+  `);
+  const minutesRows = await db.select().from(boardMinutes).where(eq(boardMinutes.meetingId, meetingId));
+  let minutesFull: any = null;
+  if (minutesRows.length > 0) {
+    minutesFull = await getMinutesFull(minutesRows[0].id);
+  }
+
+  const navy = "#1A1F2B";
+  const teal = "#0D7377";
+  const gold = "#D4A843";
+  const darkGray = "#333333";
+  const lightGray = "#888888";
+
+  const doc = new PDFDocument({ size: "letter", margins: { top: 72, bottom: 72, left: 72, right: 72 } });
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="board-packet-${meetingId}.pdf"`);
+  doc.pipe(res);
+
+  const L = 72, R = 540, W = 468;
+  const meetingDate = new Date(meeting.scheduledAt).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+
+  // Cover
+  doc.rect(0, 0, 612, 792).fill(navy);
+  doc.rect(0, 0, 612, 6).fill(gold);
+  doc.fontSize(10).fillColor(gold).font("Helvetica").text("BOARD MEETING PACKET", L, 100, { align: "center", characterSpacing: 3 });
+  doc.fontSize(28).fillColor("#ffffff").font("Helvetica-Bold").text(meeting.title, L, 140, { align: "center" });
+  doc.fontSize(14).fillColor(gold).font("Helvetica").text(meetingDate, L, 185, { align: "center" });
+  if (meeting.location || meeting.platform) {
+    doc.fontSize(12).fillColor("#FFFFFF").opacity(0.7).text(meeting.location || meeting.platform || "", L, 210, { align: "center" });
+    doc.opacity(1);
+  }
+  doc.fontSize(11).fillColor("#FFFFFF").opacity(0.5).text("handlekraft — Board of Directors", L, 720, { align: "center" });
+  doc.opacity(1);
+
+  // Page helper
+  let currentY = 0;
+  function checkY(needed = 80) {
+    if (doc.y + needed > 700) { doc.addPage(); }
+  }
+  function sectionHeader(title: string) {
+    checkY(50);
+    doc.moveDown(0.5);
+    const y = doc.y;
+    doc.rect(L, y, W, 24).fill(teal);
+    doc.fontSize(11).fillColor("#FFFFFF").font("Helvetica-Bold").text(title.toUpperCase(), L + 8, y + 6);
+    doc.y = y + 32;
+  }
+  function field(label: string, value: string) {
+    checkY(20);
+    const y = doc.y;
+    doc.fontSize(10).fillColor(lightGray).font("Helvetica-Bold").text(label + ":", L, y, { width: 120, continued: false });
+    doc.fontSize(10).fillColor(darkGray).font("Helvetica").text(value || "—", L + 125, y, { width: W - 125 });
+    doc.y = Math.max(doc.y, y + 14);
+  }
+
+  // Meeting Details
+  doc.addPage();
+  doc.rect(0, 0, 612, 6).fill(gold);
+  doc.moveDown(0.5);
+  sectionHeader("Meeting Information");
+  field("Meeting Type", meeting.meetingType || "Regular");
+  field("Date & Time", meetingDate + (meeting.scheduledAt ? ` at ${new Date(meeting.scheduledAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}` : ""));
+  if (meeting.endTime) field("End Time", new Date(meeting.endTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }));
+  if (meeting.location) field("Location", meeting.location);
+  if (meeting.platform) field("Platform", meeting.platform);
+  field("Quorum Required", String(meeting.quorumNumber ?? 3));
+
+  // Agenda
+  if (agendaItems.length > 0) {
+    sectionHeader("Agenda");
+    agendaItems.forEach((item, i) => {
+      checkY(30);
+      const y = doc.y;
+      doc.fontSize(11).fillColor(teal).font("Helvetica-Bold").text(`${i + 1}.`, L, y, { width: 20 });
+      doc.fontSize(11).fillColor(darkGray).font("Helvetica-Bold").text(item.title, L + 24, y, { width: W - 24 });
+      if (item.description) {
+        doc.fontSize(10).fillColor(lightGray).font("Helvetica").text(item.description, L + 24, doc.y, { width: W - 24 });
+      }
+      const meta: string[] = [];
+      if (item.presenter) meta.push(`Presenter: ${item.presenter}`);
+      if (item.duration) meta.push(`${item.duration} min`);
+      if (meta.length) {
+        doc.fontSize(9).fillColor(lightGray).font("Helvetica").text(meta.join("  |  "), L + 24, doc.y, { width: W - 24 });
+      }
+      doc.moveDown(0.4);
+    });
+  }
+
+  // Attendance
+  if (attendees.length > 0) {
+    sectionHeader("Attendance");
+    const present = attendees.filter((a: any) => a.attendance === "present");
+    const absent = attendees.filter((a: any) => a.attendance === "absent");
+    const excused = attendees.filter((a: any) => a.attendance === "excused");
+    if (present.length) {
+      checkY(20);
+      doc.fontSize(10).fillColor(teal).font("Helvetica-Bold").text("Present:", L, doc.y);
+      doc.fontSize(10).fillColor(darkGray).font("Helvetica").text(present.map((a: any) => `${a.first_name} ${a.last_name}`).join(", "), L + 60, doc.y - 14, { width: W - 60 });
+    }
+    if (absent.length) {
+      checkY(20);
+      doc.fontSize(10).fillColor(teal).font("Helvetica-Bold").text("Absent:", L, doc.y);
+      doc.fontSize(10).fillColor(darkGray).font("Helvetica").text(absent.map((a: any) => `${a.first_name} ${a.last_name}`).join(", "), L + 60, doc.y - 14, { width: W - 60 });
+    }
+    if (excused.length) {
+      checkY(20);
+      doc.fontSize(10).fillColor(teal).font("Helvetica-Bold").text("Excused:", L, doc.y);
+      doc.fontSize(10).fillColor(darkGray).font("Helvetica").text(excused.map((a: any) => `${a.first_name} ${a.last_name}`).join(", "), L + 60, doc.y - 14, { width: W - 60 });
+    }
+    if (minutesFull?.quorumPresent !== undefined) {
+      doc.moveDown(0.3);
+      doc.fontSize(10).fillColor(minutesFull.quorumPresent ? "#16a34a" : "#dc2626").font("Helvetica-Bold")
+        .text(minutesFull.quorumPresent ? `Quorum present (${minutesFull.quorumCount ?? present.length} members)` : "Quorum NOT present", L, doc.y);
+    }
+  }
+
+  // Minutes narrative
+  if (minutesFull?.content) {
+    sectionHeader("Meeting Minutes");
+    const structured = (() => { try { return JSON.parse(minutesFull.content); } catch { return null; } })();
+    if (structured && typeof structured === "object") {
+      if (structured.callToOrder) { checkY(30); doc.fontSize(10).fillColor(lightGray).font("Helvetica-Bold").text("Call to Order:", L, doc.y); doc.fontSize(10).fillColor(darkGray).font("Helvetica").text(structured.callToOrder, L, doc.y + 12, { width: W }); doc.moveDown(0.5); }
+      if (structured.openingRemarks) { checkY(30); doc.fontSize(10).fillColor(lightGray).font("Helvetica-Bold").text("Opening Remarks:", L, doc.y); doc.fontSize(10).fillColor(darkGray).font("Helvetica").text(structured.openingRemarks, L, doc.y + 12, { width: W }); doc.moveDown(0.5); }
+      if (structured.reports?.length) {
+        structured.reports.forEach((r: any) => {
+          checkY(40);
+          doc.fontSize(10).fillColor(teal).font("Helvetica-Bold").text(r.title + (r.presenter ? ` — ${r.presenter}` : ""), L, doc.y);
+          doc.fontSize(10).fillColor(darkGray).font("Helvetica").text(r.content || "", L, doc.y + 12, { width: W });
+          doc.moveDown(0.4);
+        });
+      }
+      if (structured.generalNotes) { checkY(30); doc.fontSize(10).fillColor(lightGray).font("Helvetica-Bold").text("General Business:", L, doc.y); doc.fontSize(10).fillColor(darkGray).font("Helvetica").text(structured.generalNotes, L, doc.y + 12, { width: W }); doc.moveDown(0.5); }
+    } else {
+      doc.fontSize(10).fillColor(darkGray).font("Helvetica").text(minutesFull.content, L, doc.y, { width: W });
+    }
+    const statusLabel = minutesFull.status === "approved" ? "APPROVED" : minutesFull.status === "pending_approval" ? "PENDING APPROVAL" : "DRAFT";
+    const statusColor = minutesFull.status === "approved" ? "#16a34a" : minutesFull.status === "pending_approval" ? "#d97706" : "#6366f1";
+    checkY(20);
+    doc.moveDown(0.5);
+    doc.fontSize(10).fillColor(statusColor).font("Helvetica-Bold").text(`Status: ${statusLabel}`, L, doc.y);
+  }
+
+  // Motions
+  if (minutesFull?.motions?.length) {
+    sectionHeader("Motions");
+    minutesFull.motions.forEach((m: any, i: number) => {
+      checkY(50);
+      const y = doc.y;
+      doc.rect(L, y, W, 20).fill(m.passed ? "#dcfce7" : "#fee2e2");
+      doc.fontSize(10).fillColor(m.passed ? "#15803d" : "#b91c1c").font("Helvetica-Bold")
+        .text(`Motion ${i + 1}: ${m.passed ? "PASSED" : "FAILED"}`, L + 6, y + 5);
+      doc.y = y + 24;
+      doc.fontSize(10).fillColor(darkGray).font("Helvetica").text(m.motionText, L, doc.y, { width: W });
+      const voteLine: string[] = [];
+      if (m.votesFor || m.votesAgainst || m.votesAbstain) voteLine.push(`Vote: ${m.votesFor}–${m.votesAgainst}–${m.votesAbstain} (For–Against–Abstain)`);
+      if (m.recusedDirectors) voteLine.push(`Recused: ${m.recusedDirectors}`);
+      if (voteLine.length) { doc.fontSize(9).fillColor(lightGray).font("Helvetica").text(voteLine.join("  |  "), L, doc.y + 2, { width: W }); }
+      doc.moveDown(0.5);
+    });
+  }
+
+  // Action Items
+  if (minutesFull?.actionItems?.length) {
+    sectionHeader("Action Items");
+    minutesFull.actionItems.forEach((a: any, i: number) => {
+      checkY(30);
+      const y = doc.y;
+      doc.fontSize(10).fillColor(teal).font("Helvetica-Bold").text(`${i + 1}.`, L, y, { width: 18 });
+      doc.fontSize(10).fillColor(darkGray).font("Helvetica-Bold").text(a.title, L + 22, y, { width: W - 22 });
+      if (a.description) { doc.fontSize(9).fillColor(lightGray).font("Helvetica").text(a.description, L + 22, doc.y, { width: W - 22 }); }
+      const meta: string[] = [];
+      if (a.first_name) meta.push(`Assigned: ${a.first_name} ${a.last_name}`);
+      if (a.due_date) meta.push(`Due: ${new Date(a.due_date).toLocaleDateString()}`);
+      if (meta.length) { doc.fontSize(9).fillColor(lightGray).font("Helvetica").text(meta.join("  |  "), L + 22, doc.y, { width: W - 22 }); }
+      doc.moveDown(0.4);
+    });
+  }
+
+  // Adjournment
+  if (minutesFull?.adjournmentTime) {
+    checkY(30);
+    doc.moveDown(0.5);
+    doc.fontSize(10).fillColor(lightGray).font("Helvetica-Bold").text("Meeting adjourned at:", L, doc.y);
+    doc.fontSize(10).fillColor(darkGray).font("Helvetica").text(new Date(minutesFull.adjournmentTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }), L + 140, doc.y - 14);
+  }
+
+  // Footer on all pages
+  const range = doc.bufferedPageRange();
+  for (let i = 0; i < range.count; i++) {
+    doc.switchToPage(i);
+    doc.fontSize(8).fillColor(lightGray).font("Helvetica")
+      .text(`handləkraft Board of Directors  •  Confidential  •  Page ${i + 1} of ${range.count}`, L, 745, { width: W, align: "center" });
+  }
+
+  doc.end();
+});
 
 export default router;

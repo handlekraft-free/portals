@@ -752,3 +752,15 @@ export const boardDocumentViews = pgTable("board_document_views", {
   viewedAt: timestamp("viewed_at").defaultNow().notNull(),
 });
 export type BoardDocumentView = typeof boardDocumentViews.$inferSelect;
+
+export const boardMinutesVersions = pgTable("board_minutes_versions", {
+  id: serial("id").primaryKey(),
+  minutesId: integer("minutes_id").notNull(),
+  versionNumber: integer("version_number").notNull().default(1),
+  contentSnapshot: text("content_snapshot"),
+  motionsSnapshot: text("motions_snapshot"),
+  savedBy: integer("saved_by").notNull(),
+  savedAt: timestamp("saved_at").defaultNow().notNull(),
+  note: text("note"),
+});
+export type BoardMinutesVersion = typeof boardMinutesVersions.$inferSelect;

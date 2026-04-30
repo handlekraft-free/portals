@@ -299,9 +299,10 @@ router.get("/cards/:id", async (req, res) => {
 });
 
 router.patch("/cards/:id", async (req, res) => {
-  const { columnId, title, description, assignedTo, reviewerId, interestRating, dueDate, priority, labels, position, archived } = req.body;
+  const { columnId, boardId, title, description, assignedTo, reviewerId, interestRating, dueDate, priority, labels, position, archived } = req.body;
   const [card] = await db.update(kanbanCards).set({
     ...(columnId !== undefined && { columnId: parseInt(columnId) }),
+    ...(boardId !== undefined && { boardId: parseInt(boardId) }),
     ...(title !== undefined && { title }),
     ...(description !== undefined && { description }),
     ...(assignedTo !== undefined && { assignedTo: assignedTo || null }),

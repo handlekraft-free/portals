@@ -12,7 +12,7 @@ router.use(requireAdmin as any);
 // GET /api/admin/portal-users
 router.get("/", async (_req, res) => {
   const all = await db.select({ id: users.id, email: users.email, firstName: users.firstName, lastName: users.lastName, role: users.role, status: users.status, lastLogin: users.lastLogin, createdAt: users.createdAt, canApprove: users.canApprove, approverId: users.approverId }).from(users).orderBy(desc(users.createdAt));
-  const stats = { admin: 0, employee: 0, client: 0, student: 0 };
+  const stats = { admin: 0, employee: 0, client: 0, student: 0, board: 0 };
   for (const u of all) { if (u.role in stats) stats[u.role as keyof typeof stats]++; }
   res.json({ success: true, data: all, stats });
 });

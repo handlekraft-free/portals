@@ -34,17 +34,19 @@ Preferred communication style: Simple, everyday language.
   - `routes-student.ts` — Student courses, files, announcements, progress tracking
   - `routes-lms.ts` — LMS course management, module/lesson builder, student enrollment
   - `routes-user-mgmt.ts` — Admin portal user CRUD, bulk actions, CSV export
+  - `routes-board.ts` — Board portal: meetings, agenda, RSVPs, minutes, motions, action items, documents, written consents, committees, audit log
 - **Storage:** `DatabaseStorage` class in `server/storage.ts` with Drizzle ORM for public form CRUD
-- **Portal Users Seeded:** admin@handlekraft.ai/Admin1234!, employee1@handlekraft.ai/Employee1!, employee2@handlekraft.ai/Employee1!, client1@handlekraft.ai/Client123!, student1@handlekraft.ai/Student1!
+- **Portal Users Seeded:** admin@handlekraft.ai/Admin1234!, employee1@handlekraft.ai/Employee1!, employee2@handlekraft.ai/Employee1!, client1@handlekraft.ai/Client123!, student1@handlekraft.ai/Student1!, board1@handlekraft.ai/Board1234!
 - **Legacy Admin:** username "admin", password "handlekraft2026" for /admin session panel
 
 ## Portal System
-- **Login page:** `/login` — role selector (Team Member / Client / Student), then email+password form
+- **Login page:** `/login` — role selector (Team Member / Client / Student / Board Member), then email+password form
 - **Employee Portal:** `/portal/employee/*` — Dashboard, Time Tracking, Kanban Boards, Expenses, Client Tickets, LMS Course Management; sidebar layout; admin role sees extra "Portal Users" nav item
 - **Client Portal:** `/portal/client/*` — Dashboard, Files, Messages, Support Tickets; top nav layout; isolated to own data
 - **Student Portal:** `/portal/student/*` — Dashboard, My Courses, Files, Announcements; top nav with purple gradient; isolated to enrolled courses
-- **Admin Portal Users:** `/portal/admin/users` — Full user management table (visible only to admin role)
-- **Portal Components:** `client/src/components/portal/` — EmployeeLayout, ClientLayout, StudentLayout, PortalGuard
+- **Board Portal:** `/portal/board/*` — Dashboard, Meetings (RSVP + agenda), Documents (upload/ack/download), Minutes (notes + motions + action items), Action Items, Written Consents, Board Members; indigo sidebar layout; accessible to "board" and "admin" roles
+- **Admin Portal Users:** `/portal/admin/users` — Full user management table (visible only to admin role); includes board role in stats, filters, and create/edit forms
+- **Portal Components:** `client/src/components/portal/` — EmployeeLayout, ClientLayout, StudentLayout, BoardLayout, PortalGuard
 - **Auth State:** `client/src/context/AuthContext.tsx` — React context provider wrapping entire app
 - **Auth Helpers:** `client/src/lib/auth.ts` — getCurrentUser, login, logout, getPortalPath, apiRequest
 - **File Uploads:** Stored in `./data/uploads/` (client-files, student-files, lms-files subdirs); served via authenticated download endpoints

@@ -18,6 +18,7 @@ const ROLE_COLORS: Record<string, string> = {
   employee: "bg-teal-100 text-teal-700",
   client: "bg-amber-100 text-amber-700",
   student: "bg-purple-100 text-purple-700",
+  board: "bg-indigo-100 text-indigo-700",
 };
 const STATUS_COLORS: Record<string, string> = {
   active: "bg-green-100 text-green-700",
@@ -83,6 +84,7 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
               <option value="employee">Employee — access internal tools</option>
               <option value="client">Client — access client portal</option>
               <option value="student">Student — access learning portal</option>
+              <option value="board">Board Member — board portal access</option>
               <option value="admin">Admin — full access</option>
             </select>
           </div>
@@ -163,6 +165,7 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
                 <option value="employee">Employee</option>
                 <option value="client">Client</option>
                 <option value="student">Student</option>
+                <option value="board">Board Member</option>
                 <option value="admin">Admin</option>
               </select>
             </div>
@@ -380,6 +383,7 @@ function AdminUsersContent() {
           { role: "employee", label: "Employees", color: "text-[#0D7377]", bg: "bg-teal-50" },
           { role: "client", label: "Clients", color: "text-[#D4A843]", bg: "bg-amber-50" },
           { role: "student", label: "Students", color: "text-purple-600", bg: "bg-purple-50" },
+          { role: "board", label: "Board Members", color: "text-indigo-600", bg: "bg-indigo-50" },
           { role: "admin", label: "Admins", color: "text-red-600", bg: "bg-red-50" },
         ].map(s => (
           <Card key={s.role} className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => { setRoleFilter(s.role); setActiveTab("users"); }}>
@@ -416,8 +420,8 @@ function AdminUsersContent() {
               <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or email…" className="pl-9 text-sm" data-testid="input-search-users" />
             </div>
             <div className="flex gap-1">
-              {["all", "admin", "employee", "client", "student"].map(r => (
-                <button key={r} onClick={() => setRoleFilter(r)} className={`px-3 py-1.5 rounded-full text-xs border transition-colors capitalize ${roleFilter === r ? "bg-[#0D7377] text-white border-[#0D7377]" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`} data-testid={`filter-${r}`}>{r}</button>
+              {["all", "admin", "employee", "client", "student", "board"].map(r => (
+                <button key={r} onClick={() => setRoleFilter(r)} className={`px-3 py-1.5 rounded-full text-xs border transition-colors capitalize ${roleFilter === r ? "bg-[#0D7377] text-white border-[#0D7377]" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`} data-testid={`filter-${r}`}>{r === "board" ? "Board" : r}</button>
               ))}
             </div>
           </div>

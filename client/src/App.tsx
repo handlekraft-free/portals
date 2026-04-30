@@ -31,6 +31,15 @@ import StudentCourses from "@/pages/portal/student/courses";
 import StudentFiles from "@/pages/portal/student/files";
 import StudentAnnouncements from "@/pages/portal/student/announcements";
 
+// Board Portal
+import BoardDashboard from "@/pages/portal/board/dashboard";
+import BoardMeetings from "@/pages/portal/board/meetings";
+import BoardDocuments from "@/pages/portal/board/documents";
+import BoardMinutes from "@/pages/portal/board/minutes";
+import BoardActionItems from "@/pages/portal/board/action-items";
+import BoardConsents from "@/pages/portal/board/consents";
+import BoardMembers from "@/pages/portal/board/members";
+
 // Admin Portal
 import AdminUsers from "@/pages/portal/admin/users";
 
@@ -65,6 +74,15 @@ function Router() {
       <Route path="/portal/student/courses" component={StudentCourses} />
       <Route path="/portal/student/files" component={StudentFiles} />
       <Route path="/portal/student/announcements" component={StudentAnnouncements} />
+
+      {/* Board Portal */}
+      <Route path="/portal/board/dashboard" component={BoardDashboard} />
+      <Route path="/portal/board/meetings" component={BoardMeetings} />
+      <Route path="/portal/board/documents" component={BoardDocuments} />
+      <Route path="/portal/board/minutes" component={BoardMinutes} />
+      <Route path="/portal/board/action-items" component={BoardActionItems} />
+      <Route path="/portal/board/consents" component={BoardConsents} />
+      <Route path="/portal/board/members" component={BoardMembers} />
 
       {/* Admin Portal */}
       <Route path="/portal/admin/users" component={AdminUsers} />

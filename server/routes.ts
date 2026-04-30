@@ -20,6 +20,7 @@ import clientPortalRoutes from "./routes-client-portal";
 import studentRoutes from "./routes-student";
 import lmsRoutes from "./routes-lms";
 import userMgmtRoutes from "./routes-user-mgmt";
+import boardRoutes from "./routes-board";
 
 declare module "express-session" {
   interface SessionData {
@@ -77,7 +78,17 @@ export async function registerRoutes(
       ALTER TABLE time_reports ADD COLUMN IF NOT EXISTS notes text;
       ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS reviewer_id integer;
       ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS interest_rating integer;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS board_position text;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS term_start date;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS term_end date;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS is_interested_director boolean DEFAULT false;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS committees text[];
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS bio text;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS photo_url text;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS emergency_contact text;
     `);
+    // Add 'board' enum value (must run outside transaction)
+    await migrationPool.query(`ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'board'`);
     await migrationPool.end();
     console.log("[migrate] ✓ Schema patches applied");
   } catch (e: any) {
@@ -104,6 +115,20 @@ export async function registerRoutes(
         { email: "student1@handlekraft.ai", passwordHash: await hash("Student1!"), role: "student", firstName: "Alex", lastName: "Rivera", status: "active" },
       ]);
       console.log("[seed] ✓ Portal users seeded");
+    }
+    // Seed board user if missing (added after initial seeding)
+    const existing = await db.select({ id: users.id }).from(users).where(sql`email = 'board1@handlekraft.ai'`);
+    if (existing.length === 0) {
+      await db.insert(users).values({
+        email: "board1@handlekraft.ai",
+        passwordHash: await bcrypt.hash("Board1234!", 12),
+        role: "board" as any,
+        firstName: "Dana",
+        lastName: "Eriksson",
+        status: "active",
+        boardPosition: "Secretary",
+      });
+      console.log("[seed] ✓ Board member user seeded");
     }
   } catch (e: any) {
     console.error("[seed] Could not seed portal users:", e.message);
@@ -139,6 +164,7 @@ export async function registerRoutes(
   app.use("/api/student", studentRoutes);
   app.use("/api/lms", lmsRoutes);
   app.use("/api/admin/portal-users", userMgmtRoutes);
+  app.use("/api/board", boardRoutes);
 
   // ── Public application endpoints (existing) ───────────────────────────────
 

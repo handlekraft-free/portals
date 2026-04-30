@@ -19,6 +19,7 @@ export function PortalGuard({ allowedRoles, children }: PortalGuardProps) {
         // Redirect to their proper portal
         if (user.role === "client") setLocation("/portal/client/dashboard");
         else if (user.role === "student") setLocation("/portal/student/dashboard");
+        else if (user.role === "board") setLocation("/portal/board/dashboard");
         else setLocation("/portal/employee/dashboard");
       }
     }

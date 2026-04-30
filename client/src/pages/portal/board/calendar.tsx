@@ -50,6 +50,11 @@ function CalendarContent() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [selectedDayNum, setSelectedDayNum] = useState<number | null>(null);
   const [packetDocs, setPacketDocs] = useState<any[]>([]);
+  const [allDocs, setAllDocs] = useState<any[]>([]);
+  const [addingDoc, setAddingDoc] = useState(false);
+  const [selectedDocId, setSelectedDocId] = useState("");
+  const [docNote, setDocNote] = useState("");
+  const isAdmin = user?.role === "admin";
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
@@ -91,6 +96,9 @@ function CalendarContent() {
     setSelected(m);
     setSelectedDetail(null);
     setPacketDocs([]);
+    setAddingDoc(false);
+    setSelectedDocId("");
+    setDocNote("");
     setDetailLoading(true);
     const [detailRes, packetRes] = await Promise.all([
       apiRequest("GET", `/api/board/meetings/${m.id}`),
@@ -99,6 +107,12 @@ function CalendarContent() {
     if (detailRes.success) setSelectedDetail(detailRes.data);
     if (packetRes.success) setPacketDocs(packetRes.data);
     setDetailLoading(false);
+  }
+
+  async function loadAllDocs() {
+    if (allDocs.length > 0) return;
+    const r = await apiRequest("GET", "/api/board/documents");
+    if (r.success) setAllDocs(r.data);
   }
 
   function selectDay(day: number) {
@@ -374,25 +388,102 @@ function CalendarContent() {
                             </span>
                           )}
                         </p>
-                        <a
-                          href={`/api/board/meetings/${selected?.id}/packet`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
-                          data-testid="link-download-packet"
-                        >
-                          <Download className="w-3 h-3" /> Download PDF
-                        </a>
+                        <div className="flex items-center gap-2">
+                          {isAdmin && (
+                            <button
+                              className="text-xs text-indigo-500 hover:text-indigo-700 flex items-center gap-0.5"
+                              onClick={() => { setAddingDoc(v => !v); loadAllDocs(); }}
+                              data-testid="button-cal-link-doc"
+                            >
+                              <Download className="w-3 h-3 rotate-180" /> {addingDoc ? "Cancel" : "Link Doc"}
+                            </button>
+                          )}
+                          <a
+                            href={`/api/board/meetings/${selected?.id}/packet`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                            data-testid="link-download-packet"
+                          >
+                            <Download className="w-3 h-3" /> PDF
+                          </a>
+                        </div>
                       </div>
-                      {packetDocs.length === 0 ? (
-                        <p className="text-xs text-slate-400 italic">No documents linked to this packet yet.</p>
+
+                      {/* Admin: link document form */}
+                      {addingDoc && isAdmin && (
+                        <div className="mb-2 bg-indigo-50 border border-indigo-100 rounded-lg p-2 space-y-2" data-testid="cal-link-doc-form">
+                          <select
+                            value={selectedDocId}
+                            onChange={e => setSelectedDocId(e.target.value)}
+                            className="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none"
+                            data-testid="select-cal-packet-doc"
+                          >
+                            <option value="">— Select a document —</option>
+                            {allDocs
+                              .filter((d: any) => !packetDocs.some((p: any) => p.document_id === d.id))
+                              .map((d: any) => (
+                                <option key={d.id} value={d.id}>{d.title} ({d.category})</option>
+                              ))}
+                          </select>
+                          <input
+                            value={docNote}
+                            onChange={e => setDocNote(e.target.value)}
+                            placeholder="Note (optional)"
+                            className="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none"
+                            data-testid="input-cal-doc-note"
+                          />
+                          <div className="flex gap-1">
+                            <button
+                              className="flex-1 bg-indigo-600 text-white text-xs rounded px-2 py-1 hover:bg-indigo-700 disabled:opacity-50"
+                              disabled={!selectedDocId}
+                              onClick={async () => {
+                                if (!selectedDocId || !selected) return;
+                                const r = await apiRequest("POST", `/api/board/meetings/${selected.id}/packet-docs`, {
+                                  documentId: selectedDocId, note: docNote,
+                                });
+                                if (r.success) {
+                                  setPacketDocs(d => [...d, r.data]);
+                                  setSelectedDocId(""); setDocNote(""); setAddingDoc(false);
+                                }
+                              }}
+                              data-testid="button-cal-confirm-link-doc"
+                            >
+                              Link
+                            </button>
+                            <button
+                              className="text-xs border border-slate-200 rounded px-2 py-1 hover:bg-slate-50"
+                              onClick={() => { setAddingDoc(false); setSelectedDocId(""); setDocNote(""); }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {packetDocs.length === 0 && !addingDoc ? (
+                        <p className="text-xs text-slate-400 italic">No documents linked to this packet yet.
+                          {isAdmin && " Use 'Link Doc' above to add."}
+                        </p>
                       ) : (
                         <ul className="space-y-1">
                           {packetDocs.map((d: any) => (
-                            <li key={d.id} className="flex items-center gap-2 text-xs text-slate-600" data-testid={`cal-packet-doc-${d.id}`}>
+                            <li key={d.id} className="flex items-center gap-2 text-xs text-slate-600 group" data-testid={`cal-packet-doc-${d.id}`}>
                               <FileText className="w-3 h-3 text-indigo-300 shrink-0" />
                               <span className="truncate flex-1">{d.title}</span>
                               <span className="text-slate-400 capitalize shrink-0">{d.category}</span>
+                              {isAdmin && (
+                                <button
+                                  className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={async () => {
+                                    await apiRequest("DELETE", `/api/board/meetings/${selected?.id}/packet-docs/${d.id}`);
+                                    setPacketDocs(prev => prev.filter(p => p.id !== d.id));
+                                  }}
+                                  data-testid={`button-cal-remove-doc-${d.id}`}
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              )}
                             </li>
                           ))}
                         </ul>

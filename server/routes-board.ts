@@ -954,7 +954,7 @@ router.get("/meetings/:id/packet-docs", async (req, res) => {
   res.json({ success: true, data: rows });
 });
 
-router.post("/meetings/:id/packet-docs", requireBoard as any, async (req, res) => {
+router.post("/meetings/:id/packet-docs", requireAdmin as any, async (req, res) => {
   const meetingId = parseInt(req.params.id);
   const { documentId, note } = req.body;
   if (!documentId) return res.status(400).json({ success: false, error: "documentId required" });
@@ -971,7 +971,7 @@ router.post("/meetings/:id/packet-docs", requireBoard as any, async (req, res) =
   res.status(201).json({ success: true, data: row });
 });
 
-router.delete("/meetings/:id/packet-docs/:docId", requireBoard as any, async (req, res) => {
+router.delete("/meetings/:id/packet-docs/:docId", requireAdmin as any, async (req, res) => {
   const meetingId = parseInt(req.params.id);
   const docId = parseInt(req.params.docId);
   await db.delete(boardMeetingPacketDocs)
@@ -981,7 +981,7 @@ router.delete("/meetings/:id/packet-docs/:docId", requireBoard as any, async (re
 
 // ── Meeting Packet PDF ────────────────────────────────────────────────────────
 
-router.post("/meetings/:id/packet", async (req, res) => {
+router.all("/meetings/:id/packet", async (req, res) => {
   const meetingId = parseInt(req.params.id);
   const [meeting] = await db.select().from(boardMeetings).where(eq(boardMeetings.id, meetingId));
   if (!meeting) return res.status(404).json({ success: false, error: "Meeting not found" });

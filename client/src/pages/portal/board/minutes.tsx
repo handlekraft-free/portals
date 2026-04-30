@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useSearch } from "wouter";
 import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
@@ -1134,6 +1135,13 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
 // ─── Meeting List ─────────────────────────────────────────────────────────────
 
 function MinutesContent() {
+  const search = useSearch();
+  const urlMeetingId = useMemo(() => {
+    const p = new URLSearchParams(search);
+    const v = p.get("meetingId");
+    return v ? parseInt(v) : null;
+  }, [search]);
+
   const [meetings, setMeetings] = useState<any[]>([]);
   const [minutesMap, setMinutesMap] = useState<Record<number, any>>({});
   const [loading, setLoading] = useState(true);
@@ -1148,10 +1156,16 @@ function MinutesContent() {
       apiRequest("GET", "/api/board/minutes"),
     ]).then(([mRes, minsRes]) => {
       if (mRes.success) {
-        const past = mRes.data
+        const all = mRes.data;
+        const past = all
           .filter((m: any) => m.status === "held" || new Date(m.scheduledAt) <= new Date())
           .sort((a: any, b: any) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
         setMeetings(past);
+        // Deep-link: if ?meetingId=N is in the URL, auto-select that meeting
+        if (urlMeetingId) {
+          const target = all.find((m: any) => m.id === urlMeetingId);
+          if (target) setSelected(target);
+        }
       }
       if (minsRes.success) {
         const map: Record<number, any> = {};
@@ -1160,7 +1174,7 @@ function MinutesContent() {
       }
       setLoading(false);
     });
-  }, []);
+  }, [urlMeetingId]);
 
   if (selected) return <MinutesEditor meeting={selected} onBack={() => setSelected(null)} />;
 

@@ -6,9 +6,12 @@ import pg from "pg";
 import bcrypt from "bcryptjs";
 import { storage } from "./storage";
 import { insertFellowshipApplicationSchema, insertClientApplicationSchema } from "@shared/schema";
-import { users, expenseCategories, chargeCodes } from "@shared/schema";
+import {
+  users, expenseCategories, chargeCodes,
+  boardMeetings, boardAgendaItems, boardMeetingAttendees, boardMeetingNotices, boardActionItems,
+} from "@shared/schema";
 import { db } from "./db";
-import { sql, count } from "drizzle-orm";
+import { sql, count, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
 // New portal route modules
@@ -322,6 +325,86 @@ export async function registerRoutes(
     }
   } catch (e: any) {
     console.error("[seed] Could not seed charge codes:", e.message);
+  }
+
+  // Seed sample board meetings if none exist
+  try {
+    const [{ value: meetingCount }] = await db.select({ value: count() }).from(boardMeetings);
+    if (Number(meetingCount) === 0) {
+      const adminRows = await db.select({ id: users.id }).from(users).where(sql`role = 'admin'`).limit(1);
+      const boardRows = await db.select({ id: users.id }).from(users).where(sql`role IN ('admin','board')`);
+      if (adminRows.length > 0) {
+        const adminId = adminRows[0].id;
+        const now = new Date();
+        const nextRegular = new Date(now); nextRegular.setDate(nextRegular.getDate() + 22); nextRegular.setHours(18, 0, 0, 0);
+        const annual = new Date(now); annual.setDate(annual.getDate() + 45); annual.setHours(14, 0, 0, 0);
+        const special = new Date(now); special.setDate(special.getDate() + 7); special.setHours(17, 0, 0, 0);
+        const pastMeeting = new Date(now); pastMeeting.setDate(pastMeeting.getDate() - 42); pastMeeting.setHours(18, 0, 0, 0);
+
+        const [m1] = await db.insert(boardMeetings).values({
+          title: "Regular Board Meeting \u2014 Q2 2026", meetingType: "regular", status: "scheduled",
+          scheduledAt: nextRegular, location: "Video Conference (Zoom)",
+          quorumNumber: 3, createdBy: adminId, noticeSentAt: new Date(), noticeMethod: "email",
+        }).returning({ id: boardMeetings.id });
+
+        const [m2] = await db.insert(boardMeetings).values({
+          title: "Annual Board Meeting 2026", meetingType: "annual", status: "scheduled",
+          scheduledAt: annual, location: "handlekraft HQ \u2014 Conference Room A",
+          quorumNumber: 3, createdBy: adminId,
+        }).returning({ id: boardMeetings.id });
+
+        const [m3] = await db.insert(boardMeetings).values({
+          title: "Special Meeting \u2014 Budget Review", meetingType: "special", status: "scheduled",
+          scheduledAt: special, location: "Video Conference", platform: "https://meet.google.com/abc-defg-hij",
+          quorumNumber: 3, createdBy: adminId, noticeSentAt: new Date(), noticeMethod: "email",
+        }).returning({ id: boardMeetings.id });
+
+        const [m4] = await db.insert(boardMeetings).values({
+          title: "Regular Board Meeting \u2014 Q1 2026", meetingType: "regular", status: "held",
+          scheduledAt: pastMeeting, location: "Video Conference (Zoom)",
+          quorumNumber: 3, createdBy: adminId, noticeSentAt: pastMeeting, noticeMethod: "email",
+        }).returning({ id: boardMeetings.id });
+
+        if (m1?.id) {
+          await db.insert(boardAgendaItems).values([
+            { meetingId: m1.id, title: "Call to Order & Roll Call", position: 0, duration: 5 },
+            { meetingId: m1.id, title: "Approval of Previous Minutes", position: 1, duration: 10 },
+            { meetingId: m1.id, title: "Executive Director Report", position: 2, duration: 20 },
+            { meetingId: m1.id, title: "Financial Report \u2014 Q1 2026", position: 3, duration: 15 },
+            { meetingId: m1.id, title: "Fellowship Program Update", position: 4, duration: 20 },
+            { meetingId: m1.id, title: "New Business", position: 5, duration: 15 },
+            { meetingId: m1.id, title: "Adjournment", position: 6, duration: 5 },
+          ]);
+        }
+        if (m4?.id) {
+          await db.insert(boardAgendaItems).values([
+            { meetingId: m4.id, title: "Call to Order", position: 0, duration: 5 },
+            { meetingId: m4.id, title: "Approval of Q4 2025 Minutes", position: 1, duration: 10 },
+            { meetingId: m4.id, title: "2026 Budget Approval", position: 2, duration: 30 },
+            { meetingId: m4.id, title: "Officer Elections", position: 3, duration: 20 },
+            { meetingId: m4.id, title: "Adjournment", position: 4, duration: 5 },
+          ]);
+          for (const u of boardRows) {
+            await db.insert(boardMeetingAttendees).values({ meetingId: m4.id, userId: u.id, attendance: "present", participationMethod: "remote" });
+          }
+          await db.insert(boardMeetingNotices).values({ meetingId: m4.id, method: "email", recipientCount: boardRows.length, sentBy: adminId, notes: "Sent via handlekraft.ai portal" });
+        }
+        const now2 = new Date();
+        const futureDate1 = new Date(now2); futureDate1.setDate(futureDate1.getDate() + 14);
+        const futureDate2 = new Date(now2); futureDate2.setDate(futureDate2.getDate() + 30);
+        const pastDue = new Date(now2); pastDue.setDate(pastDue.getDate() - 5);
+        const firstBoardId = boardRows[0]?.id ?? adminId;
+        const lastBoardId = boardRows[boardRows.length - 1]?.id ?? adminId;
+        await db.insert(boardActionItems).values([
+          { title: "Review and approve updated bylaws draft", description: "See attached document in Board Documents section.", assignedTo: firstBoardId, dueDate: futureDate1, status: "open", createdBy: adminId },
+          { title: "Submit COI disclosure for FY2026", description: "All board members must submit conflict of interest disclosure by end of Q2.", assignedTo: lastBoardId, dueDate: futureDate2, status: "open", createdBy: adminId },
+          { title: "Recruit two new board candidates", description: "Identify and nominate candidates for the open board seats before Annual Meeting.", assignedTo: firstBoardId, dueDate: pastDue, status: "open", createdBy: adminId },
+        ]);
+        console.log("[seed] \u2713 Board meetings and action items seeded");
+      }
+    }
+  } catch (e: any) {
+    console.error("[seed] Could not seed board meetings:", e.message);
   }
 
   // ── New Portal API Routes ──────────────────────────────────────────────────

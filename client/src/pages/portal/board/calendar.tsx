@@ -115,6 +115,24 @@ function CalendarContent() {
     if (r.success) setAllDocs(r.data);
   }
 
+  async function downloadPacket(meetingId: number, title: string) {
+    const res = await fetch(`/api/board/meetings/${meetingId}/packet`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${title.replace(/[^a-z0-9]/gi, "_")}_packet.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   function selectDay(day: number) {
     setSelectedDayNum(day);
     setSelected(null);
@@ -398,15 +416,13 @@ function CalendarContent() {
                               <Download className="w-3 h-3 rotate-180" /> {addingDoc ? "Cancel" : "Link Doc"}
                             </button>
                           )}
-                          <a
-                            href={`/api/board/meetings/${selected?.id}/packet`}
-                            target="_blank"
-                            rel="noreferrer"
+                          <button
                             className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
-                            data-testid="link-download-packet"
+                            onClick={() => selected && downloadPacket(selected.id, selected.title)}
+                            data-testid="button-download-packet"
                           >
                             <Download className="w-3 h-3" /> PDF
-                          </a>
+                          </button>
                         </div>
                       </div>
 

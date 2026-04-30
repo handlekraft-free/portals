@@ -644,7 +644,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
       <div className="flex items-start gap-2.5 p-3 mb-4 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-800" data-testid="governance-banner">
         <Info className="w-4 h-4 shrink-0 mt-0.5 text-indigo-500" />
         <div>
-          <strong>Governance &amp; Legal Notice:</strong> These minutes constitute the official legal record of all board decisions and must accurately reflect the proceedings. All directors have the right to inspect and correct the minutes prior to approval. Record all motions with mover, seconder, and vote counts — including abstentions. Directors with a conflict of interest must declare and recuse from the vote. Once approved, minutes may only be amended by a subsequent board vote. Approved minutes are locked in this system.
+          <strong>Governance &amp; Legal Notice:</strong> These minutes constitute the official legal record of all board decisions and must accurately reflect the proceedings. All directors have the right to inspect and correct the minutes prior to approval. Record all motions with mover, seconder, and vote counts — including abstentions. Directors with a conflict of interest must declare and recuse from the vote. <strong>Sensitive discussions should be paraphrased rather than attributed verbatim</strong> — minutes must reflect the substance of decisions, not a verbatim transcript of debate. Once approved, minutes may only be amended by a subsequent board vote. Approved minutes are locked in this system.
         </div>
       </div>
 

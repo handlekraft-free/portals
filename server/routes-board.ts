@@ -968,7 +968,16 @@ router.post("/meetings/:id/packet-docs", requireAdmin as any, async (req, res) =
     addedBy: req.user!.userId,
     note: note || null,
   }).returning();
-  res.status(201).json({ success: true, data: row });
+  // Return enriched payload matching GET shape (join document metadata)
+  const enriched = await raw(sql`
+    SELECT pd.*, d.title, d.category, d.description, d.confidentiality,
+           u.first_name, u.last_name
+    FROM board_meeting_packet_docs pd
+    JOIN board_documents d ON d.id = pd.document_id
+    JOIN portal_users u ON u.id = pd.added_by
+    WHERE pd.id = ${row.id}
+  `);
+  res.status(201).json({ success: true, data: enriched[0] ?? row });
 });
 
 router.delete("/meetings/:id/packet-docs/:docId", requireAdmin as any, async (req, res) => {

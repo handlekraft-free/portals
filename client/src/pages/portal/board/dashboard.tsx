@@ -65,6 +65,8 @@ function BoardDashboardContent() {
     !needs.coiFiled && { key: "coi", icon: Scale, color: "amber", text: `COI disclosure not filed for ${needs.coiYear}`, href: "/portal/board/conflicts" },
     ...(needs.unackedDocuments ?? []).map((d: any) => ({ key: `ack-${d.id}`, icon: ShieldAlert, color: "red", text: `Unacknowledged document: "${d.title}"`, href: "/portal/board/documents" })),
     ...(needs.pendingConsents ?? []).map((c: any) => ({ key: `consent-${c.id}`, icon: FileSignature, color: "purple", text: `Pending consent vote: "${c.title}"`, href: "/portal/board/consents" })),
+    ...overdueActions.map((a: any) => ({ key: `action-${a.id}`, icon: AlertCircle, color: "red", text: `Overdue action item: "${a.title}"`, href: "/portal/board/action-items" })),
+    ...needsRsvp.map((m: any) => ({ key: `rsvp-${m.id}`, icon: CalendarDays, color: "amber", text: `RSVP needed: "${m.title}"`, href: "/portal/board/meetings" })),
   ].filter(Boolean) as { key: string; icon: any; color: string; text: string; href: string }[];
 
   return (

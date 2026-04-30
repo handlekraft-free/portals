@@ -18,6 +18,12 @@ const TYPE_COLORS: Record<string, string> = {
   committee: "bg-purple-500",
 };
 
+const STATUS_COLORS: Record<string, string> = {
+  scheduled: "bg-blue-100 text-blue-700",
+  held: "bg-green-100 text-green-700",
+  cancelled: "bg-red-100 text-red-700",
+};
+
 const RSVP_LABELS: Record<string, { label: string; color: string }> = {
   yes: { label: "Attending", color: "text-green-600" },
   no: { label: "Declining", color: "text-red-500" },
@@ -41,6 +47,7 @@ function CalendarContent() {
   const [selected, setSelected] = useState<any>(null);
   const [selectedDetail, setSelectedDetail] = useState<any>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [selectedDayNum, setSelectedDayNum] = useState<number | null>(null);
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
@@ -78,12 +85,19 @@ function CalendarContent() {
   }
 
   async function selectMeeting(m: any) {
+    setSelectedDayNum(null);
     setSelected(m);
     setSelectedDetail(null);
     setDetailLoading(true);
     const r = await apiRequest("GET", `/api/board/meetings/${m.id}`);
     if (r.success) setSelectedDetail(r.data);
     setDetailLoading(false);
+  }
+
+  function selectDay(day: number) {
+    setSelectedDayNum(day);
+    setSelected(null);
+    setSelectedDetail(null);
   }
 
   async function rsvp(meetingId: number, response: string) {
@@ -141,19 +155,20 @@ function CalendarContent() {
                   return (
                     <div
                       key={idx}
-                      className={`min-h-[72px] border-t border-slate-100 p-1 ${day ? "cursor-default" : ""} ${today ? "bg-indigo-50/60" : ""}`}
+                      className={`min-h-[72px] border-t border-slate-100 p-1 ${day ? "cursor-pointer hover:bg-indigo-50/40" : ""} ${today ? "bg-indigo-50/60" : ""} ${selectedDayNum === day && day ? "ring-2 ring-inset ring-indigo-300 bg-indigo-50/50" : ""} transition-colors`}
                       data-testid={day ? `calendar-day-${day}` : undefined}
+                      onClick={() => day && selectDay(day)}
                     >
                       {day && (
                         <>
-                          <span className={`text-xs font-medium inline-flex w-6 h-6 items-center justify-center rounded-full ${today ? "bg-indigo-500 text-white" : "text-slate-500"}`}>
+                          <span className={`text-xs font-medium inline-flex w-6 h-6 items-center justify-center rounded-full ${today ? "bg-indigo-500 text-white" : selectedDayNum === day ? "bg-indigo-200 text-indigo-700" : "text-slate-500"}`}>
                             {day}
                           </span>
                           <div className="mt-0.5 space-y-0.5">
                             {dayMeetings.map(m => (
                               <button
                                 key={m.id}
-                                onClick={() => selectMeeting(m)}
+                                onClick={e => { e.stopPropagation(); selectMeeting(m); }}
                                 className={`w-full text-left text-white text-[9px] font-medium px-1 py-0.5 rounded truncate ${TYPE_COLORS[m.meetingType] || "bg-indigo-500"} hover:opacity-80 transition-opacity`}
                                 data-testid={`calendar-meeting-dot-${m.id}`}
                               >
@@ -179,6 +194,46 @@ function CalendarContent() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Day-scoped panel (clicking a date cell) */}
+          {selectedDayNum && !selected && (
+            <Card className="border-0 shadow-sm mt-4" data-testid="calendar-day-panel">
+              <CardContent className="pt-4 pb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-semibold text-[#1A1F2B]">
+                    {MONTHS[viewMonth]} {selectedDayNum}, {viewYear}
+                  </p>
+                  <button onClick={() => setSelectedDayNum(null)} className="text-slate-400 hover:text-slate-600" data-testid="button-close-day-panel">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                {(meetingsByDay[selectedDayNum] || []).length === 0 ? (
+                  <p className="text-sm text-slate-400 py-2">No meetings scheduled for this date.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {(meetingsByDay[selectedDayNum] || []).map((m: any) => (
+                      <button
+                        key={m.id}
+                        onClick={() => selectMeeting(m)}
+                        className="w-full text-left flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-slate-50 transition-colors"
+                        data-testid={`day-panel-meeting-${m.id}`}
+                      >
+                        <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${TYPE_COLORS[m.meetingType] || "bg-indigo-500"}`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-[#1A1F2B] truncate">{m.title}</p>
+                          <p className="text-xs text-slate-400">
+                            {new Date(m.scheduledAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            {m.location ? ` · ${m.location}` : ""}
+                          </p>
+                        </div>
+                        <Badge className={`text-xs capitalize ${STATUS_COLORS[m.status] || ""}`}>{m.status}</Badge>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Selected meeting detail */}
           {selected && (

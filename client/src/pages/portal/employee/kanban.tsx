@@ -757,6 +757,9 @@ function KanbanContent() {
   const [showNewBoard, setShowNewBoard] = useState(false);
   const [portalUsers, setPortalUsers] = useState<any[]>([]);
   const [view, setView] = useState<"boards" | "my-tasks">("boards");
+  const [editingBoard, setEditingBoard] = useState<any>(null);
+  const [editName, setEditName] = useState("");
+  const [editDesc, setEditDesc] = useState("");
 
   useEffect(() => {
     document.title = "Kanban | handləkraft.ai";
@@ -780,6 +783,29 @@ function KanbanContent() {
     if (!newBoardName.trim()) return;
     const res = await apiRequest("POST", "/api/kanban/boards", { name: newBoardName });
     if (res.success) { setBoards(prev => [...prev, res.data]); setNewBoardName(""); setShowNewBoard(false); }
+  }
+
+  function openEditBoard(e: React.MouseEvent, board: any) {
+    e.stopPropagation();
+    setEditingBoard(board);
+    setEditName(board.name);
+    setEditDesc(board.description || "");
+  }
+
+  async function saveEditBoard() {
+    if (!editName.trim() || !editingBoard) return;
+    const res = await apiRequest("PATCH", `/api/kanban/boards/${editingBoard.id}`, { name: editName.trim(), description: editDesc.trim() });
+    if (res.success) {
+      setBoards(prev => prev.map(b => b.id === editingBoard.id ? { ...b, name: editName.trim(), description: editDesc.trim() } : b));
+      setEditingBoard(null);
+    }
+  }
+
+  async function deleteBoard(e: React.MouseEvent, board: any) {
+    e.stopPropagation();
+    if (!confirm(`Delete "${board.name}"? All columns and cards will be archived.`)) return;
+    const res = await apiRequest("DELETE", `/api/kanban/boards/${board.id}`);
+    if (res.success) setBoards(prev => prev.filter(b => b.id !== board.id));
   }
 
   async function addCard(columnId: number, boardId: number) {
@@ -965,14 +991,28 @@ function KanbanContent() {
             {boards.length === 0 ? (
               <div className="col-span-3 text-center py-16 text-slate-400"><Kanban className="w-12 h-12 mx-auto mb-3 opacity-30" /><p>No boards yet. Create your first board to organize work.</p></div>
             ) : boards.map((board: any) => (
-              <Card key={board.id} className="cursor-pointer hover:shadow-md transition-shadow border-0 shadow-sm" onClick={() => loadBoard(board.id)} data-testid={`card-board-${board.id}`}>
+              <Card key={board.id} className="cursor-pointer hover:shadow-md transition-shadow border-0 shadow-sm group" onClick={() => loadBoard(board.id)} data-testid={`card-board-${board.id}`}>
                 <CardContent className="pt-4 pb-4">
-                  <div className="flex items-start justify-between">
-                    <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
                       <h3 className="font-semibold text-[#1A1F2B]">{board.name}</h3>
                       {board.description && <p className="text-xs text-slate-400 mt-1 line-clamp-2">{board.description}</p>}
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={e => openEditBoard(e, board)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-[#0D7377]"
+                        data-testid={`button-edit-board-${board.id}`}
+                        title="Edit board"
+                      ><Pencil className="w-3.5 h-3.5" /></button>
+                      <button
+                        onClick={e => deleteBoard(e, board)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-50 text-slate-400 hover:text-red-500"
+                        data-testid={`button-delete-board-${board.id}`}
+                        title="Delete board"
+                      ><Trash2 className="w-3.5 h-3.5" /></button>
+                      <ChevronRight className="w-4 h-4 text-slate-400" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -989,6 +1029,45 @@ function KanbanContent() {
           onClose={() => setSelectedCardId(null)}
           onUpdated={() => {}}
         />
+      )}
+
+      {/* Edit Board Modal */}
+      {editingBoard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setEditingBoard(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-lg font-display text-[#1A1F2B]">Edit Board</h2>
+              <button onClick={() => setEditingBoard(null)} className="p-1 rounded hover:bg-slate-100 text-slate-400"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Board name</label>
+                <input
+                  autoFocus
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && saveEditBoard()}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+                  data-testid="input-edit-board-name"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Description <span className="text-slate-400 font-normal">(optional)</span></label>
+                <textarea
+                  value={editDesc}
+                  onChange={e => setEditDesc(e.target.value)}
+                  rows={3}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none"
+                  data-testid="input-edit-board-desc"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-5">
+              <Button onClick={saveEditBoard} className="bg-[#0D7377] text-white flex-1" data-testid="button-save-board-edit">Save changes</Button>
+              <Button variant="outline" onClick={() => setEditingBoard(null)}>Cancel</Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

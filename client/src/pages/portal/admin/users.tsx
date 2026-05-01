@@ -214,6 +214,7 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
     termEnd: user.termEnd ? user.termEnd.split("T")[0] : "",
     committees: user.committees ? (Array.isArray(user.committees) ? user.committees.join(", ") : user.committees) : "",
     isInterestedDirector: user.isInterestedDirector || false,
+    isBoardMember: user.isBoardMember || false,
   });
   // Initialize additional roles from existing user.roles (all except primary)
   const [additionalRoles, setAdditionalRoles] = useState<string[]>(() => {
@@ -233,6 +234,7 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
     const payload: any = { role: form.role, roles, status: form.status, canApprove: form.canApprove };
     if (form.approverId === "") payload.approverId = null;
     else payload.approverId = parseInt(form.approverId);
+    payload.isBoardMember = form.isBoardMember;
     if (form.role === "board" || form.role === "admin") {
       payload.boardPosition = form.boardPosition || null;
       payload.termStart = form.termStart || null;
@@ -336,6 +338,15 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
               <label className="flex items-center gap-2 text-sm cursor-pointer" data-testid={`checkbox-interested-director-${user.id}`}>
                 <input type="checkbox" checked={form.isInterestedDirector} onChange={e => setForm(f => ({ ...f, isInterestedDirector: e.target.checked }))} className="rounded border-slate-300" />
                 <span className="text-slate-600">Interested director (has potential conflicts of interest)</span>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer mt-1" data-testid={`toggle-is-board-member-${user.id}`}>
+                <div className={`w-10 h-6 rounded-full transition-colors flex items-center px-1 ${form.isBoardMember ? "bg-indigo-600" : "bg-slate-300"}`} onClick={() => setForm(f => ({ ...f, isBoardMember: !f.isBoardMember }))}>
+                  <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${form.isBoardMember ? "translate-x-4" : "translate-x-0"}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-[#1A1F2B]">Active Board Member</p>
+                  <p className="text-xs text-slate-400">Appears in all board-specific lists, quorum, and votes</p>
+                </div>
               </label>
             </div>
           )}

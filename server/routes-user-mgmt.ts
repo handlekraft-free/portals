@@ -11,7 +11,7 @@ router.use(requireAdmin as any);
 
 // GET /api/admin/portal-users
 router.get("/", async (_req, res) => {
-  const all = await db.select({ id: users.id, email: users.email, firstName: users.firstName, lastName: users.lastName, role: users.role, roles: users.roles, status: users.status, lastLogin: users.lastLogin, createdAt: users.createdAt, canApprove: users.canApprove, approverId: users.approverId, boardPosition: users.boardPosition, termStart: users.termStart, termEnd: users.termEnd, committees: users.committees, isInterestedDirector: users.isInterestedDirector, bio: users.bio }).from(users).orderBy(desc(users.createdAt));
+  const all = await db.select({ id: users.id, email: users.email, firstName: users.firstName, lastName: users.lastName, role: users.role, roles: users.roles, status: users.status, lastLogin: users.lastLogin, createdAt: users.createdAt, canApprove: users.canApprove, approverId: users.approverId, boardPosition: users.boardPosition, termStart: users.termStart, termEnd: users.termEnd, committees: users.committees, isInterestedDirector: users.isInterestedDirector, isBoardMember: users.isBoardMember, bio: users.bio }).from(users).orderBy(desc(users.createdAt));
   const stats = { admin: 0, employee: 0, client: 0, student: 0, board: 0 };
   for (const u of all) { if (u.role in stats) stats[u.role as keyof typeof stats]++; }
   res.json({ success: true, data: all, stats });
@@ -34,7 +34,7 @@ router.post("/", async (req, res) => {
 });
 
 router.patch("/:id", async (req, res) => {
-  const { role, roles, status, canApprove, approverId, boardPosition, termStart, termEnd, committees, isInterestedDirector, bio } = req.body;
+  const { role, roles, status, canApprove, approverId, boardPosition, termStart, termEnd, committees, isInterestedDirector, isBoardMember, bio } = req.body;
   const updates: Record<string, any> = {};
   if (role !== undefined) updates.role = role;
   if (roles !== undefined) {
@@ -56,6 +56,7 @@ router.patch("/:id", async (req, res) => {
   if (termEnd !== undefined) updates.termEnd = termEnd ? new Date(termEnd) : null;
   if (committees !== undefined) updates.committees = Array.isArray(committees) ? committees : [];
   if (isInterestedDirector !== undefined) updates.isInterestedDirector = isInterestedDirector;
+  if (isBoardMember !== undefined) updates.isBoardMember = isBoardMember;
   if (bio !== undefined) updates.bio = bio || null;
   const [user] = await db.update(users).set(updates).where(eq(users.id, parseInt(req.params.id))).returning({ id: users.id, email: users.email, role: users.role, status: users.status, canApprove: users.canApprove, approverId: users.approverId, boardPosition: users.boardPosition, termStart: users.termStart, termEnd: users.termEnd, committees: users.committees });
   if (!user) return res.status(404).json({ success: false, error: "User not found" });

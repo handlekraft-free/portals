@@ -89,6 +89,7 @@ export const users = pgTable("portal_users", {
   emergencyContact: text("emergency_contact"),
   isInterestedDirector: boolean("is_interested_director").default(false),
   boardRestrictedAccess: boolean("board_restricted_access").default(false),
+  isBoardMember: boolean("is_board_member").default(false),
   roles: text("roles").array().default([]),
   // Extended profile fields
   phone: text("phone"),

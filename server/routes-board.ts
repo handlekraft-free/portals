@@ -72,7 +72,7 @@ function auditLog(userId: number, action: string, resourceType: string, resource
 
 async function getBoardMemberCount(): Promise<number> {
   const rows = await raw<{ cnt: string }>(sql`
-    SELECT count(*) AS cnt FROM portal_users WHERE role IN ('board','admin') AND status = 'active'
+    SELECT count(*) AS cnt FROM portal_users WHERE is_board_member = true AND status = 'active'
   `);
   return parseInt(rows[0]?.cnt ?? "0");
 }
@@ -93,7 +93,7 @@ router.get("/members", async (_req, res) => {
     committees: users.committees,
     status: users.status,
     isInterestedDirector: users.isInterestedDirector,
-  }).from(users).where(sql`role IN ('board','admin') AND status = 'active'`).orderBy(asc(users.firstName));
+  }).from(users).where(sql`is_board_member = true AND status = 'active'`).orderBy(asc(users.firstName));
   res.json({ success: true, data: members });
 });
 
@@ -106,7 +106,7 @@ router.get("/directory", async (_req, res) => {
     boardPosition: users.boardPosition,
     bio: users.bio,
     committees: users.committees,
-  }).from(users).where(sql`role IN ('board','admin') AND status = 'active'`).orderBy(asc(users.firstName));
+  }).from(users).where(sql`is_board_member = true AND status = 'active'`).orderBy(asc(users.firstName));
   res.json({ success: true, data: members });
 });
 
@@ -966,7 +966,7 @@ router.get("/documents/:id/acks", async (req, res) => {
   const notAcked = await raw<any>(sql`
     SELECT u.id AS user_id, u.first_name, u.last_name, u.board_position
     FROM portal_users u
-    WHERE u.role IN ('board','admin') AND u.status = 'active'
+    WHERE u.is_board_member = true AND u.status = 'active'
       AND u.id NOT IN (
         SELECT user_id FROM board_document_acks WHERE document_id = ${docId}
       )
@@ -1077,7 +1077,7 @@ router.get("/consents", async (req, res) => {
       u.first_name AS creator_first, u.last_name AS creator_last,
       (SELECT count(*) FROM board_written_consent_responses r WHERE r.consent_id = c.id AND r.response = 'consent') AS consent_count,
       (SELECT count(*) FROM board_written_consent_responses r WHERE r.consent_id = c.id AND r.response = 'decline') AS decline_count,
-      (SELECT count(*) FROM portal_users pu WHERE pu.role IN ('board','admin') AND pu.status = 'active'
+      (SELECT count(*) FROM portal_users pu WHERE pu.is_board_member = true AND pu.status = 'active'
         AND NOT EXISTS (SELECT 1 FROM board_written_consents wc2 JOIN board_written_consent_responses r2 ON r2.consent_id = wc2.id
           WHERE wc2.id = c.id AND r2.user_id = pu.id)) AS pending_count,
       (SELECT r2.response FROM board_written_consent_responses r2 WHERE r2.consent_id = c.id AND r2.user_id = ${userId} LIMIT 1) AS my_response
@@ -1121,7 +1121,7 @@ router.get("/consents/:id", async (req, res) => {
   const pending = await raw<any>(sql`
     SELECT u.id AS user_id, u.first_name, u.last_name, u.board_position, u.is_interested_director
     FROM portal_users u
-    WHERE u.role IN ('board','admin') AND u.status = 'active'
+    WHERE u.is_board_member = true AND u.status = 'active'
       AND NOT EXISTS (SELECT 1 FROM board_written_consent_responses r WHERE r.consent_id = ${consentId} AND r.user_id = u.id)
     ORDER BY u.first_name
   `);
@@ -1166,7 +1166,7 @@ router.post("/consents/:id/respond", async (req, res) => {
 
   const remaining = await raw<any>(sql`
     SELECT u.id FROM portal_users u
-    WHERE u.role IN ('board','admin') AND u.status = 'active'
+    WHERE u.is_board_member = true AND u.status = 'active'
       ${excludeClause}
       AND NOT EXISTS (
         SELECT 1 FROM board_written_consent_responses r
@@ -1371,7 +1371,7 @@ router.patch("/notification-prefs", async (req, res) => {
 // ── Roster (admin) ────────────────────────────────────────────────────────────
 
 router.get("/roster", requireBoard as any, async (_req, res) => {
-  const members = await db.select().from(users).where(sql`role IN ('board','admin')`).orderBy(asc(users.firstName));
+  const members = await db.select().from(users).where(sql`is_board_member = true`).orderBy(asc(users.firstName));
   res.json({ success: true, data: members });
 });
 
@@ -2108,7 +2108,7 @@ router.get("/polls/:id", async (req, res) => {
     .where(eq(meetingPollResponses.pollId, pollId));
 
   const members = await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName, boardPosition: users.boardPosition })
-    .from(users).where(sql`role IN ('board','admin') AND status = 'active'`).orderBy(asc(users.firstName));
+    .from(users).where(sql`is_board_member = true AND status = 'active'`).orderBy(asc(users.firstName));
 
   res.json({ success: true, data: { ...poll, slots, responses, members } });
 });

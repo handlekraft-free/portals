@@ -9,6 +9,7 @@ import {
   BookOpen, MessageSquare, Calendar, Bell, X, Check, UserCircle, CalendarClock,
 } from "lucide-react";
 import logoImg from "@/assets/images/logo.png";
+import BoardOnboardingWizard from "@/components/portal/BoardOnboardingWizard";
 
 const navItems = [
   { href: "/portal/board/dashboard", icon: <LayoutDashboard className="w-4 h-4" />, label: "Dashboard" },
@@ -174,6 +175,11 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Show onboarding wizard for board members (not system admins) who haven't completed it yet
+  const [showWizard, setShowWizard] = useState(
+    () => user?.role === "board" && user?.onboardingComplete === false
+  );
+
   const handleLogout = async () => {
     await logout();
     window.location.href = "/login";
@@ -245,6 +251,10 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
   );
 
   return (
+    <>
+      {showWizard && (
+        <BoardOnboardingWizard onComplete={() => setShowWizard(false)} />
+      )}
     <div className="min-h-screen flex bg-[#F5F3EF]">
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setSidebarOpen(false)} />
@@ -268,5 +278,6 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
         </main>
       </div>
     </div>
+    </>
   );
 }

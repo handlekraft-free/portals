@@ -32,6 +32,7 @@ Preferred communication style: Simple, everyday language.
 - **Client Portal:** Provides a dashboard, file management, messaging, and support ticket functionalities.
 - **Student Portal:** Offers a dashboard, course access, file management, and announcements.
 - **Board Portal:** Manages meetings, documents, minutes, action items, written consents, and board member directories.
+- **Board Onboarding Wizard:** A 5-step first-time login wizard shown as a full-screen overlay for board members with `onboardingComplete === false`. Steps: Welcome → Password Change → Profile Setup → Availability Grid → Portal Tour. Completion marks `onboarding_complete = true` in DB. Board members can relaunch from My Profile page. Non-board users (admin, employee, etc.) automatically have `onboarding_complete = true` set via migration.
 - **Admin Portal Users:** Dedicated section for comprehensive user management, visible only to admin roles.
 - **Portal Components:** Centralized in `client/src/components/portal/` with dedicated layouts and authentication guards.
 - **File Uploads:** Stored locally in `./data/uploads/` with authenticated access.

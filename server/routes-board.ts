@@ -125,6 +125,12 @@ router.get("/me", requireBoard as any, async (req, res) => {
   res.json({ success: true, data: member });
 });
 
+router.patch("/onboarding-complete", requireBoard as any, async (req, res) => {
+  const userId = req.user!.userId;
+  await db.update(users).set({ onboardingComplete: true }).where(eq(users.id, userId));
+  res.json({ success: true });
+});
+
 router.patch("/me", requireBoard as any, async (req, res) => {
   const userId = req.user!.userId;
   const { firstName, lastName, email, phone, linkedIn, preferredMeetingTimes, bio } = req.body;

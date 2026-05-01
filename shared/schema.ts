@@ -94,6 +94,7 @@ export const users = pgTable("portal_users", {
   phone: text("phone"),
   linkedIn: text("linked_in"),
   preferredMeetingTimes: text("preferred_meeting_times"),
+  onboardingComplete: boolean("onboarding_complete").default(false),
 });
 export type PortalUser = typeof users.$inferSelect;
 export type InsertPortalUser = typeof users.$inferInsert;

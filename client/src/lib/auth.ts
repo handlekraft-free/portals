@@ -5,6 +5,7 @@ export interface PortalUser {
   firstName: string;
   lastName: string;
   mustChangePassword?: boolean;
+  onboardingComplete?: boolean;
   status?: string;
   canApprove?: boolean;
   approverId?: number | null;

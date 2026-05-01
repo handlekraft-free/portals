@@ -89,6 +89,7 @@ router.post("/login", async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       mustChangePassword: user.mustChangePassword,
+      onboardingComplete: user.onboardingComplete ?? false,
       boardRestrictedAccess: user.boardRestrictedAccess ?? false,
     },
   });
@@ -142,6 +143,7 @@ router.post("/select-role", async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       mustChangePassword: user.mustChangePassword,
+      onboardingComplete: user.onboardingComplete ?? false,
       boardRestrictedAccess: user.boardRestrictedAccess ?? false,
     },
   });
@@ -192,6 +194,7 @@ router.get("/me", requireAuth, async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       mustChangePassword: user.mustChangePassword,
+      onboardingComplete: user.onboardingComplete ?? false,
       status: user.status,
       canApprove: user.canApprove,
       approverId: user.approverId,

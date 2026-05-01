@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { UserCircle, Pencil, Check, X, Linkedin, Phone, Mail, Clock, ShieldCheck } from "lucide-react";
+import { UserCircle, Pencil, Check, X, Linkedin, Phone, Mail, Clock, ShieldCheck, Sparkles } from "lucide-react";
+import BoardOnboardingWizard from "@/components/portal/BoardOnboardingWizard";
 
 interface BoardProfile {
   id: number;
@@ -28,6 +29,7 @@ export default function BoardProfilePage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [profile, setProfile] = useState<BoardProfile | null>(null);
+  const [showWizard, setShowWizard] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -328,6 +330,26 @@ export default function BoardProfilePage() {
             )}
           </CardContent>
         </Card>
+      )}
+
+      {/* Relaunch setup wizard */}
+      <div className="mt-2 border border-dashed border-slate-200 rounded-2xl p-5 flex items-center justify-between bg-white/50">
+        <div>
+          <p className="text-sm font-semibold text-[#1A1F2B]">Setup Wizard</p>
+          <p className="text-xs text-slate-500 mt-0.5">Walk through onboarding steps again — password, profile, and availability.</p>
+        </div>
+        <Button
+          onClick={() => setShowWizard(true)}
+          variant="outline"
+          className="gap-2 text-[#0D7377] border-[#0D7377]/30 hover:bg-[#0D7377]/5 shrink-0"
+          data-testid="button-relaunch-wizard"
+        >
+          <Sparkles className="w-4 h-4" /> Relaunch Wizard
+        </Button>
+      </div>
+
+      {showWizard && (
+        <BoardOnboardingWizard onComplete={() => setShowWizard(false)} />
       )}
     </div>
   );

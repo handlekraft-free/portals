@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, CalendarDays, FileText, ScrollText, CheckSquare,
   FileSignature, LogOut, Menu, Users, Scale, DollarSign, Settings, Shield,
-  BookOpen, MessageSquare, Calendar, Bell, X, Check, UserCircle, CalendarClock,
+  BookOpen, MessageSquare, Calendar, Bell, X, Check, UserCircle, CalendarClock, Newspaper,
 } from "lucide-react";
 import logoImg from "@/assets/images/logo.png";
 import BoardOnboardingWizard from "@/components/portal/BoardOnboardingWizard";
@@ -27,7 +27,8 @@ const navItems = [
   { href: "/portal/board/conflicts", icon: <Scale className="w-4 h-4" />, label: "Conflicts of Interest" },
   { href: "/portal/board/directory", icon: <Users className="w-4 h-4" />, label: "Directory" },
   { href: "/portal/board/financials", icon: <DollarSign className="w-4 h-4" />, label: "Financials" },
-  { href: "/portal/board/forums", icon: <MessageSquare className="w-4 h-4" />, label: "Forums" },
+  { href: "/portal/board/chat", icon: <MessageSquare className="w-4 h-4" />, label: "Communication" },
+  { href: "/portal/board/forums", icon: <Newspaper className="w-4 h-4" />, label: "Forums" },
   { href: "/portal/board/onboarding", icon: <BookOpen className="w-4 h-4" />, label: "Onboarding" },
   { href: "/portal/board/settings", icon: <Settings className="w-4 h-4" />, label: "Board Settings" },
   { href: "/portal/board/profile", icon: <UserCircle className="w-4 h-4" />, label: "My Profile" },

@@ -28,12 +28,20 @@ const upload = multer({ storage: chatStorage, limits: { fileSize: 25 * 1024 * 10
 // ── Seed default channels ─────────────────────────────────────────────────────
 
 async function ensureDefaultChannels() {
-  const existing = await db.select().from(chatChannels).limit(1);
-  if (existing.length === 0) {
+  const empChannels = await db.select().from(chatChannels).where(eq(chatChannels.scope, "employee")).limit(1);
+  if (empChannels.length === 0) {
     await db.insert(chatChannels).values([
-      { name: "general", description: "Team-wide conversation", type: "general", createdBy: 1 },
-      { name: "announcements", description: "Important team announcements", type: "announcements", createdBy: 1 },
-      { name: "random", description: "Off-topic and fun", type: "general", createdBy: 1 },
+      { name: "general", description: "Team-wide conversation", type: "general", scope: "employee", createdBy: 1 },
+      { name: "announcements", description: "Important team announcements", type: "announcements", scope: "employee", createdBy: 1 },
+      { name: "random", description: "Off-topic and fun", type: "general", scope: "employee", createdBy: 1 },
+    ]);
+  }
+  const boardChannels = await db.select().from(chatChannels).where(eq(chatChannels.scope, "board")).limit(1);
+  if (boardChannels.length === 0) {
+    await db.insert(chatChannels).values([
+      { name: "general-board", description: "Board-wide discussions", type: "general", scope: "board", createdBy: 1 },
+      { name: "governance", description: "Governance, policy, and compliance", type: "general", scope: "board", createdBy: 1 },
+      { name: "announcements-board", description: "Board announcements and updates", type: "announcements", scope: "board", createdBy: 1 },
     ]);
   }
 }
@@ -41,15 +49,21 @@ ensureDefaultChannels().catch(() => {});
 
 // ── Channels ──────────────────────────────────────────────────────────────────
 
-router.get("/channels", async (_req, res) => {
-  const channels = await db.select().from(chatChannels).orderBy(asc(chatChannels.id));
+function userScope(role: string): string {
+  return role === "board" ? "board" : "employee";
+}
+
+router.get("/channels", async (req: any, res) => {
+  const scope = userScope(req.user.role);
+  const channels = await db.select().from(chatChannels).where(eq(chatChannels.scope, scope)).orderBy(asc(chatChannels.id));
   res.json({ success: true, data: channels });
 });
 
 router.post("/channels", async (req: any, res) => {
   const { name, description, type } = req.body;
   if (!name) return res.status(400).json({ success: false, error: "Name required" });
-  const [ch] = await db.insert(chatChannels).values({ name, description, type: type || "general", createdBy: req.user.userId }).returning();
+  const scope = userScope(req.user.role);
+  const [ch] = await db.insert(chatChannels).values({ name, description, type: type || "general", scope, createdBy: req.user.userId }).returning();
   res.status(201).json({ success: true, data: ch });
 });
 
@@ -231,15 +245,22 @@ function dmPair(a: number, b: number): [number, number] {
   return a < b ? [a, b] : [b, a];
 }
 
-// GET /api/chat/dm/users — list all portal users except self
+// GET /api/chat/dm/users — list portal users in same scope (board users see only board, employees see employees+admin)
 router.get("/dm/users", async (req: any, res) => {
   const me = req.user.userId;
-  const allUsers = await db
+  const isBoardUser = req.user.role === "board";
+  let query = db
     .select({ id: users.id, firstName: users.firstName, lastName: users.lastName, role: users.role })
     .from(users)
     .where(ne(users.id, me))
     .orderBy(asc(users.firstName));
-  res.json({ success: true, data: allUsers });
+  const allUsers = await query;
+  const filtered = allUsers.filter(u =>
+    isBoardUser
+      ? u.role === "board" || (u.role === "admin")
+      : u.role === "employee" || u.role === "admin"
+  );
+  res.json({ success: true, data: filtered });
 });
 
 // GET /api/chat/dm/conversations — my DM conversations with unread count + last message

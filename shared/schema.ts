@@ -846,6 +846,7 @@ export const chatChannels = pgTable("chat_channels", {
   name: text("name").notNull(),
   description: text("description"),
   type: varchar("type", { length: 20 }).notNull().default("general"), // general | announcements | project
+  scope: varchar("scope", { length: 20 }).notNull().default("employee"), // employee | board
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

@@ -3,13 +3,15 @@ import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
-import { CalendarDays, FileText, CheckSquare, ChevronRight, FileSignature, Check, X, Clock, AlertCircle, Scale, ShieldAlert, BarChart2 } from "lucide-react";
+import { CalendarDays, FileText, CheckSquare, ChevronRight, FileSignature, Check, X, Clock, AlertCircle, Scale, ShieldAlert, BarChart2, MessageSquare, Bot } from "lucide-react";
 import vikingProudImg from "@/assets/images/viking-proud.png";
 import { VikingArsenal, RuneDivider } from "@/components/portal/VikingDecor";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import TeamChat from "@/components/portal/TeamChat";
+import ClaudeChat from "@/components/portal/ClaudeChat";
 
 const TYPE_LABELS: Record<string, string> = {
   regular: "Regular",
@@ -342,6 +344,30 @@ function BoardDashboardContent() {
             ))}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Communication Hub */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold text-[#1A1F2B] flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-indigo-500" /> Communication Hub
+          </h2>
+          <Link href="/portal/board/chat" className="text-xs text-indigo-600 hover:underline no-underline">Open full view</Link>
+        </div>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-indigo-500 inline-block" /> Board Chat
+            </p>
+            <TeamChat />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Bot className="w-3 h-3 text-slate-400" /> AI Assistant
+            </p>
+            <ClaudeChat />
+          </div>
+        </div>
       </div>
     </div>
   );

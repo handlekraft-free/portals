@@ -34,6 +34,7 @@ import StudentAnnouncements from "@/pages/portal/student/announcements";
 
 // Board Portal
 import BoardDashboard from "@/pages/portal/board/dashboard";
+import BoardChat from "@/pages/portal/board/chat";
 import BoardMeetings from "@/pages/portal/board/meetings";
 import BoardDocuments from "@/pages/portal/board/documents";
 import BoardMinutes from "@/pages/portal/board/minutes";
@@ -93,6 +94,7 @@ function Router() {
 
       {/* Board Portal */}
       <Route path="/portal/board/dashboard" component={BoardDashboard} />
+      <Route path="/portal/board/chat" component={BoardChat} />
       <Route path="/portal/board/meetings" component={BoardMeetings} />
       <Route path="/portal/board/documents" component={BoardDocuments} />
       <Route path="/portal/board/minutes" component={BoardMinutes} />

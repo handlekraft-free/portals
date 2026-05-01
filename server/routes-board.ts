@@ -2193,4 +2193,23 @@ router.delete("/polls/:id", requireBoard as any, async (req, res) => {
   res.json({ success: true, data: null });
 });
 
+// ── TEMPORARY: one-time admin endpoint to clear seeded meeting data ────────────
+router.delete("/admin/clear-seed-meetings", async (req: any, res) => {
+  if (req.user?.role !== "admin") {
+    return res.status(403).json({ success: false, error: "Admin only" });
+  }
+  await db.delete(meetingPollResponses);
+  await db.delete(meetingPollSlots);
+  await db.delete(meetingTimePolls);
+  await db.delete(boardMeetingRsvps);
+  await db.delete(boardMeetingAttendees);
+  await db.delete(boardAgendaItems);
+  await db.delete(boardMeetingNotices);
+  await db.delete(boardMinutesActionItems);
+  await db.delete(boardMinutes);
+  await db.delete(boardMeetings);
+  res.json({ success: true, message: "All seeded meeting data cleared." });
+});
+// ── END TEMPORARY ─────────────────────────────────────────────────────────────
+
 export default router;

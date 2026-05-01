@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/auth";
+import { BoardLayout } from "@/components/portal/BoardLayout";
+import { PortalGuard } from "@/components/portal/PortalGuard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -823,13 +825,13 @@ function PollsTab({ currentUserId, isAdmin }: { currentUserId: number; isAdmin: 
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
-export default function BoardSchedulingPage() {
+function SchedulingContent() {
   const { user } = useAuth();
   const [tab, setTab] = useState<"availability" | "polls">("polls");
   const isAdmin = user?.role === "admin" || user?.role === "board";
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div>
       <div className="mb-6">
         <h1 className="text-2xl font-display text-[#1A1F2B]">Schedule Coordinator</h1>
         <p className="text-slate-500 text-sm mt-0.5">Find the best time for board meetings — no back-and-forth emails needed.</p>
@@ -856,5 +858,13 @@ export default function BoardSchedulingPage() {
       {tab === "polls" && <PollsTab currentUserId={user?.id ?? 0} isAdmin={isAdmin} />}
       {tab === "availability" && <AvailabilityTab currentUserId={user?.id ?? 0} isAdmin={isAdmin} />}
     </div>
+  );
+}
+
+export default function BoardSchedulingPage() {
+  return (
+    <PortalGuard allowedRoles={["admin", "board"]}>
+      <BoardLayout><SchedulingContent /></BoardLayout>
+    </PortalGuard>
   );
 }

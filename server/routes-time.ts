@@ -420,4 +420,31 @@ router.get("/monthly-report", async (req, res) => {
   });
 });
 
+// ── Last-Month Submission Warning ─────────────────────────────────────────────
+
+router.get("/check-last-month", async (req, res) => {
+  const userId = req.user!.userId;
+  const now = new Date();
+  const lastMonthYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+  const lastMonthNum = now.getMonth() === 0 ? 12 : now.getMonth(); // 1-indexed
+  const monthStart = new Date(lastMonthYear, lastMonthNum - 1, 1);
+  const monthEnd = new Date(lastMonthYear, lastMonthNum, 0, 23, 59, 59, 999);
+  const monthLabel = monthStart.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const monthStr = `${lastMonthYear}-${String(lastMonthNum).padStart(2, "0")}`;
+
+  const submitted = await db.select({ id: timeReports.id }).from(timeReports).where(
+    and(
+      eq(timeReports.employeeId, userId),
+      gte(timeReports.periodStart, monthStart),
+      lte(timeReports.periodStart, monthEnd),
+      inArray(timeReports.status, ["submitted", "approved"])
+    )
+  ).limit(1);
+
+  res.json({
+    success: true,
+    data: { warning: submitted.length === 0, month: monthStr, label: monthLabel },
+  });
+});
+
 export default router;

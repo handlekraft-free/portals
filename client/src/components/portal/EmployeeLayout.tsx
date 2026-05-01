@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Clock, Kanban, Receipt, Ticket,
-  BookOpen, LogOut, Menu, X, Users, Bell, UserPlus, Shield
+  BookOpen, LogOut, Menu, X, Users, Bell, UserPlus, Shield,
+  AlertTriangle, ArrowRight
 } from "lucide-react";
+import { apiRequest } from "@/lib/auth";
 import logoImg from "@/assets/images/logo.png";
 
 const navItems = [
@@ -23,8 +25,25 @@ const adminItems = [
 
 export function EmployeeLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [timesheetWarning, setTimesheetWarning] = useState<{ label: string; month: string } | null>(null);
+  const [warningDismissed, setWarningDismissed] = useState(false);
+
+  useEffect(() => {
+    const dismissed = sessionStorage.getItem("ts_warning_dismissed");
+    if (dismissed) return;
+    apiRequest("GET", "/api/time/check-last-month").then(res => {
+      if (res.success && res.data?.warning) {
+        setTimesheetWarning({ label: res.data.label, month: res.data.month });
+      }
+    });
+  }, []);
+
+  function dismissWarning() {
+    setWarningDismissed(true);
+    sessionStorage.setItem("ts_warning_dismissed", "1");
+  }
 
   const handleLogout = async () => {
     await logout();
@@ -91,6 +110,8 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 
+  const showBanner = timesheetWarning && !warningDismissed;
+
   return (
     <div className="min-h-screen bg-[#f5f3ef] flex font-body">
       {/* Desktop Sidebar */}
@@ -131,6 +152,27 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </header>
+
+        {/* Timesheet warning banner */}
+        {showBanner && (
+          <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 flex items-center gap-3" data-testid="banner-timesheet-warning">
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+            <p className="flex-1 text-sm text-amber-800">
+              <span className="font-semibold">Timesheet overdue:</span> You haven't submitted your timesheet for{" "}
+              <span className="font-semibold">{timesheetWarning!.label}</span>. Please submit it as soon as possible.
+            </p>
+            <button
+              onClick={() => { navigate("/portal/employee/time"); dismissWarning(); }}
+              className="shrink-0 text-xs font-medium text-amber-700 hover:text-amber-900 underline flex items-center gap-1"
+              data-testid="button-banner-go-to-timesheet"
+            >
+              Go to Timesheets <ArrowRight className="w-3 h-3" />
+            </button>
+            <button onClick={dismissWarning} className="shrink-0 text-amber-500 hover:text-amber-700 p-0.5" data-testid="button-banner-dismiss">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         <main className="flex-1 p-4 md:p-6">
           {children}

@@ -14,49 +14,57 @@ import { Badge } from "@/components/ui/badge";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+const WEEK_KEYS = ["w1", "w2", "w3", "w4", "w5"] as const;
+type WeekKey = typeof WEEK_KEYS[number];
+
+// Labels shown in the column header for each week bucket
+const WEEK_BUCKET_LABELS: Record<WeekKey, string> = {
+  w1: "1–7", w2: "8–14", w3: "15–21", w4: "22–28", w5: "29+",
+};
+
+// Legacy day keys for reading old weekly-format reports in history
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 type DayKey = typeof DAY_KEYS[number];
 const DAY_LABELS: Record<DayKey, string> = { mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun" };
 
-function getMondayOfWeek(d = new Date()) {
-  const day = d.getDay(); // 0=Sun
-  const diff = day === 0 ? -6 : 1 - day;
-  const mon = new Date(d);
-  mon.setHours(0, 0, 0, 0);
-  mon.setDate(d.getDate() + diff);
-  return mon;
+function getMonthStart(d = new Date()) {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
 }
 
-function addDays(d: Date, n: number) {
-  const r = new Date(d);
-  r.setDate(r.getDate() + n);
-  return r;
+function getMonthEnd(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth() + 1, 0);
 }
 
 function fmtDate(d: Date) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-function fmtFullDate(d: Date) {
-  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-}
-
 function fmtIso(d: Date) {
   return d.toISOString().split("T")[0];
 }
 
-const WEEKDAYS: DayKey[] = ["mon", "tue", "wed", "thu", "fri"];
-const emptyDayRow = (): Record<DayKey, number> => ({ mon: 0, tue: 0, wed: 0, thu: 0, fri: 0, sat: 0, sun: 0 });
-const defaultCcHours = (codes: any[]): Record<number, Record<DayKey, number>> => {
-  const result: Record<number, Record<DayKey, number>> = {};
-  codes.forEach((cc, idx) => {
-    const row = emptyDayRow();
-    if (idx === 0) { row.mon = 6; row.tue = 6; row.wed = 6; row.thu = 6; }
-    if (idx === 1) { row.fri = 6; }
-    result[cc.id] = row;
-  });
+function fmtMonthLabel(d: Date) {
+  return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+
+function monthHas5Weeks(d: Date) {
+  return getMonthEnd(d).getDate() >= 29;
+}
+
+const emptyWeekRow = (): Record<WeekKey, number> => ({ w1: 0, w2: 0, w3: 0, w4: 0, w5: 0 });
+const defaultCcHours = (codes: any[]): Record<number, Record<WeekKey, number>> => {
+  const result: Record<number, Record<WeekKey, number>> = {};
+  codes.forEach(cc => { result[cc.id] = emptyWeekRow(); });
   return result;
 };
+
+// Detect whether a report's period covers an entire month
+function isMonthlyReport(r: any): boolean {
+  if (!r.periodStart || !r.periodEnd) return false;
+  const start = new Date(r.periodStart + (r.periodStart.includes("T") ? "" : "T12:00:00"));
+  const end = new Date(r.periodEnd + (r.periodEnd.includes("T") ? "" : "T12:00:00"));
+  return start.getDate() === 1 && end.getDate() === getMonthEnd(start).getDate();
+}
 const formatDuration = (min: number | null) => min ? `${Math.floor(min / 60)}h ${min % 60}m` : "—";
 const formatTime = (s: number) => `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
@@ -67,32 +75,29 @@ const STATUS_COLORS: Record<string, string> = {
   rejected: "bg-red-100 text-red-700",
 };
 
-// ── Simple Mode Timesheet (Charge Code Matrix) ────────────────────────────────
+// ── Monthly Simple Timesheet (Charge Code × Week-of-Month Matrix) ─────────────
 
-function SimpleTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onSubmitted: () => void }) {
+function MonthlyTimesheetPanel({ monthDate, onSubmitted }: { monthDate: Date; onSubmitted: () => void }) {
   const [chargeCodes, setChargeCodes] = useState<any[]>([]);
-  const [ccHours, setCcHours] = useState<Record<number, Record<DayKey, number>>>({});
+  const [ccHours, setCcHours] = useState<Record<number, Record<WeekKey, number>>>({});
   const [notes, setNotes] = useState("");
   const [existingReport, setExistingReport] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [codesLoading, setCodesLoading] = useState(true);
 
-  const weekEnd = addDays(weekStart, 6);
+  const monthStart = getMonthStart(monthDate);
+  const monthEnd = getMonthEnd(monthDate);
+  const has5Weeks = monthHas5Weeks(monthDate);
+  const activeKeys: WeekKey[] = has5Weeks ? WEEK_KEYS as any : (["w1", "w2", "w3", "w4"] as WeekKey[]);
 
-  const grandTotal = chargeCodes.reduce((s, cc) => {
-    return s + DAY_KEYS.reduce((ds, k) => ds + (ccHours[cc.id]?.[k] || 0), 0);
-  }, 0);
+  const grandTotal = chargeCodes.reduce((s, cc) =>
+    s + activeKeys.reduce((ws, k) => ws + (ccHours[cc.id]?.[k] || 0), 0), 0);
 
-  const dayTotal = (day: DayKey) => chargeCodes.reduce((s, cc) => s + (ccHours[cc.id]?.[day] || 0), 0);
-  const rowTotal = (ccId: number) => DAY_KEYS.reduce((s, k) => s + (ccHours[ccId]?.[k] || 0), 0);
+  const colTotal = (wk: WeekKey) => chargeCodes.reduce((s, cc) => s + (ccHours[cc.id]?.[wk] || 0), 0);
+  const rowTotal = (ccId: number) => activeKeys.reduce((s, k) => s + (ccHours[ccId]?.[k] || 0), 0);
 
-  useEffect(() => {
-    loadCodes();
-  }, []);
-
-  useEffect(() => {
-    if (chargeCodes.length > 0) loadExisting();
-  }, [weekStart, chargeCodes.length]);
+  useEffect(() => { loadCodes(); }, []);
+  useEffect(() => { if (chargeCodes.length > 0) loadExisting(); }, [fmtIso(monthStart), chargeCodes.length]);
 
   async function loadCodes() {
     setCodesLoading(true);
@@ -103,44 +108,38 @@ function SimpleTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onS
 
   async function loadExisting() {
     const res = await apiRequest("GET", "/api/time/reports");
-    if (res.success) {
-      const report = res.data.find((r: any) => {
-        const ps = new Date(r.periodStart);
-        return r.mode === "simple" && fmtIso(ps) === fmtIso(weekStart);
-      });
-      if (report) {
-        setExistingReport(report);
-        if (report.simpleDayHours) {
-          try {
-            const parsed = JSON.parse(report.simpleDayHours);
-            // Detect old flat format (e.g. { mon: 5, ... }) vs new keyed format
-            if (parsed && typeof parsed === "object" && !("mon" in parsed)) {
-              // New format: keys are charge code IDs
-              const numericKeyed: Record<number, Record<DayKey, number>> = {};
-              for (const [k, v] of Object.entries(parsed)) {
-                numericKeyed[parseInt(k)] = v as Record<DayKey, number>;
-              }
-              setCcHours(numericKeyed);
-            } else {
-              setCcHours(defaultCcHours(chargeCodes));
-            }
-          } catch { setCcHours(defaultCcHours(chargeCodes)); }
-        } else {
-          setCcHours(defaultCcHours(chargeCodes));
-        }
-        setNotes(report.notes || "");
+    if (!res.success) return;
+    const report = res.data.find((r: any) => {
+      const ps = new Date(r.periodStart + (r.periodStart.includes("T") ? "" : "T12:00:00"));
+      return r.mode === "simple" && ps.getFullYear() === monthStart.getFullYear() && ps.getMonth() === monthStart.getMonth() && ps.getDate() === 1;
+    });
+    if (report) {
+      setExistingReport(report);
+      if (report.simpleDayHours) {
+        try {
+          const parsed = JSON.parse(report.simpleDayHours);
+          // Expect { ccId: { w1, w2, w3, w4, w5 } } format
+          const numericKeyed: Record<number, Record<WeekKey, number>> = {};
+          for (const [k, v] of Object.entries(parsed)) {
+            numericKeyed[parseInt(k)] = v as Record<WeekKey, number>;
+          }
+          setCcHours(numericKeyed);
+        } catch { setCcHours(defaultCcHours(chargeCodes)); }
       } else {
-        setExistingReport(null);
         setCcHours(defaultCcHours(chargeCodes));
-        setNotes("");
       }
+      setNotes(report.notes || "");
+    } else {
+      setExistingReport(null);
+      setCcHours(defaultCcHours(chargeCodes));
+      setNotes("");
     }
   }
 
-  function setCell(ccId: number, day: DayKey, val: number) {
+  function setCell(ccId: number, wk: WeekKey, val: number) {
     setCcHours(prev => ({
       ...prev,
-      [ccId]: { ...(prev[ccId] || emptyDayRow()), [day]: val },
+      [ccId]: { ...(prev[ccId] || emptyWeekRow()), [wk]: val },
     }));
   }
 
@@ -149,8 +148,8 @@ function SimpleTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onS
   async function saveDraft() {
     setSaving(true);
     const payload = {
-      periodStart: weekStart.toISOString(),
-      periodEnd: weekEnd.toISOString(),
+      periodStart: monthStart.toISOString(),
+      periodEnd: monthEnd.toISOString(),
       totalHours: String(grandTotal),
       mode: "simple",
       simpleDayHours: ccHours,
@@ -167,14 +166,14 @@ function SimpleTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onS
   }
 
   async function submitSheet() {
-    if (!confirm("Submit this timesheet for approval? You won't be able to edit it after submission.")) return;
+    if (!confirm(`Submit your ${fmtMonthLabel(monthDate)} timesheet for approval? You won't be able to edit it after submission.`)) return;
     setSaving(true);
     if (existingReport) {
       await apiRequest("PATCH", `/api/time/reports/${existingReport.id}/submit`, { totalHours: String(grandTotal), simpleDayHours: ccHours, notes });
     } else {
       const createRes = await apiRequest("POST", "/api/time/reports", {
-        periodStart: weekStart.toISOString(),
-        periodEnd: weekEnd.toISOString(),
+        periodStart: monthStart.toISOString(),
+        periodEnd: monthEnd.toISOString(),
         totalHours: String(grandTotal),
         mode: "simple",
         simpleDayHours: ccHours,
@@ -205,24 +204,25 @@ function SimpleTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onS
         </div>
       )}
 
-      {/* Charge code matrix grid */}
+      {/* Charge code × week-of-month matrix */}
       <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-        <table className="w-full text-sm min-w-[640px]">
+        <table className="w-full text-sm min-w-[540px]">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider w-40">Charge Code</th>
-              {DAY_KEYS.map((day, i) => {
-                const date = addDays(weekStart, i);
-                const isWeekend = day === "sat" || day === "sun";
-                const isToday = fmtIso(date) === fmtIso(new Date());
-                return (
-                  <th key={day} className={`text-center px-2 py-2.5 text-xs font-semibold uppercase tracking-wider ${isWeekend ? "text-slate-400" : isToday ? "text-[#0D7377]" : "text-slate-500"}`}>
-                    <div>{DAY_LABELS[day]}</div>
-                    <div className={`font-normal text-xs mt-0.5 ${isToday ? "font-bold" : "text-slate-400"}`}>{fmtDate(date)}</div>
-                  </th>
-                );
-              })}
-              <th className="text-center px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Total</th>
+              <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider w-44">Charge Code</th>
+              {activeKeys.map(wk => (
+                <th key={wk} className="text-center px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <div className="text-[#0D7377]">{WEEK_BUCKET_LABELS[wk]}</div>
+                  <div className="font-normal text-slate-400 mt-0.5 normal-case">{
+                    wk === "w1" ? "days 1–7" :
+                    wk === "w2" ? "days 8–14" :
+                    wk === "w3" ? "days 15–21" :
+                    wk === "w4" ? "days 22–28" :
+                    `day 29+`
+                  }</div>
+                </th>
+              ))}
+              <th className="text-center px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Month Total</th>
             </tr>
           </thead>
           <tbody>
@@ -236,22 +236,21 @@ function SimpleTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onS
                       <span className="text-xs font-medium text-[#1A1F2B] leading-tight">{cc.name}</span>
                     </div>
                   </td>
-                  {DAY_KEYS.map(day => {
-                    const isWeekend = day === "sat" || day === "sun";
-                    const val = ccHours[cc.id]?.[day] ?? 0;
+                  {activeKeys.map(wk => {
+                    const val = ccHours[cc.id]?.[wk] ?? 0;
                     return (
-                      <td key={day} className={`px-1.5 py-2 text-center ${isWeekend ? "bg-slate-50" : ""}`}>
+                      <td key={wk} className="px-2 py-2 text-center">
                         <input
                           type="number"
                           min="0"
-                          max="24"
+                          max="250"
                           step="0.5"
                           value={val || ""}
                           placeholder="0"
-                          onChange={e => setCell(cc.id, day, parseFloat(e.target.value) || 0)}
+                          onChange={e => setCell(cc.id, wk, parseFloat(e.target.value) || 0)}
                           disabled={isLocked}
-                          data-testid={`input-cc-${cc.id}-${day}`}
-                          className={`w-14 text-center border rounded-lg py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 ${
+                          data-testid={`input-cc-${cc.id}-${wk}`}
+                          className={`w-16 text-center border rounded-lg py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 ${
                             isLocked ? "bg-slate-50 text-slate-400 cursor-not-allowed border-slate-100" :
                             val > 0 ? "border-[#0D7377]/40 text-[#1A1F2B] bg-[#0D7377]/5" : "border-slate-200 text-slate-400"
                           }`}
@@ -268,13 +267,12 @@ function SimpleTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onS
           </tbody>
           <tfoot>
             <tr className="bg-[#0D7377]/5 border-t-2 border-[#0D7377]/20">
-              <td className="px-4 py-2.5 text-xs font-bold text-slate-500 uppercase tracking-wider">Daily Total</td>
-              {DAY_KEYS.map(day => {
-                const dt = dayTotal(day);
-                const isWeekend = day === "sat" || day === "sun";
+              <td className="px-4 py-2.5 text-xs font-bold text-slate-500 uppercase tracking-wider">Week Total</td>
+              {activeKeys.map(wk => {
+                const ct = colTotal(wk);
                 return (
-                  <td key={day} className={`px-1.5 py-2.5 text-center ${isWeekend ? "bg-slate-50/50" : ""}`}>
-                    <span className={`text-sm font-bold ${dt > 0 ? "text-[#0D7377]" : "text-slate-300"}`}>{dt > 0 ? `${dt}h` : "—"}</span>
+                  <td key={wk} className="px-2 py-2.5 text-center">
+                    <span className={`text-sm font-bold ${ct > 0 ? "text-[#0D7377]" : "text-slate-300"}`}>{ct > 0 ? `${ct}h` : "—"}</span>
                   </td>
                 );
               })}
@@ -287,17 +285,15 @@ function SimpleTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onS
       </div>
 
       {/* Notes + actions */}
-      <div className="flex gap-4 items-start">
-        <textarea
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
-          disabled={isLocked}
-          placeholder="Notes (optional) — any context for your approver"
-          rows={2}
-          data-testid="input-timesheet-notes"
-          className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none disabled:bg-slate-50 disabled:text-slate-400"
-        />
-      </div>
+      <textarea
+        value={notes}
+        onChange={e => setNotes(e.target.value)}
+        disabled={isLocked}
+        placeholder="Notes (optional) — any context for your approver"
+        rows={2}
+        data-testid="input-timesheet-notes"
+        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none disabled:bg-slate-50 disabled:text-slate-400"
+      />
 
       {!isLocked && (
         <div className="flex gap-2">
@@ -311,7 +307,7 @@ function SimpleTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onS
       )}
 
       {existingReport?.status === "rejected" && (
-        <Button onClick={() => { setExistingReport((p: any) => ({ ...p, status: "draft" })); }} variant="outline" size="sm">
+        <Button onClick={() => setExistingReport((p: any) => ({ ...p, status: "draft" }))} variant="outline" size="sm" data-testid="button-edit-resubmit">
           Edit & Resubmit
         </Button>
       )}
@@ -498,24 +494,50 @@ function HistoryPanel() {
   return (
     <div className="space-y-3">
       {reports.map((r: any) => {
-        const start = new Date(r.periodStart);
-        const end = new Date(r.periodEnd);
-        const dayHours = r.simpleDayHours ? (() => { try { return JSON.parse(r.simpleDayHours); } catch { return null; } })() : null;
+        const start = new Date(r.periodStart + (r.periodStart.includes("T") ? "" : "T12:00:00"));
+        const end = new Date(r.periodEnd + (r.periodEnd.includes("T") ? "" : "T12:00:00"));
+        const monthly = isMonthlyReport(r);
+        const parsedHours = r.simpleDayHours ? (() => { try { return JSON.parse(r.simpleDayHours); } catch { return null; } })() : null;
+
+        // Build pill tags — works for both monthly (w1/w2…) and legacy day-key formats
+        const hourPills: { label: string; val: number }[] = [];
+        if (parsedHours && typeof parsedHours === "object") {
+          const firstVal = Object.values(parsedHours)[0];
+          if (firstVal && typeof firstVal === "object") {
+            // keyed by ccId (monthly format)
+            const weekTotals: Record<string, number> = {};
+            for (const weekHours of Object.values(parsedHours) as Record<string, number>[]) {
+              for (const [wk, val] of Object.entries(weekHours)) {
+                weekTotals[wk] = (weekTotals[wk] || 0) + (val as number);
+              }
+            }
+            for (const wk of WEEK_KEYS) {
+              if (weekTotals[wk] > 0) hourPills.push({ label: `Days ${WEEK_BUCKET_LABELS[wk]}`, val: weekTotals[wk] });
+            }
+          } else {
+            // Legacy flat day-key format
+            for (const k of DAY_KEYS) {
+              if ((parsedHours as any)[k] > 0) hourPills.push({ label: DAY_LABELS[k], val: (parsedHours as any)[k] });
+            }
+          }
+        }
+
         return (
           <Card key={r.id} className="border-0 shadow-sm">
             <CardContent className="py-3 px-4">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-[#1A1F2B]">Week of {fmtDate(start)} – {fmtDate(end)}</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-semibold text-[#1A1F2B]">
+                      {monthly ? fmtMonthLabel(start) : `Week of ${fmtDate(start)} – ${fmtDate(end)}`}
+                    </p>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[r.status] || "bg-slate-100 text-slate-600"}`}>{r.status}</span>
-                    <span className="text-xs text-slate-400 capitalize">{r.mode}</span>
                   </div>
                   {r.rejectReason && <p className="text-xs text-red-600 mt-1">Reason: {r.rejectReason}</p>}
-                  {dayHours && (
+                  {hourPills.length > 0 && (
                     <div className="flex gap-2 mt-2 flex-wrap">
-                      {DAY_KEYS.map(k => dayHours[k] > 0 && (
-                        <span key={k} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{DAY_LABELS[k]} {dayHours[k]}h</span>
+                      {hourPills.map(p => (
+                        <span key={p.label} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{p.label} {p.val}h</span>
                       ))}
                     </div>
                   )}
@@ -864,18 +886,22 @@ function TimeContent() {
   const { user } = useAuth();
   const [timesheetMode, setTimesheetMode] = useState<"simple" | "project">("simple");
   const [tab, setTab] = useState<"current" | "history" | "approvals" | "reports">("current");
-  const [weekStart, setWeekStart] = useState<Date>(getMondayOfWeek());
+  const [monthDate, setMonthDate] = useState<Date>(getMonthStart());
   const [historyKey, setHistoryKey] = useState(0);
 
   const canApprove = user?.role === "admin" || user?.canApprove === true;
 
   useEffect(() => { document.title = "Timesheets | handləkraft.ai"; }, []);
 
-  const weekEnd = addDays(weekStart, 6);
+  const now = new Date();
+  const currentMonthStart = getMonthStart(now);
+  const isCurrentMonth = monthDate.getFullYear() === currentMonthStart.getFullYear() && monthDate.getMonth() === currentMonthStart.getMonth();
 
-  function prevWeek() { setWeekStart(d => addDays(d, -7)); }
-  function nextWeek() { setWeekStart(d => addDays(d, 7)); }
-  const isCurrentWeek = fmtIso(weekStart) === fmtIso(getMondayOfWeek());
+  function prevMonth() { setMonthDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1)); }
+  function nextMonth() {
+    const next = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1);
+    if (next <= currentMonthStart) setMonthDate(next);
+  }
 
   const tabs = [
     { key: "current", label: "Current Timesheet" },
@@ -927,22 +953,22 @@ function TimeContent() {
         ))}
       </div>
 
-      {/* Current timesheet: week nav + content */}
+      {/* Current timesheet: month nav + content */}
       {tab === "current" && timesheetMode === "simple" && (
         <>
           <div className="flex items-center gap-3 mb-4">
-            <button onClick={prevWeek} className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500" data-testid="button-prev-week">
+            <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500" data-testid="button-prev-month">
               <ChevronLeft className="w-4 h-4" />
             </button>
             <div className="flex-1 text-center">
-              <p className="text-sm font-semibold text-[#1A1F2B]">{fmtDate(weekStart)} – {fmtDate(weekEnd)}</p>
-              {isCurrentWeek && <span className="text-xs text-[#0D7377] font-medium">Current Week</span>}
+              <p className="text-sm font-semibold text-[#1A1F2B]">{fmtMonthLabel(monthDate)}</p>
+              {isCurrentMonth && <span className="text-xs text-[#0D7377] font-medium">Current Month</span>}
             </div>
-            <button onClick={nextWeek} disabled={isCurrentWeek} className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500 disabled:opacity-30" data-testid="button-next-week">
+            <button onClick={nextMonth} disabled={isCurrentMonth} className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500 disabled:opacity-30" data-testid="button-next-month">
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
-          <SimpleTimesheetPanel key={fmtIso(weekStart)} weekStart={weekStart} onSubmitted={() => { setHistoryKey(k => k + 1); }} />
+          <MonthlyTimesheetPanel key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`} monthDate={monthDate} onSubmitted={() => setHistoryKey(k => k + 1)} />
         </>
       )}
 

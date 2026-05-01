@@ -2099,6 +2099,24 @@ router.put("/scheduling/availability/me", async (req, res) => {
 // ── Scheduling: Meeting Time Polls ─────────────────────────────────────────────
 
 // List all polls
+// Polls the current user hasn't voted on yet (for Action Items page)
+router.get("/polls/pending", async (req, res) => {
+  const userId = req.user!.userId;
+  const rows = await raw(sql`
+    SELECT p.id, p.title, p.description, p.timezone, p.created_at,
+           (SELECT COUNT(*) FROM meeting_poll_slots s WHERE s.poll_id = p.id) AS slot_count
+    FROM meeting_time_polls p
+    WHERE p.status = 'open'
+    AND NOT EXISTS (
+      SELECT 1 FROM meeting_poll_responses r
+      JOIN meeting_poll_slots s ON s.id = r.slot_id
+      WHERE s.poll_id = p.id AND r.user_id = ${userId}
+    )
+    ORDER BY p.created_at ASC
+  `);
+  res.json({ success: true, data: rows });
+});
+
 router.get("/polls", async (_req, res) => {
   const polls = await db.select({
     id: meetingTimePolls.id,

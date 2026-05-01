@@ -4,9 +4,10 @@ import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
+import { Link } from "wouter";
 import {
   CheckSquare, Check, Plus, X, Clock, AlertTriangle,
-  Filter, RefreshCw, User, Calendar, Edit2, Trash2, Save,
+  Filter, RefreshCw, User, Calendar, Edit2, Trash2, Save, BarChart2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -301,6 +302,7 @@ function ActionItemsContent() {
   const { toast } = useToast();
   const [items, setItems] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
+  const [pendingPolls, setPendingPolls] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNew, setShowNew] = useState(false);
   const [editItem, setEditItem] = useState<any | null>(null);
@@ -313,12 +315,14 @@ function ActionItemsContent() {
     if (statusFilter) params.set("status", statusFilter);
     if (assigneeFilter) params.set("assignee", assigneeFilter);
 
-    const [ai, mem] = await Promise.all([
+    const [ai, mem, polls] = await Promise.all([
       apiRequest("GET", `/api/board/action-items?${params}`),
       apiRequest("GET", "/api/board/members"),
+      apiRequest("GET", "/api/board/polls/pending"),
     ]);
     if (ai.success) setItems(ai.data || []);
     if (mem.success) setMembers(mem.data || []);
+    if (polls.success) setPendingPolls(polls.data || []);
     setLoading(false);
   }, [statusFilter, assigneeFilter]);
 
@@ -411,13 +415,42 @@ function ActionItemsContent() {
         )}
       </div>
 
-      {items.length === 0 ? (
+      {/* Pending polls — always shown regardless of filter */}
+      {pendingPolls.length > 0 && (
+        <div className="mb-5">
+          <p className="text-xs font-semibold text-teal-600 uppercase tracking-wider mb-2 flex items-center gap-1">
+            <BarChart2 className="w-3.5 h-3.5" /> Pending Votes ({pendingPolls.length})
+          </p>
+          <div className="space-y-2">
+            {pendingPolls.map((poll: any) => (
+              <Link key={poll.id} href="/portal/board/scheduling" className="no-underline">
+                <Card className="border-0 shadow-sm border-l-4 border-l-teal-400 hover:shadow-md transition-shadow cursor-pointer" data-testid={`poll-action-${poll.id}`}>
+                  <CardContent className="pt-3 pb-3">
+                    <div className="flex items-center gap-3">
+                      <BarChart2 className="w-4 h-4 shrink-0 text-teal-500" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[#1A1F2B] line-clamp-1">{poll.title}</p>
+                        <p className="text-xs text-teal-600 font-medium mt-0.5 flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> Availability poll — response needed
+                        </p>
+                      </div>
+                      <Badge className="bg-teal-100 text-teal-700 border-teal-200 shrink-0">Vote</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {items.length === 0 && pendingPolls.length === 0 ? (
         <div className="text-center py-20 text-slate-400">
           <CheckSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p className="font-medium">All caught up!</p>
           <p className="text-xs mt-1">No action items match the current filter.</p>
         </div>
-      ) : (
+      ) : items.length === 0 ? null : (
         <div className="space-y-6">
           {overdue.length > 0 && (
             <div>

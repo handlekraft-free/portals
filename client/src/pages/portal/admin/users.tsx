@@ -13,6 +13,28 @@ import { Input } from "@/components/ui/input";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
+function fmtLastLogin(raw: string | null | undefined): { label: string; exact: string; color: string } {
+  if (!raw) return { label: "Never", exact: "This user has never logged in", color: "text-slate-300" };
+  const date = new Date(raw);
+  const now = Date.now();
+  const diff = now - date.getTime();
+  const mins = Math.floor(diff / 60_000);
+  const hrs  = Math.floor(diff / 3_600_000);
+  const days = Math.floor(diff / 86_400_000);
+  const exact = date.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  let label: string;
+  let color: string;
+  if (mins < 2)        { label = "Just now";           color = "text-green-600 font-medium"; }
+  else if (mins < 60)  { label = `${mins}m ago`;        color = "text-green-600 font-medium"; }
+  else if (hrs < 24)   { label = `${hrs}h ago`;         color = "text-green-500"; }
+  else if (days === 1) { label = "Yesterday";           color = "text-teal-600"; }
+  else if (days < 7)   { label = `${days} days ago`;    color = "text-teal-500"; }
+  else if (days < 30)  { label = `${Math.floor(days/7)}w ago`; color = "text-amber-500"; }
+  else if (days < 365) { label = `${Math.floor(days/30)}mo ago`; color = "text-slate-400"; }
+  else                 { label = `${Math.floor(days/365)}y ago`; color = "text-slate-300"; }
+  return { label, exact, color };
+}
+
 const ALL_ROLES = ["admin", "employee", "client", "student", "board"] as const;
 
 const ROLE_LABELS: Record<string, string> = {
@@ -735,7 +757,7 @@ function AdminUsersContent() {
                       <th className="text-left p-3 text-slate-500 font-medium">Role</th>
                       <th className="text-left p-3 text-slate-500 font-medium">Status</th>
                       <th className="text-left p-3 text-slate-500 font-medium hidden md:table-cell">Manager</th>
-                      <th className="text-left p-3 text-slate-500 font-medium hidden lg:table-cell">Last Login</th>
+                      <th className="text-left p-3 text-slate-500 font-medium hidden md:table-cell">Last Login</th>
                       <th className="p-3 w-24" />
                     </tr>
                   </thead>
@@ -778,8 +800,19 @@ function AdminUsersContent() {
                               <span className="text-xs text-slate-300">—</span>
                             )}
                           </td>
-                          <td className="p-3 hidden lg:table-cell text-xs text-slate-400">
-                            {u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : "Never"}
+                          <td className="p-3 hidden md:table-cell">
+                            {(() => {
+                              const { label, exact, color } = fmtLastLogin(u.lastLogin);
+                              return (
+                                <span
+                                  title={exact}
+                                  className={`text-xs cursor-default ${color}`}
+                                  data-testid={`last-login-${u.id}`}
+                                >
+                                  {label}
+                                </span>
+                              );
+                            })()}
                           </td>
                           <td className="p-3">
                             <div className="flex items-center gap-1">

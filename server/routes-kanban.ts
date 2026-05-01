@@ -156,13 +156,28 @@ router.get("/boards", async (req, res) => {
   if (role === "admin") {
     boards = await db.select().from(kanbanBoards).where(eq(kanbanBoards.archived, false)).orderBy(desc(kanbanBoards.createdAt));
   } else {
+    // Boards the user created or belongs to via team membership
     const myMemberships = await db.select().from(teamMembers).where(eq(teamMembers.userId, userId));
     const teamIds = myMemberships.map(m => m.teamId);
-    if (teamIds.length === 0) {
-      boards = await db.select().from(kanbanBoards).where(and(eq(kanbanBoards.archived, false), eq(kanbanBoards.createdBy, userId)));
-    } else {
-      boards = await db.select().from(kanbanBoards).where(and(eq(kanbanBoards.archived, false), or(eq(kanbanBoards.createdBy, userId), ...teamIds.map(id => eq(kanbanBoards.teamId, id))))).orderBy(desc(kanbanBoards.createdAt));
-    }
+
+    // Boards the user is assigned to as card assignee or reviewer
+    const assignedCards = await db
+      .select({ boardId: kanbanCards.boardId })
+      .from(kanbanCards)
+      .where(and(eq(kanbanCards.archived, false), or(eq(kanbanCards.assignedTo, userId), eq(kanbanCards.reviewerId, userId))));
+    const assignedBoardIds = Array.from(new Set(assignedCards.map(c => c.boardId).filter(Boolean))) as number[];
+
+    const conditions = [
+      eq(kanbanBoards.createdBy, userId),
+      ...teamIds.map(id => eq(kanbanBoards.teamId, id)),
+      ...assignedBoardIds.map(id => eq(kanbanBoards.id, id)),
+    ];
+
+    boards = await db
+      .select()
+      .from(kanbanBoards)
+      .where(and(eq(kanbanBoards.archived, false), or(...conditions)))
+      .orderBy(desc(kanbanBoards.createdAt));
   }
   res.json({ success: true, data: boards });
 });

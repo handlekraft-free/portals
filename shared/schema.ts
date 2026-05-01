@@ -838,6 +838,60 @@ export const boardMemberAvailability = pgTable("board_member_availability", {
 });
 export type BoardMemberAvailability = typeof boardMemberAvailability.$inferSelect;
 
+// ─── Team Chat ────────────────────────────────────────────────────────────────
+
+export const chatChannels = pgTable("chat_channels", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  type: varchar("type", { length: 20 }).notNull().default("general"), // general | announcements | project
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type ChatChannel = typeof chatChannels.$inferSelect;
+
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  channelId: integer("channel_id").notNull(),
+  userId: integer("user_id").notNull(),
+  content: text("content").notNull(),
+  parentId: integer("parent_id"), // null = top-level, set = thread reply
+  isAnnouncement: boolean("is_announcement").default(false),
+  editedAt: timestamp("edited_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type ChatMessage = typeof chatMessages.$inferSelect;
+
+export const chatAttachments = pgTable("chat_attachments", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").notNull(),
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type ChatAttachment = typeof chatAttachments.$inferSelect;
+
+export const chatReactions = pgTable("chat_reactions", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").notNull(),
+  userId: integer("user_id").notNull(),
+  emoji: varchar("emoji", { length: 10 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type ChatReaction = typeof chatReactions.$inferSelect;
+
+// AI chat history per user
+export const aiChatMessages = pgTable("ai_chat_messages", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  role: varchar("role", { length: 10 }).notNull(), // user | assistant
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type AiChatMessage = typeof aiChatMessages.$inferSelect;
+
 // Meeting time polls (Doodle-style)
 export const meetingTimePolls = pgTable("meeting_time_polls", {
   id: serial("id").primaryKey(),

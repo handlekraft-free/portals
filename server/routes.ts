@@ -29,6 +29,8 @@ import lmsRoutes from "./routes-lms";
 import userMgmtRoutes from "./routes-user-mgmt";
 import boardRoutes from "./routes-board";
 import balanceRoutes from "./routes-balance";
+import chatRoutes from "./routes-chat";
+import aiRoutes from "./routes-ai";
 
 declare module "express-session" {
   interface SessionData {
@@ -293,6 +295,33 @@ export async function registerRoutes(
         availability varchar(20) NOT NULL DEFAULT 'no',
         UNIQUE(slot_id, user_id)
       );
+      CREATE TABLE IF NOT EXISTS chat_channels (
+        id serial PRIMARY KEY, name text NOT NULL,
+        description text, type varchar(20) NOT NULL DEFAULT 'general',
+        created_by integer NOT NULL, created_at timestamp DEFAULT now() NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS chat_messages (
+        id serial PRIMARY KEY, channel_id integer NOT NULL,
+        user_id integer NOT NULL, content text NOT NULL,
+        parent_id integer, is_announcement boolean DEFAULT false,
+        edited_at timestamp, created_at timestamp DEFAULT now() NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS chat_attachments (
+        id serial PRIMARY KEY, message_id integer NOT NULL,
+        file_name text NOT NULL, file_path text NOT NULL,
+        file_size integer NOT NULL, mime_type text NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS chat_reactions (
+        id serial PRIMARY KEY, message_id integer NOT NULL,
+        user_id integer NOT NULL, emoji varchar(10) NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS ai_chat_messages (
+        id serial PRIMARY KEY, user_id integer NOT NULL,
+        role varchar(10) NOT NULL, content text NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
     `);
     await migrationPool.end();
     console.log("[migrate] ✓ Schema patches applied");
@@ -493,6 +522,8 @@ export async function registerRoutes(
   app.use("/api/admin/portal-users", userMgmtRoutes);
   app.use("/api/board", boardRoutes);
   app.use("/api/balance", balanceRoutes);
+  app.use("/api/chat", chatRoutes);
+  app.use("/api/ai", aiRoutes);
 
   // ── Admin Charge Code CRUD ────────────────────────────────────────────────
   const { requireAdmin: reqAdmin } = await import("./auth-middleware");

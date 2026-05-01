@@ -6,6 +6,8 @@ import { apiRequest } from "@/lib/auth";
 import { Clock, Receipt, Kanban, MessageSquare, Play, Square, Users, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import TeamChat from "@/components/portal/TeamChat";
+import ClaudeChat from "@/components/portal/ClaudeChat";
 
 // ── Score helpers ─────────────────────────────────────────────────────────────
 
@@ -418,7 +420,7 @@ function DashboardContent() {
       <TeamPulse />
 
       {/* Quick Links */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         {[
           { href: "/portal/employee/time", label: "Log Time", icon: <Clock className="w-5 h-5" />, color: "bg-[#0D7377] text-white" },
           { href: "/portal/employee/kanban", label: "View Boards", icon: <Kanban className="w-5 h-5" />, color: "bg-[#1A1F2B] text-white" },
@@ -435,6 +437,27 @@ function DashboardContent() {
             {link.label}
           </a>
         ))}
+      </div>
+
+      {/* ── Communication Hub ─────────────────────────────────────────────── */}
+      <div className="mb-2">
+        <h2 className="text-base font-semibold text-[#1A1F2B] mb-4 flex items-center gap-2">
+          <MessageSquare className="w-4 h-4 text-[#0D7377]" /> Communication Hub
+        </h2>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#0D7377] inline-block" /> Team Chat
+            </p>
+            <TeamChat />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#1A1F2B] inline-block" /> AI Assistant
+            </p>
+            <ClaudeChat />
+          </div>
+        </div>
       </div>
     </div>
   );

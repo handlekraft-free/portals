@@ -26,7 +26,18 @@ export async function getCurrentUser(): Promise<PortalUser | null> {
   }
 }
 
-export async function login(email: string, password: string): Promise<{ user: PortalUser } | { error: string }> {
+export interface RoleSelectionRequired {
+  requiresRoleSelection: true;
+  roles: string[];
+  pendingToken: string;
+  firstName: string;
+  lastName: string;
+}
+
+export async function login(
+  email: string,
+  password: string
+): Promise<{ user: PortalUser } | { roleSelection: RoleSelectionRequired } | { error: string }> {
   try {
     const res = await fetch("/api/auth/login", {
       method: "POST",
@@ -35,8 +46,28 @@ export async function login(email: string, password: string): Promise<{ user: Po
       credentials: "include",
     });
     const data = await res.json();
+    if (!data.success) return { error: data.error || "Login failed" };
+    if (data.data?.requiresRoleSelection) return { roleSelection: data.data };
+    return { user: data.data };
+  } catch {
+    return { error: "Network error. Please try again." };
+  }
+}
+
+export async function selectRole(
+  pendingToken: string,
+  role: string
+): Promise<{ user: PortalUser } | { error: string }> {
+  try {
+    const res = await fetch("/api/auth/select-role", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pendingToken, role }),
+      credentials: "include",
+    });
+    const data = await res.json();
     if (data.success) return { user: data.data };
-    return { error: data.error || "Login failed" };
+    return { error: data.error || "Failed to select role" };
   } catch {
     return { error: "Network error. Please try again." };
   }

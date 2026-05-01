@@ -156,7 +156,7 @@ function NotificationBell() {
                   data-testid={`notification-${n.id}`}
                 >
                   <p className={`text-xs ${!n.read ? "font-medium text-[#1A1F2B]" : "text-slate-600"}`}>{n.message}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{fmtTime(n.created_at || n.createdAt)}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{fmtTime(n.created_at)}</p>
                 </div>
               ))
             )}

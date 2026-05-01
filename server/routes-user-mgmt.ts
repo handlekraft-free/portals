@@ -11,18 +11,21 @@ router.use(requireAdmin as any);
 
 // GET /api/admin/portal-users
 router.get("/", async (_req, res) => {
-  const all = await db.select({ id: users.id, email: users.email, firstName: users.firstName, lastName: users.lastName, role: users.role, status: users.status, lastLogin: users.lastLogin, createdAt: users.createdAt, canApprove: users.canApprove, approverId: users.approverId, boardPosition: users.boardPosition, termStart: users.termStart, termEnd: users.termEnd, committees: users.committees, isInterestedDirector: users.isInterestedDirector, bio: users.bio }).from(users).orderBy(desc(users.createdAt));
+  const all = await db.select({ id: users.id, email: users.email, firstName: users.firstName, lastName: users.lastName, role: users.role, roles: users.roles, status: users.status, lastLogin: users.lastLogin, createdAt: users.createdAt, canApprove: users.canApprove, approverId: users.approverId, boardPosition: users.boardPosition, termStart: users.termStart, termEnd: users.termEnd, committees: users.committees, isInterestedDirector: users.isInterestedDirector, bio: users.bio }).from(users).orderBy(desc(users.createdAt));
   const stats = { admin: 0, employee: 0, client: 0, student: 0, board: 0 };
   for (const u of all) { if (u.role in stats) stats[u.role as keyof typeof stats]++; }
   res.json({ success: true, data: all, stats });
 });
 
 router.post("/", async (req, res) => {
-  const { email, firstName, lastName, role, password } = req.body;
+  const { email, firstName, lastName, role, roles, password } = req.body;
   if (!email || !firstName || !lastName || !role || !password) return res.status(400).json({ success: false, error: "All fields required" });
   const passwordHash = await bcrypt.hash(password, 12);
+  // roles array must contain the primary role; default to [role] if not provided
+  const rolesArr: string[] = Array.isArray(roles) && roles.length > 0 ? roles : [role];
+  if (!rolesArr.includes(role)) rolesArr.unshift(role);
   try {
-    const [user] = await db.insert(users).values({ email: email.toLowerCase(), passwordHash, firstName, lastName, role, status: "active", mustChangePassword: true }).returning({ id: users.id, email: users.email, firstName: users.firstName, lastName: users.lastName, role: users.role, status: users.status });
+    const [user] = await db.insert(users).values({ email: email.toLowerCase(), passwordHash, firstName, lastName, role, roles: rolesArr, status: "active", mustChangePassword: true }).returning({ id: users.id, email: users.email, firstName: users.firstName, lastName: users.lastName, role: users.role, roles: users.roles, status: users.status });
     res.status(201).json({ success: true, data: user });
   } catch (e: any) {
     if (e.code === "23505") return res.status(400).json({ success: false, error: "Email already exists" });
@@ -31,9 +34,20 @@ router.post("/", async (req, res) => {
 });
 
 router.patch("/:id", async (req, res) => {
-  const { role, status, canApprove, approverId, boardPosition, termStart, termEnd, committees, isInterestedDirector, bio } = req.body;
+  const { role, roles, status, canApprove, approverId, boardPosition, termStart, termEnd, committees, isInterestedDirector, bio } = req.body;
   const updates: Record<string, any> = {};
   if (role !== undefined) updates.role = role;
+  if (roles !== undefined) {
+    const rolesArr: string[] = Array.isArray(roles) ? roles : [];
+    // Ensure primary role is always in the array
+    if (role && !rolesArr.includes(role)) rolesArr.unshift(role);
+    updates.roles = rolesArr;
+  } else if (role !== undefined) {
+    // If only role changes but no explicit roles array, fetch current roles and update primary
+    const [existing] = await db.select({ roles: users.roles }).from(users).where(eq(users.id, parseInt(req.params.id)));
+    const existingRoles = existing?.roles || [];
+    updates.roles = existingRoles.length > 0 ? existingRoles : [role];
+  }
   if (status !== undefined) updates.status = status;
   if (canApprove !== undefined) updates.canApprove = canApprove;
   if (approverId !== undefined) updates.approverId = approverId === null ? null : parseInt(approverId);

@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { db } from "./db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import { signToken, requireAuth } from "./auth-middleware";
+import { signToken, requireAuth, signPendingToken, verifyPendingToken } from "./auth-middleware";
 
 const router: Router = createRouter();
 
@@ -44,10 +44,30 @@ router.post("/login", async (req, res) => {
   // Reset lockout on success
   await db.update(users).set({ loginAttempts: 0, lockedUntil: null, lastLogin: new Date() }).where(eq(users.id, user.id));
 
+  // Determine all roles for this user
+  const userRoles: string[] = (user.roles && user.roles.length > 0) ? user.roles : [user.role];
+
+  // If user has multiple roles, require role selection before issuing JWT
+  if (userRoles.length > 1) {
+    const pendingToken = signPendingToken({ userId: user.id, pending: true });
+    return res.json({
+      success: true,
+      data: {
+        requiresRoleSelection: true,
+        roles: userRoles,
+        pendingToken,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    });
+  }
+
+  // Single role — issue JWT immediately
+  const chosenRole = userRoles[0] as "admin" | "employee" | "client" | "student" | "board";
   const token = signToken({
     userId: user.id,
     email: user.email,
-    role: user.role,
+    role: chosenRole,
     firstName: user.firstName,
     lastName: user.lastName,
     boardRestrictedAccess: user.boardRestrictedAccess ?? false,
@@ -57,7 +77,7 @@ router.post("/login", async (req, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
   return res.json({
@@ -65,7 +85,60 @@ router.post("/login", async (req, res) => {
     data: {
       id: user.id,
       email: user.email,
-      role: user.role,
+      role: chosenRole,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      mustChangePassword: user.mustChangePassword,
+      boardRestrictedAccess: user.boardRestrictedAccess ?? false,
+    },
+  });
+});
+
+// POST /api/auth/select-role  (used when user has multiple roles)
+router.post("/select-role", async (req, res) => {
+  const { pendingToken, role } = req.body;
+  if (!pendingToken || !role) {
+    return res.status(400).json({ success: false, error: "pendingToken and role are required" });
+  }
+
+  const pending = verifyPendingToken(pendingToken);
+  if (!pending) {
+    return res.status(401).json({ success: false, error: "Pending session expired. Please sign in again." });
+  }
+
+  const [user] = await db.select().from(users).where(eq(users.id, pending.userId));
+  if (!user || user.status === "inactive") {
+    return res.status(401).json({ success: false, error: "Invalid session" });
+  }
+
+  const userRoles: string[] = (user.roles && user.roles.length > 0) ? user.roles : [user.role];
+  if (!userRoles.includes(role)) {
+    return res.status(403).json({ success: false, error: "Role not assigned to this account" });
+  }
+
+  const chosenRole = role as "admin" | "employee" | "client" | "student" | "board";
+  const token = signToken({
+    userId: user.id,
+    email: user.email,
+    role: chosenRole,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    boardRestrictedAccess: user.boardRestrictedAccess ?? false,
+  });
+
+  res.cookie("hk_token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  return res.json({
+    success: true,
+    data: {
+      id: user.id,
+      email: user.email,
+      role: chosenRole,
       firstName: user.firstName,
       lastName: user.lastName,
       mustChangePassword: user.mustChangePassword,

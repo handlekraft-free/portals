@@ -1,28 +1,36 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { login, getPortalPath, changePassword } from "@/lib/auth";
-import type { PortalUser } from "@/lib/auth";
+import { login, selectRole, getPortalPath, changePassword } from "@/lib/auth";
+import type { PortalUser, RoleSelectionRequired } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Briefcase, Building2, GraduationCap, Eye, EyeOff, ArrowLeft, Shield, Scale, KeyRound, CheckCircle2 } from "lucide-react";
+import { Briefcase, Building2, GraduationCap, Eye, EyeOff, ArrowLeft, Shield, Scale, KeyRound, CheckCircle2, Users } from "lucide-react";
 import logoImg from "@/assets/images/logo.png";
 
-type Role = "employee" | "client" | "student" | "board";
+type Role = "employee" | "client" | "student" | "board" | "admin";
 
-const roles: { id: Role; label: string; icon: React.ReactNode; desc: string; color: string }[] = [
-  { id: "employee", label: "Team Member", icon: <Briefcase className="w-6 h-6" />, desc: "Employees & Staff", color: "border-[#0D7377] bg-[#0D7377]/10 text-[#0D7377]" },
-  { id: "client", label: "Client", icon: <Building2 className="w-6 h-6" />, desc: "Organizations we serve", color: "border-[#D4A843] bg-[#D4A843]/10 text-[#D4A843]" },
-  { id: "student", label: "Student", icon: <GraduationCap className="w-6 h-6" />, desc: "Fellowship Fellows", color: "border-purple-500 bg-purple-500/10 text-purple-600" },
-  { id: "board", label: "Board Member", icon: <Scale className="w-6 h-6" />, desc: "Board of Directors", color: "border-indigo-400 bg-indigo-500/10 text-indigo-400" },
+const ROLE_META: Record<string, { label: string; icon: React.ReactNode; desc: string; color: string }> = {
+  employee: { label: "Team Member", icon: <Briefcase className="w-6 h-6" />, desc: "Employees & Staff", color: "border-[#0D7377] bg-[#0D7377]/10 text-[#0D7377]" },
+  client:   { label: "Client",      icon: <Building2 className="w-6 h-6" />, desc: "Organizations we serve", color: "border-[#D4A843] bg-[#D4A843]/10 text-[#D4A843]" },
+  student:  { label: "Student",     icon: <GraduationCap className="w-6 h-6" />, desc: "Fellowship Fellows", color: "border-purple-500 bg-purple-500/10 text-purple-600" },
+  board:    { label: "Board Member",icon: <Scale className="w-6 h-6" />, desc: "Board of Directors", color: "border-indigo-400 bg-indigo-500/10 text-indigo-400" },
+  admin:    { label: "Admin",       icon: <Shield className="w-6 h-6" />, desc: "Full system access", color: "border-red-400 bg-red-500/10 text-red-400" },
+};
+
+const hintRoles: { id: Role; label: string; icon: React.ReactNode; desc: string; color: string }[] = [
+  { id: "employee", ...ROLE_META.employee },
+  { id: "client",   ...ROLE_META.client },
+  { id: "student",  ...ROLE_META.student },
+  { id: "board",    ...ROLE_META.board },
 ];
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { user, setUser, loading } = useAuth();
 
-  // Step 1 — role picker
+  // Step 1 — role hint picker (cosmetic)
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
   // Step 2 — credentials
@@ -32,9 +40,14 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Step 2b — multi-role selection
+  const [pendingRoleSelect, setPendingRoleSelect] = useState<RoleSelectionRequired | null>(null);
+  const [roleSelectError, setRoleSelectError] = useState("");
+  const [roleSelecting, setRoleSelecting] = useState(false);
+
   // Step 3 — forced password change
   const [pendingUser, setPendingUser] = useState<PortalUser | null>(null);
-  const [loginPassword, setLoginPassword] = useState(""); // the password they used to sign in
+  const [loginPassword, setLoginPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNew, setShowNew] = useState(false);
@@ -54,13 +67,36 @@ export default function LoginPage() {
     setSubmitting(true);
     const result = await login(email, password);
     setSubmitting(false);
+
     if ("error" in result) {
       setError(result.error);
+    } else if ("roleSelection" in result) {
+      // Multi-role user — show role picker
+      setPendingRoleSelect(result.roleSelection);
     } else if (result.user.mustChangePassword) {
-      // Hold the login password so we can use it as "currentPassword" in step 3
       setLoginPassword(password);
       setPendingUser(result.user);
-      setUser(result.user); // set in context so cookie is live
+      setUser(result.user);
+    } else {
+      setUser(result.user);
+      setLocation(getPortalPath(result.user.role));
+    }
+  }
+
+  async function handleRoleSelect(role: string) {
+    if (!pendingRoleSelect) return;
+    setRoleSelectError("");
+    setRoleSelecting(true);
+    const result = await selectRole(pendingRoleSelect.pendingToken, role);
+    setRoleSelecting(false);
+
+    if ("error" in result) {
+      setRoleSelectError(result.error);
+    } else if (result.user.mustChangePassword) {
+      setLoginPassword(password);
+      setPendingUser(result.user);
+      setUser(result.user);
+      setPendingRoleSelect(null);
     } else {
       setUser(result.user);
       setLocation(getPortalPath(result.user.role));
@@ -70,18 +106,9 @@ export default function LoginPage() {
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
     setChangeError("");
-    if (newPassword.length < 8) {
-      setChangeError("Password must be at least 8 characters.");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setChangeError("Passwords don't match.");
-      return;
-    }
-    if (newPassword === loginPassword) {
-      setChangeError("Your new password must be different from your temporary one.");
-      return;
-    }
+    if (newPassword.length < 8) { setChangeError("Password must be at least 8 characters."); return; }
+    if (newPassword !== confirmPassword) { setChangeError("Passwords don't match."); return; }
+    if (newPassword === loginPassword) { setChangeError("Your new password must be different from your temporary one."); return; }
     setChangingPw(true);
     const result = await changePassword(loginPassword, newPassword);
     setChangingPw(false);
@@ -89,7 +116,6 @@ export default function LoginPage() {
       setChangeError(result.error);
     } else {
       setChangeDone(true);
-      // Brief success moment, then navigate
       setTimeout(() => {
         const updated = { ...pendingUser!, mustChangePassword: false };
         setUser(updated);
@@ -142,21 +168,11 @@ export default function LoginPage() {
                   <div>
                     <Label className="text-white/70 text-sm">New password</Label>
                     <div className="relative mt-1">
-                      <Input
-                        type={showNew ? "text" : "password"}
-                        value={newPassword}
-                        onChange={e => setNewPassword(e.target.value)}
-                        placeholder="Min. 8 characters"
-                        required
-                        autoFocus
-                        className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#0D7377] pr-10"
-                        data-testid="input-new-password"
-                      />
+                      <Input type={showNew ? "text" : "password"} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Min. 8 characters" required autoFocus className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#0D7377] pr-10" data-testid="input-new-password" />
                       <button type="button" onClick={() => setShowNew(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60">
                         {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
-                    {/* Strength hint */}
                     {newPassword.length > 0 && (
                       <p className={`text-xs mt-1 ${newPassword.length >= 12 ? "text-emerald-400" : newPassword.length >= 8 ? "text-yellow-400" : "text-red-400"}`}>
                         {newPassword.length >= 12 ? "Strong" : newPassword.length >= 8 ? "Good" : "Too short"}
@@ -166,50 +182,77 @@ export default function LoginPage() {
                   <div>
                     <Label className="text-white/70 text-sm">Confirm new password</Label>
                     <div className="relative mt-1">
-                      <Input
-                        type={showConfirm ? "text" : "password"}
-                        value={confirmPassword}
-                        onChange={e => setConfirmPassword(e.target.value)}
-                        placeholder="Repeat your new password"
-                        required
-                        className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#0D7377] pr-10"
-                        data-testid="input-confirm-password"
-                      />
+                      <Input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Repeat your new password" required className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#0D7377] pr-10" data-testid="input-confirm-password" />
                       <button type="button" onClick={() => setShowConfirm(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60">
                         {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
-                    {confirmPassword.length > 0 && newPassword !== confirmPassword && (
-                      <p className="text-xs mt-1 text-red-400">Passwords don't match yet</p>
-                    )}
-                    {confirmPassword.length > 0 && newPassword === confirmPassword && newPassword.length >= 8 && (
-                      <p className="text-xs mt-1 text-emerald-400">Passwords match ✓</p>
-                    )}
+                    {confirmPassword.length > 0 && newPassword !== confirmPassword && <p className="text-xs mt-1 text-red-400">Passwords don't match yet</p>}
+                    {confirmPassword.length > 0 && newPassword === confirmPassword && newPassword.length >= 8 && <p className="text-xs mt-1 text-emerald-400">Passwords match ✓</p>}
                   </div>
-                  {changeError && (
-                    <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-3 py-2 rounded-lg" data-testid="text-change-error">
-                      {changeError}
-                    </div>
-                  )}
-                  <Button
-                    type="submit"
-                    disabled={changingPw || newPassword !== confirmPassword || newPassword.length < 8}
-                    className="w-full bg-[#0D7377] hover:bg-[#0D7377]/90 text-white font-semibold py-2.5 rounded-xl"
-                    data-testid="button-set-password"
-                  >
+                  {changeError && <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-3 py-2 rounded-lg" data-testid="text-change-error">{changeError}</div>}
+                  <Button type="submit" disabled={changingPw || newPassword !== confirmPassword || newPassword.length < 8} className="w-full bg-[#0D7377] hover:bg-[#0D7377]/90 text-white font-semibold py-2.5 rounded-xl" data-testid="button-set-password">
                     {changingPw ? "Saving…" : "Set my password & continue"}
                   </Button>
                 </form>
               </>
             )
 
-          /* ── Step 1: Role picker ──────────────────────────────────────── */
+          /* ── Step 2b: Multi-role selection ────────────────────────────── */
+          ) : pendingRoleSelect ? (
+            <>
+              <div className="flex flex-col items-center mb-5 gap-2">
+                <div className="w-10 h-10 rounded-full bg-[#0D7377]/20 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-[#0D7377]" />
+                </div>
+                <h2 className="text-lg font-semibold text-white text-center">Choose your portal</h2>
+                <p className="text-white/50 text-sm text-center">
+                  Welcome back, {pendingRoleSelect.firstName}! Your account has access to multiple portals.
+                  Which would you like to enter today?
+                </p>
+              </div>
+              <div className="space-y-3">
+                {pendingRoleSelect.roles.map(role => {
+                  const meta = ROLE_META[role] || { label: role, icon: <Shield className="w-6 h-6" />, desc: "", color: "border-white/20 bg-white/5 text-white" };
+                  return (
+                    <button
+                      key={role}
+                      onClick={() => handleRoleSelect(role)}
+                      disabled={roleSelecting}
+                      data-testid={`button-select-role-${role}`}
+                      className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed ${meta.color}`}
+                    >
+                      <div className="shrink-0">{meta.icon}</div>
+                      <div className="text-left">
+                        <div className="font-semibold">{meta.label}</div>
+                        {meta.desc && <div className="text-xs opacity-70">{meta.desc}</div>}
+                      </div>
+                      {roleSelecting && <div className="ml-auto w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />}
+                    </button>
+                  );
+                })}
+              </div>
+              {roleSelectError && (
+                <div className="mt-3 bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-3 py-2 rounded-lg" data-testid="text-role-select-error">
+                  {roleSelectError}
+                </div>
+              )}
+              <button
+                onClick={() => { setPendingRoleSelect(null); setError(""); }}
+                className="mt-4 flex items-center gap-1 text-white/40 hover:text-white/60 text-sm transition-colors"
+                data-testid="button-back-credentials"
+              >
+                <ArrowLeft className="w-3 h-3" /> Back
+              </button>
+            </>
+
+          /* ── Step 1: Role hint picker ──────────────────────────────────── */
           ) : !selectedRole ? (
             <>
               <h2 className="text-lg font-semibold text-white mb-1 text-center">Who are you?</h2>
               <p className="text-white/40 text-sm text-center mb-6">Select your account type to continue</p>
               <div className="space-y-3">
-                {roles.map(r => (
+                {hintRoles.map(r => (
                   <button
                     key={r.id}
                     onClick={() => setSelectedRole(r.id)}
@@ -237,11 +280,11 @@ export default function LoginPage() {
               <button onClick={() => { setSelectedRole(null); setError(""); }} className="flex items-center gap-1 text-white/40 hover:text-white/60 text-sm mb-4 transition-colors" data-testid="button-back-role">
                 <ArrowLeft className="w-3 h-3" /> Back
               </button>
-              <div className={`flex items-center gap-3 p-3 rounded-xl border mb-5 ${roles.find(r => r.id === selectedRole)?.color}`}>
-                {roles.find(r => r.id === selectedRole)?.icon}
+              <div className={`flex items-center gap-3 p-3 rounded-xl border mb-5 ${ROLE_META[selectedRole]?.color || ""}`}>
+                {ROLE_META[selectedRole]?.icon}
                 <div>
-                  <div className="font-semibold text-sm">{roles.find(r => r.id === selectedRole)?.label}</div>
-                  <div className="text-xs opacity-70">{roles.find(r => r.id === selectedRole)?.desc}</div>
+                  <div className="font-semibold text-sm">{ROLE_META[selectedRole]?.label}</div>
+                  <div className="text-xs opacity-70">{ROLE_META[selectedRole]?.desc}</div>
                 </div>
               </div>
               <form onSubmit={handleSubmit} className="space-y-4">

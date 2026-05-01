@@ -13,6 +13,16 @@ import { Input } from "@/components/ui/input";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
+const ALL_ROLES = ["admin", "employee", "client", "student", "board"] as const;
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: "Admin",
+  employee: "Employee",
+  client: "Client",
+  student: "Student",
+  board: "Board Member",
+};
+
 const ROLE_COLORS: Record<string, string> = {
   admin: "bg-red-100 text-red-700",
   employee: "bg-teal-100 text-teal-700",
@@ -20,6 +30,54 @@ const ROLE_COLORS: Record<string, string> = {
   student: "bg-purple-100 text-purple-700",
   board: "bg-indigo-100 text-indigo-700",
 };
+
+// ── Role Checkboxes ────────────────────────────────────────────────────────────
+
+function AdditionalRolesEditor({
+  primaryRole,
+  additionalRoles,
+  onChange,
+}: {
+  primaryRole: string;
+  additionalRoles: string[];
+  onChange: (roles: string[]) => void;
+}) {
+  const available = ALL_ROLES.filter(r => r !== primaryRole);
+  if (available.length === 0) return null;
+  return (
+    <div>
+      <label className="text-xs font-medium text-slate-500 mb-2 block">Additional portal access</label>
+      <div className="grid grid-cols-2 gap-2">
+        {available.map(role => {
+          const checked = additionalRoles.includes(role);
+          return (
+            <label
+              key={role}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm transition-colors ${checked ? "border-[#0D7377] bg-[#0D7377]/5 text-[#0D7377] font-medium" : "border-slate-200 text-slate-500 hover:border-slate-300"}`}
+              data-testid={`checkbox-role-${role}`}
+            >
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={e => {
+                  if (e.target.checked) onChange([...additionalRoles, role]);
+                  else onChange(additionalRoles.filter(r => r !== role));
+                }}
+                className="accent-[#0D7377]"
+              />
+              {ROLE_LABELS[role]}
+            </label>
+          );
+        })}
+      </div>
+      {additionalRoles.length > 0 && (
+        <p className="text-xs text-slate-400 mt-1.5">
+          User will be prompted to choose a portal at login when they have multiple roles.
+        </p>
+      )}
+    </div>
+  );
+}
 const STATUS_COLORS: Record<string, string> = {
   active: "bg-green-100 text-green-700",
   inactive: "bg-slate-100 text-slate-500",
@@ -37,6 +95,7 @@ function Avatar({ u }: { u: any }) {
 
 function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreated: (u: any) => void }) {
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", role: "employee", password: "" });
+  const [additionalRoles, setAdditionalRoles] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -44,7 +103,8 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
     e.preventDefault();
     setSaving(true);
     setError("");
-    const res = await apiRequest("POST", "/api/admin/portal-users", form);
+    const roles = [form.role, ...additionalRoles.filter(r => r !== form.role)];
+    const res = await apiRequest("POST", "/api/admin/portal-users", { ...form, roles });
     setSaving(false);
     if (res.success) { onCreated(res.data); onClose(); }
     else setError(res.error || "Failed to create user");
@@ -52,8 +112,8 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex items-center justify-between">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white rounded-t-2xl">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-[#0D7377]/10 flex items-center justify-center">
               <UserPlus className="w-4 h-4 text-[#0D7377]" />
@@ -79,8 +139,17 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
             <input required type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="jordan@handlekraft.ai" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-user-email" />
           </div>
           <div>
-            <label className="text-xs font-medium text-slate-500 mb-1 block">Role *</label>
-            <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="select-user-role">
+            <label className="text-xs font-medium text-slate-500 mb-1 block">Primary Role *</label>
+            <select
+              value={form.role}
+              onChange={e => {
+                const newRole = e.target.value;
+                setForm(f => ({ ...f, role: newRole }));
+                setAdditionalRoles(prev => prev.filter(r => r !== newRole));
+              }}
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+              data-testid="select-user-role"
+            >
               <option value="employee">Employee — access internal tools</option>
               <option value="client">Client — access client portal</option>
               <option value="student">Student — access learning portal</option>
@@ -88,6 +157,11 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
               <option value="admin">Admin — full access</option>
             </select>
           </div>
+          <AdditionalRolesEditor
+            primaryRole={form.role}
+            additionalRoles={additionalRoles}
+            onChange={setAdditionalRoles}
+          />
           <div>
             <label className="text-xs font-medium text-slate-500 mb-1 block">Temporary Password *</label>
             <input required value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="They'll change this on first login" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-user-password" />
@@ -119,6 +193,11 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
     committees: user.committees ? (Array.isArray(user.committees) ? user.committees.join(", ") : user.committees) : "",
     isInterestedDirector: user.isInterestedDirector || false,
   });
+  // Initialize additional roles from existing user.roles (all except primary)
+  const [additionalRoles, setAdditionalRoles] = useState<string[]>(() => {
+    const existing: string[] = Array.isArray(user.roles) ? user.roles : [];
+    return existing.filter(r => r !== user.role);
+  });
   const [saving, setSaving] = useState(false);
   const [resetPwd, setResetPwd] = useState("");
   const [resetting, setResetting] = useState(false);
@@ -128,7 +207,8 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
 
   async function save() {
     setSaving(true);
-    const payload: any = { role: form.role, status: form.status, canApprove: form.canApprove };
+    const roles = [form.role, ...additionalRoles.filter(r => r !== form.role)];
+    const payload: any = { role: form.role, roles, status: form.status, canApprove: form.canApprove };
     if (form.approverId === "") payload.approverId = null;
     else payload.approverId = parseInt(form.approverId);
     if (form.role === "board" || form.role === "admin") {
@@ -169,11 +249,20 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
         </div>
 
         <div className="p-6 space-y-5">
-          {/* Role & Status */}
+          {/* Primary Role & Status */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 block">Role</label>
-              <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid={`select-edit-role-${user.id}`}>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 block">Primary Role</label>
+              <select
+                value={form.role}
+                onChange={e => {
+                  const newRole = e.target.value;
+                  setForm(f => ({ ...f, role: newRole }));
+                  setAdditionalRoles(prev => prev.filter(r => r !== newRole));
+                }}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+                data-testid={`select-edit-role-${user.id}`}
+              >
                 <option value="employee">Employee</option>
                 <option value="client">Client</option>
                 <option value="student">Student</option>
@@ -189,6 +278,13 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
               </select>
             </div>
           </div>
+
+          {/* Additional portal access */}
+          <AdditionalRolesEditor
+            primaryRole={form.role}
+            additionalRoles={additionalRoles}
+            onChange={setAdditionalRoles}
+          />
 
           {/* Board Member Settings */}
           {(form.role === "board" || form.role === "admin") && (
@@ -665,8 +761,10 @@ function AdminUsersContent() {
                             </div>
                           </td>
                           <td className="p-3">
-                            <div className="flex items-center gap-1.5">
-                              <Badge className={`text-xs border-0 ${ROLE_COLORS[u.role] || ""}`}>{u.role}</Badge>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {(Array.isArray(u.roles) && u.roles.length > 0 ? u.roles : [u.role]).map((r: string) => (
+                                <Badge key={r} className={`text-xs border-0 ${ROLE_COLORS[r] || ""}`}>{ROLE_LABELS[r] ?? r}</Badge>
+                              ))}
                               {u.canApprove && <span title="Timesheet approver"><ShieldCheck className="w-3.5 h-3.5 text-[#0D7377]" /></span>}
                             </div>
                           </td>

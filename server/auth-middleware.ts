@@ -12,6 +12,11 @@ export interface JwtPayload {
   boardRestrictedAccess?: boolean;
 }
 
+export interface PendingAuthPayload {
+  userId: number;
+  pending: true;
+}
+
 declare global {
   namespace Express {
     interface Request {
@@ -27,6 +32,20 @@ export function signToken(payload: JwtPayload): string {
 export function verifyToken(token: string): JwtPayload | null {
   try {
     return jwt.verify(token, JWT_SECRET) as JwtPayload;
+  } catch {
+    return null;
+  }
+}
+
+export function signPendingToken(payload: PendingAuthPayload): string {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "5m" });
+}
+
+export function verifyPendingToken(token: string): PendingAuthPayload | null {
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    if (!decoded.pending) return null;
+    return decoded as PendingAuthPayload;
   } catch {
     return null;
   }

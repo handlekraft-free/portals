@@ -34,7 +34,7 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
   meeting: any; onBack: () => void; onRefresh: () => void; boardMembers: any[];
 }) {
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "board";
   const [detail, setDetail] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [addingAgenda, setAddingAgenda] = useState(false);
@@ -477,7 +477,7 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
 
 function MeetingsContent() {
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "board";
   const [meetings, setMeetings] = useState<any[]>([]);
   const [boardMembers, setBoardMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

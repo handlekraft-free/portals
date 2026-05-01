@@ -26,7 +26,7 @@ function BoardSettingsContent() {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "board";
 
   useEffect(() => {
     document.title = "Board Settings | handləkraft.ai";

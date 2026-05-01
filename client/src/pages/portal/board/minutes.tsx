@@ -372,7 +372,7 @@ function ActionItemForm({ boardMembers, onSave, onCancel, initial }: {
 function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "board";
   // Board members and admins can draft/submit; only admin can approve
   const canEdit = user?.role === "admin" || user?.role === "board";
 

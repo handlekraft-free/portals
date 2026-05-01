@@ -124,7 +124,7 @@ function NewDisclosureModal({ onClose, onSaved }: { onClose: () => void; onSaved
 
 function ConflictsContent() {
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "board";
   const { toast } = useToast();
   const [disclosures, setDisclosures] = useState<any[]>([]);
   const [complianceGrid, setComplianceGrid] = useState<any[]>([]);

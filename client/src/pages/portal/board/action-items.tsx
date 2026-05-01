@@ -137,7 +137,7 @@ function StatusPicker({ item, currentUserId, isAdmin, onUpdate }: {
 
 function ActionItemsContent() {
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "board";
   const { toast } = useToast();
   const [items, setItems] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);

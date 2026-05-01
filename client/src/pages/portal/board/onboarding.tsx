@@ -16,7 +16,7 @@ function OnboardingContent() {
   const [form, setForm] = useState({ title: "", description: "", position: 0 });
   const [saving, setSaving] = useState(false);
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "board";
 
   useEffect(() => {
     document.title = "Board Onboarding | handləkraft.ai";

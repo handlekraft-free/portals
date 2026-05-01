@@ -758,7 +758,7 @@ function PollsTab({ currentUserId, isAdmin }: { currentUserId: number; isAdmin: 
 export default function BoardSchedulingPage() {
   const { user } = useAuth();
   const [tab, setTab] = useState<"availability" | "polls">("polls");
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "board";
 
   return (
     <div className="max-w-3xl mx-auto">

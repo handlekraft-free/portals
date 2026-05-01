@@ -217,7 +217,7 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
           </Link>
         ))}
 
-        {user?.role === "admin" && (
+        {(user?.role === "admin" || user?.role === "board") && (
           <>
             <div className="pt-3 pb-1 px-2">
               <p className="text-white/30 text-xs uppercase tracking-widest font-semibold">Board Admin</p>

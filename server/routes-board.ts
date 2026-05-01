@@ -1,7 +1,7 @@
 import type { Router } from "express";
 import { Router as createRouter } from "express";
 import type { SQL } from "drizzle-orm";
-import { requireBoard, requireAdmin } from "./auth-middleware";
+import { requireBoard } from "./auth-middleware";
 import { db } from "./db";
 import {
   boardMeetings, boardMeetingRsvps, boardMeetingAttendees, boardAgendaItems,
@@ -157,7 +157,7 @@ router.get("/committees", async (_req, res) => {
   const rows = await raw(sql`SELECT * FROM board_committees ORDER BY name`);
   res.json({ success: true, data: rows });
 });
-router.post("/committees", requireAdmin as any, async (req, res) => {
+router.post("/committees", requireBoard as any, async (req, res) => {
   const { name, description } = req.body;
   if (!name) return res.status(400).json({ success: false, error: "Name required" });
   const rows = await raw(sql`
@@ -327,7 +327,7 @@ router.post("/meetings/:id/agenda", requireBoard as any, async (req, res) => {
   res.status(201).json({ success: true, data: item });
 });
 
-router.patch("/agenda/:id", requireAdmin as any, async (req, res) => {
+router.patch("/agenda/:id", requireBoard as any, async (req, res) => {
   const id = parseInt(req.params.id);
   const { title, description, duration, presenter, position } = req.body;
   const [updated] = await db.update(boardAgendaItems).set({
@@ -347,7 +347,7 @@ router.delete("/agenda/:id", requireBoard as any, async (req, res) => {
 
 // ── Attendance ────────────────────────────────────────────────────────────────
 
-router.post("/meetings/:id/attendance", requireAdmin as any, async (req, res) => {
+router.post("/meetings/:id/attendance", requireBoard as any, async (req, res) => {
   const meetingId = parseInt(req.params.id);
   const { records } = req.body; // [{ userId, attendance, participationMethod, waivedNotice }]
   if (!Array.isArray(records)) return res.status(400).json({ success: false, error: "records array required" });
@@ -372,7 +372,7 @@ router.post("/meetings/:id/attendance", requireAdmin as any, async (req, res) =>
 
 // ── Meeting Notices ───────────────────────────────────────────────────────────
 
-router.post("/meetings/:id/notice", requireAdmin as any, async (req, res) => {
+router.post("/meetings/:id/notice", requireBoard as any, async (req, res) => {
   const meetingId = parseInt(req.params.id);
   const { method, notes } = req.body;
   if (!method) return res.status(400).json({ success: false, error: "method required" });
@@ -771,7 +771,7 @@ router.get("/documents/:id/versions", async (req, res) => {
 });
 
 // Per-document audit trail (admin only)
-router.get("/documents/:id/audit", requireAdmin as any, async (req, res) => {
+router.get("/documents/:id/audit", requireBoard as any, async (req, res) => {
   const docId = parseInt(req.params.id as string);
   const doc = await getDocOrFail(docId, req.user!, res);
   if (!doc) return;
@@ -788,7 +788,7 @@ router.get("/documents/:id/audit", requireAdmin as any, async (req, res) => {
 });
 
 // Update document metadata (admin only)
-router.patch("/documents/:id", requireAdmin as any, async (req, res) => {
+router.patch("/documents/:id", requireBoard as any, async (req, res) => {
   const userId = req.user!.userId;
   const docId = parseInt(req.params.id);
   const { title, description, category, confidentiality, requireAck, retentionPolicy } = req.body;
@@ -806,7 +806,7 @@ router.patch("/documents/:id", requireAdmin as any, async (req, res) => {
 });
 
 // Delete document and all its files (admin only)
-router.delete("/documents/:id", requireAdmin as any, async (req, res) => {
+router.delete("/documents/:id", requireBoard as any, async (req, res) => {
   const userId = req.user!.userId;
   const docId = parseInt(req.params.id);
   const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
@@ -826,7 +826,7 @@ router.delete("/documents/:id", requireAdmin as any, async (req, res) => {
 });
 
 // Generate or return a public share token (admin only)
-router.post("/documents/:id/share", requireAdmin as any, async (req, res) => {
+router.post("/documents/:id/share", requireBoard as any, async (req, res) => {
   const userId = req.user!.userId;
   const docId = parseInt(req.params.id);
   const [existing] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
@@ -843,7 +843,7 @@ router.post("/documents/:id/share", requireAdmin as any, async (req, res) => {
 });
 
 // Revoke / disable public share link (admin only)
-router.delete("/documents/:id/share", requireAdmin as any, async (req, res) => {
+router.delete("/documents/:id/share", requireBoard as any, async (req, res) => {
   const userId = req.user!.userId;
   const docId = parseInt(req.params.id);
   const [existing] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
@@ -958,7 +958,7 @@ router.get("/documents/:id/acks", async (req, res) => {
 
 // ── Audit Log ─────────────────────────────────────────────────────────────────
 
-router.get("/audit-log", requireAdmin as any, async (_req, res) => {
+router.get("/audit-log", requireBoard as any, async (_req, res) => {
   const rows = await raw(sql`
     SELECT a.*, u.first_name, u.last_name
     FROM board_audit_log a
@@ -1161,7 +1161,7 @@ router.get("/financials/:id/download", async (req, res) => {
   res.download(record.filepath, `${record.title.replace(/[^a-zA-Z0-9._-]/g, "_")}_${record.period}${path.extname(record.filename)}`);
 });
 
-router.delete("/financials/:id", requireAdmin as any, async (req, res) => {
+router.delete("/financials/:id", requireBoard as any, async (req, res) => {
   const [record] = await db.select().from(boardFinancials).where(eq(boardFinancials.id, parseInt(req.params.id)));
   if (!record) return res.status(404).json({ success: false, error: "Not found" });
   if (fs.existsSync(record.filepath)) fs.unlinkSync(record.filepath);
@@ -1229,7 +1229,7 @@ router.post("/onboarding/:id/ack", async (req, res) => {
   res.status(201).json({ success: true, data: null });
 });
 
-router.post("/onboarding/items", requireAdmin as any, async (req, res) => {
+router.post("/onboarding/items", requireBoard as any, async (req, res) => {
   const { title, description, position } = req.body;
   if (!title) return res.status(400).json({ success: false, error: "Title required" });
   await db.execute(sql`
@@ -1272,12 +1272,12 @@ router.patch("/notification-prefs", async (req, res) => {
 
 // ── Roster (admin) ────────────────────────────────────────────────────────────
 
-router.get("/roster", requireAdmin as any, async (_req, res) => {
+router.get("/roster", requireBoard as any, async (_req, res) => {
   const members = await db.select().from(users).where(sql`role IN ('board','admin')`).orderBy(asc(users.firstName));
   res.json({ success: true, data: members });
 });
 
-router.patch("/roster/:id", requireAdmin as any, async (req, res) => {
+router.patch("/roster/:id", requireBoard as any, async (req, res) => {
   const { boardPosition, termStart, termEnd, committees, bio } = req.body;
   await db.update(users).set({
     ...(boardPosition !== undefined && { boardPosition }),
@@ -1295,7 +1295,7 @@ router.get("/settings", async (_req, res) => {
   res.json({ success: true, data: { quorumDefault: 3 } });
 });
 
-router.patch("/settings", requireAdmin as any, async (_req, res) => {
+router.patch("/settings", requireBoard as any, async (_req, res) => {
   res.json({ success: true, data: null });
 });
 
@@ -1457,7 +1457,7 @@ router.post("/minutes/:id/submit", requireBoard as any, async (req, res) => {
   res.json({ success: true, data: updated });
 });
 
-router.post("/minutes/:id/approve", requireAdmin as any, async (req, res) => {
+router.post("/minutes/:id/approve", requireBoard as any, async (req, res) => {
   const id = parseInt(req.params.id);
   const [existing] = await db.select().from(boardMinutes).where(eq(boardMinutes.id, id));
   if (!existing) return res.status(404).json({ success: false, error: "Not found" });
@@ -1613,7 +1613,7 @@ router.get("/meetings/:id/packet-docs", async (req, res) => {
   res.json({ success: true, data: rows });
 });
 
-router.post("/meetings/:id/packet-docs", requireAdmin as any, async (req, res) => {
+router.post("/meetings/:id/packet-docs", requireBoard as any, async (req, res) => {
   const meetingId = parseInt(req.params.id);
   const { documentId, note } = req.body;
   if (!documentId) return res.status(400).json({ success: false, error: "documentId required" });
@@ -1639,7 +1639,7 @@ router.post("/meetings/:id/packet-docs", requireAdmin as any, async (req, res) =
   res.status(201).json({ success: true, data: enriched[0] ?? row });
 });
 
-router.delete("/meetings/:id/packet-docs/:docId", requireAdmin as any, async (req, res) => {
+router.delete("/meetings/:id/packet-docs/:docId", requireBoard as any, async (req, res) => {
   const meetingId = parseInt(req.params.id);
   const docId = parseInt(req.params.docId);
   await db.delete(boardMeetingPacketDocs)
@@ -2025,7 +2025,7 @@ router.post("/polls/:id/slots", async (req, res) => {
 });
 
 // Delete a slot
-router.delete("/polls/:id/slots/:slotId", requireAdmin as any, async (req, res) => {
+router.delete("/polls/:id/slots/:slotId", requireBoard as any, async (req, res) => {
   await db.delete(meetingPollResponses).where(eq(meetingPollResponses.slotId, parseInt(req.params.slotId)));
   await db.delete(meetingPollSlots).where(eq(meetingPollSlots.id, parseInt(req.params.slotId)));
   res.json({ success: true, data: null });
@@ -2050,7 +2050,7 @@ router.post("/polls/:id/respond", async (req, res) => {
 });
 
 // Confirm a slot → close poll + optionally create a board meeting
-router.post("/polls/:id/confirm/:slotId", requireAdmin as any, async (req, res) => {
+router.post("/polls/:id/confirm/:slotId", requireBoard as any, async (req, res) => {
   const pollId = parseInt(req.params.id);
   const slotId = parseInt(req.params.slotId);
   const { createMeeting, title, meetingType, location, platform } = req.body;
@@ -2080,14 +2080,14 @@ router.post("/polls/:id/confirm/:slotId", requireAdmin as any, async (req, res) 
 });
 
 // Close poll (without confirming a slot)
-router.patch("/polls/:id", requireAdmin as any, async (req, res) => {
+router.patch("/polls/:id", requireBoard as any, async (req, res) => {
   const { status } = req.body;
   await db.update(meetingTimePolls).set({ status }).where(eq(meetingTimePolls.id, parseInt(req.params.id)));
   res.json({ success: true });
 });
 
 // Delete poll
-router.delete("/polls/:id", requireAdmin as any, async (req, res) => {
+router.delete("/polls/:id", requireBoard as any, async (req, res) => {
   const pollId = parseInt(req.params.id);
   await db.delete(meetingPollResponses).where(eq(meetingPollResponses.pollId, pollId));
   await db.delete(meetingPollSlots).where(eq(meetingPollSlots.pollId, pollId));

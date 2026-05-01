@@ -362,7 +362,7 @@ function NewConsentModal({ members, onClose, onCreated }: {
 
 function ConsentsContent() {
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "board";
   const { toast } = useToast();
   const [consents, setConsents] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);

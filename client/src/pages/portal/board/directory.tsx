@@ -224,7 +224,7 @@ function MemberCard({ member, isAdmin, onEdit }: { member: any; isAdmin: boolean
 
 function DirectoryContent() {
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "board";
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");

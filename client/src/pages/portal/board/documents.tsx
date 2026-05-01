@@ -788,7 +788,7 @@ function DocCard({
 
 function DocumentsContent() {
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "board";
   const canSeeRestricted = isAdmin || !!user?.boardRestrictedAccess;
   const { toast } = useToast();
 

@@ -150,7 +150,7 @@ function MIME_BADGE(mime: string | null) {
 
 function FinancialsContent() {
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "board";
   const { toast } = useToast();
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

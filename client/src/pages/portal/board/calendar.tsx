@@ -54,7 +54,7 @@ function CalendarContent() {
   const [addingDoc, setAddingDoc] = useState(false);
   const [selectedDocId, setSelectedDocId] = useState("");
   const [docNote, setDocNote] = useState("");
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "board";
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
@@ -370,7 +370,7 @@ function CalendarContent() {
                         ))}
                       </div>
                     )}
-                    {selectedDetail.notices?.length === 0 && selected.status === "scheduled" && user?.role === "admin" && (
+                    {selectedDetail.notices?.length === 0 && selected.status === "scheduled" && (user?.role === "admin" || user?.role === "board") && (
                       <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
                         <p className="text-xs text-amber-700 flex items-center gap-1.5">
                           <Bell className="w-3.5 h-3.5" /> No notice sent yet — use Meetings page to send notice

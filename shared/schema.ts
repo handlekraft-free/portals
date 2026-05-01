@@ -923,3 +923,26 @@ export const meetingPollResponses = pgTable("meeting_poll_responses", {
   availability: varchar("availability", { length: 20 }).notNull().default("no"), // yes | if_needed | no
 });
 export type MeetingPollResponse = typeof meetingPollResponses.$inferSelect;
+
+// ─── Direct Messages ──────────────────────────────────────────────────────────
+// user1Id always = min(id), user2Id always = max(id) — ensures uniqueness
+
+export const directMessageConversations = pgTable("direct_message_conversations", {
+  id: serial("id").primaryKey(),
+  user1Id: integer("user1_id").notNull(),
+  user2Id: integer("user2_id").notNull(),
+  lastMessageAt: timestamp("last_message_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type DirectMessageConversation = typeof directMessageConversations.$inferSelect;
+
+export const directMessageEntries = pgTable("direct_message_entries", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").notNull(),
+  senderId: integer("sender_id").notNull(),
+  content: text("content").notNull(),
+  readAt: timestamp("read_at"),
+  editedAt: timestamp("edited_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type DirectMessageEntry = typeof directMessageEntries.$inferSelect;

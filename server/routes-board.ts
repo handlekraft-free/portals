@@ -522,6 +522,7 @@ router.get("/documents", async (req, res) => {
     SELECT
       d.id, d.title, d.description, d.category, d.confidentiality,
       d.require_ack, d.retention_policy, d.uploaded_by, d.created_at,
+      d.share_token, d.share_enabled,
       u.first_name AS uploader_first, u.last_name AS uploader_last,
       (SELECT COUNT(*) FROM board_document_versions v WHERE v.document_id = d.id) AS version_count,
       (SELECT MAX(v2.version_number) FROM board_document_versions v2 WHERE v2.document_id = d.id) AS current_version,
@@ -551,7 +552,7 @@ router.get("/documents/search", async (req, res) => {
   const rows = await raw<any>(sql`
     SELECT
       d.id, d.title, d.description, d.category, d.confidentiality,
-      d.require_ack, d.created_at,
+      d.require_ack, d.created_at, d.share_token, d.share_enabled,
       u.first_name AS uploader_first, u.last_name AS uploader_last,
       (SELECT MAX(v.version_number) FROM board_document_versions v WHERE v.document_id = d.id) AS current_version,
       (SELECT COUNT(*) FROM board_document_versions vv WHERE vv.document_id = d.id) AS version_count,
@@ -778,6 +779,39 @@ router.delete("/documents/:id", requireAdmin as any, async (req, res) => {
   await db.delete(boardDocuments).where(eq(boardDocuments.id, docId));
 
   auditLog(userId, "delete", "document", docId, `Deleted: ${doc.title}`);
+  res.json({ success: true, data: null });
+});
+
+// Generate or return a public share token (admin only)
+router.post("/documents/:id/share", requireAdmin as any, async (req, res) => {
+  const userId = req.user!.userId;
+  const docId = parseInt(req.params.id);
+  const [existing] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
+  if (!existing) return res.status(404).json({ success: false, error: "Not found" });
+
+  const token = existing.shareToken || require("crypto").randomBytes(24).toString("hex");
+  const [doc] = await db.update(boardDocuments)
+    .set({ shareToken: token, shareEnabled: true })
+    .where(eq(boardDocuments.id, docId))
+    .returning();
+
+  auditLog(userId, "share_enable", "document", docId, `Public share link created: ${doc.title}`);
+  res.json({ success: true, data: { shareToken: doc.shareToken, shareEnabled: doc.shareEnabled } });
+});
+
+// Revoke / disable public share link (admin only)
+router.delete("/documents/:id/share", requireAdmin as any, async (req, res) => {
+  const userId = req.user!.userId;
+  const docId = parseInt(req.params.id);
+  const [existing] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
+  if (!existing) return res.status(404).json({ success: false, error: "Not found" });
+
+  const [doc] = await db.update(boardDocuments)
+    .set({ shareToken: null, shareEnabled: false })
+    .where(eq(boardDocuments.id, docId))
+    .returning();
+
+  auditLog(userId, "share_revoke", "document", docId, `Public share link revoked: ${doc.title}`);
   res.json({ success: true, data: null });
 });
 

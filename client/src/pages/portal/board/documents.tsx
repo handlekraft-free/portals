@@ -7,6 +7,7 @@ import {
   FileText, Upload, Download, Check, Plus, Lock, Eye, Clock, History,
   Search, X, Users, AlertCircle, Trash2, Edit3, FileCheck,
   FolderOpen, Shield, RefreshCw, Activity, ChevronRight,
+  Link2, Copy, CheckCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -497,6 +498,157 @@ function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded:
   );
 }
 
+// ── Share Modal ───────────────────────────────────────────────────────────────
+
+function ShareModal({
+  doc,
+  isAdmin,
+  onClose,
+  onChanged,
+}: {
+  doc: any;
+  isAdmin: boolean;
+  onClose: () => void;
+  onChanged: (updated: any) => void;
+}) {
+  const { toast } = useToast();
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const shareEnabled = doc.share_enabled === true || doc.share_enabled === "true";
+  const shareToken = doc.share_token as string | null;
+  const shareUrl = shareToken ? `${window.location.origin}/share/${shareToken}` : null;
+
+  async function enableShare() {
+    setBusy(true);
+    const r = await apiRequest("POST", `/api/board/documents/${doc.id}/share`);
+    setBusy(false);
+    if (r.success) {
+      toast({ title: "Share link created" });
+      onChanged({ ...doc, share_token: r.data.shareToken, share_enabled: true });
+    } else {
+      toast({ title: "Failed to create link", description: r.error, variant: "destructive" });
+    }
+  }
+
+  async function revokeShare() {
+    if (!confirm("Revoke this link? Anyone with the URL will lose access immediately.")) return;
+    setBusy(true);
+    const r = await apiRequest("DELETE", `/api/board/documents/${doc.id}/share`);
+    setBusy(false);
+    if (r.success) {
+      toast({ title: "Share link revoked" });
+      onChanged({ ...doc, share_token: null, share_enabled: false });
+    } else {
+      toast({ title: "Failed to revoke", description: r.error, variant: "destructive" });
+    }
+  }
+
+  async function copyLink() {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: "Could not copy — please copy manually", description: shareUrl });
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+              <Link2 className="w-4 h-4 text-indigo-500" />
+            </div>
+            <div>
+              <p className="font-semibold text-[#1A1F2B] text-sm">Share via Link</p>
+              <p className="text-xs text-slate-400 truncate max-w-56">{doc.title}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400" data-testid="button-close-share">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {shareEnabled && shareUrl ? (
+            <>
+              <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-400 shrink-0" />
+                <p className="text-xs text-green-700 font-medium">Link sharing is active</p>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">Public link</label>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 min-w-0">
+                    <p className="text-xs text-slate-600 truncate font-mono">{shareUrl}</p>
+                  </div>
+                  <button
+                    onClick={copyLink}
+                    title="Copy link"
+                    className="shrink-0 p-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white transition-colors"
+                    data-testid="button-copy-share-link"
+                  >
+                    {copied ? <CheckCheck className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Anyone with this link can view document info and download the latest version — <strong>no login required.</strong>
+              </p>
+
+              {isAdmin && (
+                <button
+                  onClick={revokeShare}
+                  disabled={busy}
+                  className="flex items-center gap-2 text-xs text-red-500 hover:text-red-600 font-medium transition-colors disabled:opacity-50"
+                  data-testid="button-revoke-share"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Revoke link
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-slate-300 shrink-0" />
+                <p className="text-xs text-slate-500">Link sharing is off</p>
+              </div>
+
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Generate a secure public link for this document. Anyone with the link can download the latest version without logging in.
+                Useful for sharing with external contacts via email.
+              </p>
+
+              {isAdmin ? (
+                <Button
+                  onClick={enableShare}
+                  disabled={busy}
+                  className="w-full bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl flex items-center gap-2 justify-center"
+                  data-testid="button-enable-share"
+                >
+                  <Link2 className="w-4 h-4" />
+                  {busy ? "Creating…" : "Create public link"}
+                </Button>
+              ) : (
+                <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                  Only admins can generate share links. Contact your board administrator.
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Document Card ─────────────────────────────────────────────────────────────
 
 function DocCard({
@@ -508,6 +660,7 @@ function DocCard({
   onShowAudit,
   onEdit,
   onDelete,
+  onShare,
 }: {
   doc: any;
   isAdmin: boolean;
@@ -517,12 +670,14 @@ function DocCard({
   onShowAudit: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onShare: () => void;
 }) {
   const hasFile = parseInt(doc.version_count || "0") > 0;
   const currentVer = doc.current_version;
   const ackCount = parseInt(doc.ack_count || "0");
   const userAcked = doc.user_acked === true || doc.user_acked === "true";
   const requireAck = doc.require_ack === true || doc.require_ack === "true";
+  const shareEnabled = doc.share_enabled === true || doc.share_enabled === "true";
 
   return (
     <Card className="border border-slate-100 shadow-sm hover:shadow-md transition-shadow" data-testid={`doc-card-${doc.id}`}>
@@ -551,6 +706,11 @@ function DocCard({
               {userAcked && (
                 <Badge className="bg-green-100 text-green-700 border-green-200 text-xs border px-1.5 py-0 flex items-center gap-0.5">
                   <Check className="w-3 h-3" /> Acknowledged
+                </Badge>
+              )}
+              {shareEnabled && (
+                <Badge className="bg-sky-100 text-sky-700 border-sky-200 text-xs border px-1.5 py-0 flex items-center gap-0.5">
+                  <Link2 className="w-3 h-3" /> Shared
                 </Badge>
               )}
             </div>
@@ -586,6 +746,14 @@ function DocCard({
                 <Download className="w-4 h-4" />
               </a>
             )}
+            <button
+              onClick={onShare}
+              title={shareEnabled ? "Manage share link" : "Share via link"}
+              className={`p-1.5 rounded-lg transition-colors ${shareEnabled ? "text-sky-500 hover:bg-sky-50" : "text-slate-400 hover:bg-sky-50 hover:text-sky-500"}`}
+              data-testid={`button-share-doc-${doc.id}`}
+            >
+              <Link2 className="w-4 h-4" />
+            </button>
             <button onClick={onShowVersions} title="Version history" className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" data-testid={`button-versions-${doc.id}`}>
               <History className="w-4 h-4" />
             </button>
@@ -635,6 +803,7 @@ function DocumentsContent() {
   const [acksDoc, setAcksDoc] = useState<any | null>(null);
   const [auditDoc, setAuditDoc] = useState<any | null>(null);
   const [editDoc, setEditDoc] = useState<any | null>(null);
+  const [shareDoc, setShareDoc] = useState<any | null>(null);
   const [catCounts, setCatCounts] = useState<Record<string, number>>({});
 
   const loadDocs = useCallback(() => {
@@ -861,6 +1030,7 @@ function DocumentsContent() {
                 onShowAudit={() => setAuditDoc(doc)}
                 onEdit={() => setEditDoc(doc)}
                 onDelete={() => deleteDoc(doc)}
+                onShare={() => setShareDoc(doc)}
               />
             ))}
           </div>
@@ -882,6 +1052,17 @@ function DocumentsContent() {
       {acksDoc && isAdmin && <AckTrackingModal doc={acksDoc} onClose={() => setAcksDoc(null)} />}
       {auditDoc && isAdmin && <AuditTrailModal doc={auditDoc} onClose={() => setAuditDoc(null)} />}
       {editDoc && isAdmin && <EditDocModal doc={editDoc} onClose={() => setEditDoc(null)} onSaved={loadDocs} />}
+      {shareDoc && (
+        <ShareModal
+          doc={shareDoc}
+          isAdmin={isAdmin}
+          onClose={() => setShareDoc(null)}
+          onChanged={(updated) => {
+            setShareDoc(updated);
+            setAllDocs(prev => prev.map(d => d.id === updated.id ? updated : d));
+          }}
+        />
+      )}
     </div>
   );
 }

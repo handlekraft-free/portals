@@ -573,6 +573,8 @@ export const boardDocuments = pgTable("board_documents", {
   retentionPolicy: text("retention_policy"),
   uploadedBy: integer("uploaded_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  shareToken: text("share_token").unique(),
+  shareEnabled: boolean("share_enabled").default(false).notNull(),
 });
 export type BoardDocument = typeof boardDocuments.$inferSelect;
 

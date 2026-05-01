@@ -9,9 +9,12 @@ import { insertFellowshipApplicationSchema, insertClientApplicationSchema } from
 import {
   users, expenseCategories, chargeCodes,
   boardMeetings, boardAgendaItems, boardMeetingAttendees, boardMeetingNotices, boardActionItems,
+  boardDocuments, boardDocumentVersions,
 } from "@shared/schema";
 import { db } from "./db";
-import { sql, count, eq, inArray } from "drizzle-orm";
+import { sql, count, eq, inArray, desc } from "drizzle-orm";
+import fs from "fs";
+import path from "path";
 import { z } from "zod";
 
 // New portal route modules
@@ -557,6 +560,50 @@ export async function registerRoutes(
     });
     if (!app) return res.status(404).json({ message: "Not found" });
     res.json(app);
+  });
+
+  // ── Public board document share links (no auth required) ─────────────────
+  app.get("/api/public/board/document/:token", async (req: Request, res: Response) => {
+    const [doc] = await db.select().from(boardDocuments)
+      .where(eq(boardDocuments.shareToken, req.params.token));
+    if (!doc || !doc.shareEnabled) return res.status(404).json({ success: false, error: "Link not found or has been revoked" });
+
+    const [ver] = await db.select().from(boardDocumentVersions)
+      .where(eq(boardDocumentVersions.documentId, doc.id))
+      .orderBy(desc(boardDocumentVersions.versionNumber))
+      .limit(1);
+
+    res.json({
+      success: true,
+      data: {
+        id: doc.id,
+        title: doc.title,
+        description: doc.description,
+        category: doc.category,
+        currentVersion: ver?.versionNumber ?? null,
+        fileName: ver?.filename ?? null,
+        mimeType: ver?.mimeType ?? null,
+        fileSize: ver?.fileSize ?? null,
+        hasFile: !!ver,
+      },
+    });
+  });
+
+  app.get("/api/public/board/document/:token/download", async (req: Request, res: Response) => {
+    const [doc] = await db.select().from(boardDocuments)
+      .where(eq(boardDocuments.shareToken, req.params.token));
+    if (!doc || !doc.shareEnabled) return res.status(404).json({ success: false, error: "Link not found or has been revoked" });
+
+    const [ver] = await db.select().from(boardDocumentVersions)
+      .where(eq(boardDocumentVersions.documentId, doc.id))
+      .orderBy(desc(boardDocumentVersions.versionNumber))
+      .limit(1);
+
+    if (!ver) return res.status(404).json({ success: false, error: "No file attached to this document" });
+    if (!fs.existsSync(ver.filepath)) return res.status(404).json({ success: false, error: "File not found" });
+
+    const safeTitle = doc.title.replace(/[^a-zA-Z0-9._-]/g, "_");
+    res.download(ver.filepath, `${safeTitle}_v${ver.versionNumber}${path.extname(ver.filename)}`);
   });
 
   return httpServer;

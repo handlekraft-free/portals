@@ -52,6 +52,9 @@ import BoardMinutesDetail from "@/pages/portal/board/minutes-detail";
 // Admin Portal
 import AdminUsers from "@/pages/portal/admin/users";
 
+// Public share pages
+import SharedDocument from "@/pages/share/document";
+
 function Router() {
   return (
     <Switch>
@@ -105,6 +108,9 @@ function Router() {
 
       {/* Admin Portal */}
       <Route path="/portal/admin/users" component={AdminUsers} />
+
+      {/* Public share pages */}
+      <Route path="/share/:token" component={SharedDocument} />
 
       <Route component={NotFound} />
     </Switch>

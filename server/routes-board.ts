@@ -93,6 +93,7 @@ router.get("/members", async (_req, res) => {
     committees: users.committees,
     status: users.status,
     isInterestedDirector: users.isInterestedDirector,
+    lastLogin: users.lastLogin,
   }).from(users).where(sql`(role = 'board' OR 'board' = ANY(roles)) AND status = 'active'`).orderBy(asc(users.firstName));
   res.json({ success: true, data: members });
 });

@@ -128,7 +128,7 @@ function BoardDashboardContent() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: "Upcoming Meetings", value: meetings.length, icon: <CalendarDays className="w-5 h-5 text-indigo-500" />, href: "/portal/board/meetings" },
-          { label: "My Action Items", value: actions.length, icon: <CheckSquare className="w-5 h-5 text-amber-500" />, href: "/portal/board/action-items", warn: overdueActions.length > 0 },
+          { label: "My Action Items", value: actions.length + pendingPolls.length, icon: <CheckSquare className="w-5 h-5 text-amber-500" />, href: "/portal/board/action-items", warn: overdueActions.length > 0 },
           { label: "Documents", value: documents.length, icon: <FileText className="w-5 h-5 text-teal-500" />, href: "/portal/board/documents" },
           { label: "Open Consents", value: consents.length, icon: <FileSignature className="w-5 h-5 text-purple-500" />, href: "/portal/board/consents" },
         ].map(card => (

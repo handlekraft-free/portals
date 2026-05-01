@@ -12,6 +12,7 @@ export interface PortalUser {
   termStart?: string | null;
   termEnd?: string | null;
   isInterestedDirector?: boolean;
+  boardRestrictedAccess?: boolean;
 }
 
 export async function getCurrentUser(): Promise<PortalUser | null> {

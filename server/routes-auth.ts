@@ -69,6 +69,7 @@ router.post("/login", async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       mustChangePassword: user.mustChangePassword,
+      boardRestrictedAccess: (user as any).boardRestrictedAccess ?? false,
     },
   });
 });
@@ -121,6 +122,7 @@ router.get("/me", requireAuth, async (req, res) => {
       status: user.status,
       canApprove: user.canApprove,
       approverId: user.approverId,
+      boardRestrictedAccess: (user as any).boardRestrictedAccess ?? false,
     },
   });
 });

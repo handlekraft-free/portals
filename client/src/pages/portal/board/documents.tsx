@@ -294,7 +294,7 @@ function AuditTrailModal({ doc, onClose }: { doc: any; onClose: () => void }) {
 
 function EditDocModal({ doc, onClose, onSaved }: { doc: any; onClose: () => void; onSaved: () => void }) {
   const { user } = useAuth();
-  const canSeeRestricted = user?.role === "admin" || !!(user as any)?.boardRestrictedAccess;
+  const canSeeRestricted = user?.role === "admin" || !!user?.boardRestrictedAccess;
   const uploadCategories = UPLOAD_CATEGORIES.filter(c => !c.restricted || canSeeRestricted);
   const [form, setForm] = useState({
     title: doc.title,
@@ -357,7 +357,7 @@ function EditDocModal({ doc, onClose, onSaved }: { doc: any; onClose: () => void
 
 function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded: () => void }) {
   const { user } = useAuth();
-  const canSeeRestricted = user?.role === "admin" || !!(user as any)?.boardRestrictedAccess;
+  const canSeeRestricted = user?.role === "admin" || !!user?.boardRestrictedAccess;
   const uploadCategories = UPLOAD_CATEGORIES.filter(c => !c.restricted || canSeeRestricted);
   const [form, setForm] = useState({
     title: "", description: "", category: "Bylaws & Policies",
@@ -607,7 +607,7 @@ function DocCard({
 function DocumentsContent() {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
-  const canSeeRestricted = isAdmin || !!(user as any)?.boardRestrictedAccess;
+  const canSeeRestricted = isAdmin || !!user?.boardRestrictedAccess;
   const { toast } = useToast();
 
   const [activeCategory, setActiveCategory] = useState("_all");

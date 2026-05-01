@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Send, Trash2, Bot, User, Sparkles, AlertCircle } from "lucide-react";
+import { Loader2, Send, Trash2, Bot, User, Sparkles, AlertCircle, Paperclip, X, FileText, Image as ImageIcon } from "lucide-react";
 import { apiRequest } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function relTime(d: string) {
   const diff = Date.now() - new Date(d).getTime();
@@ -13,8 +15,49 @@ function relTime(d: string) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
+// Parse stored content: "[[ATTACHMENTS:file1.png,doc.txt]]\nmessage"
+function parseContent(raw: string): { names: string[]; text: string } {
+  const match = raw.match(/^\[\[ATTACHMENTS:([^\]]*)\]\]\n?([\s\S]*)$/);
+  if (match) {
+    const names = match[1].split(",").map(n => n.trim()).filter(Boolean);
+    return { names, text: match[2] };
+  }
+  return { names: [], text: raw };
+}
+
+const IMAGE_EXTS = new Set(["jpg", "jpeg", "png", "gif", "webp"]);
+function isImageName(name: string) {
+  return IMAGE_EXTS.has(name.split(".").pop()?.toLowerCase() ?? "");
+}
+
+// ── Attachment Chips (in message bubbles, from parsed history) ────────────────
+
+function AttachmentChips({ names, isUser }: { names: string[]; isUser: boolean }) {
+  if (names.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5 mb-1.5">
+      {names.map((name, i) => (
+        <div
+          key={i}
+          className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium ${
+            isUser ? "bg-white/20 text-white" : "bg-slate-200 text-slate-600"
+          }`}
+        >
+          {isImageName(name)
+            ? <ImageIcon className="w-3 h-3 shrink-0" />
+            : <FileText className="w-3 h-3 shrink-0" />}
+          <span className="max-w-[120px] truncate">{name}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Message Bubble ─────────────────────────────────────────────────────────────
+
 function MessageBubble({ msg, streaming }: { msg: any; streaming?: boolean }) {
   const isUser = msg.role === "user";
+  const { names, text } = parseContent(msg.content || "");
   return (
     <div className={`flex gap-3 ${isUser ? "flex-row-reverse" : ""}`} data-testid={`ai-message-${msg.id || "streaming"}`}>
       <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${isUser ? "bg-[#0D7377]" : "bg-[#1A1F2B]"}`}>
@@ -22,7 +65,8 @@ function MessageBubble({ msg, streaming }: { msg: any; streaming?: boolean }) {
       </div>
       <div className={`max-w-[80%] ${isUser ? "items-end" : "items-start"} flex flex-col`}>
         <div className={`rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words ${isUser ? "bg-[#0D7377] text-white rounded-tr-sm" : "bg-slate-100 text-slate-800 rounded-tl-sm"}`}>
-          {msg.content}
+          <AttachmentChips names={names} isUser={isUser} />
+          {text}
           {streaming && <span className="inline-block w-1 h-4 bg-slate-600 animate-pulse ml-0.5 align-text-bottom" />}
         </div>
         {msg.createdAt && !streaming && (
@@ -33,6 +77,55 @@ function MessageBubble({ msg, streaming }: { msg: any; streaming?: boolean }) {
   );
 }
 
+// ── Pending file chip (shown in input area before sending) ────────────────────
+
+interface PendingFile {
+  file: File;
+  previewUrl: string | null;
+}
+
+function PendingFileChip({ pf, onRemove }: { pf: PendingFile; onRemove: () => void }) {
+  const isImage = pf.file.type.startsWith("image/");
+  return (
+    <div className="relative flex-shrink-0 group">
+      {isImage && pf.previewUrl ? (
+        <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200">
+          <img src={pf.previewUrl} alt={pf.file.name} className="w-full h-full object-cover" />
+          <button
+            onClick={onRemove}
+            className="absolute top-0.5 right-0.5 w-4 h-4 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            data-testid="button-remove-file"
+          >
+            <X className="w-2.5 h-2.5 text-white" />
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-1.5 bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1.5 max-w-[140px]">
+          <FileText className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+          <span className="text-xs text-slate-600 truncate">{pf.file.name}</span>
+          <button
+            onClick={onRemove}
+            className="ml-auto shrink-0 text-slate-400 hover:text-slate-600"
+            data-testid="button-remove-file"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Accepted file types ───────────────────────────────────────────────────────
+
+const ACCEPT = [
+  "image/jpeg", "image/png", "image/gif", "image/webp",
+  "text/plain", "text/csv", "text/markdown",
+  "application/json", "application/javascript",
+  "text/javascript", "text/html", "text/css", "text/xml",
+  ".ts", ".tsx", ".js", ".jsx", ".md", ".py", ".rb", ".go", ".rs", ".java",
+].join(",");
+
 const SUGGESTED_PROMPTS = [
   "Help me write a project proposal",
   "Review this email draft…",
@@ -40,16 +133,21 @@ const SUGGESTED_PROMPTS = [
   "Summarize the key points of…",
 ];
 
+// ── Main Component ─────────────────────────────────────────────────────────────
+
 export default function ClaudeChat() {
   const { toast } = useToast();
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [streaming, setStreaming] = useState(false);
   const [streamingText, setStreamingText] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     apiRequest("GET", "/api/ai/history").then(r => {
@@ -62,28 +160,90 @@ export default function ClaudeChat() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length, streamingText]);
 
+  function addFiles(files: File[]) {
+    const valid: PendingFile[] = [];
+    for (const file of files) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast({ title: `${file.name} is too large (max 10 MB)`, variant: "destructive" });
+        continue;
+      }
+      const isImage = file.type.startsWith("image/");
+      const previewUrl = isImage ? URL.createObjectURL(file) : null;
+      valid.push({ file, previewUrl });
+    }
+    setPendingFiles(prev => {
+      if (prev.length + valid.length > 5) {
+        toast({ title: "Max 5 files per message", variant: "destructive" });
+        return prev;
+      }
+      return [...prev, ...valid];
+    });
+  }
+
+  function removeFile(idx: number) {
+    setPendingFiles(prev => {
+      const pf = prev[idx];
+      if (pf.previewUrl) URL.revokeObjectURL(pf.previewUrl);
+      return prev.filter((_, i) => i !== idx);
+    });
+  }
+
+  function handleFileInput(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files) addFiles(Array.from(e.target.files));
+    e.target.value = "";
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragOver(false);
+    if (e.dataTransfer.files) addFiles(Array.from(e.dataTransfer.files));
+  }
+
   async function send() {
     const msg = input.trim();
-    if (!msg || streaming) return;
+    if ((!msg && pendingFiles.length === 0) || streaming) return;
     setInput("");
     setError(null);
     setStreamingText("");
 
-    const optimisticUser = { id: `opt-${Date.now()}`, role: "user", content: msg, createdAt: new Date().toISOString() };
+    const filesToSend = [...pendingFiles];
+    setPendingFiles([]);
+    filesToSend.forEach(pf => { if (pf.previewUrl) URL.revokeObjectURL(pf.previewUrl); });
+
+    // Build optimistic user message content
+    const attachNames = filesToSend.map(pf => pf.file.name);
+    const optimisticContent = attachNames.length > 0
+      ? `[[ATTACHMENTS:${attachNames.join(",")}]]\n${msg}`.trim()
+      : msg;
+
+    const optimisticUser = { id: `opt-${Date.now()}`, role: "user", content: optimisticContent, createdAt: new Date().toISOString() };
     setMessages(prev => [...prev, optimisticUser]);
     setStreaming(true);
 
     try {
+      // Use FormData when files are present, plain JSON otherwise
+      let body: BodyInit;
+      let headers: Record<string, string> = {};
+
+      if (filesToSend.length > 0) {
+        const fd = new FormData();
+        fd.append("message", msg);
+        filesToSend.forEach(pf => fd.append("files", pf.file));
+        body = fd;
+        // Don't set Content-Type — browser sets it with boundary automatically
+      } else {
+        body = JSON.stringify({ message: msg });
+        headers["Content-Type"] = "application/json";
+      }
+
       const res = await fetch("/api/ai/chat/stream", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         credentials: "include",
-        body: JSON.stringify({ message: msg }),
+        body,
       });
 
-      if (!res.ok) {
-        throw new Error("Request failed");
-      }
+      if (!res.ok) throw new Error("Request failed");
 
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
@@ -132,9 +292,15 @@ export default function ClaudeChat() {
   }
 
   const isEmpty = messages.length === 0 && !streaming;
+  const canSend = (input.trim().length > 0 || pendingFiles.length > 0) && !streaming;
 
   return (
-    <div className="flex flex-col h-[520px] bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div
+      className={`flex flex-col h-[520px] bg-white rounded-2xl shadow-sm border overflow-hidden transition-colors ${dragOver ? "border-[#0D7377] border-2" : "border-slate-200"}`}
+      onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={handleDrop}
+    >
       {/* Header */}
       <div className="flex items-center gap-2.5 px-4 py-3 border-b border-slate-200 shrink-0 bg-gradient-to-r from-[#1A1F2B] to-[#0D7377]">
         <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
@@ -142,7 +308,7 @@ export default function ClaudeChat() {
         </div>
         <div>
           <p className="text-sm font-semibold text-white">Claude AI</p>
-          <p className="text-[10px] text-white/60">Powered by Anthropic · Your personal AI assistant</p>
+          <p className="text-[10px] text-white/60">Powered by Anthropic · Supports images & files</p>
         </div>
         {messages.length > 0 && (
           <button onClick={clearHistory} className="ml-auto flex items-center gap-1 text-xs text-white/50 hover:text-white/80 transition-colors" data-testid="button-clear-ai-history">
@@ -164,7 +330,7 @@ export default function ClaudeChat() {
             </div>
             <div>
               <p className="font-semibold text-slate-700">Hi! I'm your AI assistant.</p>
-              <p className="text-sm text-slate-400 mt-1">Ask me anything — drafts, ideas, questions, reviews.</p>
+              <p className="text-sm text-slate-400 mt-1">Ask me anything — or drop a file to analyze it.</p>
             </div>
             <div className="grid grid-cols-2 gap-2 w-full max-w-xs mt-2">
               {SUGGESTED_PROMPTS.map((p, i) => (
@@ -208,32 +374,76 @@ export default function ClaudeChat() {
         <div ref={bottomRef} />
       </div>
 
+      {/* Drag overlay hint */}
+      {dragOver && (
+        <div className="absolute inset-0 bg-[#0D7377]/10 flex items-center justify-center pointer-events-none rounded-2xl z-10">
+          <div className="bg-white border-2 border-dashed border-[#0D7377] rounded-xl px-6 py-4 text-sm font-medium text-[#0D7377]">
+            Drop files to attach
+          </div>
+        </div>
+      )}
+
       {/* Input */}
       <div className="p-3 border-t border-slate-200 shrink-0">
+        {/* Pending file chips */}
+        {pendingFiles.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-2">
+            {pendingFiles.map((pf, i) => (
+              <PendingFileChip key={i} pf={pf} onRemove={() => removeFile(i)} />
+            ))}
+          </div>
+        )}
+
         <div className="flex gap-2 items-end">
+          {/* Attach button */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={streaming || pendingFiles.length >= 5}
+            className="p-2 rounded-xl border border-slate-200 text-slate-400 hover:text-[#0D7377] hover:border-[#0D7377]/40 transition-colors disabled:opacity-40 shrink-0"
+            title="Attach image or file"
+            data-testid="button-attach-file"
+          >
+            <Paperclip className="w-4 h-4" />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept={ACCEPT}
+            className="hidden"
+            onChange={handleFileInput}
+            data-testid="input-file-upload"
+          />
+
+          {/* Text input */}
           <div className="flex-1 border border-slate-200 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-[#0D7377]/30">
             <textarea
               ref={textareaRef}
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-              placeholder="Ask Claude anything…"
+              placeholder={pendingFiles.length > 0 ? "Add a message about your file(s)…" : "Ask Claude anything…"}
               rows={1}
               disabled={streaming}
               className="w-full text-sm resize-none focus:outline-none bg-transparent max-h-24 disabled:opacity-50"
               data-testid="input-claude-message"
             />
           </div>
+
+          {/* Send button */}
           <button
             onClick={send}
-            disabled={!input.trim() || streaming}
+            disabled={!canSend}
             className="bg-gradient-to-br from-[#1A1F2B] to-[#0D7377] text-white p-2.5 rounded-xl hover:opacity-90 disabled:opacity-40 transition-all shrink-0"
             data-testid="button-send-claude"
           >
             {streaming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </button>
         </div>
-        <p className="text-[10px] text-slate-400 mt-1.5 text-center">Claude may make mistakes. Verify important info.</p>
+
+        <p className="text-[10px] text-slate-400 mt-1.5 text-center">
+          Images, text files, CSV, JSON, code — up to 5 files · 10 MB each · Drag &amp; drop supported
+        </p>
       </div>
     </div>
   );

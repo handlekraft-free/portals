@@ -2104,6 +2104,7 @@ router.get("/polls", async (_req, res) => {
     description: meetingTimePolls.description,
     status: meetingTimePolls.status,
     meetingId: meetingTimePolls.meetingId,
+    timezone: meetingTimePolls.timezone,
     createdAt: meetingTimePolls.createdAt,
     createdBy: meetingTimePolls.createdBy,
     creatorFirst: users.firstName,
@@ -2125,7 +2126,11 @@ router.post("/polls", async (req, res) => {
   const userId = req.user!.userId;
   const { title, description, slots } = req.body;
   if (!title) return res.status(400).json({ success: false, error: "Title required" });
-  const [poll] = await db.insert(meetingTimePolls).values({ title, description: description || null, createdBy: userId }).returning();
+  const { timezone } = req.body;
+  const [poll] = await db.insert(meetingTimePolls).values({
+    title, description: description || null, createdBy: userId,
+    timezone: timezone || "America/Los_Angeles",
+  }).returning();
   if (Array.isArray(slots) && slots.length > 0) {
     await db.insert(meetingPollSlots).values(
       slots.map((s: any) => ({ pollId: poll.id, proposedAt: new Date(s.proposedAt), durationMinutes: s.durationMinutes || 90 }))
@@ -2143,6 +2148,7 @@ router.get("/polls/:id", async (req, res) => {
     description: meetingTimePolls.description,
     status: meetingTimePolls.status,
     meetingId: meetingTimePolls.meetingId,
+    timezone: meetingTimePolls.timezone,
     createdAt: meetingTimePolls.createdAt,
     createdBy: meetingTimePolls.createdBy,
     creatorFirst: users.firstName,

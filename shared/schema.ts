@@ -906,6 +906,7 @@ export const meetingTimePolls = pgTable("meeting_time_polls", {
   createdBy: integer("created_by").notNull(),
   status: varchar("status", { length: 20 }).notNull().default("open"), // open | closed
   meetingId: integer("meeting_id"), // set when a slot is confirmed and meeting is created
+  timezone: text("timezone").notNull().default("America/Los_Angeles"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 export type MeetingTimePoll = typeof meetingTimePolls.$inferSelect;

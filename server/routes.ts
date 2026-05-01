@@ -289,9 +289,10 @@ export async function registerRoutes(
       CREATE TABLE IF NOT EXISTS meeting_time_polls (
         id serial PRIMARY KEY, title text NOT NULL, description text,
         created_by integer NOT NULL, status varchar(20) NOT NULL DEFAULT 'open',
-        meeting_id integer,
+        meeting_id integer, timezone text NOT NULL DEFAULT 'America/Los_Angeles',
         created_at timestamp DEFAULT now() NOT NULL
       );
+      ALTER TABLE meeting_time_polls ADD COLUMN IF NOT EXISTS timezone text NOT NULL DEFAULT 'America/Los_Angeles';
       CREATE TABLE IF NOT EXISTS meeting_poll_slots (
         id serial PRIMARY KEY, poll_id integer NOT NULL,
         proposed_at timestamp NOT NULL, duration_minutes integer NOT NULL DEFAULT 90,

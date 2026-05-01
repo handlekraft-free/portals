@@ -22,22 +22,43 @@ const TIME_COLORS: Record<TimeOfDay, string> = { morning: "bg-amber-100 text-amb
 
 interface AvailSlot { day: number; timeOfDay: TimeOfDay }
 interface MemberAvail { userId: number; firstName: string; lastName: string; boardPosition?: string; slots: AvailSlot[]; notes?: string }
-interface Poll { id: number; title: string; description?: string; status: string; slotCount: number; createdAt: string; creatorFirst?: string; creatorLast?: string }
+interface Poll { id: number; title: string; description?: string; status: string; slotCount: number; timezone: string; createdAt: string; creatorFirst?: string; creatorLast?: string }
 interface PollSlot { id: number; pollId: number; proposedAt: string; durationMinutes: number; confirmed: boolean }
 interface PollResponse { slotId: number; userId: number; availability: string; firstName?: string; lastName?: string; boardPosition?: string }
 interface PollDetail extends Poll { slots: PollSlot[]; responses: PollResponse[]; members: { id: number; firstName: string; lastName: string; boardPosition?: string }[] }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function fmtDate(iso: string) {
+const TZ_LABELS: Record<string, string> = {
+  "America/Los_Angeles": "PST / PDT — Pacific",
+  "America/Denver":      "MST / MDT — Mountain",
+  "America/Phoenix":     "MST — Arizona (no DST)",
+  "America/Chicago":     "CST / CDT — Central",
+  "America/New_York":    "EST / EDT — Eastern",
+  "America/Anchorage":   "AKST / AKDT — Alaska",
+  "Pacific/Honolulu":    "HST — Hawaii",
+  "UTC":                 "UTC",
+};
+const TZ_SHORT: Record<string, string> = {
+  "America/Los_Angeles": "Pacific",
+  "America/Denver":      "Mountain",
+  "America/Phoenix":     "Arizona",
+  "America/Chicago":     "Central",
+  "America/New_York":    "Eastern",
+  "America/Anchorage":   "Alaska",
+  "Pacific/Honolulu":    "Hawaii",
+  "UTC":                 "UTC",
+};
+
+function fmtDate(iso: string, tz?: string) {
   const d = new Date(iso);
-  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric", ...(tz ? { timeZone: tz } : {}) });
 }
-function fmtTime(iso: string) {
+function fmtTime(iso: string, tz?: string) {
   const d = new Date(iso);
-  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", ...(tz ? { timeZone: tz } : {}) });
 }
-function fmtDateTime(iso: string) { return `${fmtDate(iso)} at ${fmtTime(iso)}`; }
+function fmtDateTime(iso: string, tz?: string) { return `${fmtDate(iso, tz)} at ${fmtTime(iso, tz)}`; }
 
 // Count members available per (day, timeOfDay) combination
 function buildHeatmap(members: MemberAvail[]) {
@@ -472,7 +493,12 @@ function PollDetailView({ pollId, currentUserId, isAdmin, onBack, onRefresh }: {
             </Badge>
           </div>
           {detail.description && <p className="text-sm text-slate-500">{detail.description}</p>}
-          <p className="text-xs text-slate-400 mt-0.5">Created by {detail.creatorFirst} {detail.creatorLast} · {new Date(detail.createdAt).toLocaleDateString()}</p>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <p className="text-xs text-slate-400">Created by {detail.creatorFirst} {detail.creatorLast} · {new Date(detail.createdAt).toLocaleDateString()}</p>
+            <span className="inline-flex items-center gap-1 text-xs bg-indigo-50 text-indigo-600 border border-indigo-100 rounded px-2 py-0.5" data-testid="badge-poll-timezone">
+              <Clock className="w-3 h-3" /> {TZ_SHORT[detail.timezone] || detail.timezone} time
+            </span>
+          </div>
         </div>
         {isAdmin && !isClosed && (
           <Button size="sm" variant="outline" className="h-8 text-xs gap-1 shrink-0" onClick={async () => { await apiRequest("PATCH", `/api/board/polls/${pollId}`, { status: "closed" }); load(); onRefresh(); }}>
@@ -501,7 +527,7 @@ function PollDetailView({ pollId, currentUserId, isAdmin, onBack, onRefresh }: {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       {isConfirmed && <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />}
-                      <p className="text-sm font-semibold text-[#1A1F2B]">{fmtDateTime(slot.proposedAt)}</p>
+                      <p className="text-sm font-semibold text-[#1A1F2B]">{fmtDateTime(slot.proposedAt, detail.timezone)}</p>
                       <span className="text-xs text-slate-400">{slot.durationMinutes} min</span>
                       {isConfirmed && <Badge className="bg-green-100 text-green-700 border-green-300">Selected</Badge>}
                     </div>
@@ -647,6 +673,7 @@ function PollsTab({ currentUserId, isAdmin }: { currentUserId: number; isAdmin: 
   const [form, setForm] = useState({ title: "", description: "" });
   const [slots, setSlots] = useState<{ date: string; time: string; duration: string }[]>([{ date: "", time: "10:00", duration: "90" }]);
   const [saving, setSaving] = useState(false);
+  const [timezone, setTimezone] = useState("America/Los_Angeles");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -663,10 +690,10 @@ function PollsTab({ currentUserId, isAdmin }: { currentUserId: number; isAdmin: 
     const validSlots = slots
       .filter(s => s.date && s.time)
       .map(s => ({ proposedAt: new Date(`${s.date}T${s.time}:00`).toISOString(), durationMinutes: parseInt(s.duration) || 90 }));
-    const r = await apiRequest("POST", "/api/board/polls", { title: form.title, description: form.description, slots: validSlots });
+    const r = await apiRequest("POST", "/api/board/polls", { title: form.title, description: form.description, timezone, slots: validSlots });
     if (r.success) {
       toast({ title: "Poll created", description: "Board members can now respond." });
-      setCreating(false); setForm({ title: "", description: "" }); setSlots([{ date: "", time: "10:00", duration: "90" }]);
+      setCreating(false); setForm({ title: "", description: "" }); setTimezone("America/Los_Angeles"); setSlots([{ date: "", time: "10:00", duration: "90" }]);
       load();
     }
     setSaving(false);
@@ -700,6 +727,20 @@ function PollsTab({ currentUserId, isAdmin }: { currentUserId: number; isAdmin: 
               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-poll-title" />
             <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Optional description"
               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-poll-description" />
+
+            <div>
+              <label className="text-xs text-slate-500 font-medium block mb-1">Time Zone</label>
+              <select
+                value={timezone}
+                onChange={e => setTimezone(e.target.value)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                data-testid="select-poll-timezone"
+              >
+                {Object.entries(TZ_LABELS).map(([tz, label]) => (
+                  <option key={tz} value={tz}>{label}</option>
+                ))}
+              </select>
+            </div>
 
             <div>
               <p className="text-xs text-slate-500 mb-2 font-medium">Proposed time slots</p>

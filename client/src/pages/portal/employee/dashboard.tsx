@@ -15,10 +15,8 @@ import ClaudeChat from "@/components/portal/ClaudeChat";
 function scoreColor(score: number | null): string {
   if (score === null) return "#94a3b8";
   if (score < 2) return "#ef4444";
-  if (score < 3) return "#f97316";
-  if (score < 3.5) return "#eab308";
-  if (score < 4.5) return "#0D7377";
-  return "#22c55e";
+  if (score < 3.5) return "#ca8a04";
+  return "#16a34a";
 }
 
 function scoreEmoji(score: number | null): string {
@@ -46,9 +44,7 @@ function scoreLabel(score: number | null): string {
 function scoreBg(score: number | null): string {
   if (score === null) return "#f1f5f9";
   if (score < 2) return "#fee2e2";
-  if (score < 3) return "#ffedd5";
-  if (score < 3.5) return "#fef9c3";
-  if (score < 4.5) return "#ccfbf1";
+  if (score < 3.5) return "#fefce8";
   return "#dcfce7";
 }
 

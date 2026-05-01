@@ -955,6 +955,16 @@ export const employeeOnboardingAcks = pgTable("employee_onboarding_acks", {
 });
 export type EmployeeOnboardingAck = typeof employeeOnboardingAcks.$inferSelect;
 
+export const boardCalendarReminders = pgTable("board_calendar_reminders", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  note: text("note"),
+  reminderDate: timestamp("reminder_date").notNull(),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type BoardCalendarReminder = typeof boardCalendarReminders.$inferSelect;
+
 export const directMessageConversations = pgTable("direct_message_conversations", {
   id: serial("id").primaryKey(),
   user1Id: integer("user1_id").notNull(),

@@ -14,6 +14,7 @@ import {
   users,
   boardMinutes, boardMinutesMotions, boardMinutesVersions, boardMeetingPacketDocs,
   boardMemberAvailability, meetingTimePolls, meetingPollSlots, meetingPollResponses,
+  boardCalendarReminders,
 } from "@shared/schema";
 import { eq, and, desc, asc, sql, or, ilike } from "drizzle-orm";
 import PDFDocument from "pdfkit";
@@ -473,6 +474,42 @@ router.delete("/action-items/:id", async (req, res) => {
   }
   await db.delete(boardActionItems).where(eq(boardActionItems.id, itemId));
   res.json({ success: true, data: { deleted: itemId } });
+});
+
+// ── Calendar Reminders ────────────────────────────────────────────────────────
+
+router.get("/reminders", async (req, res) => {
+  const rows = await db.select().from(boardCalendarReminders).orderBy(asc(boardCalendarReminders.reminderDate));
+  res.json({ success: true, data: rows });
+});
+
+router.post("/reminders", async (req, res) => {
+  const { title, note, reminderDate } = req.body;
+  if (!title || !reminderDate) return res.status(400).json({ success: false, error: "title and reminderDate required" });
+  const [row] = await db.insert(boardCalendarReminders).values({
+    title,
+    note: note || null,
+    reminderDate: new Date(reminderDate),
+    createdBy: req.user!.userId,
+  }).returning();
+  res.json({ success: true, data: row });
+});
+
+router.patch("/reminders/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  const { title, note, reminderDate } = req.body;
+  const updates: any = {};
+  if (title !== undefined) updates.title = title;
+  if (note !== undefined) updates.note = note;
+  if (reminderDate !== undefined) updates.reminderDate = new Date(reminderDate);
+  const [row] = await db.update(boardCalendarReminders).set(updates).where(eq(boardCalendarReminders.id, id)).returning();
+  res.json({ success: true, data: row });
+});
+
+router.delete("/reminders/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  await db.delete(boardCalendarReminders).where(eq(boardCalendarReminders.id, id));
+  res.json({ success: true });
 });
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────

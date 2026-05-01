@@ -190,6 +190,11 @@ export async function registerRoutes(
         source_minutes_id integer, created_by integer NOT NULL,
         created_at timestamp DEFAULT now() NOT NULL, completed_at timestamp
       );
+      CREATE TABLE IF NOT EXISTS board_calendar_reminders (
+        id serial PRIMARY KEY, title text NOT NULL, note text,
+        reminder_date timestamp NOT NULL, created_by integer NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
       CREATE TABLE IF NOT EXISTS board_documents (
         id serial PRIMARY KEY, title text NOT NULL, description text,
         category varchar(100) NOT NULL, confidentiality board_document_confidentiality DEFAULT 'board_only',

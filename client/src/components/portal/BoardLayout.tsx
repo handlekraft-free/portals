@@ -31,10 +31,18 @@ const adminItems = [
   { href: "/portal/board/members", icon: <Users className="w-4 h-4" />, label: "Board Members" },
 ];
 
+interface BoardNotification {
+  id: number;
+  message: string;
+  type: string;
+  read: boolean;
+  created_at: string;
+}
+
 function NotificationBell() {
   const [count, setCount] = useState(0);
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<BoardNotification[]>([]);
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 

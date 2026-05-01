@@ -1243,12 +1243,17 @@ router.get("/notifications", async (req, res) => {
 
 router.post("/notifications/read", async (req, res) => {
   const userId = req.user!.userId;
-  const { ids } = req.body; // optional array of ids; if omitted, mark all read
-  if (Array.isArray(ids) && ids.length > 0) {
-    await db.execute(sql`
-      UPDATE board_notifications SET read = true
-      WHERE user_id = ${userId} AND id = ANY(ARRAY[${sql.join(ids.map((id: number) => sql`${id}`), sql`, `)}]::int[])
-    `);
+  const { ids } = req.body; // optional array of numeric ids; if omitted, mark all read
+  if (ids !== undefined) {
+    if (!Array.isArray(ids) || ids.some(id => typeof id !== "number" || !Number.isInteger(id))) {
+      return res.status(400).json({ success: false, error: "ids must be an array of integers" });
+    }
+    if (ids.length > 0) {
+      await db.execute(sql`
+        UPDATE board_notifications SET read = true
+        WHERE user_id = ${userId} AND id = ANY(ARRAY[${sql.join(ids.map((id: number) => sql`${id}`), sql`, `)}]::int[])
+      `);
+    }
   } else {
     await db.execute(sql`UPDATE board_notifications SET read = true WHERE user_id = ${userId}`);
   }

@@ -38,7 +38,7 @@ router.get("/team", requireEmployee as any, async (req, res) => {
   const members = await db
     .select({ id: users.id, firstName: users.firstName, lastName: users.lastName, role: users.role })
     .from(users)
-    .where(sql`status = 'active' AND role = 'employee'`);
+    .where(sql`${users.status} = 'active' AND ${users.role} IN ('employee', 'board')`);
 
   const memberIds = members.map((m) => m.id);
   const scores =

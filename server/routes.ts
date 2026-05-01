@@ -28,6 +28,7 @@ import studentRoutes from "./routes-student";
 import lmsRoutes from "./routes-lms";
 import userMgmtRoutes from "./routes-user-mgmt";
 import boardRoutes from "./routes-board";
+import balanceRoutes from "./routes-balance";
 
 declare module "express-session" {
   interface SessionData {
@@ -95,6 +96,12 @@ export async function registerRoutes(
       ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS reviewer_id integer;
       ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS interest_rating integer;
       ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS kanban_card_id integer;
+      CREATE TABLE IF NOT EXISTS team_balance_scores (
+        id serial PRIMARY KEY,
+        user_id integer NOT NULL UNIQUE,
+        score real NOT NULL DEFAULT 2.5,
+        updated_at timestamp DEFAULT now() NOT NULL
+      );
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS board_position text;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS term_start timestamp;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS term_end timestamp;
@@ -448,6 +455,7 @@ export async function registerRoutes(
   app.use("/api/lms", lmsRoutes);
   app.use("/api/admin/portal-users", userMgmtRoutes);
   app.use("/api/board", boardRoutes);
+  app.use("/api/balance", balanceRoutes);
 
   // ── Admin Charge Code CRUD ────────────────────────────────────────────────
   const { requireAdmin: reqAdmin } = await import("./auth-middleware");

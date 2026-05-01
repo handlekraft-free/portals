@@ -1,8 +1,6 @@
 # Overview
 
-**handləkraft** (Norwegian: handle=to act, kraft=power — "the power to act") is a full-stack web application for an early-stage 501(c)(3) nonprofit that provides free custom software and websites to community organizations while training product-focused problem solvers who leverage AI tools. The site includes a scroll-based landing page, public application forms (fellowship and client "Request Free Help"), an admin dashboard for managing application queues, and a full internal portal system with Employee, Client, and Student portals. Domain: handlekraft.ai.
-
-Brand name is always rendered "handləkraft" with Unicode schwa ə in all visible UI presentations. URLs and alt text use plain "handlekraft".
+**handləkraft** is a full-stack web application for a 501(c)(3) nonprofit that offers free custom software and websites to community organizations. Concurrently, it trains product-focused problem solvers proficient in AI tools. The platform features a scroll-based landing page, public application forms for fellowships and client requests, an admin dashboard for managing application queues, and a comprehensive internal portal system encompassing Employee, Client, Student, and Board Member portals. The brand name "handləkraft" (Norwegian for "the power to act") is consistently rendered with the Unicode schwa in all UI elements.
 
 # User Preferences
 
@@ -11,109 +9,52 @@ Preferred communication style: Simple, everyday language.
 # System Architecture
 
 ## Frontend
-- **Framework:** React 18 with TypeScript, built with Vite
-- **Routing:** Wouter — routes: Home (`/`), Apply Fellowship (`/apply/fellowship`), Apply Client (`/apply/client`), Admin (`/admin`), Login (`/login`), Employee Portal (`/portal/employee/*`), Client Portal (`/portal/client/*`), Student Portal (`/portal/student/*`), Admin Portal (`/portal/admin/*`), 404
-- **Styling:** Tailwind CSS with CSS variables for theming, using a teal/gold/slate color palette (charcoal slate `#1A1F2B`, deep teal `#0D7377`, warm gold `#D4A843`, off-white `#F5F3EF`)
-- **UI Components:** shadcn/ui (new-york style) with Radix UI primitives — full component library installed
-- **Animations:** Framer Motion for scroll animations and hero effects
-- **Fonts:** DM Serif Display (headings) and Outfit (body) via Google Fonts, referenced through CSS custom properties (`--font-display`, `--font-body`)
-- **State Management:** TanStack React Query for API data fetching and mutations
-- **Path Aliases:** `@/` maps to `client/src/`, `@shared/` maps to `shared/`
-- **Logo:** Generated HK monogram logo at `client/src/assets/images/logo.png`, imported as a module in nav and footer components
+- **Framework:** React 18 with TypeScript, built using Vite.
+- **Routing:** Wouter for client-side navigation.
+- **Styling:** Tailwind CSS, utilizing CSS variables for a teal, gold, and slate color scheme.
+- **UI Components:** shadcn/ui (new-york style) built on Radix UI primitives.
+- **Animations:** Framer Motion for interactive UI elements and scroll effects.
+- **Fonts:** DM Serif Display (headings) and Outfit (body) via Google Fonts.
+- **State Management:** TanStack React Query for data fetching and mutations.
+- **Path Aliases:** `@/` for `client/src/` and `@shared/` for `shared/`.
 
 ## Backend
-- **Runtime:** Express 5 on Node.js with TypeScript (via tsx)
-- **Auth (Legacy /admin):** Session-based using express-session + connect-pg-simple for the original /admin queue panel
-- **Auth (New Portals):** JWT stored in httpOnly cookie `hk_token` via `jsonwebtoken` + `bcryptjs`; middleware in `server/auth-middleware.ts`
-- **Portal API Routes:** Modular route files for each domain:
-  - `routes-auth.ts` — POST /api/auth/login, POST /api/auth/logout, GET /api/auth/me
-  - `routes-time.ts` — Time tracking CRUD, timer start/stop, weekly summaries; GET /api/time/charge-codes
-  - `routes-kanban.ts` — Kanban boards/columns/cards/comments/teams
-  - `routes-expenses.ts` — Expense reports/items, QB IIF export, approval workflow
-  - `routes-client-portal.ts` — Client files, messages, support tickets (client + employee views)
-  - `routes-student.ts` — Student courses, files, announcements, progress tracking
-  - `routes-lms.ts` — LMS course management, module/lesson builder, student enrollment
-  - `routes-user-mgmt.ts` — Admin portal user CRUD, bulk actions, CSV export
-  - `routes-board.ts` — Board portal: meetings, agenda, RSVPs, minutes, motions, action items, documents, written consents, committees, audit log
-- **Storage:** `DatabaseStorage` class in `server/storage.ts` with Drizzle ORM for public form CRUD
-- **Portal Users Seeded:** admin@handlekraft.ai/Admin1234!, employee1@handlekraft.ai/Employee1!, employee2@handlekraft.ai/Employee1!, client1@handlekraft.ai/Client123!, student1@handlekraft.ai/Student1!, board1@handlekraft.ai/Board1234!
-- **Legacy Admin:** username "admin", password "handlekraft2026" for /admin session panel
+- **Runtime:** Express 5 on Node.js with TypeScript.
+- **Authentication:**
+    - Legacy `/admin` uses session-based auth (`express-session`).
+    - New portals use JWTs stored in httpOnly cookies (`jsonwebtoken`, `bcryptjs`).
+- **API Routes:** Modularized by domain, including authentication, time tracking, Kanban, expenses, client portal, student portal, LMS, user management, and board portal functionalities.
+- **Storage:** `DatabaseStorage` class leveraging Drizzle ORM for public form data.
 
 ## Portal System
-- **Login page:** `/login` — role selector (Team Member / Client / Student / Board Member), then email+password form
-- **Employee Portal:** `/portal/employee/*` — Dashboard, Time Tracking, Kanban Boards, Expenses, Client Tickets, LMS Course Management; sidebar layout; admin role sees extra "Portal Users" nav item
-- **Client Portal:** `/portal/client/*` — Dashboard, Files, Messages, Support Tickets; top nav layout; isolated to own data
-- **Student Portal:** `/portal/student/*` — Dashboard, My Courses, Files, Announcements; top nav with purple gradient; isolated to enrolled courses
-- **Board Portal:** `/portal/board/*` — Dashboard, Meetings (RSVP + agenda), Documents (upload/ack/download), Minutes (notes + motions + action items), Action Items, Written Consents, Board Members; indigo sidebar layout; accessible to "board" and "admin" roles
-- **Admin Portal Users:** `/portal/admin/users` — Full user management table (visible only to admin role); includes board role in stats, filters, and create/edit forms
-- **Portal Components:** `client/src/components/portal/` — EmployeeLayout, ClientLayout, StudentLayout, BoardLayout, PortalGuard
-- **Auth State:** `client/src/context/AuthContext.tsx` — React context provider wrapping entire app
-- **Auth Helpers:** `client/src/lib/auth.ts` — getCurrentUser, login, logout, getPortalPath, apiRequest
-- **File Uploads:** Stored in `./data/uploads/` (client-files, student-files, lms-files subdirs); served via authenticated download endpoints
+- **Login:** A unified `/login` page with role selection (Team Member, Client, Student, Board Member).
+- **Employee Portal:** Features dashboard, time tracking, Kanban boards, expenses, client tickets, and LMS course management. Includes an "Admin Users" section for administrators.
+- **Client Portal:** Provides a dashboard, file management, messaging, and support ticket functionalities.
+- **Student Portal:** Offers a dashboard, course access, file management, and announcements.
+- **Board Portal:** Manages meetings, documents, minutes, action items, written consents, and board member directories.
+- **Admin Portal Users:** Dedicated section for comprehensive user management, visible only to admin roles.
+- **Portal Components:** Centralized in `client/src/components/portal/` with dedicated layouts and authentication guards.
+- **File Uploads:** Stored locally in `./data/uploads/` with authenticated access.
 
 ## Database
-- **ORM:** Drizzle ORM configured for PostgreSQL
-- **Schema:** Located at `shared/schema.ts` — 3 original tables + 27 new portal tables (portal_users, projects, time_entries, kanban_boards/columns/cards, expense_reports/items/categories, client_files, messages, support_tickets, courses, course_modules/lessons, course_enrollments, announcements, etc.)
-- **Session Store:** `connect-pg-simple` auto-creates session table in PostgreSQL
-- **Connection:** Uses `DATABASE_URL` environment variable
+- **ORM:** Drizzle ORM configured for PostgreSQL.
+- **Schema:** Defined in `shared/schema.ts`, including tables for applications, users, projects, time entries, Kanban, expenses, files, messages, support tickets, courses, and board-specific data.
+- **Session Store:** `connect-pg-simple` manages PostgreSQL sessions.
 
 ## Build Process
-- **Development:** `tsx server/index.ts` with Vite middleware for HMR
-- **Production Build:** Custom `script/build.ts` that runs Vite build for client and esbuild for server, outputting to `dist/`
-- **Server Bundle:** esbuild bundles server code into `dist/index.cjs`, externalizing most deps except an allowlist of common packages
+- **Development:** `tsx server/index.ts` integrated with Vite middleware for Hot Module Replacement.
+- **Production:** Custom `script/build.ts` orchestrates Vite for the client and esbuild for the server, outputting to `dist/`.
 
 ## Key Design Decisions
-1. **Full-stack application** — Express + React + PostgreSQL for landing page, public forms, and admin dashboard.
-2. **Component library** — A complete shadcn/ui installation for rapid feature development.
-3. **Single-page scroll design** — Homepage uses anchor links with smooth scrolling; separate routes for forms and admin.
-4. **Branding:** "Handlekraft Digital" — Norwegian etymology (handle + kraft = the power to act). Warm, kind, techy but approachable. Father-son founding team. Primary color is deep teal (#0D7377), accent is warm gold (#D4A843), dark base is charcoal slate (#1A1F2B), light surface is off-white (#F5F3EF). Emails use @handlekraft.ai domain.
-5. **Product-focused training** — Fellows own products end-to-end while AI agents handle deep technical implementation.
+- **Full-stack application** built with Express, React, and PostgreSQL.
+- **Comprehensive component library** using shadcn/ui for rapid development.
+- **Single-page scroll design** for the homepage with distinct routes for forms and admin.
+- **Consistent branding** "handləkraft" with a teal, gold, and slate color palette.
+- **Product-focused training** model leveraging AI tools for implementation.
 
 # External Dependencies
 
-- **PostgreSQL** — Required via `DATABASE_URL` environment variable (Drizzle ORM + node-postgres)
-- **Google Fonts** — DM Serif Display and Outfit loaded via CDN in `index.css`
-- **External Textures** — Transparent Textures pattern used in hero background (`transparenttextures.com`)
-- **Replit Plugins** — `@replit/vite-plugin-runtime-error-modal`, `@replit/vite-plugin-cartographer`, and `@replit/vite-plugin-dev-banner` for development on Replit
-- **PDF Asset** — Generated via `scripts/generate-proposal.mjs` using pdfkit, saved to `client/public/proposal.pdf`
-- **pdfkit** — Node.js PDF generation library used for proposal document
-
-# Recent Changes
-- Rebranded from "The Buddy Promise" to "Handlekraft Digital" with Norwegian etymology messaging
-- All copy reframed around "agency" and "the power to act" instead of "buddy" language
-- Updated all email addresses from @thebuddypromise.org to @handlekraft.ai
-- Generated new HK monogram logo
-- Updated CTAs: "Get a Buddy" → "Request Free Help"
-- Regenerated PDF proposal with Handlekraft branding and messaging
-- Updated admin password from "buddypromise2026" to "handlekraft2026"
-- Added database schema for fellowship_applications, client_applications, admin_users
-- Built public fellowship application form at /apply/fellowship
-- Built public client application form ("Request Free Help") at /apply/client
-- Built admin dashboard at /admin with login, two queue tabs (fellowship and client), rating/priority/status management
-- Added CTA buttons on homepage linking to both application forms
-- Added Wordmark component with Unicode schwa (ə) rendering "handləkraft" with optional "THE POWER TO ACT" tagline
-- Shifted color palette from navy/warm teal to charcoal slate (#1A1F2B) / deep teal (#0D7377) / warm gold (#D4A843) / off-white (#F5F3EF)
-- Regenerated HK monogram logo with updated teal/gold palette
-- Updated all CSS variables, component colors, and utility classes to new palette
-- Gold used for hero accents, tagline, stats, nav CTA, step numbers; teal used for primary buttons, checkmarks, card accents
-- Built full internal portal system with three portals (Employee, Client, Student) + Admin user management
-- Added JWT-based auth system for portals (httpOnly cookie hk_token, separate from legacy /admin session auth)
-- Created 27 new database tables for portal system: portal_users, projects, time entries, kanban boards/columns/cards, expense reports, client files, messages, support tickets, courses, modules, lessons, enrollments, announcements, etc.
-- Added Login button to public nav (outline style, links to /login)
-- Created /login page with animated role selector (Team Member / Client / Student)
-- Employee portal: Dashboard with live timer, Time Tracking page with entry management, Kanban boards with drag-and-drop (@hello-pangea/dnd), Expense reports with QB IIF export, Client tickets queue, LMS course management
-- Client portal: Dashboard with stats, File sharing (upload/download), Messages inbox/compose, Support ticket creation and thread view
-- Student portal: Dashboard with enrolled courses, Course viewer with lesson progress, File management, Announcements feed
-- Admin portal: Full user management table (/portal/admin/users) with create/edit/deactivate/bulk actions
-- Seeded 5 portal users + sample data (boards, time entries, expense reports, tickets, courses, announcements)
-- Built Board portal meeting minutes editor: structured fields (attendance, quorum, call to order, reports, motions, action items, adjournment), draft/submit/approve/lock workflow, version history drawer
-- Built Board portal compliance pages (Task #5): Written Consents with unanimity tracking (Cal. Corp. Code §5211(b)), COI Disclosures with admin compliance grid, Action Items with filtering and standalone admin create
-- Built Board portal community pages (Task #6): Board Directory with search and admin edit modal (+ 90-day term renewal warnings for admins), Financials with file upload/download/delete (PDF/Excel), Forums with legal disclaimer banner, Onboarding with progress tracking, Settings with notification preferences; notification bell in BoardLayout sidebar polling GET /api/board/notifications/unread-count; board_notifications table for in-app alert records
-- Board portal schema additions: `interested_directors` and `deadline` columns on board_written_consents; UNIQUE(consent_id, user_id) constraint on board_written_consent_responses; financials upload directory at ./data/uploads/board-financials/
-- Board portal new API routes: POST/GET /board/consents with auto-unanimity check and auto-document creation, POST /board/consents/:id/respond, GET/POST /board/action-items with filters, GET/POST/download/DELETE /board/financials, GET /board/coi/:year compliance endpoint
-- Added `boardMinutesVersions` table for version snapshots (saved on every patch and approve)
-- Full minutes CRUD API: create, update, submit, approve, history, motion CRUD, action item CRUD (syncs to global boardActionItems)
-- Meeting packet PDF assembler at GET /api/board/meetings/:id/packet — pdfkit-generated PDF with cover page, agenda, attendance, minutes narrative, motions, action items
-- Full Board document management system at `/portal/board/documents`: 8 category folders (Bylaws & Policies, Financials, Meeting Materials, Strategic Plan, Written Consents, Past Resolutions Archive, Legal/admin-only, Personnel/admin-only); file uploads via multer to `./data/uploads/board-docs/`; version history modal with upload-new-version; acknowledgment tracking with who-has/hasn't-acked panel; access control (403 for restricted categories); cross-category full-text search; per-document audit log events (upload/view/download/acknowledge/new_version/delete)
-- Public share links for board documents: `share_token` and `share_enabled` columns on `board_documents`; admin can generate/revoke a 48-char hex token via POST/DELETE `/api/board/documents/:id/share`; "Share" button (link icon) on every document card; ShareModal shows the link with copy-to-clipboard, enable/revoke controls; "Shared" badge shown on cards with active link; public page at `/share/:token` (no auth required) shows document info + download button; public API endpoints `GET /api/public/board/document/:token` and `GET /api/public/board/document/:token/download` (no auth, registered directly in routes.ts before board middleware)
-- Auto-Kanban card on ticket submit: when a client submits a support ticket via POST /api/client/tickets, a Kanban card is automatically (fire-and-forget) created on the "Internal Team" board's Backlog column with matching priority, title prefixed "🎫", labels=["client-ticket"], and the resulting card ID stored as `kanban_card_id` on the ticket; "Internal Team" board seeded at startup with Backlog/Pillaging 🪓/In Review/Valhalla ⚔️ columns; `kanban_card_id` column added to `support_tickets` table
+- **PostgreSQL:** Primary database, connected via Drizzle ORM and `node-postgres`.
+- **Google Fonts:** Used for typography (DM Serif Display, Outfit).
+- **Transparent Textures:** Provides background patterns.
+- **pdfkit:** Node.js library for PDF generation.

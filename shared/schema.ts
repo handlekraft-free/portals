@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, varchar, boolean, numeric, pgEnum, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, varchar, boolean, numeric, pgEnum, uniqueIndex, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -798,3 +798,13 @@ export const boardNotifications = pgTable("board_notifications", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 export type BoardNotification = typeof boardNotifications.$inferSelect;
+
+// ─── Team Balance Scores ──────────────────────────────────────────────────────
+
+export const teamBalanceScores = pgTable("team_balance_scores", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(),
+  score: real("score").notNull().default(2.5),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+export type TeamBalanceScore = typeof teamBalanceScores.$inferSelect;

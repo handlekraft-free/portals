@@ -684,6 +684,18 @@ export const boardForumPosts = pgTable("board_forum_posts", {
 });
 export type BoardForumPost = typeof boardForumPosts.$inferSelect;
 
+export const boardDocumentComments = pgTable("board_document_comments", {
+  id: serial("id").primaryKey(),
+  documentId: integer("document_id").notNull(),
+  parentId: integer("parent_id"),
+  authorId: integer("author_id").notNull(),
+  content: text("content").notNull(),
+  resolved: boolean("resolved").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  editedAt: timestamp("edited_at"),
+});
+export type BoardDocumentComment = typeof boardDocumentComments.$inferSelect;
+
 export const boardFinancials = pgTable("board_financials", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),

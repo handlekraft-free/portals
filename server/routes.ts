@@ -101,6 +101,16 @@ export async function registerRoutes(
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS preferred_meeting_times text;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS onboarding_complete boolean DEFAULT false;
       UPDATE portal_users SET onboarding_complete = true WHERE role IN ('admin','employee','client','student') AND onboarding_complete = false;
+      CREATE TABLE IF NOT EXISTS board_document_comments (
+        id serial PRIMARY KEY,
+        document_id integer NOT NULL,
+        parent_id integer,
+        author_id integer NOT NULL,
+        content text NOT NULL,
+        resolved boolean DEFAULT false,
+        created_at timestamp DEFAULT now() NOT NULL,
+        edited_at timestamp
+      );
       CREATE TABLE IF NOT EXISTS team_balance_scores (
         id serial PRIMARY KEY,
         user_id integer NOT NULL UNIQUE,

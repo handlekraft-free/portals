@@ -3,11 +3,12 @@ import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
+import { DocumentDiscussion, DiscussionBadge } from "@/components/portal/DocumentDiscussion";
 import {
   FileText, Upload, Download, Check, Plus, Lock, Eye, Clock, History,
   Search, X, Users, AlertCircle, Trash2, Edit3, FileCheck,
   FolderOpen, Shield, RefreshCw, Activity, ChevronRight,
-  Link2, Copy, CheckCheck,
+  Link2, Copy, CheckCheck, MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -661,6 +662,7 @@ function DocCard({
   onEdit,
   onDelete,
   onShare,
+  onDiscuss,
 }: {
   doc: any;
   isAdmin: boolean;
@@ -671,6 +673,7 @@ function DocCard({
   onEdit: () => void;
   onDelete: () => void;
   onShare: () => void;
+  onDiscuss: () => void;
 }) {
   const hasFile = parseInt(doc.version_count || "0") > 0;
   const currentVer = doc.current_version;
@@ -746,6 +749,12 @@ function DocCard({
                 <Download className="w-4 h-4" />
               </a>
             )}
+            <DiscussionBadge
+              count={parseInt(doc.comment_count || "0")}
+              hasOpen={parseInt(doc.open_comment_count || "0") > 0}
+              onClick={onDiscuss}
+              docId={doc.id}
+            />
             <button
               onClick={onShare}
               title={shareEnabled ? "Manage share link" : "Share via link"}
@@ -804,6 +813,7 @@ function DocumentsContent() {
   const [auditDoc, setAuditDoc] = useState<any | null>(null);
   const [editDoc, setEditDoc] = useState<any | null>(null);
   const [shareDoc, setShareDoc] = useState<any | null>(null);
+  const [discussionDoc, setDiscussionDoc] = useState<any | null>(null);
   const [catCounts, setCatCounts] = useState<Record<string, number>>({});
 
   const loadDocs = useCallback(() => {
@@ -1029,6 +1039,7 @@ function DocumentsContent() {
                 onEdit={() => setEditDoc(doc)}
                 onDelete={() => deleteDoc(doc)}
                 onShare={() => setShareDoc(doc)}
+                onDiscuss={() => setDiscussionDoc(doc)}
               />
             ))}
           </div>
@@ -1050,6 +1061,13 @@ function DocumentsContent() {
       {acksDoc && isAdmin && <AckTrackingModal doc={acksDoc} onClose={() => setAcksDoc(null)} />}
       {auditDoc && isAdmin && <AuditTrailModal doc={auditDoc} onClose={() => setAuditDoc(null)} />}
       {editDoc && isAdmin && <EditDocModal doc={editDoc} onClose={() => setEditDoc(null)} onSaved={loadDocs} />}
+      {discussionDoc && (
+        <DocumentDiscussion
+          documentId={discussionDoc.id}
+          documentTitle={discussionDoc.title}
+          onClose={() => setDiscussionDoc(null)}
+        />
+      )}
       {shareDoc && (
         <ShareModal
           doc={shareDoc}

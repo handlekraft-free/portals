@@ -7,6 +7,7 @@ import {
   boardMeetings, boardMeetingRsvps, boardMeetingAttendees, boardAgendaItems,
   boardMeetingNotices, boardActionItems, boardMinutesActionItems,
   boardDocuments, boardDocumentVersions, boardDocumentAcks, boardDocumentViews,
+  boardDocumentComments,
   boardWrittenConsents, boardWrittenConsentResponses, boardCoiDisclosures,
   boardNotificationPrefs, boardFinancials, boardOnboardingItems, boardOnboardingAcks,
   boardForumTopics, boardForumPosts, boardNotifications,
@@ -571,7 +572,9 @@ router.get("/documents", async (req, res) => {
       (SELECT MAX(v2.version_number) FROM board_document_versions v2 WHERE v2.document_id = d.id) AS current_version,
       (SELECT COUNT(*) FROM board_document_acks a WHERE a.document_id = d.id) AS ack_count,
       (SELECT COUNT(*) FROM board_document_views vw WHERE vw.document_id = d.id) AS view_count,
-      EXISTS(SELECT 1 FROM board_document_acks a2 WHERE a2.document_id = d.id AND a2.user_id = ${userId}) AS user_acked
+      EXISTS(SELECT 1 FROM board_document_acks a2 WHERE a2.document_id = d.id AND a2.user_id = ${userId}) AS user_acked,
+      (SELECT COUNT(*) FROM board_document_comments c WHERE c.document_id = d.id) AS comment_count,
+      (SELECT COUNT(*) FROM board_document_comments c2 WHERE c2.document_id = d.id AND c2.resolved = false AND c2.parent_id IS NULL) AS open_comment_count
     FROM board_documents d
     LEFT JOIN portal_users u ON u.id = d.uploaded_by
     ${category ? sql`WHERE d.category = ${category}` : sql``}
@@ -600,7 +603,9 @@ router.get("/documents/search", async (req, res) => {
       (SELECT MAX(v.version_number) FROM board_document_versions v WHERE v.document_id = d.id) AS current_version,
       (SELECT COUNT(*) FROM board_document_versions vv WHERE vv.document_id = d.id) AS version_count,
       (SELECT COUNT(*) FROM board_document_acks ac WHERE ac.document_id = d.id) AS ack_count,
-      EXISTS(SELECT 1 FROM board_document_acks a WHERE a.document_id = d.id AND a.user_id = ${userId}) AS user_acked
+      EXISTS(SELECT 1 FROM board_document_acks a WHERE a.document_id = d.id AND a.user_id = ${userId}) AS user_acked,
+      (SELECT COUNT(*) FROM board_document_comments c WHERE c.document_id = d.id) AS comment_count,
+      (SELECT COUNT(*) FROM board_document_comments c2 WHERE c2.document_id = d.id AND c2.resolved = false AND c2.parent_id IS NULL) AS open_comment_count
     FROM board_documents d
     LEFT JOIN portal_users u ON u.id = d.uploaded_by
     WHERE (d.title ILIKE ${q} OR d.description ILIKE ${q})
@@ -967,6 +972,84 @@ router.get("/audit-log", requireBoard as any, async (_req, res) => {
     LIMIT 100
   `);
   res.json({ success: true, data: rows });
+});
+
+// ── Document Discussions (threaded comments) ───────────────────────────────────
+
+// GET /documents/:id/comments — all comments for a document (flat, tree built client-side)
+router.get("/documents/:id/comments", async (req, res) => {
+  const docId = parseInt(req.params.id);
+  const rows = await raw<any>(sql`
+    SELECT c.id, c.document_id, c.parent_id, c.author_id, c.content,
+           c.resolved, c.created_at, c.edited_at,
+           u.first_name, u.last_name
+    FROM board_document_comments c
+    LEFT JOIN portal_users u ON u.id = c.author_id
+    WHERE c.document_id = ${docId}
+    ORDER BY c.created_at ASC
+  `);
+  res.json({ success: true, data: rows });
+});
+
+// POST /documents/:id/comments — add top-level comment or reply
+router.post("/documents/:id/comments", async (req, res) => {
+  const docId = parseInt(req.params.id);
+  const userId = req.user!.userId;
+  const { content, parentId } = req.body;
+  if (!content?.trim()) return res.status(400).json({ success: false, error: "Content required" });
+  // Validate parentId belongs to this document
+  if (parentId) {
+    const [parent] = await db.select({ id: boardDocumentComments.id, documentId: boardDocumentComments.documentId })
+      .from(boardDocumentComments).where(eq(boardDocumentComments.id, parseInt(parentId)));
+    if (!parent || parent.documentId !== docId) {
+      return res.status(400).json({ success: false, error: "Invalid parent comment" });
+    }
+  }
+  const [comment] = await db.insert(boardDocumentComments).values({
+    documentId: docId,
+    parentId: parentId ? parseInt(parentId) : null,
+    authorId: userId,
+    content: content.trim(),
+  }).returning();
+  // Fetch with author name
+  const [enriched] = await raw<any>(sql`
+    SELECT c.*, u.first_name, u.last_name FROM board_document_comments c
+    LEFT JOIN portal_users u ON u.id = c.author_id WHERE c.id = ${comment.id}
+  `);
+  res.status(201).json({ success: true, data: enriched });
+});
+
+// PATCH /document-comments/:id — edit own comment
+router.patch("/document-comments/:id", async (req, res) => {
+  const userId = req.user!.userId;
+  const commentId = parseInt(req.params.id);
+  const { content, resolved } = req.body;
+  const [existing] = await db.select().from(boardDocumentComments).where(eq(boardDocumentComments.id, commentId));
+  if (!existing) return res.status(404).json({ success: false, error: "Comment not found" });
+  if (existing.authorId !== userId && req.user!.role !== "admin") {
+    return res.status(403).json({ success: false, error: "Cannot edit another member's comment" });
+  }
+  const updates: any = {};
+  if (content !== undefined) { updates.content = content.trim(); updates.editedAt = new Date(); }
+  if (resolved !== undefined) updates.resolved = !!resolved;
+  const [updated] = await db.update(boardDocumentComments).set(updates)
+    .where(eq(boardDocumentComments.id, commentId)).returning();
+  res.json({ success: true, data: updated });
+});
+
+// DELETE /document-comments/:id — delete own comment (or admin)
+router.delete("/document-comments/:id", async (req, res) => {
+  const userId = req.user!.userId;
+  const commentId = parseInt(req.params.id);
+  const [existing] = await db.select().from(boardDocumentComments).where(eq(boardDocumentComments.id, commentId));
+  if (!existing) return res.status(404).json({ success: false, error: "Comment not found" });
+  if (existing.authorId !== userId && req.user!.role !== "admin") {
+    return res.status(403).json({ success: false, error: "Cannot delete another member's comment" });
+  }
+  // Also delete all replies
+  await db.delete(boardDocumentComments).where(eq(boardDocumentComments.parentId, commentId));
+  await db.delete(boardDocumentComments).where(eq(boardDocumentComments.id, commentId));
+  res.json({ success: true });
 });
 
 // ── Written Consents ──────────────────────────────────────────────────────────

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { VikingAxeSvg } from "@/components/portal/VikingDecor";
 import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
@@ -194,7 +195,10 @@ function ActionItemsContent() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B]">Action Items</h1>
+          <h1 className="text-2xl font-display text-[#1A1F2B] flex items-center gap-2">
+            Action Items
+            <VikingAxeSvg size={22} className="text-indigo-400/50" />
+          </h1>
           <p className="text-slate-500 text-sm mt-0.5">Board commitments and follow-ups from meetings and decisions.</p>
         </div>
         <div className="flex items-center gap-2">

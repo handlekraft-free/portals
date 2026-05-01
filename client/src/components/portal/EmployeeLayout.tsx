@@ -9,6 +9,10 @@ import {
 } from "lucide-react";
 import { apiRequest } from "@/lib/auth";
 import logoImg from "@/assets/images/logo.png";
+import {
+  VikingCrossedSwords, VikingShieldSvg, RuneDivider,
+  LongshipWatermark, VikingMotto,
+} from "@/components/portal/VikingDecor";
 
 const navItems = [
   { href: "/portal/employee/dashboard", icon: <LayoutDashboard className="w-4 h-4" />, label: "Dashboard" },
@@ -64,7 +68,12 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
     }`;
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative overflow-hidden">
+      {/* Longship watermark — purely decorative */}
+      <div className="absolute bottom-12 left-0 right-0 flex justify-center pointer-events-none select-none" aria-hidden="true">
+        <LongshipWatermark />
+      </div>
+
       <div className="p-4 border-b border-white/10">
         <Link href="/" className="flex items-center gap-2 no-underline">
           <img src={logoImg} alt="handləkraft.ai" className="w-8 h-8 rounded-lg" />
@@ -72,8 +81,11 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
         </Link>
       </div>
 
-      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-        <p className="text-white/30 text-xs font-medium px-3 py-2 uppercase tracking-wider">Employee Tools</p>
+      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto relative z-10">
+        <p className="text-white/30 text-xs font-medium px-3 py-2 uppercase tracking-wider flex items-center gap-2">
+          <VikingCrossedSwords size={13} className="text-white/25" />
+          Battle Stations
+        </p>
         {navItems.map(item => (
           <Link key={item.href} href={item.href} className={navLinkClass(item.href)} onClick={() => setSidebarOpen(false)}>
             {item.icon}
@@ -83,7 +95,13 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
 
         {user?.role === "admin" && (
           <>
-            <p className="text-white/30 text-xs font-medium px-3 py-2 mt-3 uppercase tracking-wider">Admin</p>
+            <div className="px-3 pt-3 pb-1">
+              <RuneDivider className="text-white/60" />
+            </div>
+            <p className="text-white/30 text-xs font-medium px-3 py-1 uppercase tracking-wider flex items-center gap-2">
+              <VikingShieldSvg size={12} className="text-white/25" />
+              Admin
+            </p>
             {adminItems.map(item => (
               <Link key={item.href} href={item.href} className={adminLinkClass(item.href)} onClick={() => setSidebarOpen(false)}>
                 {item.icon}
@@ -94,7 +112,8 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
         )}
       </nav>
 
-      <div className="p-3 border-t border-white/10">
+      <div className="p-3 border-t border-white/10 relative z-10">
+        <VikingMotto type="employee" />
         <div className="flex items-center gap-3 px-3 py-2">
           <div className="w-8 h-8 rounded-full bg-[#0D7377] flex items-center justify-center text-white text-xs font-bold shrink-0">
             {user?.firstName?.[0]}{user?.lastName?.[0]}

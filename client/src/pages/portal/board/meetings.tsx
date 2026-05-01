@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { VikingShieldSvg } from "@/components/portal/VikingDecor";
 import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
@@ -529,7 +530,10 @@ function MeetingsContent() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B]">Board Meetings</h1>
+          <h1 className="text-2xl font-display text-[#1A1F2B] flex items-center gap-2">
+            Board Meetings
+            <VikingShieldSvg size={22} className="text-indigo-400/50" />
+          </h1>
           <p className="text-slate-500 text-sm mt-0.5">Scheduled meetings, RSVPs, agendas, and attendance records.</p>
         </div>
         <Button onClick={() => setShowCreate(true)} className="bg-indigo-500 text-white gap-2" data-testid="button-new-meeting">

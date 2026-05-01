@@ -11,6 +11,7 @@ import {
   FileText, Search, User, ClipboardList, Eye, ArrowRightLeft, ChevronDown,
   Sparkles, Loader2,
 } from "lucide-react";
+import { VikingCrossedSwords, VikingHelmSvg, VikingAxeSvg, RuneDivider } from "@/components/portal/VikingDecor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -1130,7 +1131,10 @@ function KanbanContent() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B]">Kanban Boards</h1>
+          <h1 className="text-2xl font-display text-[#1A1F2B] flex items-center gap-2">
+            Kanban Boards
+            <VikingCrossedSwords size={22} className="text-[#0D7377]/40" />
+          </h1>
           <p className="text-slate-500 text-sm mt-0.5">Your battle plans, organized by the gods.</p>
         </div>
         {view === "boards" && (

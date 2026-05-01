@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useState, useCallback } from "react";
+import { VikingAxeSvg } from "@/components/portal/VikingDecor";
 import { EmployeeLayout } from "@/components/portal/EmployeeLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
@@ -937,7 +938,10 @@ function TimeContent() {
     <div className="max-w-5xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B]">Timesheets</h1>
+          <h1 className="text-2xl font-display text-[#1A1F2B] flex items-center gap-2">
+            Timesheets
+            <VikingAxeSvg size={22} className="text-[#0D7377]/40" />
+          </h1>
           <p className="text-slate-500 text-sm mt-0.5">Track your hours and submit for approval.</p>
         </div>
         {/* Mode toggle */}

@@ -4,6 +4,8 @@ import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { CalendarDays, FileText, CheckSquare, ChevronRight, FileSignature, Check, X, Clock, AlertCircle, Scale, ShieldAlert, BarChart2 } from "lucide-react";
+import vikingProudImg from "@/assets/images/viking-proud.png";
+import { VikingArsenal, RuneDivider } from "@/components/portal/VikingDecor";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -73,23 +75,38 @@ function BoardDashboardContent() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between flex-wrap gap-2">
-        <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B]">Good to see you, {user?.firstName}.</h1>
-          <p className="text-slate-500 text-sm mt-0.5">
-            {user?.boardPosition ? `${user.boardPosition} · ` : ""}Board of Directors · handləkraft Digital
-          </p>
-        </div>
+      {/* Viking Welcome Banner */}
+      <div className="bg-gradient-to-br from-[#1A1F2B] via-[#1e2035] to-indigo-950 rounded-2xl px-6 py-5 text-white relative overflow-hidden">
+        {/* Decorative Viking */}
+        <img
+          src={vikingProudImg}
+          alt=""
+          aria-hidden="true"
+          className="absolute right-0 bottom-0 h-32 sm:h-36 opacity-90 pointer-events-none select-none object-contain object-bottom"
+        />
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none select-none" aria-hidden="true"
+          style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/cubes.png')" }} />
+        <p className="text-indigo-300/70 text-[11px] uppercase tracking-widest mb-1.5">
+          Board of Directors · handləkraft Digital
+        </p>
+        <h1 className="text-2xl font-display flex items-center gap-2 flex-wrap">
+          Heil, {user?.firstName}!
+          <VikingArsenal className="text-white/25" />
+        </h1>
+        <p className="text-white/60 text-sm mt-1.5 max-w-xs leading-relaxed">
+          {user?.boardPosition ? <span className="text-indigo-300 font-medium">{user.boardPosition} · </span> : ""}
+          The council stands ready. Let's govern with purpose.
+        </p>
         {(needsRsvp.length > 0 || overdueActions.length > 0) && (
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap mt-3">
             {needsRsvp.length > 0 && (
-              <Badge className="bg-amber-100 text-amber-700 border-amber-200 gap-1.5">
+              <Badge className="bg-amber-500/20 text-amber-300 border-amber-400/30 gap-1.5">
                 <AlertCircle className="w-3 h-3" /> {needsRsvp.length} RSVP{needsRsvp.length !== 1 ? "s" : ""} needed
               </Badge>
             )}
             {overdueActions.length > 0 && (
-              <Badge className="bg-red-100 text-red-600 border-red-200 gap-1.5">
+              <Badge className="bg-red-500/20 text-red-300 border-red-400/30 gap-1.5">
                 <AlertCircle className="w-3 h-3" /> {overdueActions.length} overdue action{overdueActions.length !== 1 ? "s" : ""}
               </Badge>
             )}

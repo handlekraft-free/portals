@@ -4,6 +4,8 @@ import { PortalGuard } from "@/components/portal/PortalGuard";
 import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/auth";
 import { Clock, Kanban, MessageSquare, Play, Square, Users, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, Ticket, CreditCard } from "lucide-react";
+import vikingCodingImg from "@/assets/images/viking-coding.png";
+import { VikingArsenal, RuneDivider } from "@/components/portal/VikingDecor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -507,14 +509,25 @@ function DashboardContent() {
   return (
     <div>
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-[#1A1F2B] to-[#0D7377] rounded-2xl p-6 mb-6 text-white">
-        <p className="text-white/60 text-sm mb-1">
+      <div className="bg-gradient-to-r from-[#1A1F2B] to-[#0D7377] rounded-2xl p-6 mb-6 text-white relative overflow-hidden">
+        {/* Decorative Viking */}
+        <img
+          src={vikingCodingImg}
+          alt=""
+          aria-hidden="true"
+          className="absolute right-0 bottom-0 h-28 sm:h-32 opacity-90 pointer-events-none select-none object-contain object-bottom"
+        />
+        {/* Subtle background rune pattern */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none select-none" aria-hidden="true"
+          style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/cubes.png')" }} />
+        <p className="text-white/55 text-sm mb-1">
           {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
         </p>
-        <h1 className="text-2xl font-display">
-          {greeting}, {user?.firstName}! ⚔️
+        <h1 className="text-2xl font-display flex items-center gap-2 flex-wrap">
+          {greeting}, {user?.firstName}!
+          <VikingArsenal className="text-white/30" />
         </h1>
-        <p className="text-white/70 text-sm mt-1">Here's your daily briefing from HQ.</p>
+        <p className="text-white/65 text-sm mt-1.5">Here's your daily briefing from HQ.</p>
       </div>
 
       {/* Hours This Week */}

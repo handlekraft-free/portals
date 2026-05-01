@@ -21,7 +21,7 @@ const TIME_LABELS: Record<TimeOfDay, string> = { morning: "Morning (9–12)", af
 const TIME_COLORS: Record<TimeOfDay, string> = { morning: "bg-amber-100 text-amber-800 border-amber-300", afternoon: "bg-blue-100 text-blue-800 border-blue-300", evening: "bg-violet-100 text-violet-800 border-violet-300" };
 
 interface AvailSlot { day: number; timeOfDay: TimeOfDay }
-interface MemberAvail { userId: number; firstName: string; lastName: string; boardPosition?: string; slots: AvailSlot[]; notes?: string }
+interface MemberAvail { userId: number; firstName: string; lastName: string; boardPosition?: string; slots: AvailSlot[]; notes?: string; timezone?: string }
 interface Poll { id: number; title: string; description?: string; status: string; slotCount: number; timezone: string; createdAt: string; creatorFirst?: string; creatorLast?: string }
 interface PollSlot { id: number; pollId: number; proposedAt: string; durationMinutes: number; confirmed: boolean }
 interface PollResponse { slotId: number; userId: number; availability: string; firstName?: string; lastName?: string; boardPosition?: string }
@@ -78,6 +78,7 @@ function AvailabilityTab({ currentUserId, isAdmin }: { currentUserId: number; is
   const [loading, setLoading] = useState(true);
   const [mySlots, setMySlots] = useState<AvailSlot[]>([]);
   const [myNotes, setMyNotes] = useState("");
+  const [myTimezone, setMyTimezone] = useState("America/Los_Angeles");
   const [editingMine, setEditingMine] = useState(false);
   const [saving, setSaving] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
@@ -94,6 +95,7 @@ function AvailabilityTab({ currentUserId, isAdmin }: { currentUserId: number; is
     if (myR.success) {
       setMySlots(JSON.parse(myR.data.slots || "[]"));
       setMyNotes(myR.data.notes || "");
+      setMyTimezone(myR.data.timezone || "America/Los_Angeles");
     }
     setLoading(false);
   }, []);
@@ -109,7 +111,7 @@ function AvailabilityTab({ currentUserId, isAdmin }: { currentUserId: number; is
 
   async function save() {
     setSaving(true);
-    const r = await apiRequest("PUT", "/api/board/scheduling/availability/me", { slots: mySlots, notes: myNotes });
+    const r = await apiRequest("PUT", "/api/board/scheduling/availability/me", { slots: mySlots, notes: myNotes, timezone: myTimezone });
     if (r.success) {
       toast({ title: "Availability saved", description: "Your availability has been updated." });
       setEditingMine(false);
@@ -255,12 +257,25 @@ function AvailabilityTab({ currentUserId, isAdmin }: { currentUserId: number; is
                 </table>
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Additional notes (e.g. timezone, blackout weeks, preferences)</label>
+                <label className="text-xs text-slate-500 font-medium block mb-1">My Time Zone</label>
+                <select
+                  value={myTimezone}
+                  onChange={e => setMyTimezone(e.target.value)}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+                  data-testid="select-avail-timezone"
+                >
+                  {Object.entries(TZ_LABELS).map(([tz, label]) => (
+                    <option key={tz} value={tz}>{label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-slate-500 mb-1 block">Additional notes (blackout weeks, preferences, etc.)</label>
                 <textarea
                   value={myNotes}
                   onChange={e => setMyNotes(e.target.value)}
                   rows={2}
-                  placeholder="e.g. I'm in PST. Prefer Tuesday afternoons. Unavailable 3rd week of December."
+                  placeholder="e.g. Prefer Tuesday afternoons. Unavailable 3rd week of December."
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none"
                   data-testid="input-avail-notes"
                 />
@@ -277,14 +292,19 @@ function AvailabilityTab({ currentUserId, isAdmin }: { currentUserId: number; is
               {mySlots.length === 0 ? (
                 <p className="text-sm text-slate-400 italic">You haven't set your availability yet. Click Edit to get started.</p>
               ) : (
-                <div className="flex flex-wrap gap-2">
-                  {DAYS.map((_, d) =>
-                    TIMES.filter(t => mySlots.some(s => s.day === d && s.timeOfDay === t)).map(t => (
-                      <span key={`${d}-${t}`} className={`text-xs px-2 py-1 rounded-md border ${TIME_COLORS[t]}`}>
-                        {DAYS[d]} {TIME_LABELS[t].split(" ")[0]}
-                      </span>
-                    ))
-                  )}
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    {DAYS.map((_, d) =>
+                      TIMES.filter(t => mySlots.some(s => s.day === d && s.timeOfDay === t)).map(t => (
+                        <span key={`${d}-${t}`} className={`text-xs px-2 py-1 rounded-md border ${TIME_COLORS[t]}`}>
+                          {DAYS[d]} {TIME_LABELS[t].split(" ")[0]}
+                        </span>
+                      ))
+                    )}
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-xs bg-indigo-50 text-indigo-600 border border-indigo-100 rounded px-2 py-0.5" data-testid="badge-my-avail-timezone">
+                    <Clock className="w-3 h-3" /> {TZ_SHORT[myTimezone] || myTimezone} time
+                  </span>
                 </div>
               )}
               {myAvailEntry?.notes && (
@@ -311,9 +331,16 @@ function AvailabilityTab({ currentUserId, isAdmin }: { currentUserId: number; is
                     {m.firstName?.[0]}{m.lastName?.[0]}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#1A1F2B]">{m.firstName} {m.lastName}
-                      {m.boardPosition && <span className="ml-1.5 text-xs text-[#D4A843] font-normal">({m.boardPosition})</span>}
-                    </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-medium text-[#1A1F2B]">{m.firstName} {m.lastName}
+                        {m.boardPosition && <span className="ml-1.5 text-xs text-[#D4A843] font-normal">({m.boardPosition})</span>}
+                      </p>
+                      {m.timezone && (
+                        <span className="inline-flex items-center gap-1 text-[10px] bg-indigo-50 text-indigo-500 border border-indigo-100 rounded px-1.5 py-0.5" data-testid={`badge-avail-tz-${m.userId}`}>
+                          <Clock className="w-2.5 h-2.5" /> {TZ_SHORT[m.timezone] || m.timezone}
+                        </span>
+                      )}
+                    </div>
                     {m.slots.length === 0 ? (
                       <p className="text-xs text-slate-400 italic">Not set</p>
                     ) : (

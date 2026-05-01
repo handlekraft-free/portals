@@ -2063,6 +2063,7 @@ router.get("/scheduling/availability", async (_req, res) => {
     userId: boardMemberAvailability.userId,
     slots: boardMemberAvailability.slots,
     notes: boardMemberAvailability.notes,
+    timezone: boardMemberAvailability.timezone,
     updatedAt: boardMemberAvailability.updatedAt,
     firstName: users.firstName,
     lastName: users.lastName,
@@ -2077,19 +2078,20 @@ router.get("/scheduling/availability", async (_req, res) => {
 router.get("/scheduling/availability/me", async (req, res) => {
   const userId = req.user!.userId;
   const [row] = await db.select().from(boardMemberAvailability).where(eq(boardMemberAvailability.userId, userId));
-  res.json({ success: true, data: row || { userId, slots: "[]", notes: "" } });
+  res.json({ success: true, data: row || { userId, slots: "[]", notes: "", timezone: "America/Los_Angeles" } });
 });
 
 // PUT my availability (upsert)
 router.put("/scheduling/availability/me", async (req, res) => {
   const userId = req.user!.userId;
-  const { slots, notes } = req.body;
+  const { slots, notes, timezone } = req.body;
   const slotsJson = JSON.stringify(Array.isArray(slots) ? slots : []);
+  const tz = timezone || "America/Los_Angeles";
   const existing = await db.select({ id: boardMemberAvailability.id }).from(boardMemberAvailability).where(eq(boardMemberAvailability.userId, userId));
   if (existing.length > 0) {
-    await db.update(boardMemberAvailability).set({ slots: slotsJson, notes: notes ?? null, updatedAt: new Date() }).where(eq(boardMemberAvailability.userId, userId));
+    await db.update(boardMemberAvailability).set({ slots: slotsJson, notes: notes ?? null, timezone: tz, updatedAt: new Date() }).where(eq(boardMemberAvailability.userId, userId));
   } else {
-    await db.insert(boardMemberAvailability).values({ userId, slots: slotsJson, notes: notes ?? null });
+    await db.insert(boardMemberAvailability).values({ userId, slots: slotsJson, notes: notes ?? null, timezone: tz });
   }
   res.json({ success: true });
 });

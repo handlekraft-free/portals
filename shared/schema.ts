@@ -839,6 +839,7 @@ export const boardMemberAvailability = pgTable("board_member_availability", {
   userId: integer("user_id").notNull().unique(),
   slots: text("slots").notNull().default("[]"), // JSON: [{day:0-6, timeOfDay:'morning'|'afternoon'|'evening'}]
   notes: text("notes"),
+  timezone: text("timezone").notNull().default("America/Los_Angeles"),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 export type BoardMemberAvailability = typeof boardMemberAvailability.$inferSelect;

@@ -284,8 +284,10 @@ export async function registerRoutes(
       CREATE TABLE IF NOT EXISTS board_member_availability (
         id serial PRIMARY KEY, user_id integer NOT NULL UNIQUE,
         slots text NOT NULL DEFAULT '[]', notes text,
+        timezone text NOT NULL DEFAULT 'America/Los_Angeles',
         updated_at timestamp DEFAULT now() NOT NULL
       );
+      ALTER TABLE board_member_availability ADD COLUMN IF NOT EXISTS timezone text NOT NULL DEFAULT 'America/Los_Angeles';
       CREATE TABLE IF NOT EXISTS meeting_time_polls (
         id serial PRIMARY KEY, title text NOT NULL, description text,
         created_by integer NOT NULL, status varchar(20) NOT NULL DEFAULT 'open',

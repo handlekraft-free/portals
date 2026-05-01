@@ -22,7 +22,7 @@ const CATEGORIES = [
   { label: "Meeting Materials",   value: "Meeting Materials", icon: <FileText className="w-4 h-4" />,   restricted: false },
   { label: "Strategic Plan",      value: "Strategic Plan",    icon: <FileText className="w-4 h-4" />,   restricted: false },
   { label: "Written Consents",    value: "Written Consents",  icon: <FileCheck className="w-4 h-4" />,  restricted: false },
-  { label: "Past Resolutions",    value: "Past Resolutions",  icon: <FileText className="w-4 h-4" />,   restricted: false },
+  { label: "Past Resolutions Archive", value: "Past Resolutions Archive", icon: <FileText className="w-4 h-4" />, restricted: false },
   { label: "Legal",               value: "Legal",             icon: <Shield className="w-4 h-4" />,     restricted: true  },
   { label: "Personnel",           value: "Personnel",         icon: <Users className="w-4 h-4" />,      restricted: true  },
 ];
@@ -115,8 +115,13 @@ function VersionHistoryModal({
                   <span className="text-indigo-600 text-xs font-bold">v{v.versionNumber}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#1A1F2B] truncate">{v.filename}</p>
-                  <p className="text-xs text-slate-400">{fmtDate(v.uploadedAt)} · {formatBytes(v.fileSize)}</p>
+                  <p className="text-sm font-medium text-[#1A1F2B] truncate">{v.filename || v.title}</p>
+                  <p className="text-xs text-slate-400">
+                    {fmtDate(v.uploadedAt || v.uploaded_at)} · {formatBytes(v.fileSize || v.file_size)}
+                    {(v.uploaderFirst || v.uploader_first) && (
+                      <span> · by {v.uploaderFirst || v.uploader_first} {v.uploaderLast || v.uploader_last}</span>
+                    )}
+                  </p>
                   {v.notes && <p className="text-xs text-slate-500 mt-0.5 italic">{v.notes}</p>}
                 </div>
                 <a
@@ -288,6 +293,9 @@ function AuditTrailModal({ doc, onClose }: { doc: any; onClose: () => void }) {
 }
 
 function EditDocModal({ doc, onClose, onSaved }: { doc: any; onClose: () => void; onSaved: () => void }) {
+  const { user } = useAuth();
+  const canSeeRestricted = user?.role === "admin" || !!(user as any)?.boardRestrictedAccess;
+  const uploadCategories = UPLOAD_CATEGORIES.filter(c => !c.restricted || canSeeRestricted);
   const [form, setForm] = useState({
     title: doc.title,
     description: doc.description || "",
@@ -324,7 +332,7 @@ function EditDocModal({ doc, onClose, onSaved }: { doc: any; onClose: () => void
           <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Description (optional)" rows={2} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none" data-testid="textarea-edit-desc" />
           <div className="grid grid-cols-2 gap-2">
             <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="select-edit-category">
-              {UPLOAD_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              {uploadCategories.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
             </select>
             <select value={form.confidentiality} onChange={e => setForm(f => ({ ...f, confidentiality: e.target.value }))} className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="select-edit-confidentiality">
               <option value="board_only">Board Only</option>
@@ -348,6 +356,9 @@ function EditDocModal({ doc, onClose, onSaved }: { doc: any; onClose: () => void
 }
 
 function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded: () => void }) {
+  const { user } = useAuth();
+  const canSeeRestricted = user?.role === "admin" || !!(user as any)?.boardRestrictedAccess;
+  const uploadCategories = UPLOAD_CATEGORIES.filter(c => !c.restricted || canSeeRestricted);
   const [form, setForm] = useState({
     title: "", description: "", category: "Bylaws & Policies",
     confidentiality: "board_only", requireAck: false,
@@ -415,7 +426,7 @@ function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded:
             <div>
               <label className="text-xs text-slate-500 mb-1 block">Category *</label>
               <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="select-doc-category">
-                {UPLOAD_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                {uploadCategories.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
             <div>
@@ -596,6 +607,7 @@ function DocCard({
 function DocumentsContent() {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
+  const canSeeRestricted = isAdmin || !!(user as any)?.boardRestrictedAccess;
   const { toast } = useToast();
 
   const [activeCategory, setActiveCategory] = useState("_all");
@@ -688,7 +700,7 @@ function DocumentsContent() {
           </div>
           <nav className="p-2 space-y-0.5">
             {CATEGORIES.map(cat => {
-              const isRestricted = cat.restricted && !isAdmin;
+              const isRestricted = cat.restricted && !canSeeRestricted;
               const count = cat.value === "_all"
                 ? allDocs.length
                 : catCounts[cat.value] || 0;

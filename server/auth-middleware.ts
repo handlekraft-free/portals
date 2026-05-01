@@ -9,6 +9,7 @@ export interface JwtPayload {
   role: "admin" | "employee" | "client" | "student" | "board";
   firstName: string;
   lastName: string;
+  boardRestrictedAccess?: boolean;
 }
 
 declare global {

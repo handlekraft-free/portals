@@ -493,12 +493,17 @@ router.get("/dashboard", async (req, res) => {
 
 // ── Documents ─────────────────────────────────────────────────────────────────
 
+/** True when user may access restricted (Legal/Personnel) categories */
+function canAccessRestricted(user: { role: string; boardRestrictedAccess?: boolean }) {
+  return user.role === "admin" || user.boardRestrictedAccess === true;
+}
+
 /** Shared helper: look up doc and enforce restricted-category access */
-async function getDocOrFail(docId: number, role: string, res: any) {
+async function getDocOrFail(docId: number, user: { role: string; boardRestrictedAccess?: boolean }, res: any) {
   const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
   if (!doc) { res.status(404).json({ success: false, error: "Not found" }); return null; }
-  if (RESTRICTED_CATEGORIES.includes(doc.category) && role !== "admin") {
-    res.status(403).json({ success: false, error: "Access restricted to admin only" }); return null;
+  if (RESTRICTED_CATEGORIES.includes(doc.category) && !canAccessRestricted(user)) {
+    res.status(403).json({ success: false, error: "Access restricted" }); return null;
   }
   return doc;
 }
@@ -509,7 +514,7 @@ router.get("/documents", async (req, res) => {
   const role = req.user!.role;
   const { category } = req.query as { category?: string };
 
-  if (category && RESTRICTED_CATEGORIES.includes(category) && role !== "admin") {
+  if (category && RESTRICTED_CATEGORIES.includes(category) && !canAccessRestricted(req.user!)) {
     return res.status(403).json({ success: false, error: "Access restricted" });
   }
 
@@ -529,8 +534,8 @@ router.get("/documents", async (req, res) => {
     ORDER BY d.created_at DESC
   `);
 
-  // Filter out restricted categories for non-admin
-  const filtered = role === "admin"
+  // Filter out restricted categories for non-privileged users
+  const filtered = canAccessRestricted(req.user!)
     ? rows
     : rows.filter((r: any) => !RESTRICTED_CATEGORIES.includes(r.category));
 
@@ -559,7 +564,7 @@ router.get("/documents/search", async (req, res) => {
     LIMIT 50
   `);
 
-  const filtered = role === "admin"
+  const filtered = canAccessRestricted(req.user!)
     ? rows
     : rows.filter((r: any) => !RESTRICTED_CATEGORIES.includes(r.category));
 
@@ -572,12 +577,16 @@ router.get("/documents/:id", async (req, res) => {
   const role = req.user!.role;
   const docId = parseInt(req.params.id);
 
-  const doc = await getDocOrFail(docId, role, res);
+  const doc = await getDocOrFail(docId, req.user!, res);
   if (!doc) return;
 
-  const versions = await db.select().from(boardDocumentVersions)
-    .where(eq(boardDocumentVersions.documentId, docId))
-    .orderBy(desc(boardDocumentVersions.versionNumber));
+  const versions = await raw<any>(sql`
+    SELECT v.*, u.first_name AS uploader_first, u.last_name AS uploader_last
+    FROM board_document_versions v
+    LEFT JOIN portal_users u ON u.id = v.uploaded_by
+    WHERE v.document_id = ${docId}
+    ORDER BY v.version_number DESC
+  `);
 
   const acks = await raw<any>(sql`
     SELECT a.acked_at, u.first_name, u.last_name, u.id AS user_id
@@ -669,7 +678,7 @@ router.post("/documents", requireAdmin as any, boardDocUpload.single("file"), as
 // Upload new version via explicit :id/versions endpoint (admin only)
 router.post("/documents/:id/versions", requireAdmin as any, boardDocUpload.single("file"), async (req, res) => {
   const userId = req.user!.userId;
-  const docId = parseInt(req.params.id);
+  const docId = parseInt(req.params.id as string);
   const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
   if (!doc) return res.status(404).json({ success: false, error: "Not found" });
   if (!req.file) return res.status(400).json({ success: false, error: "No file uploaded" });
@@ -702,15 +711,18 @@ router.post("/documents/:id/upload", requireAdmin as any, boardDocUpload.single(
   next("route");
 });
 
-// Get version list for a document
+// Get version list for a document (includes uploader name)
 router.get("/documents/:id/versions", async (req, res) => {
-  const role = req.user!.role;
   const docId = parseInt(req.params.id);
-  const doc = await getDocOrFail(docId, role, res);
+  const doc = await getDocOrFail(docId, req.user!, res);
   if (!doc) return;
-  const versions = await db.select().from(boardDocumentVersions)
-    .where(eq(boardDocumentVersions.documentId, docId))
-    .orderBy(desc(boardDocumentVersions.versionNumber));
+  const versions = await raw<any>(sql`
+    SELECT v.*, u.first_name AS uploader_first, u.last_name AS uploader_last
+    FROM board_document_versions v
+    LEFT JOIN portal_users u ON u.id = v.uploaded_by
+    WHERE v.document_id = ${docId}
+    ORDER BY v.version_number DESC
+  `);
   res.json({ success: true, data: versions });
 });
 
@@ -718,7 +730,7 @@ router.get("/documents/:id/versions", async (req, res) => {
 router.get("/documents/:id/audit", async (req, res) => {
   const role = req.user!.role;
   const docId = parseInt(req.params.id);
-  const doc = await getDocOrFail(docId, role, res);
+  const doc = await getDocOrFail(docId, req.user!, res);
   if (!doc) return;
   const events = await raw<any>(sql`
     SELECT a.id, a.action, a.detail, a.created_at,
@@ -776,7 +788,7 @@ router.get("/documents/:id/download", async (req, res) => {
   const role = req.user!.role;
   const docId = parseInt(req.params.id);
 
-  const doc = await getDocOrFail(docId, role, res);
+  const doc = await getDocOrFail(docId, req.user!, res);
   if (!doc) return;
 
   const [ver] = await db.select().from(boardDocumentVersions)
@@ -798,7 +810,7 @@ router.get("/documents/:id/download/:versionId", async (req, res) => {
   const docId = parseInt(req.params.id);
   const versionId = parseInt(req.params.versionId);
 
-  const doc = await getDocOrFail(docId, role, res);
+  const doc = await getDocOrFail(docId, req.user!, res);
   if (!doc) return;
 
   const [ver] = await db.select().from(boardDocumentVersions)
@@ -817,7 +829,7 @@ async function handleAcknowledge(req: any, res: any) {
   const role = req.user!.role;
   const docId = parseInt(req.params.id);
 
-  const doc = await getDocOrFail(docId, role, res);
+  const doc = await getDocOrFail(docId, req.user!, res);
   if (!doc) return;
 
   await db.execute(sql`
@@ -838,7 +850,7 @@ router.get("/documents/:id/acks", async (req, res) => {
   const role = req.user!.role;
   const docId = parseInt(req.params.id);
 
-  const doc = await getDocOrFail(docId, role, res);
+  const doc = await getDocOrFail(docId, req.user!, res);
   if (!doc) return;
 
   if (role !== "admin") {

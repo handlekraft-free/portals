@@ -50,6 +50,7 @@ router.post("/login", async (req, res) => {
     role: user.role,
     firstName: user.firstName,
     lastName: user.lastName,
+    boardRestrictedAccess: (user as any).boardRestrictedAccess ?? false,
   });
 
   res.cookie("hk_token", token, {

@@ -88,6 +88,7 @@ export const users = pgTable("portal_users", {
   photoUrl: text("photo_url"),
   emergencyContact: text("emergency_contact"),
   isInterestedDirector: boolean("is_interested_director").default(false),
+  boardRestrictedAccess: boolean("board_restricted_access").default(false),
 });
 export type PortalUser = typeof users.$inferSelect;
 export type InsertPortalUser = typeof users.$inferInsert;

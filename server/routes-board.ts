@@ -7,7 +7,10 @@ import {
   boardMeetings, boardMeetingRsvps, boardMeetingAttendees, boardAgendaItems,
   boardMeetingNotices, boardActionItems, boardMinutesActionItems,
   boardDocuments, boardDocumentVersions, boardDocumentAcks, boardDocumentViews,
-  boardWrittenConsents, boardNotificationPrefs, users,
+  boardWrittenConsents, boardWrittenConsentResponses, boardCoiDisclosures,
+  boardNotificationPrefs, boardFinancials, boardOnboardingItems, boardOnboardingAcks,
+  boardForumTopics, boardForumPosts,
+  users,
   boardMinutes, boardMinutesMotions, boardMinutesVersions, boardMeetingPacketDocs,
 } from "@shared/schema";
 import { eq, and, desc, asc, sql, or, ilike } from "drizzle-orm";
@@ -32,6 +35,18 @@ const boardDocStorage = multer.diskStorage({
     cb(null, `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_")}`),
 });
 const boardDocUpload = multer({ storage: boardDocStorage, limits: { fileSize: 100 * 1024 * 1024 } });
+
+const BOARD_FINANCIALS_DIR = process.env.UPLOAD_DIR
+  ? path.join(process.env.UPLOAD_DIR, "board-financials")
+  : "./data/uploads/board-financials";
+fs.mkdirSync(BOARD_FINANCIALS_DIR, { recursive: true });
+
+const financialsStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, BOARD_FINANCIALS_DIR),
+  filename: (_req, file, cb) =>
+    cb(null, `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_")}`),
+});
+const financialsUpload = multer({ storage: financialsStorage, limits: { fileSize: 50 * 1024 * 1024 } });
 
 // Admin-restricted categories
 const RESTRICTED_CATEGORIES = ["Legal", "Personnel"];
@@ -334,15 +349,41 @@ router.post("/meetings/:id/notice", requireAdmin as any, async (req, res) => {
 
 // ── Action Items ──────────────────────────────────────────────────────────────
 
-router.get("/action-items", async (_req, res) => {
+// List action items with optional filters: ?status=open|in_progress|complete|all, ?assignee=userId
+router.get("/action-items", async (req, res) => {
+  const { status, assignee } = req.query as { status?: string; assignee?: string };
+  const statusFilter = status === "all" ? null : status || null; // default: not complete
+  const assigneeFilter = assignee ? parseInt(assignee) : null;
+
+  const whereClause = sql`WHERE 1=1
+    ${statusFilter ? sql`AND a.status = ${statusFilter}` : status !== "all" ? sql`AND a.status != 'complete'` : sql``}
+    ${assigneeFilter ? sql`AND a.assigned_to = ${assigneeFilter}` : sql``}
+  `;
+
   const items = await raw(sql`
-    SELECT a.*, u.first_name, u.last_name
+    SELECT a.*, u.first_name, u.last_name, u.board_position,
+      c.first_name AS creator_first, c.last_name AS creator_last
     FROM board_action_items a
     LEFT JOIN portal_users u ON u.id = a.assigned_to
-    WHERE a.status != 'complete'
+    LEFT JOIN portal_users c ON c.id = a.created_by
+    ${whereClause}
     ORDER BY a.due_date ASC NULLS LAST, a.created_at DESC
   `);
   res.json({ success: true, data: items });
+});
+
+// Create standalone action item (admin only)
+router.post("/action-items", requireAdmin as any, async (req, res) => {
+  const { title, description, assignedTo, dueDate, priority } = req.body;
+  if (!title) return res.status(400).json({ success: false, error: "Title required" });
+  const [item] = await db.insert(boardActionItems).values({
+    title, description: description || null,
+    assignedTo: assignedTo ? parseInt(assignedTo) : null,
+    dueDate: dueDate ? new Date(dueDate) : null,
+    status: "open",
+    createdBy: req.user!.userId,
+  }).returning();
+  res.status(201).json({ success: true, data: item });
 });
 
 router.get("/my-action-items", async (req, res) => {
@@ -452,6 +493,16 @@ router.get("/dashboard", async (req, res) => {
 
 // ── Documents ─────────────────────────────────────────────────────────────────
 
+/** Shared helper: look up doc and enforce restricted-category access */
+async function getDocOrFail(docId: number, role: string, res: any) {
+  const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
+  if (!doc) { res.status(404).json({ success: false, error: "Not found" }); return null; }
+  if (RESTRICTED_CATEGORIES.includes(doc.category) && role !== "admin") {
+    res.status(403).json({ success: false, error: "Access restricted to admin only" }); return null;
+  }
+  return doc;
+}
+
 // List documents — optional ?category= filter; enforces restricted-category access
 router.get("/documents", async (req, res) => {
   const userId = req.user!.userId;
@@ -486,7 +537,7 @@ router.get("/documents", async (req, res) => {
   res.json({ success: true, data: filtered });
 });
 
-// Cross-category full-text search
+// Cross-category full-text search (backend; used for "search all categories" mode)
 router.get("/documents/search", async (req, res) => {
   const userId = req.user!.userId;
   const role = req.user!.role;
@@ -498,6 +549,8 @@ router.get("/documents/search", async (req, res) => {
       d.require_ack, d.created_at,
       u.first_name AS uploader_first, u.last_name AS uploader_last,
       (SELECT MAX(v.version_number) FROM board_document_versions v WHERE v.document_id = d.id) AS current_version,
+      (SELECT COUNT(*) FROM board_document_versions vv WHERE vv.document_id = d.id) AS version_count,
+      (SELECT COUNT(*) FROM board_document_acks ac WHERE ac.document_id = d.id) AS ack_count,
       EXISTS(SELECT 1 FROM board_document_acks a WHERE a.document_id = d.id AND a.user_id = ${userId}) AS user_acked
     FROM board_documents d
     LEFT JOIN portal_users u ON u.id = d.uploaded_by
@@ -519,11 +572,8 @@ router.get("/documents/:id", async (req, res) => {
   const role = req.user!.role;
   const docId = parseInt(req.params.id);
 
-  const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
-  if (!doc) return res.status(404).json({ success: false, error: "Not found" });
-  if (RESTRICTED_CATEGORIES.includes(doc.category) && role !== "admin") {
-    return res.status(403).json({ success: false, error: "Access restricted" });
-  }
+  const doc = await getDocOrFail(docId, role, res);
+  if (!doc) return;
 
   const versions = await db.select().from(boardDocumentVersions)
     .where(eq(boardDocumentVersions.documentId, docId))
@@ -546,24 +596,56 @@ router.get("/documents/:id", async (req, res) => {
   res.json({ success: true, data: { ...doc, versions, acks, userAcked } });
 });
 
-// Upload new document (admin only)
+// Upload new document (admin only).
+// If a document with the same title (case-insensitive) + category already exists,
+// this appends a new version to the existing document instead of creating a duplicate.
 router.post("/documents", requireAdmin as any, boardDocUpload.single("file"), async (req, res) => {
   const userId = req.user!.userId;
   const { title, description, category, confidentiality, requireAck, retentionPolicy, versionNotes } = req.body;
   if (!title || !category) return res.status(400).json({ success: false, error: "Title and category required" });
 
-  const [doc] = await db.insert(boardDocuments).values({
-    title, description: description || null, category,
-    confidentiality: (confidentiality as any) || "board_only",
-    requireAck: requireAck === "true" || requireAck === true,
-    retentionPolicy: retentionPolicy || null,
-    uploadedBy: userId,
-  }).returning();
+  // Check for existing document with same title + category (case-insensitive)
+  const existing = await raw<any>(sql`
+    SELECT id FROM board_documents
+    WHERE LOWER(title) = LOWER(${title}) AND category = ${category}
+    LIMIT 1
+  `);
+
+  let doc: any;
+  if (existing.length > 0) {
+    // Append new version to existing doc
+    doc = (await db.select().from(boardDocuments).where(eq(boardDocuments.id, existing[0].id)))[0];
+    // Update metadata if provided
+    const updateFields: any = {};
+    if (description) updateFields.description = description;
+    if (confidentiality) updateFields.confidentiality = confidentiality;
+    if (requireAck !== undefined) updateFields.requireAck = requireAck === "true" || requireAck === true;
+    if (retentionPolicy) updateFields.retentionPolicy = retentionPolicy;
+    if (Object.keys(updateFields).length > 0) {
+      await db.update(boardDocuments).set(updateFields).where(eq(boardDocuments.id, doc.id));
+    }
+  } else {
+    // Create new document record
+    const [newDoc] = await db.insert(boardDocuments).values({
+      title, description: description || null, category,
+      confidentiality: (confidentiality as any) || "board_only",
+      requireAck: requireAck === "true" || requireAck === true,
+      retentionPolicy: retentionPolicy || null,
+      uploadedBy: userId,
+    }).returning();
+    doc = newDoc;
+  }
 
   if (req.file) {
+    const [latestVer] = await db.select().from(boardDocumentVersions)
+      .where(eq(boardDocumentVersions.documentId, doc.id))
+      .orderBy(desc(boardDocumentVersions.versionNumber))
+      .limit(1);
+    const nextVersion = (latestVer?.versionNumber ?? 0) + 1;
+
     await db.insert(boardDocumentVersions).values({
       documentId: doc.id,
-      versionNumber: 1,
+      versionNumber: nextVersion,
       filename: req.file.filename,
       filepath: req.file.path,
       fileSize: req.file.size,
@@ -571,14 +653,21 @@ router.post("/documents", requireAdmin as any, boardDocUpload.single("file"), as
       uploadedBy: userId,
       notes: versionNotes || null,
     });
+    auditLog(userId, existing.length > 0 ? "new_version" : "upload", "document", doc.id,
+      `v${(latestVer?.versionNumber ?? 0) + 1}: ${doc.title}`);
+  } else {
+    auditLog(userId, "upload", "document", doc.id, `Uploaded: ${doc.title}`);
   }
 
-  auditLog(userId, "upload", "document", doc.id, `Uploaded: ${doc.title}`);
-  res.status(201).json({ success: true, data: doc });
+  res.status(existing.length > 0 ? 200 : 201).json({
+    success: true,
+    data: doc,
+    isNewVersion: existing.length > 0,
+  });
 });
 
-// Upload new version of existing document (admin only)
-router.post("/documents/:id/upload", requireAdmin as any, boardDocUpload.single("file"), async (req, res) => {
+// Upload new version via explicit :id/versions endpoint (admin only)
+router.post("/documents/:id/versions", requireAdmin as any, boardDocUpload.single("file"), async (req, res) => {
   const userId = req.user!.userId;
   const docId = parseInt(req.params.id);
   const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
@@ -605,6 +694,42 @@ router.post("/documents/:id/upload", requireAdmin as any, boardDocUpload.single(
 
   auditLog(userId, "new_version", "document", docId, `Version ${nextVersion}: ${doc.title}`);
   res.status(201).json({ success: true, data: ver });
+});
+
+// Alias for backward compatibility
+router.post("/documents/:id/upload", requireAdmin as any, boardDocUpload.single("file"), async (req, res, next) => {
+  req.url = req.url.replace("/upload", "/versions");
+  next("route");
+});
+
+// Get version list for a document
+router.get("/documents/:id/versions", async (req, res) => {
+  const role = req.user!.role;
+  const docId = parseInt(req.params.id);
+  const doc = await getDocOrFail(docId, role, res);
+  if (!doc) return;
+  const versions = await db.select().from(boardDocumentVersions)
+    .where(eq(boardDocumentVersions.documentId, docId))
+    .orderBy(desc(boardDocumentVersions.versionNumber));
+  res.json({ success: true, data: versions });
+});
+
+// Per-document audit trail
+router.get("/documents/:id/audit", async (req, res) => {
+  const role = req.user!.role;
+  const docId = parseInt(req.params.id);
+  const doc = await getDocOrFail(docId, role, res);
+  if (!doc) return;
+  const events = await raw<any>(sql`
+    SELECT a.id, a.action, a.detail, a.created_at,
+           u.first_name, u.last_name
+    FROM board_audit_log a
+    LEFT JOIN portal_users u ON u.id = a.user_id
+    WHERE a.resource_type = 'document' AND a.resource_id = ${docId}
+    ORDER BY a.created_at DESC
+    LIMIT 100
+  `);
+  res.json({ success: true, data: events });
 });
 
 // Update document metadata (admin only)
@@ -651,11 +776,8 @@ router.get("/documents/:id/download", async (req, res) => {
   const role = req.user!.role;
   const docId = parseInt(req.params.id);
 
-  const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
-  if (!doc) return res.status(404).json({ success: false, error: "Not found" });
-  if (RESTRICTED_CATEGORIES.includes(doc.category) && role !== "admin") {
-    return res.status(403).json({ success: false, error: "Access restricted" });
-  }
+  const doc = await getDocOrFail(docId, role, res);
+  if (!doc) return;
 
   const [ver] = await db.select().from(boardDocumentVersions)
     .where(eq(boardDocumentVersions.documentId, docId))
@@ -676,11 +798,8 @@ router.get("/documents/:id/download/:versionId", async (req, res) => {
   const docId = parseInt(req.params.id);
   const versionId = parseInt(req.params.versionId);
 
-  const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
-  if (!doc) return res.status(404).json({ success: false, error: "Not found" });
-  if (RESTRICTED_CATEGORIES.includes(doc.category) && role !== "admin") {
-    return res.status(403).json({ success: false, error: "Access restricted" });
-  }
+  const doc = await getDocOrFail(docId, role, res);
+  if (!doc) return;
 
   const [ver] = await db.select().from(boardDocumentVersions)
     .where(and(eq(boardDocumentVersions.id, versionId), eq(boardDocumentVersions.documentId, docId)));
@@ -692,12 +811,14 @@ router.get("/documents/:id/download/:versionId", async (req, res) => {
   res.download(ver.filepath, `${doc.title.replace(/[^a-zA-Z0-9._-]/g, "_")}_v${ver.versionNumber}${path.extname(ver.filename)}`);
 });
 
-// Acknowledge a document
-router.post("/documents/:id/acknowledge", async (req, res) => {
+// Acknowledge a document (POST /documents/:id/ack canonical; /acknowledge as alias)
+async function handleAcknowledge(req: any, res: any) {
   const userId = req.user!.userId;
+  const role = req.user!.role;
   const docId = parseInt(req.params.id);
-  const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
-  if (!doc) return res.status(404).json({ success: false, error: "Not found" });
+
+  const doc = await getDocOrFail(docId, role, res);
+  if (!doc) return;
 
   await db.execute(sql`
     INSERT INTO board_document_acks (document_id, user_id)
@@ -706,18 +827,24 @@ router.post("/documents/:id/acknowledge", async (req, res) => {
   `);
   auditLog(userId, "acknowledge", "document", docId, doc.title);
   res.status(201).json({ success: true, data: null });
-});
+}
 
-// Get acknowledgment status for a document (admin: full list; board member: own status)
+router.post("/documents/:id/ack", handleAcknowledge);
+router.post("/documents/:id/acknowledge", handleAcknowledge);
+
+// Get acknowledgment status for a document (admin: full list with pending; board: own status)
 router.get("/documents/:id/acks", async (req, res) => {
   const userId = req.user!.userId;
   const role = req.user!.role;
   const docId = parseInt(req.params.id);
 
+  const doc = await getDocOrFail(docId, role, res);
+  if (!doc) return;
+
   if (role !== "admin") {
     const [ack] = await db.select().from(boardDocumentAcks)
       .where(and(eq(boardDocumentAcks.documentId, docId), eq(boardDocumentAcks.userId, userId)));
-    return res.json({ success: true, data: { userAcked: !!ack, acks: [] } });
+    return res.json({ success: true, data: { userAcked: !!ack, acked: [], notAcked: [] } });
   }
 
   const acked = await raw<any>(sql`
@@ -756,36 +883,129 @@ router.get("/audit-log", requireAdmin as any, async (_req, res) => {
 
 // ── Written Consents ──────────────────────────────────────────────────────────
 
-router.get("/consents", async (_req, res) => {
-  const rows = await db.select().from(boardWrittenConsents).orderBy(desc(boardWrittenConsents.createdAt));
+// List all consents, enriched with response summary and current-user's response
+router.get("/consents", async (req, res) => {
+  const userId = req.user!.userId;
+  const rows = await raw<any>(sql`
+    SELECT c.*,
+      u.first_name AS creator_first, u.last_name AS creator_last,
+      (SELECT count(*) FROM board_written_consent_responses r WHERE r.consent_id = c.id AND r.response = 'consent') AS consent_count,
+      (SELECT count(*) FROM board_written_consent_responses r WHERE r.consent_id = c.id AND r.response = 'decline') AS decline_count,
+      (SELECT count(*) FROM portal_users pu WHERE pu.role IN ('board','admin') AND pu.status = 'active'
+        AND NOT EXISTS (SELECT 1 FROM board_written_consents wc2 JOIN board_written_consent_responses r2 ON r2.consent_id = wc2.id
+          WHERE wc2.id = c.id AND r2.user_id = pu.id)) AS pending_count,
+      (SELECT r2.response FROM board_written_consent_responses r2 WHERE r2.consent_id = c.id AND r2.user_id = ${userId} LIMIT 1) AS my_response
+    FROM board_written_consents c
+    LEFT JOIN portal_users u ON u.id = c.created_by
+    ORDER BY c.created_at DESC
+  `);
   res.json({ success: true, data: rows });
 });
 
+// Create new written consent workflow (admin only)
 router.post("/consents", requireAdmin as any, async (req, res) => {
-  const { title, description } = req.body;
+  const { title, description, deadline, interestedDirectors } = req.body;
   if (!title) return res.status(400).json({ success: false, error: "Title required" });
+  const ids: number[] = Array.isArray(interestedDirectors) ? interestedDirectors.map(Number) : [];
   const [consent] = await db.insert(boardWrittenConsents).values({
     title, description: description || null, createdBy: req.user!.userId,
+    deadline: deadline ? new Date(deadline) : null,
+    interestedDirectors: ids.length > 0 ? JSON.stringify(ids) : null,
   }).returning();
+  auditLog(req.user!.userId, "create", "consent", consent.id, `Created: ${consent.title}`);
   res.status(201).json({ success: true, data: consent });
 });
 
+// Consent detail with full response list (who has/hasn't responded)
 router.get("/consents/:id", async (req, res) => {
-  const [consent] = await db.select().from(boardWrittenConsents).where(eq(boardWrittenConsents.id, parseInt(req.params.id)));
+  const consentId = parseInt(req.params.id);
+  const userId = req.user!.userId;
+
+  const [consent] = await db.select().from(boardWrittenConsents).where(eq(boardWrittenConsents.id, consentId));
   if (!consent) return res.status(404).json({ success: false, error: "Not found" });
-  res.json({ success: true, data: consent });
+
+  const responded = await raw<any>(sql`
+    SELECT r.response, r.reason, r.responded_at, u.id AS user_id, u.first_name, u.last_name, u.board_position
+    FROM board_written_consent_responses r
+    JOIN portal_users u ON u.id = r.user_id
+    WHERE r.consent_id = ${consentId}
+    ORDER BY r.responded_at ASC
+  `);
+
+  const pending = await raw<any>(sql`
+    SELECT u.id AS user_id, u.first_name, u.last_name, u.board_position, u.is_interested_director
+    FROM portal_users u
+    WHERE u.role IN ('board','admin') AND u.status = 'active'
+      AND NOT EXISTS (SELECT 1 FROM board_written_consent_responses r WHERE r.consent_id = ${consentId} AND r.user_id = u.id)
+    ORDER BY u.first_name
+  `);
+
+  const myResponse = responded.find((r: any) => r.user_id === userId)?.response ?? null;
+
+  res.json({ success: true, data: { ...consent, responded, pending, myResponse } });
 });
 
+// Respond to a written consent
 router.post("/consents/:id/respond", async (req, res) => {
   const consentId = parseInt(req.params.id);
   const userId = req.user!.userId;
   const { response, reason } = req.body;
+  if (!response) return res.status(400).json({ success: false, error: "Response required" });
+
+  const [consent] = await db.select().from(boardWrittenConsents).where(eq(boardWrittenConsents.id, consentId));
+  if (!consent) return res.status(404).json({ success: false, error: "Not found" });
+  if (consent.status !== "pending") return res.status(400).json({ success: false, error: "Consent is no longer open" });
+
   await db.execute(sql`
     INSERT INTO board_written_consent_responses (consent_id, user_id, response, reason)
     VALUES (${consentId}, ${userId}, ${response}, ${reason ?? null})
     ON CONFLICT (consent_id, user_id) DO UPDATE SET response = EXCLUDED.response, reason = EXCLUDED.reason, responded_at = NOW()
   `);
-  res.status(201).json({ success: true, data: null });
+
+  // If anyone declined → mark failed
+  if (response === "decline") {
+    await db.update(boardWrittenConsents).set({ status: "failed" }).where(eq(boardWrittenConsents.id, consentId));
+    auditLog(userId, "decline", "consent", consentId, consent.title);
+    return res.status(201).json({ success: true, data: { statusChanged: "failed" } });
+  }
+
+  // Check if all eligible directors have consented
+  const rawInterested = consent.interestedDirectors;
+  const interestedIds: number[] = rawInterested ? JSON.parse(rawInterested) : [];
+
+  // Build IN clause manually to avoid parameter binding issues
+  const excludeClause = interestedIds.length > 0
+    ? sql`AND u.id NOT IN (${sql.join(interestedIds.map(id => sql`${id}`), sql`, `)})`
+    : sql``;
+
+  const remaining = await raw<any>(sql`
+    SELECT u.id FROM portal_users u
+    WHERE u.role IN ('board','admin') AND u.status = 'active'
+      ${excludeClause}
+      AND NOT EXISTS (
+        SELECT 1 FROM board_written_consent_responses r
+        WHERE r.consent_id = ${consentId} AND r.user_id = u.id AND r.response = 'consent'
+      )
+  `);
+
+  if (remaining.length === 0) {
+    await db.update(boardWrittenConsents).set({ status: "valid" }).where(eq(boardWrittenConsents.id, consentId));
+    // Auto-create document in Written Consents folder
+    const [doc] = await db.insert(boardDocuments).values({
+      title: consent.title,
+      description: consent.description ?? null,
+      category: "Written Consents",
+      confidentiality: "board_only",
+      requireAck: false,
+      uploadedBy: userId,
+    }).returning();
+    auditLog(userId, "auto_create", "document", doc.id, `Auto-created from consent: ${consent.title}`);
+    auditLog(userId, "approve", "consent", consentId, consent.title);
+    return res.status(201).json({ success: true, data: { statusChanged: "valid" } });
+  }
+
+  auditLog(userId, "consent", "consent", consentId, consent.title);
+  res.status(201).json({ success: true, data: { statusChanged: null } });
 });
 
 // ── COI Disclosures ───────────────────────────────────────────────────────────
@@ -818,11 +1038,48 @@ router.post("/coi", async (req, res) => {
 // ── Financials ────────────────────────────────────────────────────────────────
 
 router.get("/financials", async (_req, res) => {
-  const rows = await raw(sql`SELECT * FROM board_financials ORDER BY as_of_date DESC`);
+  const rows = await raw(sql`
+    SELECT f.*, u.first_name, u.last_name
+    FROM board_financials f
+    LEFT JOIN portal_users u ON u.id = f.uploaded_by
+    ORDER BY f.as_of_date DESC
+  `);
   res.json({ success: true, data: rows });
 });
 
-router.post("/financials", requireAdmin as any, (_req, res) => res.status(201).json({ success: true, data: null }));
+router.post("/financials", requireAdmin as any, financialsUpload.single("file"), async (req, res) => {
+  const { title, period, asOfDate, notes } = req.body;
+  if (!title || !period || !asOfDate) return res.status(400).json({ success: false, error: "Title, period, and date required" });
+  if (!req.file) return res.status(400).json({ success: false, error: "File required" });
+
+  const [record] = await db.insert(boardFinancials).values({
+    title, period, asOfDate: new Date(asOfDate),
+    filename: req.file.filename,
+    filepath: req.file.path,
+    fileSize: req.file.size,
+    mimeType: req.file.mimetype,
+    uploadedBy: req.user!.userId,
+    notes: notes || null,
+  }).returning();
+  auditLog(req.user!.userId, "upload", "financial", record.id, `${title} (${period})`);
+  res.status(201).json({ success: true, data: record });
+});
+
+router.get("/financials/:id/download", async (req, res) => {
+  const [record] = await db.select().from(boardFinancials).where(eq(boardFinancials.id, parseInt(req.params.id)));
+  if (!record) return res.status(404).json({ success: false, error: "Not found" });
+  if (!fs.existsSync(record.filepath)) return res.status(404).json({ success: false, error: "File not found on disk" });
+  auditLog(req.user!.userId, "download", "financial", record.id, `${record.title} (${record.period})`);
+  res.download(record.filepath, `${record.title.replace(/[^a-zA-Z0-9._-]/g, "_")}_${record.period}${path.extname(record.filename)}`);
+});
+
+router.delete("/financials/:id", requireAdmin as any, async (req, res) => {
+  const [record] = await db.select().from(boardFinancials).where(eq(boardFinancials.id, parseInt(req.params.id)));
+  if (!record) return res.status(404).json({ success: false, error: "Not found" });
+  if (fs.existsSync(record.filepath)) fs.unlinkSync(record.filepath);
+  await db.delete(boardFinancials).where(eq(boardFinancials.id, record.id));
+  res.json({ success: true, data: null });
+});
 
 // ── Forums ────────────────────────────────────────────────────────────────────
 

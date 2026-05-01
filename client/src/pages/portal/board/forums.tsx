@@ -68,9 +68,19 @@ function ForumsContent() {
     </div>
   );
 
+  const LegalDisclaimer = () => (
+    <div className="mb-5 bg-amber-50 border border-amber-300 rounded-xl p-3 flex items-start gap-2.5" role="alert">
+      <span className="text-amber-600 text-lg shrink-0 leading-none">⚠</span>
+      <p className="text-xs text-amber-800">
+        <strong>Legal notice:</strong> This forum is for discussion purposes only. It is <strong>not</strong> a mechanism for official board votes, decisions, or actions. Under California law, board decisions require either a duly noticed meeting or a unanimous written consent procedure. Any action item discussed here must be formalized through the appropriate channel.
+      </p>
+    </div>
+  );
+
   if (activeTopic) {
     return (
       <div>
+        <LegalDisclaimer />
         <button onClick={() => setActiveTopic(null)} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700 mb-5" data-testid="button-back-topics">
           <ChevronLeft className="w-4 h-4" /> All topics
         </button>

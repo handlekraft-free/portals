@@ -5,8 +5,8 @@ import { apiRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import {
   FileText, Upload, Download, Check, Plus, Lock, Eye, Clock, History,
-  Search, X, ChevronRight, Users, AlertCircle, Trash2, Edit3, FileCheck,
-  FolderOpen, Folder, Shield, RefreshCw, Info,
+  Search, X, Users, AlertCircle, Trash2, Edit3, FileCheck,
+  FolderOpen, Shield, RefreshCw, Activity, ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,15 +16,15 @@ import { useToast } from "@/hooks/use-toast";
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const CATEGORIES = [
-  { label: "All Documents",       value: "_all",            icon: <FolderOpen className="w-4 h-4" />, restricted: false },
+  { label: "All Documents",       value: "_all",              icon: <FolderOpen className="w-4 h-4" />, restricted: false },
   { label: "Bylaws & Policies",   value: "Bylaws & Policies", icon: <FileText className="w-4 h-4" />,   restricted: false },
-  { label: "Financials",          value: "Financials",      icon: <FileText className="w-4 h-4" />,   restricted: false },
-  { label: "Meeting Materials",   value: "Meeting Materials", icon: <FileText className="w-4 h-4" />, restricted: false },
-  { label: "Strategic Plan",      value: "Strategic Plan",  icon: <FileText className="w-4 h-4" />,   restricted: false },
-  { label: "Written Consents",    value: "Written Consents", icon: <FileCheck className="w-4 h-4" />, restricted: false },
-  { label: "Past Resolutions",    value: "Past Resolutions", icon: <FileText className="w-4 h-4" />,  restricted: false },
-  { label: "Legal",               value: "Legal",           icon: <Shield className="w-4 h-4" />,     restricted: true },
-  { label: "Personnel",           value: "Personnel",       icon: <Users className="w-4 h-4" />,      restricted: true },
+  { label: "Financials",          value: "Financials",        icon: <FileText className="w-4 h-4" />,   restricted: false },
+  { label: "Meeting Materials",   value: "Meeting Materials", icon: <FileText className="w-4 h-4" />,   restricted: false },
+  { label: "Strategic Plan",      value: "Strategic Plan",    icon: <FileText className="w-4 h-4" />,   restricted: false },
+  { label: "Written Consents",    value: "Written Consents",  icon: <FileCheck className="w-4 h-4" />,  restricted: false },
+  { label: "Past Resolutions",    value: "Past Resolutions",  icon: <FileText className="w-4 h-4" />,   restricted: false },
+  { label: "Legal",               value: "Legal",             icon: <Shield className="w-4 h-4" />,     restricted: true  },
+  { label: "Personnel",           value: "Personnel",         icon: <Users className="w-4 h-4" />,      restricted: true  },
 ];
 
 const UPLOAD_CATEGORIES = CATEGORIES.filter(c => c.value !== "_all");
@@ -42,12 +42,17 @@ function formatBytes(b: number | null) {
   return `${(b / 1024 / 1024).toFixed(1)} MB`;
 }
 
-function fmtDate(d: string | null) {
+function fmtDate(d: string | null | undefined) {
   if (!d) return "";
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+function fmtDateTime(d: string | null | undefined) {
+  if (!d) return "";
+  return new Date(d).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+// ── Modals ────────────────────────────────────────────────────────────────────
 
 function VersionHistoryModal({
   doc,
@@ -73,7 +78,7 @@ function VersionHistoryModal({
     const fd = new FormData();
     fd.append("file", file);
     fd.append("versionNotes", notes);
-    const r = await fetch(`/api/board/documents/${doc.id}/upload`, {
+    const r = await fetch(`/api/board/documents/${doc.id}/versions`, {
       method: "POST", body: fd, credentials: "include",
     });
     const data = await r.json();
@@ -91,7 +96,7 @@ function VersionHistoryModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
           <div>
             <p className="font-semibold text-[#1A1F2B]">Version History</p>
@@ -104,14 +109,14 @@ function VersionHistoryModal({
           {versions.length === 0 ? (
             <p className="text-sm text-slate-400 text-center py-6">No file attached yet.</p>
           ) : (
-            versions.map(v => (
+            versions.map((v: any) => (
               <div key={v.id} className="flex items-start gap-3 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors" data-testid={`version-row-${v.id}`}>
                 <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
-                  <span className="text-indigo-600 text-xs font-bold">v{v.version_number}</span>
+                  <span className="text-indigo-600 text-xs font-bold">v{v.versionNumber}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-[#1A1F2B] truncate">{v.filename}</p>
-                  <p className="text-xs text-slate-400">{fmtDate(v.uploaded_at)} · {formatBytes(v.file_size)}</p>
+                  <p className="text-xs text-slate-400">{fmtDate(v.uploadedAt)} · {formatBytes(v.fileSize)}</p>
                   {v.notes && <p className="text-xs text-slate-500 mt-0.5 italic">{v.notes}</p>}
                 </div>
                 <a
@@ -152,7 +157,7 @@ function VersionHistoryModal({
               onClick={uploadVersion}
               data-testid="button-upload-version"
             >
-              {uploading ? "Uploading…" : "Upload Version"}
+              {uploading ? "Uploading…" : "Upload New Version"}
             </Button>
           </div>
         )}
@@ -188,7 +193,7 @@ function AckTrackingModal({ doc, onClose }: { doc: any; onClose: () => void }) {
             <>
               {data.acked.length > 0 && (
                 <div className="mb-4">
-                  <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-2 flex items-center gap-1"><Check className="w-3 h-3" /> Acknowledged ({data.acked.length})</p>
+                  <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-2 flex items-center gap-1.5"><Check className="w-3.5 h-3.5" /> Acknowledged ({data.acked.length})</p>
                   <div className="space-y-1.5">
                     {data.acked.map((a: any) => (
                       <div key={a.user_id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-green-50" data-testid={`acked-row-${a.user_id}`}>
@@ -202,10 +207,9 @@ function AckTrackingModal({ doc, onClose }: { doc: any; onClose: () => void }) {
                   </div>
                 </div>
               )}
-
               {data.notAcked.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-2 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Pending ({data.notAcked.length})</p>
+                  <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-2 flex items-center gap-1.5"><AlertCircle className="w-3.5 h-3.5" /> Pending ({data.notAcked.length})</p>
                   <div className="space-y-1.5">
                     {data.notAcked.map((u: any) => (
                       <div key={u.user_id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-amber-50" data-testid={`notacked-row-${u.user_id}`}>
@@ -219,11 +223,63 @@ function AckTrackingModal({ doc, onClose }: { doc: any; onClose: () => void }) {
                   </div>
                 </div>
               )}
-
               {data.acked.length === 0 && data.notAcked.length === 0 && (
                 <p className="text-sm text-slate-400 text-center py-6">No board members found.</p>
               )}
             </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AuditTrailModal({ doc, onClose }: { doc: any; onClose: () => void }) {
+  const [events, setEvents] = useState<any[] | null>(null);
+
+  useEffect(() => {
+    apiRequest("GET", `/api/board/documents/${doc.id}/audit`).then(r => {
+      if (r.success) setEvents(r.data);
+    });
+  }, [doc.id]);
+
+  const ACTION_ICON: Record<string, string> = {
+    upload: "⬆", new_version: "🔄", view: "👁", download: "⬇",
+    acknowledge: "✓", update: "✏", delete: "🗑",
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+          <div>
+            <p className="font-semibold text-[#1A1F2B]">Document Activity</p>
+            <p className="text-xs text-slate-500 mt-0.5 truncate max-w-xs">{doc.title}</p>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" data-testid="button-close-audit"><X className="w-4 h-4" /></button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5">
+          {!events ? (
+            <div className="space-y-2">{[...Array(4)].map((_, i) => <div key={i} className="h-8 bg-slate-100 rounded-lg animate-pulse" />)}</div>
+          ) : events.length === 0 ? (
+            <p className="text-sm text-slate-400 text-center py-6">No activity recorded yet.</p>
+          ) : (
+            <div className="space-y-1.5">
+              {events.map((e: any) => (
+                <div key={e.id} className="flex items-start gap-3 px-3 py-2 rounded-lg hover:bg-slate-50" data-testid={`audit-row-${e.id}`}>
+                  <span className="text-sm mt-0.5">{ACTION_ICON[e.action] || "•"}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-[#1A1F2B]">
+                      <span className="font-medium">{e.first_name} {e.last_name}</span>
+                      {" "}<span className="text-slate-500 capitalize">{e.action.replace("_", " ")}</span>
+                    </p>
+                    {e.detail && <p className="text-xs text-slate-400 truncate">{e.detail}</p>}
+                  </div>
+                  <p className="text-xs text-slate-400 shrink-0">{fmtDateTime(e.created_at)}</p>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
@@ -237,8 +293,8 @@ function EditDocModal({ doc, onClose, onSaved }: { doc: any; onClose: () => void
     description: doc.description || "",
     category: doc.category,
     confidentiality: doc.confidentiality,
-    requireAck: doc.require_ack,
-    retentionPolicy: doc.retention_policy || "",
+    requireAck: doc.requireAck ?? doc.require_ack,
+    retentionPolicy: doc.retentionPolicy ?? doc.retention_policy ?? "",
   });
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -278,7 +334,7 @@ function EditDocModal({ doc, onClose, onSaved }: { doc: any; onClose: () => void
           </div>
           <input value={form.retentionPolicy} onChange={e => setForm(f => ({ ...f, retentionPolicy: e.target.value }))} placeholder="Retention policy (optional)" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-edit-retention" />
           <label className="flex items-center gap-2 cursor-pointer" data-testid="checkbox-edit-requireack">
-            <input type="checkbox" checked={form.requireAck} onChange={e => setForm(f => ({ ...f, requireAck: e.target.checked }))} className="accent-indigo-500" />
+            <input type="checkbox" checked={!!form.requireAck} onChange={e => setForm(f => ({ ...f, requireAck: e.target.checked }))} className="accent-indigo-500" />
             <span className="text-sm text-slate-600">Require acknowledgment from all board members</span>
           </label>
           <div className="flex gap-2 pt-1">
@@ -319,7 +375,8 @@ function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded:
     const r = await fetch("/api/board/documents", { method: "POST", body: fd, credentials: "include" });
     const data = await r.json();
     if (data.success) {
-      toast({ title: "Document uploaded successfully" });
+      const msg = data.isNewVersion ? "New version added to existing document" : "Document uploaded successfully";
+      toast({ title: msg });
       onUploaded();
       onClose();
     } else {
@@ -335,8 +392,10 @@ function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded:
           <p className="font-semibold text-[#1A1F2B]">Upload Board Document</p>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" data-testid="button-close-upload"><X className="w-4 h-4" /></button>
         </div>
-
         <div className="p-5 space-y-3">
+          <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-3 py-2 text-xs text-indigo-700">
+            <strong>Tip:</strong> Uploading a document with the same title and category as an existing document will add a new version to it.
+          </div>
           <input
             value={form.title}
             onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
@@ -368,7 +427,6 @@ function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded:
               </select>
             </div>
           </div>
-
           <input
             value={form.retentionPolicy}
             onChange={e => setForm(f => ({ ...f, retentionPolicy: e.target.value }))}
@@ -376,12 +434,10 @@ function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded:
             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
             data-testid="input-doc-retention"
           />
-
           <label className="flex items-center gap-2 cursor-pointer" data-testid="checkbox-require-ack">
             <input type="checkbox" checked={form.requireAck} onChange={e => setForm(f => ({ ...f, requireAck: e.target.checked }))} className="accent-indigo-500" />
             <span className="text-sm text-slate-600">Require acknowledgment from all board members</span>
           </label>
-
           <div>
             <label className="text-xs text-slate-500 mb-1 block">Attach File</label>
             <div
@@ -395,7 +451,6 @@ function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded:
               <input ref={fileRef} type="file" className="hidden" onChange={e => setFile(e.target.files?.[0] || null)} data-testid="input-doc-file" />
             </div>
           </div>
-
           {file && (
             <input
               value={form.versionNotes}
@@ -405,7 +460,6 @@ function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded:
               data-testid="input-version-notes"
             />
           )}
-
           <div className="flex gap-2 pt-1">
             <Button className="bg-indigo-500 text-white flex-1" onClick={submit} disabled={uploading || !form.title} data-testid="button-save-doc">
               {uploading ? "Uploading…" : "Upload Document"}
@@ -426,6 +480,7 @@ function DocCard({
   onAck,
   onShowVersions,
   onShowAcks,
+  onShowAudit,
   onEdit,
   onDelete,
 }: {
@@ -434,6 +489,7 @@ function DocCard({
   onAck: () => void;
   onShowVersions: () => void;
   onShowAcks: () => void;
+  onShowAudit: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -441,6 +497,7 @@ function DocCard({
   const currentVer = doc.current_version;
   const ackCount = parseInt(doc.ack_count || "0");
   const userAcked = doc.user_acked === true || doc.user_acked === "true";
+  const requireAck = doc.require_ack === true || doc.require_ack === "true";
 
   return (
     <Card className="border border-slate-100 shadow-sm hover:shadow-md transition-shadow" data-testid={`doc-card-${doc.id}`}>
@@ -461,7 +518,7 @@ function DocCard({
               <Badge className={`${CONF_COLORS[doc.confidentiality] || ""} text-xs border px-1.5 py-0`}>
                 {doc.confidentiality === "board_only" ? "Board Only" : doc.confidentiality === "restricted" ? "Restricted" : "Public"}
               </Badge>
-              {doc.require_ack && !userAcked && (
+              {requireAck && !userAcked && (
                 <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-xs border px-1.5 py-0 flex items-center gap-0.5">
                   <AlertCircle className="w-3 h-3" /> Ack needed
                 </Badge>
@@ -482,80 +539,48 @@ function DocCard({
               {(doc.uploader_first || doc.uploader_last) && (
                 <span>by {doc.uploader_first} {doc.uploader_last}</span>
               )}
-              {hasFile && <span className="flex items-center gap-1"><History className="w-3 h-3" />{doc.version_count} version{parseInt(doc.version_count) !== 1 ? "s" : ""}</span>}
+              {hasFile && (
+                <span className="flex items-center gap-1">
+                  <History className="w-3 h-3" />{doc.version_count} version{parseInt(doc.version_count) !== 1 ? "s" : ""}
+                </span>
+              )}
               {ackCount > 0 && <span className="flex items-center gap-1"><Check className="w-3 h-3" />{ackCount} ack{ackCount !== 1 ? "s" : ""}</span>}
               {parseInt(doc.view_count || "0") > 0 && <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{doc.view_count}</span>}
-              {doc.retention_policy && <span className="flex items-center gap-1"><Info className="w-3 h-3" />{doc.retention_policy}</span>}
+              {doc.retention_policy && <span className="text-slate-300">· {doc.retention_policy}</span>}
             </div>
           </div>
 
-          <div className="flex items-center gap-1 shrink-0">
-            {/* Acknowledge */}
-            {doc.require_ack && !userAcked && (
-              <button
-                onClick={onAck}
-                title="Acknowledge"
-                className="p-1.5 rounded-lg hover:bg-green-50 text-slate-400 hover:text-green-600 transition-colors"
-                data-testid={`button-ack-doc-${doc.id}`}
-              >
+          <div className="flex items-center gap-0.5 shrink-0">
+            {requireAck && !userAcked && (
+              <button onClick={onAck} title="Acknowledge this document" className="p-1.5 rounded-lg hover:bg-green-50 text-slate-400 hover:text-green-600 transition-colors" data-testid={`button-ack-doc-${doc.id}`}>
                 <Check className="w-4 h-4" />
               </button>
             )}
-
-            {/* Download */}
             {hasFile && (
-              <a
-                href={`/api/board/documents/${doc.id}/download`}
-                title="Download latest version"
-                className="p-1.5 rounded-lg hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 transition-colors"
-                data-testid={`button-download-doc-${doc.id}`}
-              >
+              <a href={`/api/board/documents/${doc.id}/download`} title="Download latest version" className="p-1.5 rounded-lg hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 transition-colors" data-testid={`button-download-doc-${doc.id}`}>
                 <Download className="w-4 h-4" />
               </a>
             )}
-
-            {/* Version history */}
-            <button
-              onClick={onShowVersions}
-              title="Version history"
-              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
-              data-testid={`button-versions-${doc.id}`}
-            >
+            <button onClick={onShowVersions} title="Version history" className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" data-testid={`button-versions-${doc.id}`}>
               <History className="w-4 h-4" />
             </button>
-
-            {/* Ack tracking (admin only) */}
-            {isAdmin && doc.require_ack && (
-              <button
-                onClick={onShowAcks}
-                title="View acknowledgments"
-                className="p-1.5 rounded-lg hover:bg-amber-50 text-slate-400 hover:text-amber-600 transition-colors"
-                data-testid={`button-ack-tracking-${doc.id}`}
-              >
+            {isAdmin && requireAck && (
+              <button onClick={onShowAcks} title="View acknowledgments" className="p-1.5 rounded-lg hover:bg-amber-50 text-slate-400 hover:text-amber-600 transition-colors" data-testid={`button-ack-tracking-${doc.id}`}>
                 <Users className="w-4 h-4" />
               </button>
             )}
-
-            {/* Edit (admin only) */}
             {isAdmin && (
-              <button
-                onClick={onEdit}
-                title="Edit metadata"
-                className="p-1.5 rounded-lg hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 transition-colors"
-                data-testid={`button-edit-doc-${doc.id}`}
-              >
+              <button onClick={onShowAudit} title="Document activity log" className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" data-testid={`button-audit-${doc.id}`}>
+                <Activity className="w-4 h-4" />
+              </button>
+            )}
+            {isAdmin && (
+              <button onClick={onEdit} title="Edit metadata" className="p-1.5 rounded-lg hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 transition-colors" data-testid={`button-edit-doc-${doc.id}`}>
                 <Edit3 className="w-4 h-4" />
               </button>
             )}
-
-            {/* Delete (admin only) */}
             {isAdmin && (
-              <button
-                onClick={onDelete}
-                title="Delete document"
-                className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
-                data-testid={`button-delete-doc-${doc.id}`}
-              >
+              <button onClick={onDelete} title="Delete document" className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors" data-testid={`button-delete-doc-${doc.id}`}>
                 <Trash2 className="w-4 h-4" />
               </button>
             )}
@@ -574,14 +599,15 @@ function DocumentsContent() {
   const { toast } = useToast();
 
   const [activeCategory, setActiveCategory] = useState("_all");
-  const [docs, setDocs] = useState<any[]>([]);
+  const [allDocs, setAllDocs] = useState<any[]>([]);   // all docs for current category (for client-side filter)
   const [loading, setLoading] = useState(true);
-  const [searchQ, setSearchQ] = useState("");
-  const [searching, setSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<any[] | null>(null);
+  const [searchQ, setSearchQ] = useState("");           // live filter text
+  const [searchAllResults, setSearchAllResults] = useState<any[] | null>(null); // cross-cat search
+  const [searchingAll, setSearchingAll] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [versionsDoc, setVersionsDoc] = useState<any | null>(null);
   const [acksDoc, setAcksDoc] = useState<any | null>(null);
+  const [auditDoc, setAuditDoc] = useState<any | null>(null);
   const [editDoc, setEditDoc] = useState<any | null>(null);
   const [catCounts, setCatCounts] = useState<Record<string, number>>({});
 
@@ -592,13 +618,10 @@ function DocumentsContent() {
       : `/api/board/documents?category=${encodeURIComponent(activeCategory)}`;
     apiRequest("GET", url).then(r => {
       if (r.success) {
-        setDocs(r.data);
-        // Build per-category counts from all-docs view
+        setAllDocs(r.data);
         if (activeCategory === "_all") {
           const counts: Record<string, number> = {};
-          for (const d of r.data) {
-            counts[d.category] = (counts[d.category] || 0) + 1;
-          }
+          for (const d of r.data) counts[d.category] = (counts[d.category] || 0) + 1;
           setCatCounts(counts);
         }
       }
@@ -609,24 +632,31 @@ function DocumentsContent() {
   useEffect(() => {
     document.title = "Board Documents | handləkraft";
     loadDocs();
+    setSearchQ("");
+    setSearchAllResults(null);
   }, [loadDocs]);
 
-  // Search
-  const doSearch = useCallback(async (q: string) => {
-    if (!q.trim()) { setSearchResults(null); return; }
-    setSearching(true);
-    const r = await apiRequest("GET", `/api/board/documents/search?q=${encodeURIComponent(q)}`);
-    if (r.success) setSearchResults(r.data);
-    setSearching(false);
-  }, []);
+  // Client-side filter on current category
+  const filteredDocs = searchQ.trim()
+    ? allDocs.filter(d =>
+        d.title.toLowerCase().includes(searchQ.toLowerCase()) ||
+        (d.description || "").toLowerCase().includes(searchQ.toLowerCase())
+      )
+    : allDocs;
 
-  useEffect(() => {
-    const t = setTimeout(() => doSearch(searchQ), 350);
-    return () => clearTimeout(t);
-  }, [searchQ, doSearch]);
+  // Cross-category backend search
+  const triggerSearchAll = useCallback(async () => {
+    if (!searchQ.trim()) return;
+    setSearchingAll(true);
+    const r = await apiRequest("GET", `/api/board/documents/search?q=${encodeURIComponent(searchQ)}`);
+    if (r.success) setSearchAllResults(r.data);
+    setSearchingAll(false);
+  }, [searchQ]);
+
+  const displayDocs = searchAllResults !== null ? searchAllResults : filteredDocs;
 
   async function acknowledge(docId: number) {
-    const r = await apiRequest("POST", `/api/board/documents/${docId}/acknowledge`);
+    const r = await apiRequest("POST", `/api/board/documents/${docId}/ack`);
     if (r.success) { toast({ title: "Document acknowledged" }); loadDocs(); }
   }
 
@@ -642,8 +672,11 @@ function DocumentsContent() {
     if (r.success) setVersionsDoc(r.data);
   }
 
-  const displayDocs = searchResults !== null ? searchResults : docs;
-  const pendingAcks = docs.filter(d => d.require_ack && !(d.user_acked === true || d.user_acked === "true")).length;
+  const pendingAcks = allDocs.filter(d => {
+    const requireAck = d.require_ack === true || d.require_ack === "true";
+    const userAcked = d.user_acked === true || d.user_acked === "true";
+    return requireAck && !userAcked;
+  }).length;
 
   return (
     <div className="flex gap-6 min-h-0">
@@ -657,12 +690,18 @@ function DocumentsContent() {
             {CATEGORIES.map(cat => {
               const isRestricted = cat.restricted && !isAdmin;
               const count = cat.value === "_all"
-                ? docs.length
+                ? allDocs.length
                 : catCounts[cat.value] || 0;
               return (
                 <button
                   key={cat.value}
-                  onClick={() => { if (!isRestricted) { setActiveCategory(cat.value); setSearchQ(""); setSearchResults(null); } }}
+                  onClick={() => {
+                    if (!isRestricted) {
+                      setActiveCategory(cat.value);
+                      setSearchQ("");
+                      setSearchAllResults(null);
+                    }
+                  }}
                   disabled={isRestricted}
                   className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-sm transition-colors text-left ${
                     isRestricted
@@ -674,7 +713,7 @@ function DocumentsContent() {
                   data-testid={`cat-${cat.value.replace(/\s+/g, "-").toLowerCase()}`}
                 >
                   <span className="flex items-center gap-2 min-w-0">
-                    {isRestricted ? <Lock className="w-3.5 h-3.5 shrink-0" /> : <span className="shrink-0">{cat.icon}</span>}
+                    <span className="shrink-0">{isRestricted ? <Lock className="w-3.5 h-3.5" /> : cat.icon}</span>
                     <span className="truncate">{cat.label}</span>
                   </span>
                   {!isRestricted && count > 0 && (
@@ -682,14 +721,12 @@ function DocumentsContent() {
                       {count}
                     </span>
                   )}
-                  {isRestricted && <Lock className="w-3 h-3 text-slate-300 shrink-0" />}
                 </button>
               );
             })}
           </nav>
         </div>
 
-        {/* Pending acks callout */}
         {pendingAcks > 0 && (
           <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl p-3">
             <p className="text-xs font-semibold text-amber-700 flex items-center gap-1.5"><AlertCircle className="w-3.5 h-3.5" /> Action needed</p>
@@ -698,18 +735,19 @@ function DocumentsContent() {
         )}
       </aside>
 
-      {/* ── Main panel ── */}
+      {/* ── Main Panel ── */}
       <div className="flex-1 min-w-0">
-        {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div>
             <h1 className="text-2xl font-display text-[#1A1F2B]">
-              {activeCategory === "_all" ? "Board Documents" : activeCategory}
+              {searchAllResults !== null ? "Search Results" : activeCategory === "_all" ? "Board Documents" : activeCategory}
             </h1>
             <p className="text-slate-500 text-sm mt-0.5">
-              {searchResults !== null
-                ? `${searchResults.length} result${searchResults.length !== 1 ? "s" : ""} for "${searchQ}"`
-                : `${displayDocs.length} document${displayDocs.length !== 1 ? "s" : ""}`}
+              {searchAllResults !== null
+                ? `${searchAllResults.length} result${searchAllResults.length !== 1 ? "s" : ""} across all categories for "${searchQ}"`
+                : searchQ.trim()
+                  ? `${filteredDocs.length} of ${allDocs.length} documents match`
+                  : `${allDocs.length} document${allDocs.length !== 1 ? "s" : ""}`}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -725,32 +763,55 @@ function DocumentsContent() {
         </div>
 
         {/* Search bar */}
-        <div className="relative mb-4">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            value={searchQ}
-            onChange={e => setSearchQ(e.target.value)}
-            placeholder="Search documents across all categories…"
-            className="w-full pl-9 pr-9 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
-            data-testid="input-doc-search"
-          />
-          {searchQ && (
-            <button onClick={() => { setSearchQ(""); setSearchResults(null); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" data-testid="button-clear-search">
-              <X className="w-4 h-4" />
-            </button>
+        <div className="flex gap-2 mb-4">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              value={searchQ}
+              onChange={e => { setSearchQ(e.target.value); setSearchAllResults(null); }}
+              placeholder={activeCategory === "_all" ? "Filter documents…" : `Filter in ${activeCategory}…`}
+              className="w-full pl-9 pr-9 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
+              data-testid="input-doc-search"
+            />
+            {searchQ && (
+              <button onClick={() => { setSearchQ(""); setSearchAllResults(null); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" data-testid="button-clear-search">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          {searchQ.trim() && activeCategory !== "_all" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={triggerSearchAll}
+              disabled={searchingAll}
+              className="shrink-0 text-xs border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+              data-testid="button-search-all"
+            >
+              {searchingAll ? "Searching…" : <><ChevronRight className="w-3 h-3 mr-1" />Search all</>}
+            </Button>
+          )}
+          {searchAllResults !== null && (
+            <Button variant="ghost" size="sm" onClick={() => setSearchAllResults(null)} className="shrink-0 text-xs text-slate-500" data-testid="button-back-to-category">
+              <X className="w-3 h-3 mr-1" /> Clear
+            </Button>
           )}
         </div>
 
         {/* Document list */}
-        {loading || searching ? (
+        {loading ? (
           <div className="space-y-3">
             {[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-white rounded-2xl animate-pulse" />)}
           </div>
         ) : displayDocs.length === 0 ? (
           <div className="text-center py-20 text-slate-400">
             <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p className="text-base">{searchResults !== null ? "No documents match your search." : "No documents in this category."}</p>
-            {isAdmin && searchResults === null && (
+            <p className="text-base">
+              {searchQ.trim()
+                ? "No documents match your search."
+                : "No documents in this category."}
+            </p>
+            {isAdmin && !searchQ.trim() && searchAllResults === null && (
               <Button onClick={() => setShowUpload(true)} className="mt-4 bg-indigo-500 text-white" data-testid="button-upload-first">
                 Upload First Document
               </Button>
@@ -766,6 +827,7 @@ function DocumentsContent() {
                 onAck={() => acknowledge(doc.id)}
                 onShowVersions={() => openVersions(doc)}
                 onShowAcks={() => setAcksDoc(doc)}
+                onShowAudit={() => setAuditDoc(doc)}
                 onEdit={() => setEditDoc(doc)}
                 onDelete={() => deleteDoc(doc)}
               />
@@ -786,13 +848,9 @@ function DocumentsContent() {
         />
       )}
 
-      {acksDoc && isAdmin && (
-        <AckTrackingModal doc={acksDoc} onClose={() => setAcksDoc(null)} />
-      )}
-
-      {editDoc && isAdmin && (
-        <EditDocModal doc={editDoc} onClose={() => setEditDoc(null)} onSaved={loadDocs} />
-      )}
+      {acksDoc && isAdmin && <AckTrackingModal doc={acksDoc} onClose={() => setAcksDoc(null)} />}
+      {auditDoc && isAdmin && <AuditTrailModal doc={auditDoc} onClose={() => setAuditDoc(null)} />}
+      {editDoc && isAdmin && <EditDocModal doc={editDoc} onClose={() => setEditDoc(null)} onSaved={loadDocs} />}
     </div>
   );
 }

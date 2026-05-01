@@ -107,6 +107,10 @@ Preferred communication style: Simple, everyday language.
 - Admin portal: Full user management table (/portal/admin/users) with create/edit/deactivate/bulk actions
 - Seeded 5 portal users + sample data (boards, time entries, expense reports, tickets, courses, announcements)
 - Built Board portal meeting minutes editor: structured fields (attendance, quorum, call to order, reports, motions, action items, adjournment), draft/submit/approve/lock workflow, version history drawer
+- Built Board portal compliance pages (Task #5): Written Consents with unanimity tracking (Cal. Corp. Code §5211(b)), COI Disclosures with admin compliance grid, Action Items with filtering and standalone admin create
+- Built Board portal community pages (Task #6): Board Directory with search and admin edit modal, Financials with file upload/download/delete (PDF/Excel), Forums with legal disclaimer banner, Onboarding with progress tracking, Settings with notification preferences
+- Board portal schema additions: `interested_directors` and `deadline` columns on board_written_consents; UNIQUE(consent_id, user_id) constraint on board_written_consent_responses; financials upload directory at ./data/uploads/board-financials/
+- Board portal new API routes: POST/GET /board/consents with auto-unanimity check and auto-document creation, POST /board/consents/:id/respond, GET/POST /board/action-items with filters, GET/POST/download/DELETE /board/financials, GET /board/coi/:year compliance endpoint
 - Added `boardMinutesVersions` table for version snapshots (saved on every patch and approve)
 - Full minutes CRUD API: create, update, submit, approve, history, motion CRUD, action item CRUD (syncs to global boardActionItems)
 - Meeting packet PDF assembler at GET /api/board/meetings/:id/packet — pdfkit-generated PDF with cover page, agenda, attendance, minutes narrative, motions, action items

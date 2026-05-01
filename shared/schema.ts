@@ -616,6 +616,8 @@ export const boardWrittenConsents = pgTable("board_written_consents", {
   resolutionFilepath: text("resolution_filepath"),
   status: boardWrittenConsentStatusEnum("status").default("pending"),
   excludedDirectors: text("excluded_directors"),
+  interestedDirectors: text("interested_directors"),
+  deadline: timestamp("deadline"),
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   resolvedAt: timestamp("resolved_at"),

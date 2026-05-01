@@ -3,9 +3,10 @@ import { EmployeeLayout } from "@/components/portal/EmployeeLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/auth";
-import { Clock, Receipt, Kanban, MessageSquare, Play, Square, Users, Zap } from "lucide-react";
+import { Clock, Kanban, MessageSquare, Play, Square, Users, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import TeamChat from "@/components/portal/TeamChat";
 import ClaudeChat from "@/components/portal/ClaudeChat";
 
@@ -276,6 +277,172 @@ function TeamPulse() {
   );
 }
 
+// ── My Kanban Tasks Panel ─────────────────────────────────────────────────────
+
+const PRIORITY_STYLES: Record<string, { bg: string; text: string; label: string }> = {
+  urgent: { bg: "bg-red-100",    text: "text-red-700",    label: "Urgent" },
+  high:   { bg: "bg-orange-100", text: "text-orange-700", label: "High" },
+  medium: { bg: "bg-amber-100",  text: "text-amber-700",  label: "Medium" },
+  low:    { bg: "bg-blue-100",   text: "text-blue-700",   label: "Low" },
+};
+
+function MyTasksPanel() {
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiRequest("GET", "/api/kanban/my-tasks").then((res) => {
+      if (res.success) setTasks(res.data.filter((t: any) => !t.archived));
+      setLoading(false);
+    });
+  }, []);
+
+  const open = tasks.filter((t) => t.column?.title?.toLowerCase() !== "done" && t.column?.title?.toLowerCase() !== "valhalla");
+  const overdue = open.filter((t) => t.dueDate && new Date(t.dueDate) < new Date());
+
+  return (
+    <Card className="border-0 shadow-sm h-full">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold text-slate-700 flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <Kanban className="w-4 h-4 text-purple-500" /> My Tasks
+          </span>
+          <span className="text-xs font-normal text-slate-400">{open.length} open{overdue.length > 0 && ` · `}{overdue.length > 0 && <span className="text-red-500">{overdue.length} overdue</span>}</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
+        {loading ? (
+          <div className="space-y-2">{[1,2,3].map(i => <div key={i} className="h-14 bg-slate-100 rounded-xl animate-pulse" />)}</div>
+        ) : open.length === 0 ? (
+          <div className="text-center py-8 text-slate-400">
+            <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-30" />
+            <p className="text-sm">All clear — no open tasks.</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {open.slice(0, 6).map((task) => {
+              const pri = PRIORITY_STYLES[task.priority] ?? PRIORITY_STYLES.medium;
+              const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
+              const dueLabel = task.dueDate
+                ? new Date(task.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                : null;
+              return (
+                <a
+                  key={task.id}
+                  href={`/portal/employee/kanban?board=${task.boardId}`}
+                  className="flex items-start gap-3 rounded-xl px-3 py-2.5 hover:bg-slate-50 transition-colors group"
+                  data-testid={`task-item-${task.id}`}
+                >
+                  <Circle className="w-4 h-4 mt-0.5 text-slate-300 shrink-0 group-hover:text-[#0D7377] transition-colors" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-[#1A1F2B] truncate leading-tight">{task.title}</p>
+                    <p className="text-xs text-slate-400 mt-0.5 truncate">{task.board?.name} · {task.column?.title}</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {dueLabel && (
+                      <span className={`text-xs font-medium ${isOverdue ? "text-red-500" : "text-slate-400"}`}>
+                        {isOverdue && <AlertCircle className="w-3 h-3 inline mr-0.5" />}{dueLabel}
+                      </span>
+                    )}
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${pri.bg} ${pri.text}`}>{pri.label}</span>
+                  </div>
+                </a>
+              );
+            })}
+            {open.length > 6 && (
+              <a href="/portal/employee/kanban" className="flex items-center gap-1 text-xs text-[#0D7377] font-medium px-3 py-1 hover:underline">
+                View {open.length - 6} more <ArrowRight className="w-3 h-3" />
+              </a>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ── Client Tickets Panel ──────────────────────────────────────────────────────
+
+const TICKET_STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
+  open:        { bg: "bg-blue-100",   text: "text-blue-700",   label: "Open" },
+  in_progress: { bg: "bg-teal-100",   text: "text-[#0D7377]",  label: "In Progress" },
+  resolved:    { bg: "bg-green-100",  text: "text-green-700",  label: "Resolved" },
+  closed:      { bg: "bg-slate-100",  text: "text-slate-500",  label: "Closed" },
+};
+
+function ClientTicketsPanel() {
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiRequest("GET", "/api/employee/tickets").then((res) => {
+      if (res.success) setTickets(res.data);
+      setLoading(false);
+    });
+  }, []);
+
+  const active = tickets.filter((t) => t.status !== "closed" && t.status !== "resolved");
+
+  return (
+    <Card className="border-0 shadow-sm h-full">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold text-slate-700 flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <Ticket className="w-4 h-4 text-[#0D7377]" /> Client Tickets
+          </span>
+          <span className="text-xs font-normal text-slate-400">{active.length} active</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
+        {loading ? (
+          <div className="space-y-2">{[1,2,3].map(i => <div key={i} className="h-14 bg-slate-100 rounded-xl animate-pulse" />)}</div>
+        ) : active.length === 0 ? (
+          <div className="text-center py-8 text-slate-400">
+            <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-30" />
+            <p className="text-sm">No active tickets right now.</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {active.slice(0, 6).map((ticket) => {
+              const st = TICKET_STATUS_STYLES[ticket.status] ?? TICKET_STATUS_STYLES.open;
+              const pri = PRIORITY_STYLES[ticket.priority] ?? PRIORITY_STYLES.medium;
+              const age = (() => {
+                const diff = Date.now() - new Date(ticket.createdAt).getTime();
+                const h = Math.floor(diff / 3_600_000);
+                if (h < 1) return "just now";
+                if (h < 24) return `${h}h ago`;
+                return `${Math.floor(h / 24)}d ago`;
+              })();
+              return (
+                <a
+                  key={ticket.id}
+                  href={`/portal/employee/tickets`}
+                  className="flex items-start gap-3 rounded-xl px-3 py-2.5 hover:bg-slate-50 transition-colors"
+                  data-testid={`ticket-item-${ticket.id}`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-[#1A1F2B] truncate leading-tight">{ticket.title}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Opened {age}</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${pri.bg} ${pri.text}`}>{pri.label}</span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${st.bg} ${st.text}`}>{st.label}</span>
+                  </div>
+                </a>
+              );
+            })}
+            {active.length > 6 && (
+              <a href="/portal/employee/tickets" className="flex items-center gap-1 text-xs text-[#0D7377] font-medium px-3 py-1 hover:underline">
+                View {active.length - 6} more <ArrowRight className="w-3 h-3" />
+              </a>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
 function DashboardContent() {
@@ -354,22 +521,19 @@ function DashboardContent() {
         <p className="text-white/70 text-sm mt-1">Here's your daily briefing from HQ.</p>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {[
-          { icon: <Clock className="w-5 h-5 text-[#0D7377]" />, label: "Hours This Week", value: loading ? "—" : `${weekHours}h`, bg: "bg-teal-50" },
-          { icon: <Receipt className="w-5 h-5 text-[#D4A843]" />, label: "Pending Expenses", value: "—", bg: "bg-amber-50" },
-          { icon: <Kanban className="w-5 h-5 text-purple-500" />, label: "Open Tasks", value: "—", bg: "bg-purple-50" },
-          { icon: <MessageSquare className="w-5 h-5 text-blue-500" />, label: "Unread Messages", value: "—", bg: "bg-blue-50" },
-        ].map((card, i) => (
-          <Card key={i} className="border-0 shadow-sm">
-            <CardContent className="pt-4 pb-3">
-              <div className={`w-9 h-9 rounded-lg ${card.bg} flex items-center justify-center mb-2`}>{card.icon}</div>
-              <p className="text-2xl font-bold text-[#1A1F2B]" data-testid={`stat-${i}`}>{card.value}</p>
-              <p className="text-xs text-slate-500 mt-0.5">{card.label}</p>
-            </CardContent>
-          </Card>
-        ))}
+      {/* Hours This Week */}
+      <div className="mb-6">
+        <Card className="border-0 shadow-sm">
+          <CardContent className="pt-4 pb-3 flex items-center gap-4">
+            <div className="w-9 h-9 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
+              <Clock className="w-5 h-5 text-[#0D7377]" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-[#1A1F2B]" data-testid="stat-hours-week">{loading ? "—" : `${weekHours}h`}</p>
+              <p className="text-xs text-slate-500">Hours This Week</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Timer Widget */}
@@ -412,6 +576,12 @@ function DashboardContent() {
           )}
         </CardContent>
       </Card>
+
+      {/* My Tasks + Client Tickets */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <MyTasksPanel />
+        <ClientTicketsPanel />
+      </div>
 
       {/* Energy Slider */}
       <BalanceSlider />

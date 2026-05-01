@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Clock, Kanban, Receipt, Ticket,
   BookOpen, LogOut, Menu, X, Users, UserPlus,
-  AlertTriangle, ArrowRight, MessageSquare,
+  AlertTriangle, ArrowRight, MessageSquare, GraduationCap,
 } from "lucide-react";
 import { apiRequest } from "@/lib/auth";
 import logoImg from "@/assets/images/logo.png";
@@ -16,6 +16,7 @@ import {
 
 const navItems = [
   { href: "/portal/employee/dashboard", icon: <LayoutDashboard className="w-4 h-4" />, label: "Dashboard" },
+  { href: "/portal/employee/onboarding", icon: <GraduationCap className="w-4 h-4" />, label: "Onboarding" },
   { href: "/portal/employee/time", icon: <Clock className="w-4 h-4" />, label: "Time Tracking" },
   { href: "/portal/employee/kanban", icon: <Kanban className="w-4 h-4" />, label: "Kanban Boards" },
   { href: "/portal/employee/expenses", icon: <Receipt className="w-4 h-4" />, label: "Expenses" },

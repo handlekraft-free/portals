@@ -144,4 +144,36 @@ router.post("/courses/:courseId/files/:studentId", upload.single("file"), async 
   res.status(201).json({ success: true, data: f });
 });
 
+// ── Employee Onboarding ───────────────────────────────────────────────────────
+
+router.get("/onboarding", async (req, res) => {
+  const userId = req.user!.userId;
+  const items = await db.execute(sql`
+    SELECT i.*,
+      (SELECT count(*) FROM employee_onboarding_acks a WHERE a.item_id = i.id AND a.user_id = ${userId}) > 0 AS acked
+    FROM employee_onboarding_items i
+    ORDER BY i.position
+  `);
+  res.json({ success: true, data: items.rows });
+});
+
+router.post("/onboarding/:id/ack", async (req, res) => {
+  await db.execute(sql`
+    INSERT INTO employee_onboarding_acks (item_id, user_id)
+    VALUES (${parseInt(req.params.id)}, ${req.user!.userId})
+    ON CONFLICT DO NOTHING
+  `);
+  res.status(201).json({ success: true, data: null });
+});
+
+router.post("/onboarding/items", async (req, res) => {
+  const { title, description, linkUrl, section, estimatedTime, roleFilter, position } = req.body;
+  if (!title) return res.status(400).json({ success: false, error: "Title required" });
+  await db.execute(sql`
+    INSERT INTO employee_onboarding_items (title, description, link_url, section, estimated_time, role_filter, position)
+    VALUES (${title}, ${description ?? null}, ${linkUrl ?? null}, ${section ?? null}, ${estimatedTime ?? null}, ${roleFilter ?? "all"}, ${position ?? 99})
+  `);
+  res.status(201).json({ success: true, data: null });
+});
+
 export default router;

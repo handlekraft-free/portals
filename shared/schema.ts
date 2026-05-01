@@ -933,6 +933,28 @@ export type MeetingPollResponse = typeof meetingPollResponses.$inferSelect;
 // ─── Direct Messages ──────────────────────────────────────────────────────────
 // user1Id always = min(id), user2Id always = max(id) — ensures uniqueness
 
+export const employeeOnboardingItems = pgTable("employee_onboarding_items", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  linkUrl: text("link_url"),
+  section: text("section"),
+  estimatedTime: text("estimated_time"),
+  roleFilter: text("role_filter").default("all"),
+  position: integer("position").default(0),
+  required: boolean("required").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type EmployeeOnboardingItem = typeof employeeOnboardingItems.$inferSelect;
+
+export const employeeOnboardingAcks = pgTable("employee_onboarding_acks", {
+  id: serial("id").primaryKey(),
+  itemId: integer("item_id").notNull(),
+  userId: integer("user_id").notNull(),
+  ackedAt: timestamp("acked_at").defaultNow().notNull(),
+});
+export type EmployeeOnboardingAck = typeof employeeOnboardingAcks.$inferSelect;
+
 export const directMessageConversations = pgTable("direct_message_conversations", {
   id: serial("id").primaryKey(),
   user1Id: integer("user1_id").notNull(),

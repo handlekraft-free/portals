@@ -13,6 +13,7 @@ import LoginPage from "@/pages/portal/login";
 
 // Employee Portal
 import EmployeeDashboard from "@/pages/portal/employee/dashboard";
+import EmployeeOnboarding from "@/pages/portal/employee/onboarding";
 import EmployeeTime from "@/pages/portal/employee/time";
 import EmployeeKanban from "@/pages/portal/employee/kanban";
 import EmployeeExpenses from "@/pages/portal/employee/expenses";
@@ -73,6 +74,7 @@ function Router() {
 
       {/* Employee Portal */}
       <Route path="/portal/employee/dashboard" component={EmployeeDashboard} />
+      <Route path="/portal/employee/onboarding" component={EmployeeOnboarding} />
       <Route path="/portal/employee/time" component={EmployeeTime} />
       <Route path="/portal/employee/kanban" component={EmployeeKanban} />
       <Route path="/portal/employee/expenses" component={EmployeeExpenses} />

@@ -1,0 +1,96 @@
+Onboarding Reading List for handlekraft Employees
+This list is built specifically for our two roles — Tools and Development Lead, and Marketing and Social Media Lead — both of whom are stepping into work that blends AI-assisted production, client service, and learning-by-doing. The readings are organized so the first three weeks build the foundation everyone needs, and weeks 4-6 split into role-specific deep dives.
+Part 1: How We Work Together (everyone, week 1)
+1. The Center for Nonviolent Communication — What is NVC
+cnvc.org/learn/what-is-nvc
+~10 min read
+We're a small team where the founder and his son work together every day, and where a third employee joins that family dynamic. We talk to clients facing real stress in underfunded organizations. NVC's four components — observation, feelings, needs, requests — give us a shared vocabulary for hard conversations. Read this in week one. We'll use the language.
+2. Reinventing Organizations — Illustrated Summary (Laloux)
+reinventingorganizations.com/uploads/2/1/9/8/21988088/140305_laloux_reinventing_organizations.pdf
+Skim — 30 min
+You don't need to read the whole book, but you need to understand how we want to operate. Self-management means you own your domain. Wholeness means you bring your whole self to work, not a fake "professional" mask. Evolutionary purpose means we adjust based on what we're learning, not what was decided in a planning document a year ago. Read at least the chapters on self-management and wholeness.
+3. Cal Newport — Deep Work, Chapter 1 summary or interview
+calnewport.com/deep-work-rules-for-focused-success-in-a-distracted-world/
+~15 min
+We work 30 hours a week. That sounds like less work — but only if those 30 hours are good ones. Deep work explains why protected, focused time produces more in 4 hours than scattered effort produces in 10. Our short workweek is a feature, not a constraint, but only if we use it well.
+Part 2: Working With AI as a Co-Worker (everyone, week 2)
+4. Anthropic's Interactive Prompt Engineering Tutorial
+github.com/anthropics/prompt-eng-interactive-tutorial
+Hands-on, ~3 hours
+Both roles use Claude every day. This nine-chapter interactive course is the single best on-ramp. Work through chapters 1-6 in week two; come back for the rest in your own time. Skip nothing in the first six chapters.
+5. Anthropic's Prompting Best Practices
+docs.claude.com/en/build-with-claude/prompt-engineering/overview
+~25 min skim
+The reference document. Read it once, then keep it bookmarked. Concepts like role assignment, structured input with XML tags, chain-of-thought prompting, and prefilling will become daily tools. Don't try to memorize — just know what's available.
+6. Ethan Mollick — Co-Intelligence (article-length excerpt or "On-the-job training" essay)
+oneusefulthing.org/p/on-the-job-training
+~20 min
+Mollick studies how people actually use AI productively in real jobs. His core insight — that AI is best treated as a coworker you delegate to and review, not as a search engine — matches our operating model exactly. His Substack (One Useful Thing) is worth subscribing to.
+Part 3: Doing the Work Well (everyone, week 3)
+7. Julie Zhuo — The Looking Glass / The Making of a Manager (early chapters)
+lg.substack.com
+Browse 30 min
+Even though neither of you manages people, you'll be managing projects, clients, and your own time. Zhuo's writing on giving feedback, having hard conversations, and growing in a small organization is uncommonly clear and humane. Pick 2-3 posts that catch your eye.
+8. Bret Victor — Inventing on Principle
+vimeo.com/36579366 (video, ~50 min)
+Watch when you can
+A foundational talk about doing work that matters. Our mission is to give the power to act to organizations that need it and people who deserve a chance. Victor's framing — that good work flows from a principle you genuinely care about — is the right north star for handlekraft. Especially valuable for non-traditional learners who may not have heard the field talk this way before.
+
+Part 4A: Tools and Development Lead — Role-Specific (weeks 4-6)
+9. Claude Code 101 (Anthropic Academy)
+anthropic.skilljar.com/claude-code-101
+Self-paced, ~4-6 hours
+Walks through everything from installation to advanced workflows. Designed for developers new to software engineering or experienced engineers exploring AI coding agents. This is the single most important course for your role. Take your time with it. Replit
+10. The Pragmatic Programmer (Hunt & Thomas) — Selected Chapters
+Borrow from a library or buy used
+~3-4 hours for the priority chapters
+A classic. Read chapters on "Care About Your Craft," "DRY (Don't Repeat Yourself)," "Tracer Bullets," "Programming by Coincidence," and "Pragmatic Teams." The book teaches the why behind professional practices — most AI-assisted developers have never read it, and it shows. You'll be ahead of the curve.
+11. Replit Documentation — Getting Started + Deployments
+docs.replit.com
+~1-2 hours skim
+We build and deploy on Replit. Read the Deployments section carefully and skim everything else. You'll come back to it as you build.
+12. Git for Humans (Alice Bartlett)
+speakerdeck.com/alicebartlett/git-for-humans
+~30 min
+Plain-English Git fundamentals. Even with AI helping, you need to understand branches, commits, pull requests, and how to recover when things go wrong. This deck is the kindest introduction to the topic.
+13. The Twelve-Factor App
+12factor.net
+~1 hour
+Twelve-factor methodology is the industry standard for building maintainable web applications. Read it once now, refer back when you build something real. It will save you weeks of pain over time.
+
+Part 4B: Marketing and Social Media Lead — Role-Specific (weeks 4-6)
+9. Made to Stick (Heath & Heath) — Summary or Selected Chapters
+heathbrothers.com/books/made-to-stick/
+~2-3 hours
+The SUCCESs framework (Simple, Unexpected, Concrete, Credible, Emotional, Stories) is the most useful tool I know for nonprofit marketing. Why do some messages travel while others die? This book answers it. Read at least the introduction and the chapters on Simple and Stories.
+10. Donor Relations & Storytelling — Network for Good Resources
+learning.candid.org/resources/
+Browse 1-2 hours
+Free resources from Candid (formerly Foundation Center / GuideStar). Search for "storytelling" and "donor communication." Nonprofit marketing has its own grammar — this is where you learn it.
+11. Ann Handley — Everybody Writes (selected chapters)
+annhandley.com/everybodywrites/
+~2 hours for priority chapters
+The standard reference for clear, useful business writing. Especially valuable because much of your work will be writing — social posts, email campaigns, donor communications, grant narratives. Read the sections on writing rules and content type how-tos.
+12. Mailchimp Resource Library — Email Marketing Field Guide
+mailchimp.com/resources/email-marketing-field-guide/
+~1 hour
+We'll use Mailchimp's free tier in year one. This is their official guide — practical, not promotional. Covers list building, segmentation, deliverability, and what actually moves open rates.
+13. Beth Kanter — Networked Nonprofit (selected blog posts)
+bethkanter.org
+Browse 1-2 hours
+Beth Kanter has written about nonprofit social media for 20 years. Her work is grounded in actual practice and real outcomes, not vanity metrics. Pick recent posts on AI for nonprofits, content strategy, or community building.
+
+Part 5: handlekraft-Specific (everyone, ongoing)
+14. The handlekraft Proposal
+handlekraft.ai/proposal.pdf
+Read it carefully. Re-read in 90 days. The proposal is our shared map. If we drift from it, we should know we're drifting.
+15. The Tier 1 Training Plan
+handlekraft.ai/docs/handlekraft-tier1-training-plan.docx
+The fellowship curriculum is the heart of our program. Both roles support fellows; both roles will eventually help shape future cohorts. Know what we're teaching and why.
+16. The Tier 2 Training Plan (early draft)
+handlekraft.ai/docs/handlekraft-tier2-training-plan.docx
+Read for awareness. This is where the program is going, not where it is. Your input on the final design will be welcomed once we've run a Tier 1 cohort.
+
+Suggested Reading Schedule
+WeekReadingTime Estimate1NVC + Reinventing Organizations + Deep Work1 hour2Anthropic prompt tutorial + best practices + Mollick4 hours3Zhuo + Victor + handlekraft proposal2 hours4Role-specific reading begins2-3 hours5Role-specific reading continues2-3 hours6Tier 1 / Tier 2 training plans + role-specific2-3 hoursOngoingMollick's Substack, Kanter's blog, BoardSource, etc.Subscribe
+Total: ~15-18 hours over six weeks, roughly 3 hours per week of paid time. This should be on the clock — protect it.

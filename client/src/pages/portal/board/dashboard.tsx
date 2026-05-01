@@ -78,42 +78,50 @@ function BoardDashboardContent() {
   return (
     <div className="space-y-6">
       {/* Viking Welcome Banner */}
-      <div className="bg-gradient-to-br from-[#1A1F2B] via-[#1e2035] to-indigo-950 rounded-2xl px-6 py-5 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#1A1F2B] via-[#1e2035] to-indigo-950 rounded-2xl px-6 py-8 text-white relative overflow-hidden">
         {/* Decorative Viking */}
         <img
           src={vikingProudImg}
           alt=""
           aria-hidden="true"
-          className="absolute right-0 bottom-0 h-32 sm:h-36 opacity-90 pointer-events-none select-none object-contain object-bottom"
+          className="absolute right-0 bottom-0 h-36 sm:h-40 opacity-90 pointer-events-none select-none object-contain object-bottom"
         />
         {/* Subtle background pattern */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none select-none" aria-hidden="true"
           style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/cubes.png')" }} />
-        <p className="text-indigo-300/70 text-[11px] uppercase tracking-widest mb-1.5">
-          Board of Directors · handləkraft Digital
+
+        {/* Centered headline */}
+        <p className="text-center font-display text-4xl sm:text-5xl tracking-tight text-white mb-6 relative z-10" data-testid="banner-headline">
+          Hold det hyggelig!
         </p>
-        <h1 className="text-2xl font-display flex items-center gap-2 flex-wrap">
-          Heil, {user?.firstName}!
-          <VikingArsenal className="text-white/25" />
-        </h1>
-        <p className="text-white/60 text-sm mt-1.5 max-w-xs leading-relaxed">
-          {user?.boardPosition ? <span className="text-indigo-300 font-medium">{user.boardPosition} · </span> : ""}
-          The council stands ready. Let's govern with purpose.
-        </p>
-        {(needsRsvp.length > 0 || overdueActions.length > 0) && (
-          <div className="flex gap-2 flex-wrap mt-3">
-            {needsRsvp.length > 0 && (
-              <Badge className="bg-amber-500/20 text-amber-300 border-amber-400/30 gap-1.5">
-                <AlertCircle className="w-3 h-3" /> {needsRsvp.length} RSVP{needsRsvp.length !== 1 ? "s" : ""} needed
-              </Badge>
-            )}
-            {overdueActions.length > 0 && (
-              <Badge className="bg-red-500/20 text-red-300 border-red-400/30 gap-1.5">
-                <AlertCircle className="w-3 h-3" /> {overdueActions.length} overdue action{overdueActions.length !== 1 ? "s" : ""}
-              </Badge>
-            )}
-          </div>
-        )}
+
+        <div className="relative z-10">
+          <p className="text-indigo-300/70 text-[11px] uppercase tracking-widest mb-1.5">
+            Board of Directors · handləkraft Digital
+          </p>
+          <h1 className="text-2xl font-display flex items-center gap-2 flex-wrap">
+            Heil, {user?.firstName}!
+            <VikingArsenal className="text-white/25" />
+          </h1>
+          <p className="text-white/60 text-sm mt-1.5 max-w-xs leading-relaxed">
+            {user?.boardPosition ? <span className="text-indigo-300 font-medium">{user.boardPosition} · </span> : ""}
+            The council stands ready. Let's govern with purpose.
+          </p>
+          {(needsRsvp.length > 0 || overdueActions.length > 0) && (
+            <div className="flex gap-2 flex-wrap mt-3">
+              {needsRsvp.length > 0 && (
+                <Badge className="bg-amber-500/20 text-amber-300 border-amber-400/30 gap-1.5">
+                  <AlertCircle className="w-3 h-3" /> {needsRsvp.length} RSVP{needsRsvp.length !== 1 ? "s" : ""} needed
+                </Badge>
+              )}
+              {overdueActions.length > 0 && (
+                <Badge className="bg-red-500/20 text-red-300 border-red-400/30 gap-1.5">
+                  <AlertCircle className="w-3 h-3" /> {overdueActions.length} overdue action{overdueActions.length !== 1 ? "s" : ""}
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Summary cards */}

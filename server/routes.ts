@@ -10,7 +10,7 @@ import {
   users, expenseCategories, chargeCodes,
   boardMeetings, boardAgendaItems, boardMeetingAttendees, boardMeetingNotices, boardActionItems,
   boardDocuments, boardDocumentVersions,
-  kanbanBoards, kanbanColumns, boardOnboardingItems,
+  kanbanBoards, kanbanColumns, boardOnboardingItems, employeeOnboardingItems,
 } from "@shared/schema";
 import { db } from "./db";
 import { sql, count, eq, inArray, desc } from "drizzle-orm";
@@ -325,6 +325,17 @@ export async function registerRoutes(
         role varchar(10) NOT NULL, content text NOT NULL,
         created_at timestamp DEFAULT now() NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS employee_onboarding_items (
+        id serial PRIMARY KEY, title text NOT NULL, description text,
+        link_url text, section text, estimated_time text,
+        role_filter text DEFAULT 'all', position integer DEFAULT 0,
+        required boolean DEFAULT true, created_at timestamp DEFAULT now() NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS employee_onboarding_acks (
+        id serial PRIMARY KEY, item_id integer NOT NULL,
+        user_id integer NOT NULL, acked_at timestamp DEFAULT now() NOT NULL,
+        UNIQUE(item_id, user_id)
+      );
     `);
     await migrationPool.end();
     console.log("[migrate] ✓ Schema patches applied");
@@ -427,6 +438,45 @@ export async function registerRoutes(
     }
   } catch (e: any) {
     console.error("[seed] Could not seed board onboarding items:", e.message);
+  }
+
+  // Seed employee onboarding items if none exist
+  try {
+    const [{ value: eoCount }] = await db.select({ value: count() }).from(employeeOnboardingItems);
+    if (Number(eoCount) === 0) {
+      await db.insert(employeeOnboardingItems).values([
+        // Part 1: How We Work Together (all, week 1)
+        { title: "The Center for Nonviolent Communication — What is NVC", description: "We're a small team where the founder and his son work together every day, and where a third employee joins that family dynamic. We talk to clients facing real stress in underfunded organizations. NVC's four components — observation, feelings, needs, requests — give us a shared vocabulary for hard conversations. Read this in week one. We'll use the language.", linkUrl: "https://www.cnvc.org/learn/what-is-nvc", section: "Part 1: How We Work Together", estimatedTime: "~10 min read", roleFilter: "all", position: 1 },
+        { title: "Reinventing Organizations — Illustrated Summary", description: "You don't need to read the whole book, but you need to understand how we want to operate. Self-management means you own your domain. Wholeness means you bring your whole self to work, not a fake 'professional' mask. Evolutionary purpose means we adjust based on what we're learning, not what was decided in a planning document a year ago. Read at least the chapters on self-management and wholeness.", linkUrl: "https://reinventingorganizations.com/uploads/2/1/9/8/21988088/140305_laloux_reinventing_organizations.pdf", section: "Part 1: How We Work Together", estimatedTime: "Skim ~30 min", roleFilter: "all", position: 2 },
+        { title: "Cal Newport — Deep Work (Chapter 1 Summary)", description: "We work 30 hours a week. That sounds like less work — but only if those 30 hours are good ones. Deep work explains why protected, focused time produces more in 4 hours than scattered effort produces in 10. Our short workweek is a feature, not a constraint, but only if we use it well.", linkUrl: "https://calnewport.com/deep-work-rules-for-focused-success-in-a-distracted-world/", section: "Part 1: How We Work Together", estimatedTime: "~15 min", roleFilter: "all", position: 3 },
+        // Part 2: Working With AI as a Co-Worker (all, week 2)
+        { title: "Anthropic's Interactive Prompt Engineering Tutorial", description: "Both roles use Claude every day. This nine-chapter interactive course is the single best on-ramp. Work through chapters 1–6 in week two; come back for the rest in your own time. Skip nothing in the first six chapters.", linkUrl: "https://github.com/anthropics/prompt-eng-interactive-tutorial", section: "Part 2: Working With AI as a Co-Worker", estimatedTime: "Hands-on, ~3 hours", roleFilter: "all", position: 4 },
+        { title: "Anthropic's Prompting Best Practices", description: "The reference document. Read it once, then keep it bookmarked. Concepts like role assignment, structured input with XML tags, chain-of-thought prompting, and prefilling will become daily tools. Don't try to memorize — just know what's available.", linkUrl: "https://docs.anthropic.com/en/build-with-claude/prompt-engineering/overview", section: "Part 2: Working With AI as a Co-Worker", estimatedTime: "~25 min skim", roleFilter: "all", position: 5 },
+        { title: "Ethan Mollick — On-the-Job Training (One Useful Thing)", description: "Mollick studies how people actually use AI productively in real jobs. His core insight — that AI is best treated as a coworker you delegate to and review, not as a search engine — matches our operating model exactly. His Substack (One Useful Thing) is worth subscribing to.", linkUrl: "https://www.oneusefulthing.org/p/on-the-job-training", section: "Part 2: Working With AI as a Co-Worker", estimatedTime: "~20 min", roleFilter: "all", position: 6 },
+        // Part 3: Doing the Work Well (all, week 3)
+        { title: "Julie Zhuo — The Looking Glass (Substack)", description: "Even though neither of you manages people, you'll be managing projects, clients, and your own time. Zhuo's writing on giving feedback, having hard conversations, and growing in a small organization is uncommonly clear and humane. Pick 2–3 posts that catch your eye.", linkUrl: "https://lg.substack.com", section: "Part 3: Doing the Work Well", estimatedTime: "Browse ~30 min", roleFilter: "all", position: 7 },
+        { title: "Bret Victor — Inventing on Principle (Video)", description: "A foundational talk about doing work that matters. Our mission is to give the power to act to organizations that need it and people who deserve a chance. Victor's framing — that good work flows from a principle you genuinely care about — is the right north star for handləkraft. Especially valuable for non-traditional learners who may not have heard the field talk this way before.", linkUrl: "https://vimeo.com/36579366", section: "Part 3: Doing the Work Well", estimatedTime: "Watch ~50 min", roleFilter: "all", position: 8 },
+        // Part 4A: Tools & Development Lead (weeks 4-6)
+        { title: "Claude Code 101 (Anthropic Academy)", description: "Walks through everything from installation to advanced workflows. Designed for developers new to software engineering or experienced engineers exploring AI coding agents. This is the single most important course for your role. Take your time with it.", linkUrl: "https://anthropic.skilljar.com/claude-code-101", section: "Part 4A: Tools & Development Lead", estimatedTime: "Self-paced, ~4–6 hours", roleFilter: "tools_lead", position: 9 },
+        { title: "The Pragmatic Programmer — Selected Chapters", description: "Read chapters on 'Care About Your Craft,' 'DRY (Don't Repeat Yourself),' 'Tracer Bullets,' 'Programming by Coincidence,' and 'Pragmatic Teams.' The book teaches the why behind professional practices — most AI-assisted developers have never read it, and it shows. You'll be ahead of the curve. Borrow from a library or buy used.", linkUrl: null, section: "Part 4A: Tools & Development Lead", estimatedTime: "~3–4 hours (priority chapters)", roleFilter: "tools_lead", position: 10 },
+        { title: "Replit Documentation — Getting Started + Deployments", description: "We build and deploy on Replit. Read the Deployments section carefully and skim everything else. You'll come back to it as you build.", linkUrl: "https://docs.replit.com", section: "Part 4A: Tools & Development Lead", estimatedTime: "~1–2 hours skim", roleFilter: "tools_lead", position: 11 },
+        { title: "Git for Humans (Alice Bartlett)", description: "Plain-English Git fundamentals. Even with AI helping, you need to understand branches, commits, pull requests, and how to recover when things go wrong. This deck is the kindest introduction to the topic.", linkUrl: "https://speakerdeck.com/alicebartlett/git-for-humans", section: "Part 4A: Tools & Development Lead", estimatedTime: "~30 min", roleFilter: "tools_lead", position: 12 },
+        { title: "The Twelve-Factor App", description: "Twelve-factor methodology is the industry standard for building maintainable web applications. Read it once now, refer back when you build something real. It will save you weeks of pain over time.", linkUrl: "https://12factor.net", section: "Part 4A: Tools & Development Lead", estimatedTime: "~1 hour", roleFilter: "tools_lead", position: 13 },
+        // Part 4B: Marketing & Social Media Lead (weeks 4-6)
+        { title: "Made to Stick — Summary or Selected Chapters (Heath & Heath)", description: "The SUCCESs framework (Simple, Unexpected, Concrete, Credible, Emotional, Stories) is the most useful tool I know for nonprofit marketing. Why do some messages travel while others die? This book answers it. Read at least the introduction and the chapters on Simple and Stories.", linkUrl: "https://heathbrothers.com/books/made-to-stick/", section: "Part 4B: Marketing & Social Media Lead", estimatedTime: "~2–3 hours", roleFilter: "marketing_lead", position: 14 },
+        { title: "Donor Relations & Storytelling — Candid Resources", description: "Free resources from Candid (formerly Foundation Center / GuideStar). Search for 'storytelling' and 'donor communication.' Nonprofit marketing has its own grammar — this is where you learn it.", linkUrl: "https://learning.candid.org/resources/", section: "Part 4B: Marketing & Social Media Lead", estimatedTime: "Browse 1–2 hours", roleFilter: "marketing_lead", position: 15 },
+        { title: "Ann Handley — Everybody Writes (Selected Chapters)", description: "The standard reference for clear, useful business writing. Especially valuable because much of your work will be writing — social posts, email campaigns, donor communications, grant narratives. Read the sections on writing rules and content type how-tos.", linkUrl: "https://annhandley.com/everybodywrites/", section: "Part 4B: Marketing & Social Media Lead", estimatedTime: "~2 hours (priority chapters)", roleFilter: "marketing_lead", position: 16 },
+        { title: "Mailchimp Email Marketing Field Guide", description: "We'll use Mailchimp's free tier in year one. This is their official guide — practical, not promotional. Covers list building, segmentation, deliverability, and what actually moves open rates.", linkUrl: "https://mailchimp.com/resources/email-marketing-field-guide/", section: "Part 4B: Marketing & Social Media Lead", estimatedTime: "~1 hour", roleFilter: "marketing_lead", position: 17 },
+        { title: "Beth Kanter — Networked Nonprofit (Selected Posts)", description: "Beth Kanter has written about nonprofit social media for 20 years. Her work is grounded in actual practice and real outcomes, not vanity metrics. Pick recent posts on AI for nonprofits, content strategy, or community building.", linkUrl: "https://bethkanter.org", section: "Part 4B: Marketing & Social Media Lead", estimatedTime: "Browse 1–2 hours", roleFilter: "marketing_lead", position: 18 },
+        // Part 5: handləkraft-Specific (all, ongoing)
+        { title: "The handləkraft Proposal", description: "Read it carefully. Re-read in 90 days. The proposal is our shared map. If we drift from it, we should know we're drifting.", linkUrl: "https://handlekraft.ai/proposal.pdf", section: "Part 5: handləkraft-Specific", estimatedTime: "Read carefully", roleFilter: "all", position: 19 },
+        { title: "The Tier 1 Training Plan", description: "The fellowship curriculum is the heart of our program. Both roles support fellows; both roles will eventually help shape future cohorts. Know what we're teaching and why.", linkUrl: "https://handlekraft.ai/docs/handlekraft-tier1-training-plan.docx", section: "Part 5: handləkraft-Specific", estimatedTime: "Read carefully", roleFilter: "all", position: 20 },
+        { title: "The Tier 2 Training Plan (Early Draft)", description: "Read for awareness. This is where the program is going, not where it is. Your input on the final design will be welcomed once we've run a Tier 1 cohort.", linkUrl: "https://handlekraft.ai/docs/handlekraft-tier2-training-plan.docx", section: "Part 5: handləkraft-Specific", estimatedTime: "Read for awareness", roleFilter: "all", position: 21 },
+      ]);
+      console.log("[seed] ✓ Employee onboarding items seeded");
+    }
+  } catch (e: any) {
+    console.error("[seed] Could not seed employee onboarding items:", e.message);
   }
 
   // Seed "Internal Team" kanban board if it doesn't exist

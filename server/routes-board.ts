@@ -442,22 +442,37 @@ router.get("/my-action-items", async (req, res) => {
 router.patch("/action-items/:id", async (req, res) => {
   const itemId = parseInt(req.params.id);
   const userId = req.user!.userId;
-  const isAdmin = req.user!.role === "admin";
-  // Only admin or the assigned user may edit
+  const isBoard = req.user!.role === "admin" || req.user!.role === "board";
   const [existing] = await db.select().from(boardActionItems).where(eq(boardActionItems.id, itemId));
   if (!existing) return res.status(404).json({ success: false, error: "Not found" });
-  if (!isAdmin && existing.assignedTo !== userId) {
+  if (!isBoard && existing.assignedTo !== userId && existing.createdBy !== userId) {
     return res.status(403).json({ success: false, error: "Not authorized to edit this action item" });
   }
-  const { status, dueDate, title, description } = req.body;
+  const { status, dueDate, title, description, assignedTo, priority } = req.body;
   const [updated] = await db.update(boardActionItems).set({
     ...(status && { status }),
     ...(status === "complete" && { completedAt: new Date() }),
+    ...(status && status !== "complete" && { completedAt: null }),
     ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
-    ...(isAdmin && title && { title }),
-    ...(isAdmin && description !== undefined && { description }),
+    ...(title && { title }),
+    ...(description !== undefined && { description }),
+    ...(assignedTo !== undefined && { assignedTo: assignedTo ? parseInt(assignedTo) : null }),
+    ...(priority !== undefined && { priority }),
   }).where(eq(boardActionItems.id, itemId)).returning();
   res.json({ success: true, data: updated });
+});
+
+router.delete("/action-items/:id", async (req, res) => {
+  const itemId = parseInt(req.params.id);
+  const userId = req.user!.userId;
+  const isBoard = req.user!.role === "admin" || req.user!.role === "board";
+  const [existing] = await db.select().from(boardActionItems).where(eq(boardActionItems.id, itemId));
+  if (!existing) return res.status(404).json({ success: false, error: "Not found" });
+  if (!isBoard && existing.createdBy !== userId) {
+    return res.status(403).json({ success: false, error: "Not authorized to delete this action item" });
+  }
+  await db.delete(boardActionItems).where(eq(boardActionItems.id, itemId));
+  res.json({ success: true, data: { deleted: itemId } });
 });
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────

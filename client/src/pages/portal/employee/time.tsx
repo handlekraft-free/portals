@@ -14,25 +14,29 @@ import { Badge } from "@/components/ui/badge";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-const WEEK_KEYS = ["w1", "w2", "w3", "w4", "w5"] as const;
-type WeekKey = typeof WEEK_KEYS[number];
-
-// Labels shown in the column header for each week bucket
-const WEEK_BUCKET_LABELS: Record<WeekKey, string> = {
-  w1: "1–7", w2: "8–14", w3: "15–21", w4: "22–28", w5: "29+",
-};
+// Day keys for current two-week (14-day) format
+const BIWEEK_INDICES = Array.from({ length: 14 }, (_, i) => `d${i}`) as (`d${number}`)[];
+type DayIdx = typeof BIWEEK_INDICES[number];
+const DAY_NAMES_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
 // Legacy day keys for reading old weekly-format reports in history
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 type DayKey = typeof DAY_KEYS[number];
 const DAY_LABELS: Record<DayKey, string> = { mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun" };
 
-function getMonthStart(d = new Date()) {
-  return new Date(d.getFullYear(), d.getMonth(), 1);
+function getMondayOfWeek(d = new Date()) {
+  const day = d.getDay(); // 0=Sun
+  const diff = day === 0 ? -6 : 1 - day;
+  const mon = new Date(d);
+  mon.setHours(0, 0, 0, 0);
+  mon.setDate(d.getDate() + diff);
+  return mon;
 }
 
-function getMonthEnd(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0);
+function addDays(d: Date, n: number) {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
 }
 
 function fmtDate(d: Date) {
@@ -43,28 +47,20 @@ function fmtIso(d: Date) {
   return d.toISOString().split("T")[0];
 }
 
-function fmtMonthLabel(d: Date) {
-  return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-}
+const emptyDayRow14 = (): Record<DayIdx, number> =>
+  Object.fromEntries(BIWEEK_INDICES.map(k => [k, 0])) as Record<DayIdx, number>;
 
-function monthHas5Weeks(d: Date) {
-  return getMonthEnd(d).getDate() >= 29;
-}
-
-const emptyWeekRow = (): Record<WeekKey, number> => ({ w1: 0, w2: 0, w3: 0, w4: 0, w5: 0 });
-const defaultCcHours = (codes: any[]): Record<number, Record<WeekKey, number>> => {
-  const result: Record<number, Record<WeekKey, number>> = {};
-  codes.forEach(cc => { result[cc.id] = emptyWeekRow(); });
+// Prefill: first CC gets Mon–Thu (d0–d3) = 6h, second CC gets Fri (d4) = 6h
+const defaultCcHours = (codes: any[]): Record<number, Record<DayIdx, number>> => {
+  const result: Record<number, Record<DayIdx, number>> = {};
+  codes.forEach((cc, idx) => {
+    const row = emptyDayRow14();
+    if (idx === 0) { row.d0 = 6; row.d1 = 6; row.d2 = 6; row.d3 = 6; }
+    if (idx === 1) { row.d4 = 6; }
+    result[cc.id] = row;
+  });
   return result;
 };
-
-// Detect whether a report's period covers an entire month
-function isMonthlyReport(r: any): boolean {
-  if (!r.periodStart || !r.periodEnd) return false;
-  const start = new Date(r.periodStart + (r.periodStart.includes("T") ? "" : "T12:00:00"));
-  const end = new Date(r.periodEnd + (r.periodEnd.includes("T") ? "" : "T12:00:00"));
-  return start.getDate() === 1 && end.getDate() === getMonthEnd(start).getDate();
-}
 const formatDuration = (min: number | null) => min ? `${Math.floor(min / 60)}h ${min % 60}m` : "—";
 const formatTime = (s: number) => `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
@@ -75,29 +71,28 @@ const STATUS_COLORS: Record<string, string> = {
   rejected: "bg-red-100 text-red-700",
 };
 
-// ── Monthly Simple Timesheet (Charge Code × Week-of-Month Matrix) ─────────────
+// ── Two-Week Simple Timesheet (Charge Code × Daily Hours Matrix) ──────────────
 
-function MonthlyTimesheetPanel({ monthDate, onSubmitted }: { monthDate: Date; onSubmitted: () => void }) {
+function BiWeeklyTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onSubmitted: () => void }) {
   const [chargeCodes, setChargeCodes] = useState<any[]>([]);
-  const [ccHours, setCcHours] = useState<Record<number, Record<WeekKey, number>>>({});
+  const [ccHours, setCcHours] = useState<Record<number, Record<DayIdx, number>>>({});
   const [notes, setNotes] = useState("");
   const [existingReport, setExistingReport] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [codesLoading, setCodesLoading] = useState(true);
 
-  const monthStart = getMonthStart(monthDate);
-  const monthEnd = getMonthEnd(monthDate);
-  const has5Weeks = monthHas5Weeks(monthDate);
-  const activeKeys: WeekKey[] = has5Weeks ? WEEK_KEYS as any : (["w1", "w2", "w3", "w4"] as WeekKey[]);
+  // 14 day dates from weekStart
+  const periodDates = BIWEEK_INDICES.map((_, i) => addDays(weekStart, i));
+  const periodEnd = periodDates[13];
 
   const grandTotal = chargeCodes.reduce((s, cc) =>
-    s + activeKeys.reduce((ws, k) => ws + (ccHours[cc.id]?.[k] || 0), 0), 0);
+    s + BIWEEK_INDICES.reduce((ds, k) => ds + (ccHours[cc.id]?.[k] || 0), 0), 0);
 
-  const colTotal = (wk: WeekKey) => chargeCodes.reduce((s, cc) => s + (ccHours[cc.id]?.[wk] || 0), 0);
-  const rowTotal = (ccId: number) => activeKeys.reduce((s, k) => s + (ccHours[ccId]?.[k] || 0), 0);
+  const colTotal = (idx: DayIdx) => chargeCodes.reduce((s, cc) => s + (ccHours[cc.id]?.[idx] || 0), 0);
+  const rowTotal = (ccId: number) => BIWEEK_INDICES.reduce((s, k) => s + (ccHours[ccId]?.[k] || 0), 0);
 
   useEffect(() => { loadCodes(); }, []);
-  useEffect(() => { if (chargeCodes.length > 0) loadExisting(); }, [fmtIso(monthStart), chargeCodes.length]);
+  useEffect(() => { if (chargeCodes.length > 0) loadExisting(); }, [fmtIso(weekStart), chargeCodes.length]);
 
   async function loadCodes() {
     setCodesLoading(true);
@@ -111,17 +106,17 @@ function MonthlyTimesheetPanel({ monthDate, onSubmitted }: { monthDate: Date; on
     if (!res.success) return;
     const report = res.data.find((r: any) => {
       const ps = new Date(r.periodStart + (r.periodStart.includes("T") ? "" : "T12:00:00"));
-      return r.mode === "simple" && ps.getFullYear() === monthStart.getFullYear() && ps.getMonth() === monthStart.getMonth() && ps.getDate() === 1;
+      return r.mode === "simple" && fmtIso(ps) === fmtIso(weekStart);
     });
     if (report) {
       setExistingReport(report);
       if (report.simpleDayHours) {
         try {
           const parsed = JSON.parse(report.simpleDayHours);
-          // Expect { ccId: { w1, w2, w3, w4, w5 } } format
-          const numericKeyed: Record<number, Record<WeekKey, number>> = {};
+          // Expect { ccId: { d0, d1, ..., d13 } } format
+          const numericKeyed: Record<number, Record<DayIdx, number>> = {};
           for (const [k, v] of Object.entries(parsed)) {
-            numericKeyed[parseInt(k)] = v as Record<WeekKey, number>;
+            numericKeyed[parseInt(k)] = v as Record<DayIdx, number>;
           }
           setCcHours(numericKeyed);
         } catch { setCcHours(defaultCcHours(chargeCodes)); }
@@ -136,10 +131,10 @@ function MonthlyTimesheetPanel({ monthDate, onSubmitted }: { monthDate: Date; on
     }
   }
 
-  function setCell(ccId: number, wk: WeekKey, val: number) {
+  function setCell(ccId: number, idx: DayIdx, val: number) {
     setCcHours(prev => ({
       ...prev,
-      [ccId]: { ...(prev[ccId] || emptyWeekRow()), [wk]: val },
+      [ccId]: { ...(prev[ccId] || emptyDayRow14()), [idx]: val },
     }));
   }
 
@@ -148,8 +143,8 @@ function MonthlyTimesheetPanel({ monthDate, onSubmitted }: { monthDate: Date; on
   async function saveDraft() {
     setSaving(true);
     const payload = {
-      periodStart: monthStart.toISOString(),
-      periodEnd: monthEnd.toISOString(),
+      periodStart: weekStart.toISOString(),
+      periodEnd: periodEnd.toISOString(),
       totalHours: String(grandTotal),
       mode: "simple",
       simpleDayHours: ccHours,
@@ -166,14 +161,14 @@ function MonthlyTimesheetPanel({ monthDate, onSubmitted }: { monthDate: Date; on
   }
 
   async function submitSheet() {
-    if (!confirm(`Submit your ${fmtMonthLabel(monthDate)} timesheet for approval? You won't be able to edit it after submission.`)) return;
+    if (!confirm(`Submit your timesheet (${fmtDate(weekStart)} – ${fmtDate(periodEnd)}) for approval? You won't be able to edit it after submission.`)) return;
     setSaving(true);
     if (existingReport) {
       await apiRequest("PATCH", `/api/time/reports/${existingReport.id}/submit`, { totalHours: String(grandTotal), simpleDayHours: ccHours, notes });
     } else {
       const createRes = await apiRequest("POST", "/api/time/reports", {
-        periodStart: monthStart.toISOString(),
-        periodEnd: monthEnd.toISOString(),
+        periodStart: weekStart.toISOString(),
+        periodEnd: periodEnd.toISOString(),
         totalHours: String(grandTotal),
         mode: "simple",
         simpleDayHours: ccHours,
@@ -192,6 +187,8 @@ function MonthlyTimesheetPanel({ monthDate, onSubmitted }: { monthDate: Date; on
     return <div className="space-y-2">{[...Array(4)].map((_, i) => <div key={i} className="h-12 bg-slate-100 rounded-xl animate-pulse" />)}</div>;
   }
 
+  const todayIso = fmtIso(new Date());
+
   return (
     <div className="space-y-4">
       {existingReport && (
@@ -204,53 +201,72 @@ function MonthlyTimesheetPanel({ monthDate, onSubmitted }: { monthDate: Date; on
         </div>
       )}
 
-      {/* Charge code × week-of-month matrix */}
+      {/* Charge code × daily hours matrix — two weeks */}
       <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-        <table className="w-full text-sm min-w-[540px]">
+        <table className="w-full text-sm" style={{ minWidth: "900px" }}>
           <thead>
+            {/* Week group headers */}
+            <tr className="bg-slate-50 border-b border-slate-100">
+              <th className="text-left px-4 py-1.5 text-xs text-slate-400 w-40" />
+              <th colSpan={7} className="text-center py-1.5 text-xs font-semibold text-[#0D7377] border-r border-slate-200">
+                Week 1 · {fmtDate(weekStart)} – {fmtDate(addDays(weekStart, 6))}
+              </th>
+              <th colSpan={7} className="text-center py-1.5 text-xs font-semibold text-[#D4A843]">
+                Week 2 · {fmtDate(addDays(weekStart, 7))} – {fmtDate(periodEnd)}
+              </th>
+              <th className="text-center px-3 py-1.5 text-xs text-slate-400">Total</th>
+            </tr>
+            {/* Day headers */}
             <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider w-44">Charge Code</th>
-              {activeKeys.map(wk => (
-                <th key={wk} className="text-center px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  <div className="text-[#0D7377]">{WEEK_BUCKET_LABELS[wk]}</div>
-                  <div className="font-normal text-slate-400 mt-0.5 normal-case">{
-                    wk === "w1" ? "days 1–7" :
-                    wk === "w2" ? "days 8–14" :
-                    wk === "w3" ? "days 15–21" :
-                    wk === "w4" ? "days 22–28" :
-                    `day 29+`
-                  }</div>
-                </th>
-              ))}
-              <th className="text-center px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Month Total</th>
+              <th className="text-left px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider w-40">Charge Code</th>
+              {BIWEEK_INDICES.map((idx, i) => {
+                const date = periodDates[i];
+                const dayOfWeek = i % 7;
+                const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;
+                const isToday = fmtIso(date) === todayIso;
+                const isBoundary = i === 7;
+                return (
+                  <th
+                    key={idx}
+                    className={`text-center px-1.5 py-2 text-xs font-semibold uppercase tracking-wider ${isBoundary ? "border-l border-slate-200" : ""} ${isWeekend ? "text-slate-400" : isToday ? "text-[#0D7377]" : "text-slate-500"}`}
+                  >
+                    <div>{DAY_NAMES_SHORT[dayOfWeek]}</div>
+                    <div className={`font-normal text-xs mt-0.5 normal-case ${isToday ? "font-bold text-[#0D7377]" : "text-slate-400"}`}>{fmtDate(date)}</div>
+                  </th>
+                );
+              })}
+              <th className="text-center px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Total</th>
             </tr>
           </thead>
           <tbody>
             {chargeCodes.map((cc, rowIdx) => {
               const rt = rowTotal(cc.id);
               return (
-                <tr key={cc.id} className={`border-b border-slate-100 ${rowIdx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}`}>
-                  <td className="px-4 py-2.5">
+                <tr key={cc.id} className={`border-b border-slate-100 ${rowIdx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}>
+                  <td className="px-4 py-2">
                     <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cc.color }} />
                       <span className="text-xs font-medium text-[#1A1F2B] leading-tight">{cc.name}</span>
                     </div>
                   </td>
-                  {activeKeys.map(wk => {
-                    const val = ccHours[cc.id]?.[wk] ?? 0;
+                  {BIWEEK_INDICES.map((idx, i) => {
+                    const dayOfWeek = i % 7;
+                    const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;
+                    const isBoundary = i === 7;
+                    const val = ccHours[cc.id]?.[idx] ?? 0;
                     return (
-                      <td key={wk} className="px-2 py-2 text-center">
+                      <td key={idx} className={`px-1 py-1.5 text-center ${isWeekend ? "bg-slate-50/60" : ""} ${isBoundary ? "border-l border-slate-200" : ""}`}>
                         <input
                           type="number"
                           min="0"
-                          max="250"
+                          max="24"
                           step="0.5"
                           value={val || ""}
                           placeholder="0"
-                          onChange={e => setCell(cc.id, wk, parseFloat(e.target.value) || 0)}
+                          onChange={e => setCell(cc.id, idx, parseFloat(e.target.value) || 0)}
                           disabled={isLocked}
-                          data-testid={`input-cc-${cc.id}-${wk}`}
-                          className={`w-16 text-center border rounded-lg py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 ${
+                          data-testid={`input-cc-${cc.id}-${idx}`}
+                          className={`w-12 text-center border rounded-lg py-1 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 ${
                             isLocked ? "bg-slate-50 text-slate-400 cursor-not-allowed border-slate-100" :
                             val > 0 ? "border-[#0D7377]/40 text-[#1A1F2B] bg-[#0D7377]/5" : "border-slate-200 text-slate-400"
                           }`}
@@ -267,16 +283,19 @@ function MonthlyTimesheetPanel({ monthDate, onSubmitted }: { monthDate: Date; on
           </tbody>
           <tfoot>
             <tr className="bg-[#0D7377]/5 border-t-2 border-[#0D7377]/20">
-              <td className="px-4 py-2.5 text-xs font-bold text-slate-500 uppercase tracking-wider">Week Total</td>
-              {activeKeys.map(wk => {
-                const ct = colTotal(wk);
+              <td className="px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Daily Total</td>
+              {BIWEEK_INDICES.map((idx, i) => {
+                const dayOfWeek = i % 7;
+                const isWeekend = dayOfWeek === 5 || dayOfWeek === 6;
+                const isBoundary = i === 7;
+                const ct = colTotal(idx);
                 return (
-                  <td key={wk} className="px-2 py-2.5 text-center">
+                  <td key={idx} className={`px-1 py-2 text-center ${isWeekend ? "bg-slate-50/60" : ""} ${isBoundary ? "border-l border-slate-200" : ""}`}>
                     <span className={`text-sm font-bold ${ct > 0 ? "text-[#0D7377]" : "text-slate-300"}`}>{ct > 0 ? `${ct}h` : "—"}</span>
                   </td>
                 );
               })}
-              <td className="px-3 py-2.5 text-center">
+              <td className="px-3 py-2 text-center">
                 <span className="text-base font-extrabold text-[#0D7377]">{grandTotal}h</span>
               </td>
             </tr>
@@ -886,22 +905,26 @@ function TimeContent() {
   const { user } = useAuth();
   const [timesheetMode, setTimesheetMode] = useState<"simple" | "project">("simple");
   const [tab, setTab] = useState<"current" | "history" | "approvals" | "reports">("current");
-  const [monthDate, setMonthDate] = useState<Date>(getMonthStart());
+  // weekStart is always a Monday; two-week periods start here
+  const [weekStart, setWeekStart] = useState<Date>(getMondayOfWeek());
   const [historyKey, setHistoryKey] = useState(0);
 
   const canApprove = user?.role === "admin" || user?.canApprove === true;
 
   useEffect(() => { document.title = "Timesheets | handləkraft.ai"; }, []);
 
-  const now = new Date();
-  const currentMonthStart = getMonthStart(now);
-  const isCurrentMonth = monthDate.getFullYear() === currentMonthStart.getFullYear() && monthDate.getMonth() === currentMonthStart.getMonth();
+  // Current two-week period Monday
+  const currentPeriodStart = getMondayOfWeek();
+  const periodEnd = addDays(weekStart, 13);
+  const isCurrentPeriod = fmtIso(weekStart) === fmtIso(currentPeriodStart);
 
-  function prevMonth() { setMonthDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1)); }
-  function nextMonth() {
-    const next = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1);
-    if (next <= currentMonthStart) setMonthDate(next);
+  function prevPeriod() { setWeekStart(d => addDays(d, -14)); }
+  function nextPeriod() {
+    const next = addDays(weekStart, 14);
+    if (fmtIso(next) <= fmtIso(currentPeriodStart)) setWeekStart(next);
   }
+
+  const periodLabel = `${fmtDate(weekStart)} – ${fmtDate(periodEnd)}`;
 
   const tabs = [
     { key: "current", label: "Current Timesheet" },
@@ -911,7 +934,7 @@ function TimeContent() {
   ];
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-5xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
         <div>
           <h1 className="text-2xl font-display text-[#1A1F2B]">Timesheets</h1>
@@ -953,22 +976,22 @@ function TimeContent() {
         ))}
       </div>
 
-      {/* Current timesheet: month nav + content */}
+      {/* Current timesheet: two-week period nav + content */}
       {tab === "current" && timesheetMode === "simple" && (
         <>
           <div className="flex items-center gap-3 mb-4">
-            <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500" data-testid="button-prev-month">
+            <button onClick={prevPeriod} className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500" data-testid="button-prev-period">
               <ChevronLeft className="w-4 h-4" />
             </button>
             <div className="flex-1 text-center">
-              <p className="text-sm font-semibold text-[#1A1F2B]">{fmtMonthLabel(monthDate)}</p>
-              {isCurrentMonth && <span className="text-xs text-[#0D7377] font-medium">Current Month</span>}
+              <p className="text-sm font-semibold text-[#1A1F2B]">{periodLabel}</p>
+              {isCurrentPeriod && <span className="text-xs text-[#0D7377] font-medium">Current Period</span>}
             </div>
-            <button onClick={nextMonth} disabled={isCurrentMonth} className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500 disabled:opacity-30" data-testid="button-next-month">
+            <button onClick={nextPeriod} disabled={isCurrentPeriod} className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500 disabled:opacity-30" data-testid="button-next-period">
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
-          <MonthlyTimesheetPanel key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`} monthDate={monthDate} onSubmitted={() => setHistoryKey(k => k + 1)} />
+          <BiWeeklyTimesheetPanel key={fmtIso(weekStart)} weekStart={weekStart} onSubmitted={() => setHistoryKey(k => k + 1)} />
         </>
       )}
 

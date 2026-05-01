@@ -10,7 +10,7 @@ import {
   users, expenseCategories, chargeCodes,
   boardMeetings, boardAgendaItems, boardMeetingAttendees, boardMeetingNotices, boardActionItems,
   boardDocuments, boardDocumentVersions,
-  kanbanBoards, kanbanColumns,
+  kanbanBoards, kanbanColumns, boardOnboardingItems,
 } from "@shared/schema";
 import { db } from "./db";
 import { sql, count, eq, inArray, desc } from "drizzle-orm";
@@ -246,6 +246,9 @@ export async function registerRoutes(
         document_id integer, position integer DEFAULT 0, required boolean DEFAULT true,
         created_at timestamp DEFAULT now() NOT NULL
       );
+      ALTER TABLE board_onboarding_items ADD COLUMN IF NOT EXISTS link_url text;
+      ALTER TABLE board_onboarding_items ADD COLUMN IF NOT EXISTS section text;
+      ALTER TABLE board_onboarding_items ADD COLUMN IF NOT EXISTS estimated_time text;
       CREATE TABLE IF NOT EXISTS board_onboarding_acks (
         id serial PRIMARY KEY, item_id integer NOT NULL, user_id integer NOT NULL,
         acked_at timestamp DEFAULT now() NOT NULL
@@ -403,6 +406,27 @@ export async function registerRoutes(
     }
   } catch (e: any) {
     console.error("[seed] Could not seed charge codes:", e.message);
+  }
+
+  // Seed board onboarding items if none exist
+  try {
+    const [{ value: boCount }] = await db.select({ value: count() }).from(boardOnboardingItems);
+    if (Number(boCount) === 0) {
+      await db.insert(boardOnboardingItems).values([
+        { title: "The Ten Basic Responsibilities of Nonprofit Boards", description: "The single most-referenced framework in U.S. nonprofit governance. Covers mission, executive support, financial oversight, programmatic monitoring, and the board's role in resource development. Foundational reading for any new board member.", linkUrl: "https://boardsource.org/fundamental-topics-of-nonprofit-board-service/roles-responsibilities/", section: "Part 1: Nonprofit Board Foundations", estimatedTime: "~10 min read", position: 1 },
+        { title: "Board Responsibilities and Structures FAQ", description: "Addresses the legal duties — duty of care, duty of loyalty, duty of obedience — plus practical questions like board size, independence, and how decisions actually get made. Especially relevant for handləkraft because of our founder-funded structure and the public support test concerns we're navigating.", linkUrl: "https://boardsource.org/resources/board-responsibilities-structures-faqs/", section: "Part 1: Nonprofit Board Foundations", estimatedTime: "~15 min read", position: 2 },
+        { title: "Bridgespan Nonprofit Board Resource Center", description: "Curated resource hub from Bridgespan + BoardSource. Useful for the orientation checklist, the document-tracking infographic, and the dissent/diversity guidance. Bookmark this — it's a reference, not a one-time read.", linkUrl: "https://www.bridgespan.org/insights/nonprofit-board-resource-center", section: "Part 1: Nonprofit Board Foundations", estimatedTime: "Browse 20-30 min", position: 3 },
+        { title: "The Future of Management is Teal", description: "Frédéric Laloux's own short summary of his book's ideas. The three breakthroughs of teal organizations — self-management, wholeness, and evolutionary purpose — line up closely with what we're trying to be: a small team where everyone owns their domain, where people bring their whole selves, and where the organization adapts based on what it's learning. Worth knowing the vocabulary even if we don't adopt every practice.", linkUrl: "https://www.strategy-business.com/article/00344", section: "Part 2: How We Want to Work Together", estimatedTime: "~20 min read", position: 4 },
+        { title: "Reinventing Organizations — Illustrated PDF", description: "The canonical text by Laloux + Wilber. The illustrated version is approachable and shows the case studies (Buurtzorg, Morning Star, FAVI) in concrete detail. Read at least the chapters on self-management and wholeness. You can read the full book later.", linkUrl: "https://reinventingorganizations.com/uploads/2/1/9/8/21988088/140305_laloux_reinventing_organizations.pdf", section: "Part 2: How We Want to Work Together", estimatedTime: "Skim ~30 min", position: 5 },
+        { title: "The Center for Nonviolent Communication — What is NVC?", description: "NVC's four components — observation, feelings, needs, requests — give a board (and a small team) a shared vocabulary for difficult conversations. Especially valuable for boards that will navigate founder-family dynamics, compensation discussions involving related parties, and decisions where emotional stakes run high. Follow up with the 4-Part NVC Process at nvcacademy.com for the practical complement.", linkUrl: "https://www.cnvc.org/learn/what-is-nvc", section: "Part 2: How We Want to Work Together", estimatedTime: "~10 min read", position: 6 },
+        { title: "Anthropic's Interactive Prompt Engineering Tutorial", description: "Nine-chapter interactive course teaching the fundamentals of prompting Claude. This is the single best on-ramp for a non-technical board member to genuinely understand what our fellows are learning to do. Don't worry about completing every exercise — just work through the first 3-4 chapters to get the conceptual model.", linkUrl: "https://github.com/anthropics/prompt-eng-interactive-tutorial", section: "Part 3: Applied AI for Beginners", estimatedTime: "Hands-on, ~2-3 hours", position: 7 },
+        { title: "Anthropic's Prompting Best Practices Overview", description: "The canonical reference for how Claude is meant to be used well — clarity, examples, structured input, role-setting, chain-of-thought. Reading this gives a board member enough vocabulary to ask good questions about our curriculum, tooling decisions, and quality standards without needing to write code.", linkUrl: "https://docs.anthropic.com/en/build-with-claude/prompt-engineering/overview", section: "Part 3: Applied AI for Beginners", estimatedTime: "~20 min skim", position: 8 },
+        { title: "New America — What Works in Workforce Development?", description: "A research synthesis of what actually moves outcomes in workforce development — sectoral partnerships, integrating learning with working, employer engagement, and the metrics that funders increasingly demand (completion rates, placement rates, earnings progression). Critical context as we plan to pursue WIOA and similar grants in years 2-3.", linkUrl: "https://www.newamerica.org/education-policy/briefs/what-works-in-workforce-development/", section: "Part 4: The World We're Operating In", estimatedTime: "~25 min read", position: 9 },
+      ]);
+      console.log("[seed] ✓ Board onboarding items seeded");
+    }
+  } catch (e: any) {
+    console.error("[seed] Could not seed board onboarding items:", e.message);
   }
 
   // Seed "Internal Team" kanban board if it doesn't exist

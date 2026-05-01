@@ -351,6 +351,7 @@ export const supportTickets = pgTable("support_tickets", {
   status: ticketStatusEnum("status").default("open"),
   priority: ticketPriorityEnum("priority").default("medium"),
   category: varchar("category", { length: 50 }),
+  kanbanCardId: integer("kanban_card_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   resolvedAt: timestamp("resolved_at"),

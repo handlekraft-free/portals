@@ -1,8 +1,8 @@
 import type { Router } from "express";
 import { Router as createRouter } from "express";
 import { db } from "./db";
-import { clientFiles, messages, supportTickets, ticketComments, users } from "@shared/schema";
-import { eq, and, or, desc, asc } from "drizzle-orm";
+import { clientFiles, messages, supportTickets, ticketComments, users, kanbanBoards, kanbanColumns, kanbanCards } from "@shared/schema";
+import { eq, and, or, desc, asc, ilike, sql } from "drizzle-orm";
 import { requireAuth, requireEmployee, requireClient } from "./auth-middleware";
 import multer from "multer";
 import path from "path";
@@ -99,11 +99,80 @@ router.get("/client/tickets", requireClient as any, async (req, res) => {
   res.json({ success: true, data: tickets });
 });
 
+// ── Auto-create a Kanban card on the "Internal Team" board when a ticket is created ──
+async function autoCreateTicketCard(ticket: { id: number; title: string; description: string; priority: string; clientId: number }): Promise<number | null> {
+  try {
+    // Find the "Internal Team" board (case-insensitive exact match first, then partial)
+    let [board] = await db.select({ id: kanbanBoards.id })
+      .from(kanbanBoards)
+      .where(and(ilike(kanbanBoards.name, "internal team"), eq(kanbanBoards.archived, false)))
+      .limit(1);
+    if (!board) {
+      [board] = await db.select({ id: kanbanBoards.id })
+        .from(kanbanBoards)
+        .where(and(ilike(kanbanBoards.name, "%internal%"), eq(kanbanBoards.archived, false)))
+        .limit(1);
+    }
+    if (!board) return null;
+
+    // Find the Backlog column (position 0, or title ILIKE 'backlog')
+    let [col] = await db.select({ id: kanbanColumns.id })
+      .from(kanbanColumns)
+      .where(and(eq(kanbanColumns.boardId, board.id), ilike(kanbanColumns.title, "backlog")))
+      .limit(1);
+    if (!col) {
+      [col] = await db.select({ id: kanbanColumns.id })
+        .from(kanbanColumns)
+        .where(eq(kanbanColumns.boardId, board.id))
+        .orderBy(asc(kanbanColumns.position))
+        .limit(1);
+    }
+    if (!col) return null;
+
+    // Determine next position in that column
+    const existing = await db.select({ position: kanbanCards.position })
+      .from(kanbanCards)
+      .where(and(eq(kanbanCards.columnId, col.id), eq(kanbanCards.archived, false)));
+    const nextPosition = existing.length > 0 ? Math.max(...existing.map(c => c.position)) + 1 : 0;
+
+    // Find the admin user to set as creator
+    const [admin] = await db.select({ id: users.id }).from(users).where(sql`role = 'admin'`).limit(1);
+    const createdBy = admin?.id ?? ticket.clientId;
+
+    // Map ticket priority to card priority (ticket uses same enum values)
+    const cardPriority = (["low", "medium", "high", "urgent"].includes(ticket.priority) ? ticket.priority : "high") as "low" | "medium" | "high" | "urgent";
+
+    const [card] = await db.insert(kanbanCards).values({
+      columnId: col.id,
+      boardId: board.id,
+      title: `🎫 ${ticket.title}`,
+      description: `**Client Support Ticket #${ticket.id}**\n\n${ticket.description}`,
+      priority: cardPriority,
+      labels: ["client-ticket"],
+      position: nextPosition,
+      createdBy,
+    }).returning({ id: kanbanCards.id });
+
+    return card?.id ?? null;
+  } catch (err: any) {
+    console.error("[autoCreateTicketCard] Failed:", err.message);
+    return null;
+  }
+}
+
 router.post("/client/tickets", requireClient as any, async (req, res) => {
   const clientId = req.user!.userId;
   const { title, description, category, priority } = req.body;
   if (!title || !description) return res.status(400).json({ success: false, error: "Title and description required" });
   const [ticket] = await db.insert(supportTickets).values({ clientId, createdBy: clientId, title, description, category: category || "General", priority: priority || "medium", status: "open" }).returning();
+
+  // Fire-and-forget: auto-create a Kanban card on the Internal Team board
+  autoCreateTicketCard({ id: ticket.id, title: ticket.title, description: ticket.description, priority: ticket.priority ?? "medium", clientId }).then(async (cardId) => {
+    if (cardId) {
+      await db.update(supportTickets).set({ kanbanCardId: cardId }).where(eq(supportTickets.id, ticket.id));
+    }
+  });
+
   res.status(201).json({ success: true, data: ticket });
 });
 

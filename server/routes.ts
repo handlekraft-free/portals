@@ -10,6 +10,7 @@ import {
   users, expenseCategories, chargeCodes,
   boardMeetings, boardAgendaItems, boardMeetingAttendees, boardMeetingNotices, boardActionItems,
   boardDocuments, boardDocumentVersions,
+  kanbanBoards, kanbanColumns,
 } from "@shared/schema";
 import { db } from "./db";
 import { sql, count, eq, inArray, desc } from "drizzle-orm";
@@ -93,6 +94,7 @@ export async function registerRoutes(
       ALTER TABLE time_reports ADD COLUMN IF NOT EXISTS notes text;
       ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS reviewer_id integer;
       ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS interest_rating integer;
+      ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS kanban_card_id integer;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS board_position text;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS term_start timestamp;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS term_end timestamp;
@@ -328,6 +330,32 @@ export async function registerRoutes(
     }
   } catch (e: any) {
     console.error("[seed] Could not seed charge codes:", e.message);
+  }
+
+  // Seed "Internal Team" kanban board if it doesn't exist
+  try {
+    const existing = await db.select({ id: kanbanBoards.id }).from(kanbanBoards)
+      .where(sql`lower(name) = 'internal team'`).limit(1);
+    if (existing.length === 0) {
+      const adminRows = await db.select({ id: users.id }).from(users).where(sql`role = 'admin'`).limit(1);
+      if (adminRows.length > 0) {
+        const adminId = adminRows[0].id;
+        const [board] = await db.insert(kanbanBoards).values({
+          name: "Internal Team",
+          description: "Handlekraft internal task board — auto-populated from client support tickets",
+          createdBy: adminId,
+        }).returning();
+        await db.insert(kanbanColumns).values([
+          { boardId: board.id, title: "Backlog", position: 0, color: "#6366f1" },
+          { boardId: board.id, title: "Pillaging 🪓", position: 1, color: "#0D7377" },
+          { boardId: board.id, title: "In Review", position: 2, color: "#D4A843" },
+          { boardId: board.id, title: "Valhalla ⚔️", position: 3, color: "#22c55e" },
+        ]);
+        console.log("[seed] ✓ Internal Team kanban board seeded");
+      }
+    }
+  } catch (e: any) {
+    console.error("[seed] Could not seed Internal Team board:", e.message);
   }
 
   // Seed sample board meetings if none exist

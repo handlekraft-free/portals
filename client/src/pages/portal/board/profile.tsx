@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { UserCircle, Pencil, Check, X, Linkedin, Phone, Mail, Clock, ShieldCheck, Sparkles, LayoutDashboard } from "lucide-react";
+import { UserCircle, Pencil, Check, X, Linkedin, Phone, Mail, Clock, ShieldCheck, Sparkles, LayoutDashboard, CalendarClock } from "lucide-react";
 import BoardOnboardingWizard from "@/components/portal/BoardOnboardingWizard";
+import AvailabilityGrid from "@/components/portal/AvailabilityGrid";
 
 interface BoardProfile {
   id: number;
@@ -336,6 +337,20 @@ export default function BoardProfilePage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Availability */}
+      <Card className="rounded-2xl border-slate-200 shadow-sm">
+        <CardContent className="p-6 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <CalendarClock className="w-4 h-4 text-[#0D7377]" />
+            <h2 className="text-base font-semibold text-[#1A1F2B]">Meeting Availability</h2>
+          </div>
+          <p className="text-sm text-slate-500 -mt-2">
+            Mark the windows when you're typically free for a 90-minute board meeting. Used by the Schedule Coordinator to find the best meeting times.
+          </p>
+          <AvailabilityGrid autoLoad testIdPrefix="profile-avail" />
+        </CardContent>
+      </Card>
 
       {/* Relaunch setup wizard */}
       <div className="mt-2 border border-dashed border-slate-200 rounded-2xl p-5 flex items-center justify-between bg-white/50">

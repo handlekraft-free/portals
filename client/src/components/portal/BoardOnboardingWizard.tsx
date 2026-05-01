@@ -11,15 +11,7 @@ import {
   ShieldCheck, Linkedin, Phone, Mail, Clock, X,
 } from "lucide-react";
 import logoImg from "@/assets/images/logo.png";
-
-// ── Types ────────────────────────────────────────────────────────────────────
-
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const DAY_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const TIMES = ["morning", "afternoon", "evening"] as const;
-type TimeOfDay = typeof TIMES[number];
-const TIME_LABELS: Record<TimeOfDay, string> = { morning: "Morning (9–12)", afternoon: "Afternoon (12–5)", evening: "Evening (5–8)" };
-interface AvailSlot { day: number; timeOfDay: TimeOfDay }
+import AvailabilityGrid from "@/components/portal/AvailabilityGrid";
 
 const STEPS = [
   { id: "welcome",      label: "Welcome",      icon: <Sparkles className="w-4 h-4" /> },
@@ -299,30 +291,6 @@ function ProfileStep({ initialData, onNext, onSkip }: {
 // ── Step 4: Availability ──────────────────────────────────────────────────────
 
 function AvailabilityStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
-  const { toast } = useToast();
-  const [slots, setSlots] = useState<AvailSlot[]>([]);
-  const [notes, setNotes] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  function toggle(day: number, time: TimeOfDay) {
-    setSlots(prev => prev.some(s => s.day === day && s.timeOfDay === time)
-      ? prev.filter(s => !(s.day === day && s.timeOfDay === time))
-      : [...prev, { day, timeOfDay: time }]
-    );
-  }
-
-  async function save() {
-    setSaving(true);
-    const r = await apiRequest("PUT", "/api/board/scheduling/availability/me", { slots, notes });
-    if (r.success) {
-      toast({ title: "Availability saved!" });
-      onNext();
-    } else {
-      toast({ title: "Error", description: "Failed to save.", variant: "destructive" });
-    }
-    setSaving(false);
-  }
-
   return (
     <div className="space-y-5">
       <div>
@@ -331,58 +299,12 @@ function AvailabilityStep({ onNext, onSkip }: { onNext: () => void; onSkip: () =
           Check the windows when you're typically free for a 90-minute board meeting. This helps find dates everyone can make.
         </p>
       </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[480px]">
-          <thead>
-            <tr>
-              <th className="w-36 text-left text-xs text-slate-400 font-normal pb-3" />
-              {DAYS.map(d => <th key={d} className="text-xs text-slate-500 font-semibold text-center pb-3">{d}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {TIMES.map(t => (
-              <tr key={t}>
-                <td className="text-xs text-slate-500 pr-4 py-1.5 font-medium">{TIME_LABELS[t]}</td>
-                {DAYS.map((_, d) => {
-                  const checked = slots.some(s => s.day === d && s.timeOfDay === t);
-                  return (
-                    <td key={d} className="py-1 px-0.5">
-                      <button
-                        onClick={() => toggle(d, t)}
-                        className={`w-full h-10 rounded-xl border-2 transition-all flex items-center justify-center ${checked ? "border-[#0D7377] bg-[#0D7377]/15 text-[#0D7377]" : "border-slate-200 hover:border-slate-300 bg-white"}`}
-                        data-testid={`wizard-avail-${d}-${t}`}
-                      >
-                        {checked && <Check className="w-4 h-4" />}
-                      </button>
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div>
-        <label className="text-xs text-slate-500 font-medium mb-1 block">Notes (optional)</label>
-        <input
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
-          placeholder="e.g. I'm in EST. Unavailable holidays and school breaks."
-          className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
-          data-testid="input-wizard-avail-notes"
-        />
-      </div>
-
-      <div className="flex gap-2">
-        <Button onClick={onSkip} variant="outline" className="flex-1" data-testid="wizard-skip-availability">
-          Skip for now
-        </Button>
-        <Button onClick={save} disabled={saving} className="flex-1 bg-[#0D7377] hover:bg-[#0a5c60] text-white gap-2" data-testid="wizard-save-availability">
-          {saving ? "Saving…" : <><Check className="w-4 h-4" /> Save Availability</>}
-        </Button>
-      </div>
+      <AvailabilityGrid
+        wizardMode
+        onNext={onNext}
+        onSkip={onSkip}
+        testIdPrefix="wizard-avail"
+      />
     </div>
   );
 }

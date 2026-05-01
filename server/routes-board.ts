@@ -6,14 +6,35 @@ import { db } from "./db";
 import {
   boardMeetings, boardMeetingRsvps, boardMeetingAttendees, boardAgendaItems,
   boardMeetingNotices, boardActionItems, boardMinutesActionItems,
-  boardDocuments, boardWrittenConsents, boardNotificationPrefs, users,
+  boardDocuments, boardDocumentVersions, boardDocumentAcks, boardDocumentViews,
+  boardWrittenConsents, boardNotificationPrefs, users,
   boardMinutes, boardMinutesMotions, boardMinutesVersions, boardMeetingPacketDocs,
 } from "@shared/schema";
-import { eq, and, desc, asc, sql } from "drizzle-orm";
+import { eq, and, desc, asc, sql, or, ilike } from "drizzle-orm";
 import PDFDocument from "pdfkit";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 const router: Router = createRouter();
 router.use(requireBoard as any);
+
+// ── Document file storage ─────────────────────────────────────────────────────
+
+const BOARD_DOCS_DIR = process.env.UPLOAD_DIR
+  ? path.join(process.env.UPLOAD_DIR, "board-docs")
+  : "./data/uploads/board-docs";
+fs.mkdirSync(BOARD_DOCS_DIR, { recursive: true });
+
+const boardDocStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, BOARD_DOCS_DIR),
+  filename: (_req, file, cb) =>
+    cb(null, `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_")}`),
+});
+const boardDocUpload = multer({ storage: boardDocStorage, limits: { fileSize: 100 * 1024 * 1024 } });
+
+// Admin-restricted categories
+const RESTRICTED_CATEGORIES = ["Legal", "Personnel"];
 
 /** Execute raw SQL and return rows array (handles node-postgres QueryResult) */
 async function raw<T = any>(query: SQL): Promise<T[]> {
@@ -429,40 +450,295 @@ router.get("/dashboard", async (req, res) => {
   });
 });
 
-// ── Documents (stub — real impl in Task 4) ────────────────────────────────────
+// ── Documents ─────────────────────────────────────────────────────────────────
 
-router.get("/documents", async (_req, res) => {
-  const docs = await db.select().from(boardDocuments).orderBy(desc(boardDocuments.createdAt)).limit(20);
-  res.json({ success: true, data: docs });
+// List documents — optional ?category= filter; enforces restricted-category access
+router.get("/documents", async (req, res) => {
+  const userId = req.user!.userId;
+  const role = req.user!.role;
+  const { category } = req.query as { category?: string };
+
+  if (category && RESTRICTED_CATEGORIES.includes(category) && role !== "admin") {
+    return res.status(403).json({ success: false, error: "Access restricted" });
+  }
+
+  const rows = await raw<any>(sql`
+    SELECT
+      d.id, d.title, d.description, d.category, d.confidentiality,
+      d.require_ack, d.retention_policy, d.uploaded_by, d.created_at,
+      u.first_name AS uploader_first, u.last_name AS uploader_last,
+      (SELECT COUNT(*) FROM board_document_versions v WHERE v.document_id = d.id) AS version_count,
+      (SELECT MAX(v2.version_number) FROM board_document_versions v2 WHERE v2.document_id = d.id) AS current_version,
+      (SELECT COUNT(*) FROM board_document_acks a WHERE a.document_id = d.id) AS ack_count,
+      (SELECT COUNT(*) FROM board_document_views vw WHERE vw.document_id = d.id) AS view_count,
+      EXISTS(SELECT 1 FROM board_document_acks a2 WHERE a2.document_id = d.id AND a2.user_id = ${userId}) AS user_acked
+    FROM board_documents d
+    LEFT JOIN portal_users u ON u.id = d.uploaded_by
+    ${category ? sql`WHERE d.category = ${category}` : sql``}
+    ORDER BY d.created_at DESC
+  `);
+
+  // Filter out restricted categories for non-admin
+  const filtered = role === "admin"
+    ? rows
+    : rows.filter((r: any) => !RESTRICTED_CATEGORIES.includes(r.category));
+
+  res.json({ success: true, data: filtered });
 });
 
-router.post("/documents", requireAdmin as any, async (req, res) => {
-  const { title, description, category, confidentiality, requireAck } = req.body;
+// Cross-category full-text search
+router.get("/documents/search", async (req, res) => {
+  const userId = req.user!.userId;
+  const role = req.user!.role;
+  const q = `%${req.query.q || ""}%`;
+
+  const rows = await raw<any>(sql`
+    SELECT
+      d.id, d.title, d.description, d.category, d.confidentiality,
+      d.require_ack, d.created_at,
+      u.first_name AS uploader_first, u.last_name AS uploader_last,
+      (SELECT MAX(v.version_number) FROM board_document_versions v WHERE v.document_id = d.id) AS current_version,
+      EXISTS(SELECT 1 FROM board_document_acks a WHERE a.document_id = d.id AND a.user_id = ${userId}) AS user_acked
+    FROM board_documents d
+    LEFT JOIN portal_users u ON u.id = d.uploaded_by
+    WHERE (d.title ILIKE ${q} OR d.description ILIKE ${q})
+    ORDER BY d.created_at DESC
+    LIMIT 50
+  `);
+
+  const filtered = role === "admin"
+    ? rows
+    : rows.filter((r: any) => !RESTRICTED_CATEGORIES.includes(r.category));
+
+  res.json({ success: true, data: filtered });
+});
+
+// Get single document detail with versions and ack info
+router.get("/documents/:id", async (req, res) => {
+  const userId = req.user!.userId;
+  const role = req.user!.role;
+  const docId = parseInt(req.params.id);
+
+  const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
+  if (!doc) return res.status(404).json({ success: false, error: "Not found" });
+  if (RESTRICTED_CATEGORIES.includes(doc.category) && role !== "admin") {
+    return res.status(403).json({ success: false, error: "Access restricted" });
+  }
+
+  const versions = await db.select().from(boardDocumentVersions)
+    .where(eq(boardDocumentVersions.documentId, docId))
+    .orderBy(desc(boardDocumentVersions.versionNumber));
+
+  const acks = await raw<any>(sql`
+    SELECT a.acked_at, u.first_name, u.last_name, u.id AS user_id
+    FROM board_document_acks a
+    JOIN portal_users u ON u.id = a.user_id
+    WHERE a.document_id = ${docId}
+    ORDER BY a.acked_at ASC
+  `);
+
+  const userAcked = acks.some((a: any) => a.user_id === userId);
+
+  // Log view
+  await db.insert(boardDocumentViews).values({ documentId: docId, userId }).catch(() => {});
+  auditLog(userId, "view", "document", docId, doc.title);
+
+  res.json({ success: true, data: { ...doc, versions, acks, userAcked } });
+});
+
+// Upload new document (admin only)
+router.post("/documents", requireAdmin as any, boardDocUpload.single("file"), async (req, res) => {
+  const userId = req.user!.userId;
+  const { title, description, category, confidentiality, requireAck, retentionPolicy, versionNotes } = req.body;
   if (!title || !category) return res.status(400).json({ success: false, error: "Title and category required" });
+
   const [doc] = await db.insert(boardDocuments).values({
     title, description: description || null, category,
-    confidentiality: confidentiality || "board_only",
-    requireAck: requireAck || false,
-    uploadedBy: req.user!.userId,
+    confidentiality: (confidentiality as any) || "board_only",
+    requireAck: requireAck === "true" || requireAck === true,
+    retentionPolicy: retentionPolicy || null,
+    uploadedBy: userId,
   }).returning();
+
+  if (req.file) {
+    await db.insert(boardDocumentVersions).values({
+      documentId: doc.id,
+      versionNumber: 1,
+      filename: req.file.filename,
+      filepath: req.file.path,
+      fileSize: req.file.size,
+      mimeType: req.file.mimetype,
+      uploadedBy: userId,
+      notes: versionNotes || null,
+    });
+  }
+
+  auditLog(userId, "upload", "document", doc.id, `Uploaded: ${doc.title}`);
   res.status(201).json({ success: true, data: doc });
 });
 
-router.get("/documents/:id", async (req, res) => {
-  const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, parseInt(req.params.id)));
+// Upload new version of existing document (admin only)
+router.post("/documents/:id/upload", requireAdmin as any, boardDocUpload.single("file"), async (req, res) => {
+  const userId = req.user!.userId;
+  const docId = parseInt(req.params.id);
+  const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
   if (!doc) return res.status(404).json({ success: false, error: "Not found" });
+  if (!req.file) return res.status(400).json({ success: false, error: "No file uploaded" });
+
+  const [latestVer] = await db.select().from(boardDocumentVersions)
+    .where(eq(boardDocumentVersions.documentId, docId))
+    .orderBy(desc(boardDocumentVersions.versionNumber))
+    .limit(1);
+
+  const nextVersion = (latestVer?.versionNumber ?? 0) + 1;
+
+  const [ver] = await db.insert(boardDocumentVersions).values({
+    documentId: docId,
+    versionNumber: nextVersion,
+    filename: req.file.filename,
+    filepath: req.file.path,
+    fileSize: req.file.size,
+    mimeType: req.file.mimetype,
+    uploadedBy: userId,
+    notes: req.body.versionNotes || null,
+  }).returning();
+
+  auditLog(userId, "new_version", "document", docId, `Version ${nextVersion}: ${doc.title}`);
+  res.status(201).json({ success: true, data: ver });
+});
+
+// Update document metadata (admin only)
+router.patch("/documents/:id", requireAdmin as any, async (req, res) => {
+  const userId = req.user!.userId;
+  const docId = parseInt(req.params.id);
+  const { title, description, category, confidentiality, requireAck, retentionPolicy } = req.body;
+  const [doc] = await db.update(boardDocuments).set({
+    ...(title && { title }),
+    ...(description !== undefined && { description }),
+    ...(category && { category }),
+    ...(confidentiality && { confidentiality }),
+    ...(requireAck !== undefined && { requireAck }),
+    ...(retentionPolicy !== undefined && { retentionPolicy }),
+  }).where(eq(boardDocuments.id, docId)).returning();
+  if (!doc) return res.status(404).json({ success: false, error: "Not found" });
+  auditLog(userId, "update", "document", docId, `Updated metadata: ${doc.title}`);
   res.json({ success: true, data: doc });
 });
 
-router.get("/documents/:id/download", async (_req, res) => res.json({ success: false, error: "Use Task 4 file routes" }));
-router.post("/documents/:id/acknowledge", async (req, res) => {
-  const { id } = req.params;
+// Delete document and all its files (admin only)
+router.delete("/documents/:id", requireAdmin as any, async (req, res) => {
   const userId = req.user!.userId;
+  const docId = parseInt(req.params.id);
+  const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
+  if (!doc) return res.status(404).json({ success: false, error: "Not found" });
+
+  const versions = await db.select().from(boardDocumentVersions).where(eq(boardDocumentVersions.documentId, docId));
+  for (const v of versions) {
+    if (v.filepath && fs.existsSync(v.filepath)) fs.unlinkSync(v.filepath);
+  }
+  await db.delete(boardDocumentVersions).where(eq(boardDocumentVersions.documentId, docId));
+  await db.delete(boardDocumentAcks).where(eq(boardDocumentAcks.documentId, docId));
+  await db.delete(boardDocumentViews).where(eq(boardDocumentViews.documentId, docId));
+  await db.delete(boardDocuments).where(eq(boardDocuments.id, docId));
+
+  auditLog(userId, "delete", "document", docId, `Deleted: ${doc.title}`);
+  res.json({ success: true, data: null });
+});
+
+// Download current (latest) version
+router.get("/documents/:id/download", async (req, res) => {
+  const userId = req.user!.userId;
+  const role = req.user!.role;
+  const docId = parseInt(req.params.id);
+
+  const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
+  if (!doc) return res.status(404).json({ success: false, error: "Not found" });
+  if (RESTRICTED_CATEGORIES.includes(doc.category) && role !== "admin") {
+    return res.status(403).json({ success: false, error: "Access restricted" });
+  }
+
+  const [ver] = await db.select().from(boardDocumentVersions)
+    .where(eq(boardDocumentVersions.documentId, docId))
+    .orderBy(desc(boardDocumentVersions.versionNumber))
+    .limit(1);
+
+  if (!ver) return res.status(404).json({ success: false, error: "No file attached" });
+  if (!fs.existsSync(ver.filepath)) return res.status(404).json({ success: false, error: "File not found on disk" });
+
+  auditLog(userId, "download", "document", docId, `v${ver.versionNumber}: ${doc.title}`);
+  res.download(ver.filepath, `${doc.title.replace(/[^a-zA-Z0-9._-]/g, "_")}_v${ver.versionNumber}${path.extname(ver.filename)}`);
+});
+
+// Download specific version
+router.get("/documents/:id/download/:versionId", async (req, res) => {
+  const userId = req.user!.userId;
+  const role = req.user!.role;
+  const docId = parseInt(req.params.id);
+  const versionId = parseInt(req.params.versionId);
+
+  const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
+  if (!doc) return res.status(404).json({ success: false, error: "Not found" });
+  if (RESTRICTED_CATEGORIES.includes(doc.category) && role !== "admin") {
+    return res.status(403).json({ success: false, error: "Access restricted" });
+  }
+
+  const [ver] = await db.select().from(boardDocumentVersions)
+    .where(and(eq(boardDocumentVersions.id, versionId), eq(boardDocumentVersions.documentId, docId)));
+
+  if (!ver) return res.status(404).json({ success: false, error: "Version not found" });
+  if (!fs.existsSync(ver.filepath)) return res.status(404).json({ success: false, error: "File not found on disk" });
+
+  auditLog(userId, "download", "document", docId, `v${ver.versionNumber}: ${doc.title}`);
+  res.download(ver.filepath, `${doc.title.replace(/[^a-zA-Z0-9._-]/g, "_")}_v${ver.versionNumber}${path.extname(ver.filename)}`);
+});
+
+// Acknowledge a document
+router.post("/documents/:id/acknowledge", async (req, res) => {
+  const userId = req.user!.userId;
+  const docId = parseInt(req.params.id);
+  const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
+  if (!doc) return res.status(404).json({ success: false, error: "Not found" });
+
   await db.execute(sql`
-    INSERT INTO board_document_acks (document_id, user_id) VALUES (${parseInt(id)}, ${userId})
+    INSERT INTO board_document_acks (document_id, user_id)
+    VALUES (${docId}, ${userId})
     ON CONFLICT DO NOTHING
   `);
+  auditLog(userId, "acknowledge", "document", docId, doc.title);
   res.status(201).json({ success: true, data: null });
+});
+
+// Get acknowledgment status for a document (admin: full list; board member: own status)
+router.get("/documents/:id/acks", async (req, res) => {
+  const userId = req.user!.userId;
+  const role = req.user!.role;
+  const docId = parseInt(req.params.id);
+
+  if (role !== "admin") {
+    const [ack] = await db.select().from(boardDocumentAcks)
+      .where(and(eq(boardDocumentAcks.documentId, docId), eq(boardDocumentAcks.userId, userId)));
+    return res.json({ success: true, data: { userAcked: !!ack, acks: [] } });
+  }
+
+  const acked = await raw<any>(sql`
+    SELECT a.acked_at, u.first_name, u.last_name, u.id AS user_id, u.board_position
+    FROM board_document_acks a
+    JOIN portal_users u ON u.id = a.user_id
+    WHERE a.document_id = ${docId}
+    ORDER BY a.acked_at ASC
+  `);
+
+  const notAcked = await raw<any>(sql`
+    SELECT u.id AS user_id, u.first_name, u.last_name, u.board_position
+    FROM portal_users u
+    WHERE u.role IN ('board','admin') AND u.status = 'active'
+      AND u.id NOT IN (
+        SELECT user_id FROM board_document_acks WHERE document_id = ${docId}
+      )
+    ORDER BY u.first_name ASC
+  `);
+
+  res.json({ success: true, data: { acked, notAcked } });
 });
 
 // ── Audit Log ─────────────────────────────────────────────────────────────────

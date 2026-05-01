@@ -726,10 +726,9 @@ router.get("/documents/:id/versions", async (req, res) => {
   res.json({ success: true, data: versions });
 });
 
-// Per-document audit trail
-router.get("/documents/:id/audit", async (req, res) => {
-  const role = req.user!.role;
-  const docId = parseInt(req.params.id);
+// Per-document audit trail (admin only)
+router.get("/documents/:id/audit", requireAdmin as any, async (req, res) => {
+  const docId = parseInt(req.params.id as string);
   const doc = await getDocOrFail(docId, req.user!, res);
   if (!doc) return;
   const events = await raw<any>(sql`

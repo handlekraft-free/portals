@@ -699,8 +699,7 @@ function DocumentsContent() {
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Categories</p>
           </div>
           <nav className="p-2 space-y-0.5">
-            {CATEGORIES.map(cat => {
-              const isRestricted = cat.restricted && !canSeeRestricted;
+            {CATEGORIES.filter(cat => !cat.restricted || canSeeRestricted).map(cat => {
               const count = cat.value === "_all"
                 ? allDocs.length
                 : catCounts[cat.value] || 0;
@@ -708,27 +707,22 @@ function DocumentsContent() {
                 <button
                   key={cat.value}
                   onClick={() => {
-                    if (!isRestricted) {
-                      setActiveCategory(cat.value);
-                      setSearchQ("");
-                      setSearchAllResults(null);
-                    }
+                    setActiveCategory(cat.value);
+                    setSearchQ("");
+                    setSearchAllResults(null);
                   }}
-                  disabled={isRestricted}
                   className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-sm transition-colors text-left ${
-                    isRestricted
-                      ? "text-slate-300 cursor-not-allowed"
-                      : activeCategory === cat.value
-                        ? "bg-indigo-500 text-white"
-                        : "text-slate-600 hover:bg-slate-50"
+                    activeCategory === cat.value
+                      ? "bg-indigo-500 text-white"
+                      : "text-slate-600 hover:bg-slate-50"
                   }`}
                   data-testid={`cat-${cat.value.replace(/\s+/g, "-").toLowerCase()}`}
                 >
                   <span className="flex items-center gap-2 min-w-0">
-                    <span className="shrink-0">{isRestricted ? <Lock className="w-3.5 h-3.5" /> : cat.icon}</span>
+                    <span className="shrink-0">{cat.icon}</span>
                     <span className="truncate">{cat.label}</span>
                   </span>
-                  {!isRestricted && count > 0 && (
+                  {count > 0 && (
                     <span className={`text-xs rounded-full px-1.5 py-0.5 font-medium shrink-0 ${activeCategory === cat.value ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"}`}>
                       {count}
                     </span>

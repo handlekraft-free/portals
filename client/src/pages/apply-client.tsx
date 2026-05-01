@@ -14,7 +14,7 @@ import { ArrowLeft, CheckCircle2, Send } from "lucide-react";
 import { Link } from "wouter";
 
 export default function ApplyClient() {
-  useEffect(() => { document.title = "Request Free Help | handləkraft.ai"; }, []);
+  useEffect(() => { document.title = "Request a Free Consultation | handləkraft.ai"; }, []);
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
   const [orgType, setOrgType] = useState("");
@@ -74,9 +74,9 @@ export default function ApplyClient() {
           </Button>
         </Link>
 
-        <h1 className="text-4xl font-display text-[#1A1F2B] mb-2" data-testid="text-client-heading">Request Free Help</h1>
+        <h1 className="text-4xl font-display text-[#1A1F2B] mb-2" data-testid="text-client-heading">Request a Free Consultation</h1>
         <p className="text-lg text-muted-foreground mb-8">
-          Tell us about your organization and what you need. Whether it's a website, an intake system, or something else entirely — we'd love to help you gain the power to act. Everything we build is free.
+          Tell us about your organization and what's painful. We start with a real conversation — no sales pitch — to understand what would genuinely help. Sometimes that's configuring an existing tool. Sometimes it's training your team. Occasionally it's building something custom. We'll be honest about which. Everything we do is free.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -128,12 +128,12 @@ export default function ApplyClient() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="needs">What do you need help with? *</Label>
+            <Label htmlFor="needs">What's painful or not working? *</Label>
             <Textarea
               id="needs"
               name="needs"
               required
-              placeholder="A new website? A better way to track clients? A scheduling system? A donor management tool? Tell us what would make the biggest difference for your team."
+              placeholder="What's slowing your team down? What are you doing manually that you wish you didn't have to? What would make the biggest difference — a better intake process, a cleaner way to communicate with clients, staff training on tools you already have? Tell us what's real."
               className="min-h-[120px]"
               data-testid="input-needs"
             />
@@ -178,7 +178,7 @@ export default function ApplyClient() {
           </Button>
 
           <p className="text-xs text-muted-foreground text-center">
-            Everything we build is free. We'll reach out to learn more about your needs.
+            Our services are always free. We'll reach out to learn more before recommending anything.
           </p>
         </form>
       </div>

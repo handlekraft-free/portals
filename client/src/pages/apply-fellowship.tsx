@@ -71,7 +71,7 @@ export default function ApplyFellowship() {
 
         <h1 className="text-4xl font-display text-[#1A1F2B] mb-2" data-testid="text-fellowship-heading">Apply for the Fellowship</h1>
         <p className="text-lg text-muted-foreground mb-8">
-          No college degree required. No tuition. Just a willingness to show up, learn, and build something meaningful. We're looking for problem solvers, not programmers — people ready to claim their agency.
+          No college degree. No tuition. Small, attentive cohorts where you work on real client engagements using AI-native tools — with close mentorship and accessibility woven into everything. We're looking for people whose paths into technology have been blocked, not for lack of ability, but for lack of access.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -108,7 +108,7 @@ export default function ApplyFellowship() {
               id="background"
               name="background"
               required
-              placeholder="Your background, what you've been doing, what drives you. We love hearing from career changers, veterans, self-taught learners, and anyone looking for a fresh start."
+              placeholder="Your background, what you've been doing, what drives you. We welcome career changers, veterans, neurodivergent learners, formerly incarcerated individuals, people in recovery, single parents, people with disabilities — anyone whose path has been non-traditional."
               className="min-h-[120px]"
               data-testid="input-background"
             />
@@ -151,7 +151,7 @@ export default function ApplyFellowship() {
           </Button>
 
           <p className="text-xs text-muted-foreground text-center">
-            Only a high school diploma or GED required. All backgrounds welcome.
+            HS diploma or GED required. Accessibility accommodations available — no documentation needed to ask. All backgrounds welcome.
           </p>
         </form>
       </div>

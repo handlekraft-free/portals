@@ -51,7 +51,7 @@ export default function Home() {
             </p>
 
             <p className="text-lg text-white/50 max-w-xl mx-auto mb-10 font-light">
-              Free software for community organizations. Real careers for aspiring problem solvers. Agency for everyone.
+              Technology services and training for community organizations. Real careers for non-traditional learners. Accessibility for everyone.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
@@ -84,8 +84,8 @@ export default function Home() {
                 <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Donation Funded</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-display text-[#D4A843] mb-1">2x</div>
-                <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Impact: Software + Careers</div>
+                <div className="text-4xl font-display text-[#D4A843] mb-1">30h</div>
+                <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Workweek — By Design</div>
               </div>
             </div>
           </motion.div>
@@ -110,13 +110,13 @@ export default function Home() {
             />
             <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
               <p>
-                Thousands of community organizations — shelters, clinics, food banks — and underfunded local agencies rely on spreadsheets and paper to manage work that changes lives. The software they need is out of reach. The people who could build it are out of opportunities.
+                Thousands of community organizations — shelters, clinics, food banks, mutual aid groups — run critical operations on a patchwork of spreadsheets, email threads, and institutional memory. They don't need more software. They need help choosing the right tools, configuring them well, and building the confidence to run them independently.
               </p>
               <p>
-                We believe the most powerful thing you can give someone is the ability to act. For organizations, that means custom tools that actually fit their work. For aspiring builders, it means real projects, real mentorship, and a real path forward. AI-powered tools mean motivated people can own and deliver real products faster than ever — you don't need a CS degree to solve real problems.
+                At the same time, capable people are locked out of technology careers — not for lack of ability, but for lack of access. Non-traditional learners, neurodivergent thinkers, veterans, caregivers, people in recovery. Our fellowship trains them on real client engagements using AI-native tools, with small cohorts and close mentorship.
               </p>
               <p className="font-semibold text-[#1A1F2B]">
-                handləkraft.ai brings these two worlds together — giving organizations the tools to act, and giving people the skills to build them.
+                handləkraft multiplies the power to act — for organizations underserved by technology, for learners underserved by traditional pathways, and for end users whom technology too often forgets.
               </p>
             </div>
           </div>
@@ -138,10 +138,10 @@ export default function Home() {
             <p className="text-white/60 text-sm mb-8 relative z-10 italic">Norwegian: to act + power = the power to act</p>
             <ul className="space-y-6 relative z-10">
               {[
-                "A community organization tells us what they need — a website, a scheduling tool, a better way to track clients.",
-                "We pair them with aspiring product builders who own the solution end to end — using AI-powered tools with senior guidance every step of the way.",
-                "The organization gets a custom tool that fits their work. The fellow gets real experience and a portfolio of products they're proud of.",
-                "Graduates pay it forward — mentoring the next cohort, strengthening the cycle."
+                "A community organization reaches out. We start with a free conversation to understand what they actually do, what hurts, and what would genuinely help.",
+                "We recommend honestly — often that means configuring an existing tool, not building something new. If you don't need us, we'll say so.",
+                "We configure what's needed, train the team to run it, and document everything. Our exit is part of the engagement from day one.",
+                "Fellows work real engagements as part of their training. They graduate with a portfolio of real work — and organizations gain capability that lasts."
               ].map((step, i) => (
                 <li key={i} className="flex gap-4 items-start">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#D4A843] text-[#1A1F2B] font-bold flex items-center justify-center text-sm">
@@ -157,27 +157,27 @@ export default function Home() {
 
       <Section id="what-we-do" background="white">
         <SectionHeader 
-          title="Three ways we deliver agency." 
-          subtitle="Every product we build serves two purposes: giving an organization the power to act, and launching a career."
+          title="Three integrated streams." 
+          subtitle="We don't just build — we assess, train, transfer capability, and design with accessibility as the default."
           centered
         />
         
         <div className="grid md:grid-cols-3 gap-8">
           {[
             {
-              icon: Code2,
-              title: "Free Software & Websites",
-              desc: "Custom-built websites, intake systems, scheduling tools, donor platforms, dashboards, and workflow automation — designed around each organization's real needs, delivered at zero cost."
+              icon: Users,
+              title: "Technology Services for Nonprofits",
+              desc: "Discovery and assessment, tool selection, hands-on configuration, staff training, and capability transfer. Custom builds only when existing tools genuinely fall short — and we'll tell you honestly which it is."
             },
             {
               icon: GraduationCap,
-              title: "Product-Focused Training",
-              desc: "A supportive fellowship where aspiring product builders learn by solving real problems for real people. AI agents handle the deep tech — fellows focus on owning the product and delivering value."
+              title: "Fellowship & Career Pathways",
+              desc: "Small, attentive cohorts of non-traditional learners work on real client engagements. AI is the co-worker; fellows own the product decisions, the communication, and the outcome."
             },
             {
               icon: HeartHandshake,
-              title: "A Growing Community",
-              desc: "As fellows grow, they mentor the next group. Each graduating class strengthens our ability to help more organizations and welcome more learners. Everyone lifts everyone."
+              title: "Accessibility by Default",
+              desc: "Every engagement includes an accessibility component. Every fellow learns WCAG fundamentals, trauma-informed design, and plain-language principles. The people our clients serve deserve better than afterthought design."
             }
           ].map((card, i) => (
             <motion.div
@@ -201,7 +201,7 @@ export default function Home() {
       <Section id="how-it-works" background="cream">
         <SectionHeader
           title="How it works."
-          subtitle="From first contact to finished product — here's the journey."
+          subtitle="From first conversation to lasting capability — here's the journey."
           centered
         />
         <div className="relative max-w-3xl mx-auto">
@@ -209,32 +209,32 @@ export default function Home() {
           {[
             {
               step: "1",
-              title: "Organization Reaches Out",
-              desc: "A community organization tells us what they need — a website, a scheduling tool, a client tracker, or something else entirely.",
+              title: "Free Discovery Conversation",
+              desc: "We start with a real conversation — no sales pitch. We listen to understand what your organization actually does, what's painful, and what would genuinely help.",
               icon: Mail,
             },
             {
               step: "2",
-              title: "We Scope the Project",
-              desc: "Our team works with the organization to understand their workflow, define the product, and set clear goals — no jargon, no guesswork.",
-              icon: Code2,
-            },
-            {
-              step: "3",
-              title: "A Fellow Owns It",
-              desc: "We pair the project with a fellow who takes ownership end-to-end. AI agents handle the heavy coding while the fellow drives product decisions.",
-              icon: UserPlus,
-            },
-            {
-              step: "4",
-              title: "Product Delivered",
-              desc: "The organization gets a custom tool built around their real needs — free of charge. The fellow gets a portfolio piece and real-world experience.",
+              title: "Honest Assessment",
+              desc: "We recommend the right path — often that's configuring an existing tool, training your team, or a small customization. If you don't need us, we'll tell you.",
               icon: CheckCircle2,
             },
             {
+              step: "3",
+              title: "Configuration & Training",
+              desc: "We set up the tools that fit, configure them around your real workflow, and teach your staff to run them. Our exit is planned from the start.",
+              icon: Users,
+            },
+            {
+              step: "4",
+              title: "Fellows Work the Engagement",
+              desc: "Our fellows are part of real engagements as part of their training. They work alongside our staff, see how real organizations use what they help configure, and own real outcomes.",
+              icon: UserPlus,
+            },
+            {
               step: "5",
-              title: "Ongoing Support & Training",
-              desc: "We don't disappear after launch. Organizations can receive updates and support as resources allow — or opt for training so their team can sustain and evolve the product themselves.",
+              title: "Capability Transfer — You Own It",
+              desc: "You leave with documented systems your team understands and controls. Our success is measured by what you can do without us six months later.",
               icon: LifeBuoy,
               terminal: true,
             },
@@ -328,7 +328,7 @@ export default function Home() {
               data-testid="button-get-started"
             >
               <Zap className="mr-2 w-5 h-5" />
-              Request Free Help <ArrowRight className="ml-2 w-5 h-5" />
+              Start a Free Conversation <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </Link>
         </div>
@@ -338,26 +338,26 @@ export default function Home() {
         <div className="grid lg:grid-cols-2 gap-16 items-start">
           <div>
             <SectionHeader 
-              title="Learn by helping. Grow by doing." 
-              subtitle="No degree required. No tuition. Just a willingness to show up, learn, and build something meaningful."
+              title="Learn by doing real work." 
+              subtitle="Small cohorts. Real client engagements. No tuition. Accessibility woven into everything."
             />
             <div className="space-y-12">
               {[
                 {
                   title: "Foundations",
-                  desc: "2-4 weeks learning how software products work — databases, interfaces, logic, and workflows — with AI tools doing the heavy lifting while you focus on solving problems."
+                  desc: "Learn how technology serves organizations — tools, configuration, workflows, and documentation — with AI tools handling the heavy lifting while you focus on understanding the problem."
                 },
                 {
-                  title: "Real Products, Real People",
-                  desc: "You'll own products built for real organizations from day one. AI agents handle the deep tech. You focus on the problem, the product, and the outcome."
+                  title: "Real Clients, Real Stakes",
+                  desc: "Fellows work on actual client engagements from the start. You'll configure systems real nonprofits depend on, write documentation real staff will read, and own real outcomes."
                 },
                 {
-                  title: "Grow & Give Back",
-                  desc: "As you advance, you'll take on bigger products and start mentoring newer fellows. Teaching is the best way to deepen what you know."
+                  title: "Accessibility as Curriculum",
+                  desc: "You'll graduate knowing WCAG fundamentals, plain-language principles, and trauma-informed design — woven into how you approach every project, not bolted on at the end."
                 },
                 {
                   title: "Launch Your Career",
-                  desc: "Graduate with a portfolio of products you owned end to end, real professional references, and the ability to leverage AI tools to build and ship anything."
+                  desc: "Graduate with a portfolio of real work, professional references, and the skills to direct AI tools confidently. A community that doesn't disappear after you leave."
                 }
               ].map((item, i) => (
                 <div key={i} className="flex gap-4">
@@ -376,7 +376,7 @@ export default function Home() {
           <div className="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-100 lg:sticky lg:top-32">
             <h3 className="text-2xl font-display text-[#1A1F2B] mb-6">Who We're Looking For</h3>
             <p className="text-muted-foreground mb-4">
-              No college degree required. No bootcamp tuition. We're not looking for people who already know how to code — we're looking for people who want to solve problems and own the outcome. If you have a high school diploma or GED and the drive to act, you're exactly who we want.
+              No college degree. No tuition. We run small, attentive cohorts designed for people whose paths into technology have been blocked — not for lack of ability, but for lack of access. Our pedagogy is built for the full range of human learners.
             </p>
             
             <div className="flex flex-wrap gap-2 mb-8">
@@ -384,12 +384,15 @@ export default function Home() {
                 "GED Holders",
                 "Career Changers",
                 "Veterans",
-                "Single Parents",
+                "Single Parents & Caregivers",
+                "Neurodivergent Learners",
+                "Formerly Incarcerated",
+                "People in Recovery",
+                "Disability & Chronic Illness",
                 "Self-Taught Learners",
                 "Underemployed Workers",
                 "Community College Students",
-                "Non-Degree Candidates",
-                "Second Chance Seekers"
+                "Non-Degree Candidates"
               ].map((tag, i) => (
                 <span 
                   key={i} 
@@ -410,7 +413,7 @@ export default function Home() {
                 Apply for the Fellowship <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
-            <p className="text-xs text-muted-foreground text-center mt-3">Only a HS diploma or GED required. All backgrounds welcome.</p>
+            <p className="text-xs text-muted-foreground text-center mt-3">HS diploma or GED required. Accessibility accommodations available. All backgrounds welcome.</p>
             <motion.img 
               src={vikingCoding} 
               alt="" 
@@ -429,7 +432,7 @@ export default function Home() {
             Read the full story.
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            handləkraft.ai is just getting started. Our proposal covers everything — our mission, how we operate, how we fund the work, and where we're headed. We'd love your thoughts and your support.
+            Our strategic plan lays out the complete picture — our purpose, our operating principles, how we serve organizations and learners, our commitment to accessibility-first design, and where we're headed over the next five years. We welcome your thoughts, questions, and support.
           </p>
           <Button 
             className="bg-[#1A1F2B] hover:bg-[#1A1F2B]/90 text-white font-bold rounded-full px-8 py-6 h-auto"
@@ -438,7 +441,7 @@ export default function Home() {
           >
             Download Our Proposal (PDF) <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
-          <p className="text-sm text-muted-foreground mt-4">This is a living document. We welcome questions, ideas, and conversations.</p>
+          <p className="text-sm text-muted-foreground mt-4">This is a living document — we expect it to evolve as we learn. That's by design.</p>
         </div>
       </Section>
 
@@ -453,23 +456,23 @@ export default function Home() {
             {[
               {
                 q: "Is this really free for organizations?",
-                a: "Yes, 100%. We're a 501(c)(3) nonprofit funded by donations. Organizations never pay a dime for the software we build. That's the whole point — we exist to give community organizations the tools they need without adding to their costs."
+                a: "Yes. We're a 501(c)(3) nonprofit funded by donations. Organizations never pay for our services — assessment, configuration, training, or anything else we provide. That's the whole point."
               },
               {
-                q: "What kind of software do you build?",
-                a: "Websites, client intake systems, scheduling tools, donor management platforms, dashboards, workflow automation — whatever the organization actually needs. Every project is scoped around their real work, not a template."
+                q: "What services do you provide?",
+                a: "Discovery and honest assessment, tool selection and configuration, staff training and capability transfer, accessibility audits, light customization, and — when genuinely needed — custom software. Most organizations benefit more from getting existing tools configured well than from building something new. We'll tell you honestly which you need."
               },
               {
                 q: "Do I need coding experience to apply for the fellowship?",
-                a: "Not at all. We're looking for problem solvers, not programmers. If you have a high school diploma or GED and the motivation to learn, that's enough. AI tools handle the deep technical work — fellows focus on understanding the problem and owning the product."
+                a: "No. We're looking for people who want to solve problems and own outcomes — not people who already know how to code. If you have a high school diploma or GED and the drive to learn, that's enough. AI tools handle the deep technical work; fellows focus on understanding the problem, directing the work, and transferring capability to real organizations."
               },
               {
-                q: "How long is the fellowship?",
-                a: "The fellowship runs 2-4 weeks, depending on cohort size. You'll move through foundations quickly, dive into real projects, and graduate with a portfolio you're proud of."
+                q: "Who can apply for the fellowship?",
+                a: "Anyone who's been locked out of traditional technology pathways. Veterans (including those with OTH discharges), neurodivergent learners, formerly incarcerated individuals, single parents and caregivers, people in recovery, people with disabilities or chronic illness, GED holders, career changers. Our pedagogy is designed for the full range of human learners, not a narrow archetype."
               },
               {
                 q: "How is this different from a coding bootcamp?",
-                a: "Bootcamps teach you to code. We teach you to solve problems and deliver products. Our fellows leverage AI agents for the technical heavy lifting and focus on product thinking, communication, and ownership. And unlike bootcamps, there's no tuition."
+                a: "Bootcamps train you to code. We train you to configure, advise, and deliver outcomes for real organizations — using AI tools to handle technical complexity while you own the product thinking, communication, and results. Small cohorts, real client engagements, close mentorship, no tuition, and accessibility woven into everything."
               },
               {
                 q: "How can I support handləkraft.ai?",
@@ -477,7 +480,7 @@ export default function Home() {
               },
               {
                 q: "Who founded handləkraft.ai?",
-                a: "handləkraft.ai was founded by a father-son team who believe that motivated people — armed with the right tools and mentorship — can solve real problems for real communities. We're building something good, together."
+                a: "handləkraft was founded by a father-son team launching September 2026. We believe that motivated people — armed with the right tools, close mentorship, and a commitment to accessibility — can multiply the power to act for communities that technology has underserved."
               },
             ].map((item, i) => (
               <AccordionItem key={i} value={`faq-${i}`} className="bg-white rounded-xl border border-slate-100 px-6 shadow-sm" data-testid={`faq-item-${i}`}>

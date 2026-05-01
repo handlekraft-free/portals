@@ -51,13 +51,21 @@ function fmtIso(d: Date) {
 const emptyDayRow14 = (): Record<DayIdx, number> =>
   Object.fromEntries(BIWEEK_INDICES.map(k => [k, 0])) as Record<DayIdx, number>;
 
-// Prefill: first CC gets Mon–Thu (d0–d3) = 6h, second CC gets Fri (d4) = 6h
+// Prefill: first CC gets Mon–Thu = 6h, second CC gets Fri = 6h — both weeks
 const defaultCcHours = (codes: any[]): Record<number, Record<DayIdx, number>> => {
   const result: Record<number, Record<DayIdx, number>> = {};
   codes.forEach((cc, idx) => {
     const row = emptyDayRow14();
-    if (idx === 0) { row.d0 = 6; row.d1 = 6; row.d2 = 6; row.d3 = 6; }
-    if (idx === 1) { row.d4 = 6; }
+    if (idx === 0) {
+      // Week 1 Mon–Thu (d0–d3) + Week 2 Mon–Thu (d7–d10)
+      row.d0 = 6; row.d1 = 6; row.d2 = 6; row.d3 = 6;
+      row.d7 = 6; row.d8 = 6; row.d9 = 6; row.d10 = 6;
+    }
+    if (idx === 1) {
+      // Week 1 Fri (d4) + Week 2 Fri (d11)
+      row.d4 = 6;
+      row.d11 = 6;
+    }
     result[cc.id] = row;
   });
   return result;

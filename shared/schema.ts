@@ -227,6 +227,9 @@ export const kanbanCards = pgTable("kanban_cards", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   archived: boolean("archived").default(false),
+  reviewApproved: boolean("review_approved").notNull().default(false),
+  reviewedBy: integer("reviewed_by"),
+  reviewedAt: timestamp("reviewed_at"),
 });
 export type KanbanCard = typeof kanbanCards.$inferSelect;
 

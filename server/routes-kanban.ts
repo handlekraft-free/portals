@@ -299,7 +299,42 @@ router.get("/cards/:id", async (req, res) => {
 });
 
 router.patch("/cards/:id", async (req, res) => {
-  const { columnId, boardId, title, description, assignedTo, reviewerId, interestRating, dueDate, priority, labels, position, archived } = req.body;
+  const userId = req.user!.userId;
+  const role = req.user!.role;
+  const cardId = parseInt(req.params.id);
+  const { columnId, boardId, title, description, assignedTo, reviewerId, interestRating, dueDate, priority, labels, position, archived, reviewApproved } = req.body;
+
+  const [currentCard] = await db.select().from(kanbanCards).where(eq(kanbanCards.id, cardId));
+  if (!currentCard) return res.status(404).json({ success: false, error: "Card not found" });
+
+  // Block moving to a "Valhalla" column unless peer review is approved
+  if (columnId !== undefined && parseInt(columnId) !== currentCard.columnId) {
+    const [targetCol] = await db.select().from(kanbanColumns).where(eq(kanbanColumns.id, parseInt(columnId)));
+    if (targetCol && targetCol.title.toLowerCase().includes("valhalla")) {
+      const willBeApproved = reviewApproved !== undefined ? reviewApproved : currentCard.reviewApproved;
+      if (!willBeApproved) {
+        return res.status(422).json({
+          success: false,
+          error: "This task requires a 3rd party peer review before it can be moved to Done. Please have your assigned reviewer approve it first.",
+          requiresReview: true,
+        });
+      }
+    }
+  }
+
+  // Only the assigned reviewer (or an admin) can change the reviewApproved field
+  let reviewUpdate: Record<string, any> = {};
+  if (reviewApproved !== undefined) {
+    if (currentCard.reviewerId !== userId && role !== "admin") {
+      return res.status(403).json({ success: false, error: "Only the assigned reviewer can approve or revoke this review" });
+    }
+    reviewUpdate = {
+      reviewApproved,
+      reviewedBy: reviewApproved ? userId : null,
+      reviewedAt: reviewApproved ? new Date() : null,
+    };
+  }
+
   const [card] = await db.update(kanbanCards).set({
     ...(columnId !== undefined && { columnId: parseInt(columnId) }),
     ...(boardId !== undefined && { boardId: parseInt(boardId) }),
@@ -313,8 +348,9 @@ router.patch("/cards/:id", async (req, res) => {
     ...(labels !== undefined && { labels }),
     ...(position !== undefined && { position }),
     ...(archived !== undefined && { archived }),
+    ...reviewUpdate,
     updatedAt: new Date(),
-  }).where(eq(kanbanCards.id, parseInt(req.params.id))).returning();
+  }).where(eq(kanbanCards.id, cardId)).returning();
   if (!card) return res.status(404).json({ success: false, error: "Card not found" });
   res.json({ success: true, data: card });
 });

@@ -564,8 +564,9 @@ export async function registerRoutes(
 
   // ── Public board document share links (no auth required) ─────────────────
   app.get("/api/public/board/document/:token", async (req: Request, res: Response) => {
+    const token = String(req.params.token);
     const [doc] = await db.select().from(boardDocuments)
-      .where(eq(boardDocuments.shareToken, req.params.token));
+      .where(eq(boardDocuments.shareToken, token));
     if (!doc || !doc.shareEnabled) return res.status(404).json({ success: false, error: "Link not found or has been revoked" });
 
     const [ver] = await db.select().from(boardDocumentVersions)
@@ -590,8 +591,9 @@ export async function registerRoutes(
   });
 
   app.get("/api/public/board/document/:token/download", async (req: Request, res: Response) => {
+    const token = String(req.params.token);
     const [doc] = await db.select().from(boardDocuments)
-      .where(eq(boardDocuments.shareToken, req.params.token));
+      .where(eq(boardDocuments.shareToken, token));
     if (!doc || !doc.shareEnabled) return res.status(404).json({ success: false, error: "Link not found or has been revoked" });
 
     const [ver] = await db.select().from(boardDocumentVersions)

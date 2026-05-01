@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -507,6 +508,52 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
               <p className="text-xs text-slate-400 mt-1 leading-tight">Reviewer appears in My Tasks when card enters "In Review"</p>
             </div>
 
+            {/* Peer Review Approval */}
+            {(() => {
+              const isReviewer = currentUserId === card.reviewerId;
+              const approved = !!(card.reviewApproved ?? card.review_approved);
+              const reviewedAt = card.reviewedAt ?? card.reviewed_at;
+              return (
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                    <Check className="w-3 h-3" /> Peer Review
+                  </p>
+                  <label
+                    className={`flex items-start gap-2.5 rounded-lg border p-2.5 transition-colors ${approved ? "bg-green-50 border-green-200" : "bg-white border-slate-200"} ${isReviewer ? "cursor-pointer hover:border-green-300" : "cursor-default"}`}
+                    data-testid="label-review-approval"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={approved}
+                      disabled={!isReviewer}
+                      onChange={async () => {
+                        if (!isReviewer) return;
+                        await patch({ reviewApproved: !approved });
+                      }}
+                      className="mt-0.5 w-4 h-4 rounded accent-green-600"
+                      data-testid="checkbox-review-approved"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className={`text-sm font-medium ${approved ? "text-green-700" : "text-slate-600"}`}>
+                        {approved ? "Review approved ✓" : "Approve review"}
+                      </span>
+                      {approved && reviewedAt && (
+                        <p className="text-xs text-green-600 mt-0.5">{relTime(reviewedAt)}</p>
+                      )}
+                      {!isReviewer && (
+                        <p className="text-xs text-slate-400 mt-0.5 leading-tight">
+                          {card.reviewer ? `${card.reviewer.firstName} ${card.reviewer.lastName} must approve` : "Assign a reviewer first"}
+                        </p>
+                      )}
+                    </div>
+                  </label>
+                  <p className="text-xs text-amber-600 mt-1 leading-tight flex items-center gap-1">
+                    <Flag className="w-3 h-3 shrink-0" /> Required to move to Done (Valhalla)
+                  </p>
+                </div>
+              );
+            })()}
+
             {/* Priority */}
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Priority</p>
@@ -747,6 +794,7 @@ function TaskRow({ task, onOpen, onOpenBoard }: { task: any; onOpen: () => void;
 
 function KanbanContent() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [boards, setBoards] = useState<any[]>([]);
   const [activeBoard, setActiveBoard] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -827,14 +875,33 @@ function KanbanContent() {
     const cardId = parseInt(draggableId);
     const newColumnId = parseInt(destination.droppableId);
     const newPosition = destination.index;
+
+    // Block move to "Valhalla" (Done) if peer review is not approved
+    const targetCol = activeBoard.columns.find((c: any) => c.id === newColumnId);
+    if (targetCol && targetCol.title.toLowerCase().includes("valhalla")) {
+      const card = activeBoard.columns.flatMap((c: any) => c.cards).find((c: any) => c.id === cardId);
+      if (card && !card.review_approved) {
+        toast({
+          title: "Peer review required",
+          description: "This task needs a 3rd party review before it can be moved to Done. Ask your assigned reviewer to approve it first.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const newBoard = { ...activeBoard, columns: activeBoard.columns.map((col: any) => ({ ...col, cards: col.cards.filter((c: any) => c.id !== cardId) })) };
     const card = activeBoard.columns.flatMap((c: any) => c.cards).find((c: any) => c.id === cardId);
     if (card) {
-      const targetCol = newBoard.columns.find((c: any) => c.id === newColumnId);
-      if (targetCol) targetCol.cards.splice(newPosition, 0, { ...card, columnId: newColumnId });
+      const targetCol2 = newBoard.columns.find((c: any) => c.id === newColumnId);
+      if (targetCol2) targetCol2.cards.splice(newPosition, 0, { ...card, columnId: newColumnId });
     }
     setActiveBoard(newBoard);
-    await apiRequest("PATCH", `/api/kanban/cards/${cardId}`, { columnId: newColumnId, position: newPosition });
+    const r = await apiRequest("PATCH", `/api/kanban/cards/${cardId}`, { columnId: newColumnId, position: newPosition });
+    if (!r.success) {
+      loadBoard(activeBoard.id);
+      toast({ title: "Move blocked", description: r.error, variant: "destructive" });
+    }
   }
 
   if (loading) return <div className="space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="h-32 bg-white rounded-xl animate-pulse" />)}</div>;

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, varchar, boolean, numeric, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, varchar, boolean, numeric, pgEnum, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -594,7 +594,7 @@ export const boardDocumentAcks = pgTable("board_document_acks", {
   documentId: integer("document_id").notNull(),
   userId: integer("user_id").notNull(),
   ackedAt: timestamp("acked_at").defaultNow().notNull(),
-});
+}, (t) => [uniqueIndex("board_document_acks_doc_user_unique").on(t.documentId, t.userId)]);
 export type BoardDocumentAck = typeof boardDocumentAcks.$inferSelect;
 
 export const boardAuditLog = pgTable("board_audit_log", {

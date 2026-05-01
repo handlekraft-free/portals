@@ -642,6 +642,10 @@ function DocumentsContent() {
     const url = activeCategory === "_all"
       ? "/api/board/documents"
       : `/api/board/documents?category=${encodeURIComponent(activeCategory)}`;
+    // Always fetch all-category counts so sidebar badges are always accurate
+    const countsFetch = activeCategory !== "_all"
+      ? apiRequest("GET", "/api/board/documents")
+      : Promise.resolve(null);
     apiRequest("GET", url).then(r => {
       if (r.success) {
         setAllDocs(r.data);
@@ -652,6 +656,13 @@ function DocumentsContent() {
         }
       }
       setLoading(false);
+    });
+    countsFetch.then(r => {
+      if (r?.success) {
+        const counts: Record<string, number> = {};
+        for (const d of r.data) counts[d.category] = (counts[d.category] || 0) + 1;
+        setCatCounts(counts);
+      }
     });
   }, [activeCategory]);
 

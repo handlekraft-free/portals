@@ -185,12 +185,17 @@ router.post("/logout", (req, res) => {
 router.get("/me", requireAuth, async (req, res) => {
   const [user] = await db.select().from(users).where(eq(users.id, req.user!.userId));
   if (!user) return res.status(404).json({ success: false, error: "User not found" });
+  // Use the role from the JWT (the role the user selected at login),
+  // NOT user.role from the DB — for multi-role users these differ.
+  const sessionRole = req.user!.role;
+  const availableRoles: string[] = (user.roles && user.roles.length > 0) ? user.roles : [user.role];
   res.json({
     success: true,
     data: {
       id: user.id,
       email: user.email,
-      role: user.role,
+      role: sessionRole,
+      availableRoles,
       firstName: user.firstName,
       lastName: user.lastName,
       mustChangePassword: user.mustChangePassword,

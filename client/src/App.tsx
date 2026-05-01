@@ -47,6 +47,7 @@ import BoardConflicts from "@/pages/portal/board/conflicts";
 import BoardDirectory from "@/pages/portal/board/directory";
 import BoardForums from "@/pages/portal/board/forums";
 import BoardOnboarding from "@/pages/portal/board/onboarding";
+import BoardProfile from "@/pages/portal/board/profile";
 import BoardMinutesDetail from "@/pages/portal/board/minutes-detail";
 
 // Admin Portal
@@ -104,6 +105,7 @@ function Router() {
       <Route path="/portal/board/directory" component={BoardDirectory} />
       <Route path="/portal/board/forums" component={BoardForums} />
       <Route path="/portal/board/onboarding" component={BoardOnboarding} />
+      <Route path="/portal/board/profile" component={BoardProfile} />
       <Route path="/portal/board/minutes/:id" component={BoardMinutesDetail} />
 
       {/* Admin Portal */}

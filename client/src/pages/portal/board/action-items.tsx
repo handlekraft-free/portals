@@ -154,7 +154,7 @@ function ActionItemsContent() {
 
     const [ai, mem] = await Promise.all([
       apiRequest("GET", `/api/board/action-items?${params}`),
-      isAdmin ? apiRequest("GET", "/api/board/members") : Promise.resolve({ success: true, data: [] }),
+      apiRequest("GET", "/api/board/members"),
     ]);
     if (ai.success) setItems(ai.data || []);
     if (mem.success) setMembers(mem.data || []);
@@ -201,11 +201,9 @@ function ActionItemsContent() {
           <button onClick={load} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 transition-colors" title="Refresh" data-testid="button-refresh-items">
             <RefreshCw className="w-4 h-4" />
           </button>
-          {isAdmin && (
-            <Button onClick={() => setShowNew(true)} className="bg-indigo-500 text-white gap-2" data-testid="button-new-item">
-              <Plus className="w-4 h-4" /> New Item
-            </Button>
-          )}
+          <Button onClick={() => setShowNew(true)} className="bg-indigo-500 text-white gap-2" data-testid="button-new-item">
+            <Plus className="w-4 h-4" /> New Item
+          </Button>
         </div>
       </div>
 
@@ -226,7 +224,7 @@ function ActionItemsContent() {
             <option value="all">All statuses</option>
           </select>
         </div>
-        {isAdmin && members.length > 0 && (
+        {members.length > 0 && (
           <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-3 py-1.5">
             <User className="w-3.5 h-3.5 text-slate-400" />
             <select

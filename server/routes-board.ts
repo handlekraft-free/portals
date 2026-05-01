@@ -108,6 +108,42 @@ router.get("/directory", async (_req, res) => {
   res.json({ success: true, data: members });
 });
 
+// ── My Profile (any board member edits their own profile) ─────────────────────
+
+router.get("/me", requireBoard as any, async (req, res) => {
+  const userId = req.user!.userId;
+  const [member] = await db.select({
+    id: users.id, firstName: users.firstName, lastName: users.lastName,
+    email: users.email, phone: users.phone, linkedIn: users.linkedIn,
+    preferredMeetingTimes: users.preferredMeetingTimes, bio: users.bio,
+    photoUrl: users.photoUrl, boardPosition: users.boardPosition,
+    committees: users.committees, termStart: users.termStart, termEnd: users.termEnd,
+    role: users.role, avatarUrl: users.avatarUrl,
+  }).from(users).where(eq(users.id, userId));
+  if (!member) return res.status(404).json({ success: false, error: "Not found" });
+  res.json({ success: true, data: member });
+});
+
+router.patch("/me", requireBoard as any, async (req, res) => {
+  const userId = req.user!.userId;
+  const { firstName, lastName, email, phone, linkedIn, preferredMeetingTimes, bio } = req.body;
+  const [updated] = await db.update(users).set({
+    ...(firstName !== undefined && firstName && { firstName }),
+    ...(lastName !== undefined && lastName && { lastName }),
+    ...(email !== undefined && email && { email }),
+    ...(phone !== undefined && { phone }),
+    ...(linkedIn !== undefined && { linkedIn }),
+    ...(preferredMeetingTimes !== undefined && { preferredMeetingTimes }),
+    ...(bio !== undefined && { bio }),
+  }).where(eq(users.id, userId)).returning({
+    id: users.id, firstName: users.firstName, lastName: users.lastName,
+    email: users.email, phone: users.phone, linkedIn: users.linkedIn,
+    preferredMeetingTimes: users.preferredMeetingTimes, bio: users.bio,
+    boardPosition: users.boardPosition, role: users.role,
+  });
+  res.json({ success: true, data: updated });
+});
+
 // ── Committees ────────────────────────────────────────────────────────────────
 
 router.get("/committees", async (_req, res) => {
@@ -143,7 +179,7 @@ router.get("/meetings", async (req, res) => {
   res.json({ success: true, data: enriched });
 });
 
-router.post("/meetings", requireAdmin as any, async (req, res) => {
+router.post("/meetings", requireBoard as any, async (req, res) => {
   const { title, scheduledAt, endTime, location, platform, meetingType, quorumNumber, noticeSentAt, noticeMethod } = req.body;
   if (!title || !scheduledAt) return res.status(400).json({ success: false, error: "Title and date required" });
   const [meeting] = await db.insert(boardMeetings).values({
@@ -223,7 +259,7 @@ router.get("/meetings/:id", async (req, res) => {
   });
 });
 
-router.patch("/meetings/:id", requireAdmin as any, async (req, res) => {
+router.patch("/meetings/:id", requireBoard as any, async (req, res) => {
   const id = parseInt(req.params.id);
   const { title, scheduledAt, endTime, location, platform, meetingType, quorumNumber, status } = req.body;
   const [updated] = await db.update(boardMeetings).set({
@@ -269,7 +305,7 @@ router.post("/meetings/:id/rsvp", async (req, res) => {
 
 // ── Agenda Items ──────────────────────────────────────────────────────────────
 
-router.post("/meetings/:id/agenda", requireAdmin as any, async (req, res) => {
+router.post("/meetings/:id/agenda", requireBoard as any, async (req, res) => {
   const meetingId = parseInt(req.params.id);
   const { title, description, duration, presenter } = req.body;
   if (!title) return res.status(400).json({ success: false, error: "Title required" });
@@ -297,7 +333,7 @@ router.patch("/agenda/:id", requireAdmin as any, async (req, res) => {
   res.json({ success: true, data: updated });
 });
 
-router.delete("/agenda/:id", requireAdmin as any, async (req, res) => {
+router.delete("/agenda/:id", requireBoard as any, async (req, res) => {
   await db.delete(boardAgendaItems).where(eq(boardAgendaItems.id, parseInt(req.params.id)));
   res.json({ success: true, data: null });
 });
@@ -373,7 +409,7 @@ router.get("/action-items", async (req, res) => {
 });
 
 // Create standalone action item (admin only)
-router.post("/action-items", requireAdmin as any, async (req, res) => {
+router.post("/action-items", requireBoard as any, async (req, res) => {
   const { title, description, assignedTo, dueDate, priority } = req.body;
   if (!title) return res.status(400).json({ success: false, error: "Title required" });
   const [item] = await db.insert(boardActionItems).values({
@@ -609,7 +645,7 @@ router.get("/documents/:id", async (req, res) => {
 // Upload new document (admin only).
 // If a document with the same title (case-insensitive) + category already exists,
 // this appends a new version to the existing document instead of creating a duplicate.
-router.post("/documents", requireAdmin as any, boardDocUpload.single("file"), async (req, res) => {
+router.post("/documents", requireBoard as any, boardDocUpload.single("file"), async (req, res) => {
   const userId = req.user!.userId;
   const { title, description, category, confidentiality, requireAck, retentionPolicy, versionNotes } = req.body;
   if (!title || !category) return res.status(400).json({ success: false, error: "Title and category required" });
@@ -677,7 +713,7 @@ router.post("/documents", requireAdmin as any, boardDocUpload.single("file"), as
 });
 
 // Upload new version via explicit :id/versions endpoint (admin only)
-router.post("/documents/:id/versions", requireAdmin as any, boardDocUpload.single("file"), async (req, res) => {
+router.post("/documents/:id/versions", requireBoard as any, boardDocUpload.single("file"), async (req, res) => {
   const userId = req.user!.userId;
   const docId = parseInt(req.params.id as string);
   const [doc] = await db.select().from(boardDocuments).where(eq(boardDocuments.id, docId));
@@ -707,7 +743,7 @@ router.post("/documents/:id/versions", requireAdmin as any, boardDocUpload.singl
 });
 
 // Alias for backward compatibility
-router.post("/documents/:id/upload", requireAdmin as any, boardDocUpload.single("file"), async (req, res, next) => {
+router.post("/documents/:id/upload", requireBoard as any, boardDocUpload.single("file"), async (req, res, next) => {
   req.url = req.url.replace("/upload", "/versions");
   next("route");
 });
@@ -948,7 +984,7 @@ router.get("/consents", async (req, res) => {
 });
 
 // Create new written consent workflow (admin only)
-router.post("/consents", requireAdmin as any, async (req, res) => {
+router.post("/consents", requireBoard as any, async (req, res) => {
   const { title, description, deadline, interestedDirectors } = req.body;
   if (!title) return res.status(400).json({ success: false, error: "Title required" });
   const ids: number[] = Array.isArray(interestedDirectors) ? interestedDirectors.map(Number) : [];
@@ -1092,7 +1128,7 @@ router.get("/financials", async (_req, res) => {
   res.json({ success: true, data: rows });
 });
 
-router.post("/financials", requireAdmin as any, financialsUpload.single("file"), async (req, res) => {
+router.post("/financials", requireBoard as any, financialsUpload.single("file"), async (req, res) => {
   const { title, period, asOfDate, notes } = req.body;
   if (!title || !period || !asOfDate) return res.status(400).json({ success: false, error: "Title, period, and date required" });
   if (!req.file) return res.status(400).json({ success: false, error: "File required" });

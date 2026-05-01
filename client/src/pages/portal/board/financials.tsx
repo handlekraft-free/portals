@@ -189,11 +189,9 @@ function FinancialsContent() {
           <button onClick={load} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 transition-colors" data-testid="button-refresh-financials">
             <RefreshCw className="w-4 h-4" />
           </button>
-          {isAdmin && (
-            <Button onClick={() => setShowUpload(true)} className="bg-indigo-500 text-white gap-2" data-testid="button-add-financial">
-              <Plus className="w-4 h-4" /> Upload Report
-            </Button>
-          )}
+          <Button onClick={() => setShowUpload(true)} className="bg-indigo-500 text-white gap-2" data-testid="button-add-financial">
+            <Plus className="w-4 h-4" /> Upload Report
+          </Button>
         </div>
       </div>
 

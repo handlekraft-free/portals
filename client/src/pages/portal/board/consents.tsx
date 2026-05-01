@@ -411,11 +411,9 @@ function ConsentsContent() {
           <h1 className="text-2xl font-display text-[#1A1F2B]">Written Consents</h1>
           <p className="text-slate-500 text-sm mt-0.5">Board votes outside of scheduled meetings (Cal. Corp. Code §5211(b)).</p>
         </div>
-        {isAdmin && (
-          <Button onClick={() => setShowCreate(true)} className="bg-indigo-500 text-white gap-2" data-testid="button-new-consent">
-            <Plus className="w-4 h-4" /> New Consent
-          </Button>
-        )}
+        <Button onClick={() => setShowCreate(true)} className="bg-indigo-500 text-white gap-2" data-testid="button-new-consent">
+          <Plus className="w-4 h-4" /> New Consent
+        </Button>
       </div>
 
       {/* Needs attention banner */}
@@ -435,7 +433,7 @@ function ConsentsContent() {
         <div className="text-center py-20 text-slate-400">
           <FileSignature className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p>No written consent workflows yet.</p>
-          {isAdmin && <p className="text-xs mt-1">Create one using the button above.</p>}
+          <p className="text-xs mt-1">Create one using the button above.</p>
         </div>
       ) : (
         <div className="space-y-5">

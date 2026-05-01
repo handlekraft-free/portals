@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, CalendarDays, FileText, ScrollText, CheckSquare,
   FileSignature, LogOut, Menu, Users, Scale, DollarSign, Settings, Shield,
-  BookOpen, MessageSquare, Calendar, Bell, X, Check,
+  BookOpen, MessageSquare, Calendar, Bell, X, Check, UserCircle,
 } from "lucide-react";
 import logoImg from "@/assets/images/logo.png";
 
@@ -24,6 +24,7 @@ const navItems = [
   { href: "/portal/board/forums", icon: <MessageSquare className="w-4 h-4" />, label: "Forums" },
   { href: "/portal/board/onboarding", icon: <BookOpen className="w-4 h-4" />, label: "Onboarding" },
   { href: "/portal/board/settings", icon: <Settings className="w-4 h-4" />, label: "Board Settings" },
+  { href: "/portal/board/profile", icon: <UserCircle className="w-4 h-4" />, label: "My Profile" },
 ];
 
 const adminItems = [

@@ -90,6 +90,10 @@ export const users = pgTable("portal_users", {
   isInterestedDirector: boolean("is_interested_director").default(false),
   boardRestrictedAccess: boolean("board_restricted_access").default(false),
   roles: text("roles").array().default([]),
+  // Extended profile fields
+  phone: text("phone"),
+  linkedIn: text("linked_in"),
+  preferredMeetingTimes: text("preferred_meeting_times"),
 });
 export type PortalUser = typeof users.$inferSelect;
 export type InsertPortalUser = typeof users.$inferInsert;

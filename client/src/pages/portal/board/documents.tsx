@@ -954,11 +954,9 @@ function DocumentsContent() {
             <button onClick={loadDocs} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 transition-colors" title="Refresh" data-testid="button-refresh-docs">
               <RefreshCw className="w-4 h-4" />
             </button>
-            {isAdmin && (
-              <Button onClick={() => setShowUpload(true)} className="bg-indigo-500 text-white gap-2" data-testid="button-upload-doc">
-                <Plus className="w-4 h-4" /> Upload
-              </Button>
-            )}
+            <Button onClick={() => setShowUpload(true)} className="bg-indigo-500 text-white gap-2" data-testid="button-upload-doc">
+              <Plus className="w-4 h-4" /> Upload
+            </Button>
           </div>
         </div>
 

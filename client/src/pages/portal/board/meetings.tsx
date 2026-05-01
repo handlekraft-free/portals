@@ -111,6 +111,12 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
     loadDetail(); onRefresh();
   }
 
+  async function cancelMeeting() {
+    if (!confirm("Cancel this meeting? This cannot be undone.")) return;
+    await apiRequest("PATCH", `/api/board/meetings/${meeting.id}`, { status: "cancelled" });
+    loadDetail(); onRefresh();
+  }
+
   async function saveAttendance() {
     const records = boardMembers.map(m => ({
       userId: m.id,
@@ -159,6 +165,11 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
             {detail.meetingType?.charAt(0).toUpperCase() + detail.meetingType?.slice(1)}
           </Badge>
           <Badge className={STATUS_COLORS[detail.status] || ""}>{detail.status}</Badge>
+          {detail.status === "scheduled" && (
+            <Button size="sm" variant="outline" className="h-7 text-xs gap-1 border-red-300 text-red-600 hover:bg-red-50" onClick={cancelMeeting} data-testid="button-cancel-meeting">
+              <X className="w-3 h-3" /> Cancel Meeting
+            </Button>
+          )}
           {isAdmin && detail.status === "scheduled" && (
             <Button size="sm" variant="outline" className="h-7 text-xs gap-1 border-green-300 text-green-700 hover:bg-green-50" onClick={markAsHeld} data-testid="button-mark-held">
               <Check className="w-3 h-3" /> Mark as Held
@@ -398,7 +409,7 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
         <CardContent className="pt-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Agenda</p>
-            {isAdmin && (
+            {detail.status === "scheduled" && (
               <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setAddingAgenda(true)} data-testid="button-add-agenda">
                 <Plus className="w-3 h-3" /> Add Item
               </Button>
@@ -433,7 +444,7 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
                     </div>
                   </div>
                 )}
-                {isAdmin && editAgenda !== item.id && (
+                {editAgenda !== item.id && (
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <button onClick={() => { setEditAgenda(item.id); setEditTitle(item.title); }} className="p-1 text-slate-400 hover:text-slate-600" data-testid={`edit-agenda-${item.id}`}><Pencil className="w-3 h-3" /></button>
                     <button onClick={() => deleteAgendaItem(item.id)} className="p-1 text-slate-400 hover:text-red-500" data-testid={`delete-agenda-${item.id}`}><Trash2 className="w-3 h-3" /></button>
@@ -521,11 +532,9 @@ function MeetingsContent() {
           <h1 className="text-2xl font-display text-[#1A1F2B]">Board Meetings</h1>
           <p className="text-slate-500 text-sm mt-0.5">Scheduled meetings, RSVPs, agendas, and attendance records.</p>
         </div>
-        {isAdmin && (
-          <Button onClick={() => setShowCreate(true)} className="bg-indigo-500 text-white gap-2" data-testid="button-new-meeting">
-            <Plus className="w-4 h-4" /> Schedule Meeting
-          </Button>
-        )}
+        <Button onClick={() => setShowCreate(true)} className="bg-indigo-500 text-white gap-2" data-testid="button-new-meeting">
+          <Plus className="w-4 h-4" /> Schedule Meeting
+        </Button>
       </div>
 
       {/* Create form */}

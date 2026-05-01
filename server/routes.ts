@@ -96,6 +96,9 @@ export async function registerRoutes(
       ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS reviewer_id integer;
       ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS interest_rating integer;
       ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS kanban_card_id integer;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS phone text;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS linked_in text;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS preferred_meeting_times text;
       CREATE TABLE IF NOT EXISTS team_balance_scores (
         id serial PRIMARY KEY,
         user_id integer NOT NULL UNIQUE,
@@ -365,8 +368,8 @@ export async function registerRoutes(
     console.error("[seed] Could not seed Internal Team board:", e.message);
   }
 
-  // Seed sample board meetings if none exist
-  try {
+  // Seed sample board meetings if none exist (development only)
+  if (process.env.NODE_ENV !== "production") try {
     const [{ value: meetingCount }] = await db.select({ value: count() }).from(boardMeetings);
     if (Number(meetingCount) === 0) {
       const adminRows = await db.select({ id: users.id }).from(users).where(sql`role = 'admin'`).limit(1);

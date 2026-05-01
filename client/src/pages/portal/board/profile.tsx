@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/context/AuthContext";
+import { BoardLayout } from "@/components/portal/BoardLayout";
+import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,7 +29,7 @@ interface BoardProfile {
   avatarUrl?: string | null;
 }
 
-export default function BoardProfilePage() {
+function BoardProfileContent() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -372,5 +374,13 @@ export default function BoardProfilePage() {
         <BoardOnboardingWizard onComplete={() => { setShowWizard(false); setLocation("/portal/board/dashboard"); }} />
       )}
     </div>
+  );
+}
+
+export default function BoardProfilePage() {
+  return (
+    <PortalGuard allowedRoles={["admin", "board"]}>
+      <BoardLayout><BoardProfileContent /></BoardLayout>
+    </PortalGuard>
   );
 }

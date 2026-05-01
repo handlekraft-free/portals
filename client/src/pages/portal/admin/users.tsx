@@ -3,7 +3,7 @@ import { EmployeeLayout } from "@/components/portal/EmployeeLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
 import {
-  Users, Plus, Search, Download, Edit, UserX, Key,
+  Users, Plus, Search, Download, Edit, Trash2, Key,
   Check, X, ShieldCheck, UserPlus, ChevronDown, Shield, Tag, ToggleLeft, ToggleRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -643,9 +643,11 @@ function AdminUsersContent() {
     setLoading(false);
   }
 
-  async function deactivateUser(id: number) {
-    if (!confirm("Deactivate this user? They won't be able to log in.")) return;
-    await apiRequest("DELETE", `/api/admin/portal-users/${id}`);
+  async function deleteUser(u: any) {
+    const name = `${u.firstName} ${u.lastName}`;
+    if (!confirm(`Permanently delete ${name}? This cannot be undone and will remove all their data.`)) return;
+    const res = await apiRequest("DELETE", `/api/admin/portal-users/${u.id}`);
+    if (!(res as any).success) { alert((res as any).error || "Delete failed"); return; }
     load();
   }
 
@@ -830,8 +832,8 @@ function AdminUsersContent() {
                               <button onClick={() => setEditUser(u)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-[#0D7377] transition-colors" title="Edit user" data-testid={`button-edit-${u.id}`}>
                                 <Edit className="w-4 h-4" />
                               </button>
-                              <button onClick={() => deactivateUser(u.id)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-red-500 transition-colors" title="Deactivate" data-testid={`button-deactivate-${u.id}`}>
-                                <UserX className="w-4 h-4" />
+                              <button onClick={() => deleteUser(u)} className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors" title="Delete user permanently" data-testid={`button-delete-${u.id}`}>
+                                <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
                           </td>

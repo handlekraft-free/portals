@@ -63,6 +63,15 @@ router.patch("/:id", async (req, res) => {
   res.json({ success: true, data: user });
 });
 
+router.delete("/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  const requesterId = (req as any).user?.userId;
+  if (id === requesterId) return res.status(400).json({ success: false, error: "You cannot delete your own account." });
+  const [deleted] = await db.delete(users).where(eq(users.id, id)).returning({ id: users.id });
+  if (!deleted) return res.status(404).json({ success: false, error: "User not found" });
+  res.json({ success: true, data: { deleted: id } });
+});
+
 router.post("/:id/reset-password", async (req, res) => {
   const { password } = req.body;
   if (!password) return res.status(400).json({ success: false, error: "New password required" });

@@ -3,7 +3,7 @@ import { EmployeeLayout } from "@/components/portal/EmployeeLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/auth";
-import { Clock, Kanban, MessageSquare, Play, Square, Users, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, Ticket } from "lucide-react";
+import { Clock, Kanban, MessageSquare, Play, Square, Users, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, Ticket, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -594,7 +594,7 @@ function DashboardContent() {
         {[
           { href: "/portal/employee/time", label: "Log Time", icon: <Clock className="w-5 h-5" />, color: "bg-[#0D7377] text-white" },
           { href: "/portal/employee/kanban", label: "View Boards", icon: <Kanban className="w-5 h-5" />, color: "bg-[#1A1F2B] text-white" },
-          { href: "/portal/employee/expenses", label: "Add Expense", icon: <Receipt className="w-5 h-5" />, color: "bg-[#D4A843] text-[#1A1F2B]" },
+          { href: "/portal/employee/expenses", label: "Add Expense", icon: <CreditCard className="w-5 h-5" />, color: "bg-[#D4A843] text-[#1A1F2B]" },
           { href: "/portal/employee/tickets", label: "View Tickets", icon: <MessageSquare className="w-5 h-5" />, color: "bg-purple-600 text-white" },
         ].map((link) => (
           <a

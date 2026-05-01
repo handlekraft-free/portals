@@ -8,7 +8,7 @@ import {
   FileText, Upload, Download, Check, Plus, Lock, Eye, Clock, History,
   Search, X, Users, AlertCircle, Trash2, Edit3, FileCheck,
   FolderOpen, Shield, RefreshCw, Activity, ChevronRight,
-  Link2, Copy, CheckCheck, MessageSquare,
+  Link2, Copy, CheckCheck, MessageSquare, ExternalLink, Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -312,6 +312,7 @@ function EditDocModal({ doc, onClose, onSaved }: { doc: any; onClose: () => void
   const { user } = useAuth();
   const canSeeRestricted = user?.role === "admin" || !!user?.boardRestrictedAccess;
   const uploadCategories = UPLOAD_CATEGORIES.filter(c => !c.restricted || canSeeRestricted);
+  const isLink = !!doc.link_url;
   const [form, setForm] = useState({
     title: doc.title,
     description: doc.description || "",
@@ -319,6 +320,7 @@ function EditDocModal({ doc, onClose, onSaved }: { doc: any; onClose: () => void
     confidentiality: doc.confidentiality,
     requireAck: doc.requireAck ?? doc.require_ack,
     retentionPolicy: doc.retentionPolicy ?? doc.retention_policy ?? "",
+    linkUrl: doc.link_url ?? "",
   });
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -357,6 +359,21 @@ function EditDocModal({ doc, onClose, onSaved }: { doc: any; onClose: () => void
             </select>
           </div>
           <input value={form.retentionPolicy} onChange={e => setForm(f => ({ ...f, retentionPolicy: e.target.value }))} placeholder="Retention policy (optional)" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-edit-retention" />
+          {isLink && (
+            <div>
+              <label className="text-xs text-slate-500 mb-1 block">Web URL</label>
+              <div className="relative">
+                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-teal-400" />
+                <input
+                  value={form.linkUrl}
+                  onChange={e => setForm(f => ({ ...f, linkUrl: e.target.value }))}
+                  placeholder="https://example.com/document"
+                  className="w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300"
+                  data-testid="input-edit-link-url"
+                />
+              </div>
+            </div>
+          )}
           <label className="flex items-center gap-2 cursor-pointer" data-testid="checkbox-edit-requireack">
             <input type="checkbox" checked={!!form.requireAck} onChange={e => setForm(f => ({ ...f, requireAck: e.target.checked }))} className="accent-indigo-500" />
             <span className="text-sm text-slate-600">Require acknowledgment from all board members</span>
@@ -375,10 +392,11 @@ function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded:
   const { user } = useAuth();
   const canSeeRestricted = user?.role === "admin" || !!user?.boardRestrictedAccess;
   const uploadCategories = UPLOAD_CATEGORIES.filter(c => !c.restricted || canSeeRestricted);
+  const [mode, setMode] = useState<"file" | "link">("file");
   const [form, setForm] = useState({
     title: "", description: "", category: "Bylaws & Policies",
     confidentiality: "board_only", requireAck: false,
-    retentionPolicy: "", versionNotes: "",
+    retentionPolicy: "", versionNotes: "", linkUrl: "",
   });
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -389,6 +407,11 @@ function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded:
     if (!form.title || !form.category) {
       toast({ title: "Title and category are required", variant: "destructive" }); return;
     }
+    if (mode === "link" && !form.linkUrl.trim()) {
+      toast({ title: "A URL is required for web links", variant: "destructive" }); return;
+    }
+    let url = form.linkUrl.trim();
+    if (mode === "link" && url && !/^https?:\/\//i.test(url)) url = "https://" + url;
     setUploading(true);
     const fd = new FormData();
     fd.append("title", form.title);
@@ -398,16 +421,18 @@ function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded:
     fd.append("requireAck", String(form.requireAck));
     fd.append("retentionPolicy", form.retentionPolicy);
     fd.append("versionNotes", form.versionNotes);
-    if (file) fd.append("file", file);
+    if (mode === "link") fd.append("linkUrl", url);
+    if (mode === "file" && file) fd.append("file", file);
     const r = await fetch("/api/board/documents", { method: "POST", body: fd, credentials: "include" });
     const data = await r.json();
     if (data.success) {
-      const msg = data.isNewVersion ? "New version added to existing document" : "Document uploaded successfully";
+      const msg = mode === "link" ? "Web link added to documents" :
+        data.isNewVersion ? "New version added to existing document" : "Document uploaded successfully";
       toast({ title: msg });
       onUploaded();
       onClose();
     } else {
-      toast({ title: "Upload failed", description: data.error, variant: "destructive" });
+      toast({ title: mode === "link" ? "Failed to add link" : "Upload failed", description: data.error, variant: "destructive" });
     }
     setUploading(false);
   }
@@ -416,17 +441,44 @@ function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded:
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl">
-          <p className="font-semibold text-[#1A1F2B]">Upload Board Document</p>
+          <p className="font-semibold text-[#1A1F2B]">Add Board Document</p>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" data-testid="button-close-upload"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-5 space-y-3">
-          <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-3 py-2 text-xs text-indigo-700">
-            <strong>Tip:</strong> Uploading a document with the same title and category as an existing document will add a new version to it.
+
+          {/* Mode toggle */}
+          <div className="flex rounded-xl bg-slate-100 p-1 gap-1" data-testid="toggle-upload-mode">
+            <button
+              onClick={() => setMode("file")}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-sm font-medium transition-all ${mode === "file" ? "bg-white shadow text-indigo-600" : "text-slate-500 hover:text-slate-700"}`}
+              data-testid="button-mode-file"
+            >
+              <Upload className="w-3.5 h-3.5" /> Upload File
+            </button>
+            <button
+              onClick={() => setMode("link")}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-sm font-medium transition-all ${mode === "link" ? "bg-white shadow text-teal-600" : "text-slate-500 hover:text-slate-700"}`}
+              data-testid="button-mode-link"
+            >
+              <Globe className="w-3.5 h-3.5" /> Add Web Link
+            </button>
           </div>
+
+          {mode === "file" && (
+            <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-3 py-2 text-xs text-indigo-700">
+              <strong>Tip:</strong> Uploading a document with the same title and category as an existing document will add a new version to it.
+            </div>
+          )}
+          {mode === "link" && (
+            <div className="bg-teal-50 border border-teal-100 rounded-xl px-3 py-2 text-xs text-teal-700">
+              Add a web link as a board document. Board members can open, acknowledge, and discuss it just like a file.
+            </div>
+          )}
+
           <input
             value={form.title}
             onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-            placeholder="Document title *"
+            placeholder="Title *"
             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
             data-testid="input-doc-title"
           />
@@ -465,31 +517,58 @@ function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded:
             <input type="checkbox" checked={form.requireAck} onChange={e => setForm(f => ({ ...f, requireAck: e.target.checked }))} className="accent-indigo-500" />
             <span className="text-sm text-slate-600">Require acknowledgment from all board members</span>
           </label>
-          <div>
-            <label className="text-xs text-slate-500 mb-1 block">Attach File</label>
-            <div
-              className="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer hover:border-indigo-300 transition-colors"
-              onClick={() => fileRef.current?.click()}
-              data-testid="dropzone-doc-upload"
-            >
-              <Upload className="w-5 h-5 mx-auto mb-1.5 text-slate-400" />
-              <p className="text-sm text-slate-400">{file ? file.name : "Click to attach file"}</p>
-              {file && <p className="text-xs text-slate-400 mt-0.5">{formatBytes(file.size)}</p>}
-              <input ref={fileRef} type="file" className="hidden" onChange={e => setFile(e.target.files?.[0] || null)} data-testid="input-doc-file" />
-            </div>
-          </div>
-          {file && (
-            <input
-              value={form.versionNotes}
-              onChange={e => setForm(f => ({ ...f, versionNotes: e.target.value }))}
-              placeholder="Version notes for this file (optional)"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-              data-testid="input-version-notes"
-            />
+
+          {mode === "file" && (
+            <>
+              <div>
+                <label className="text-xs text-slate-500 mb-1 block">Attach File</label>
+                <div
+                  className="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer hover:border-indigo-300 transition-colors"
+                  onClick={() => fileRef.current?.click()}
+                  data-testid="dropzone-doc-upload"
+                >
+                  <Upload className="w-5 h-5 mx-auto mb-1.5 text-slate-400" />
+                  <p className="text-sm text-slate-400">{file ? file.name : "Click to attach file"}</p>
+                  {file && <p className="text-xs text-slate-400 mt-0.5">{formatBytes(file.size)}</p>}
+                  <input ref={fileRef} type="file" className="hidden" onChange={e => setFile(e.target.files?.[0] || null)} data-testid="input-doc-file" />
+                </div>
+              </div>
+              {file && (
+                <input
+                  value={form.versionNotes}
+                  onChange={e => setForm(f => ({ ...f, versionNotes: e.target.value }))}
+                  placeholder="Version notes for this file (optional)"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  data-testid="input-version-notes"
+                />
+              )}
+            </>
           )}
+
+          {mode === "link" && (
+            <div>
+              <label className="text-xs text-slate-500 mb-1 block">Web URL *</label>
+              <div className="relative">
+                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-teal-400" />
+                <input
+                  value={form.linkUrl}
+                  onChange={e => setForm(f => ({ ...f, linkUrl: e.target.value }))}
+                  placeholder="https://example.com/document"
+                  className="w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300"
+                  data-testid="input-doc-link-url"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-2 pt-1">
-            <Button className="bg-indigo-500 text-white flex-1" onClick={submit} disabled={uploading || !form.title} data-testid="button-save-doc">
-              {uploading ? "Uploading…" : "Upload Document"}
+            <Button
+              className={`flex-1 text-white ${mode === "link" ? "bg-teal-600 hover:bg-teal-700" : "bg-indigo-500 hover:bg-indigo-600"}`}
+              onClick={submit}
+              disabled={uploading || !form.title || (mode === "link" && !form.linkUrl.trim())}
+              data-testid="button-save-doc"
+            >
+              {uploading ? (mode === "link" ? "Adding…" : "Uploading…") : (mode === "link" ? "Add Link" : "Upload Document")}
             </Button>
             <Button variant="outline" onClick={onClose}>Cancel</Button>
           </div>
@@ -676,6 +755,7 @@ function DocCard({
   onDiscuss: () => void;
 }) {
   const hasFile = parseInt(doc.version_count || "0") > 0;
+  const isLink = !!doc.link_url;
   const currentVer = doc.current_version;
   const ackCount = parseInt(doc.ack_count || "0");
   const userAcked = doc.user_acked === true || doc.user_acked === "true";
@@ -686,8 +766,8 @@ function DocCard({
     <Card className="border border-slate-100 shadow-sm hover:shadow-md transition-shadow" data-testid={`doc-card-${doc.id}`}>
       <CardContent className="pt-4 pb-4">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0 mt-0.5">
-            <FileText className="w-5 h-5 text-indigo-400" />
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${isLink ? "bg-teal-50" : "bg-indigo-50"}`}>
+            {isLink ? <Globe className="w-5 h-5 text-teal-500" /> : <FileText className="w-5 h-5 text-indigo-400" />}
           </div>
 
           <div className="flex-1 min-w-0">
@@ -709,6 +789,11 @@ function DocCard({
               {userAcked && (
                 <Badge className="bg-green-100 text-green-700 border-green-200 text-xs border px-1.5 py-0 flex items-center gap-0.5">
                   <Check className="w-3 h-3" /> Acknowledged
+                </Badge>
+              )}
+              {isLink && (
+                <Badge className="bg-teal-100 text-teal-700 border-teal-200 text-xs border px-1.5 py-0 flex items-center gap-0.5">
+                  <Globe className="w-3 h-3" /> Web Link
                 </Badge>
               )}
               {shareEnabled && (
@@ -744,11 +829,22 @@ function DocCard({
                 <Check className="w-4 h-4" />
               </button>
             )}
-            {hasFile && (
+            {isLink ? (
+              <a
+                href={doc.link_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Open link"
+                className="p-1.5 rounded-lg hover:bg-teal-50 text-slate-400 hover:text-teal-600 transition-colors"
+                data-testid={`button-open-link-${doc.id}`}
+              >
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            ) : hasFile ? (
               <a href={`/api/board/documents/${doc.id}/download`} title="Download latest version" className="p-1.5 rounded-lg hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 transition-colors" data-testid={`button-download-doc-${doc.id}`}>
                 <Download className="w-4 h-4" />
               </a>
-            )}
+            ) : null}
             <DiscussionBadge
               count={parseInt(doc.comment_count || "0")}
               hasOpen={parseInt(doc.open_comment_count || "0") > 0}
@@ -763,9 +859,11 @@ function DocCard({
             >
               <Link2 className="w-4 h-4" />
             </button>
-            <button onClick={onShowVersions} title="Version history" className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" data-testid={`button-versions-${doc.id}`}>
-              <History className="w-4 h-4" />
-            </button>
+            {!isLink && (
+              <button onClick={onShowVersions} title="Version history" className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" data-testid={`button-versions-${doc.id}`}>
+                <History className="w-4 h-4" />
+              </button>
+            )}
             {isAdmin && requireAck && (
               <button onClick={onShowAcks} title="View acknowledgments" className="p-1.5 rounded-lg hover:bg-amber-50 text-slate-400 hover:text-amber-600 transition-colors" data-testid={`button-ack-tracking-${doc.id}`}>
                 <Users className="w-4 h-4" />

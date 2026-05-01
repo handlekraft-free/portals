@@ -3,7 +3,7 @@ import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
-import { BookOpen, CheckCircle2, Circle, Plus, ChevronDown, ChevronUp } from "lucide-react";
+import { BookOpen, CheckCircle2, Circle, Plus, ChevronDown, ChevronUp, ExternalLink, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ function OnboardingContent() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState({ title: "", description: "", position: 0 });
+  const [form, setForm] = useState({ title: "", description: "", linkUrl: "", position: 0 });
   const [saving, setSaving] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.role === "admin" || user?.role === "board";
@@ -38,8 +38,10 @@ function OnboardingContent() {
   async function addItem() {
     if (!form.title.trim()) return;
     setSaving(true);
-    await apiRequest("POST", "/api/board/onboarding/items", form);
-    setForm({ title: "", description: "", position: 0 });
+    let url = form.linkUrl.trim();
+    if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;
+    await apiRequest("POST", "/api/board/onboarding/items", { ...form, linkUrl: url || undefined });
+    setForm({ title: "", description: "", linkUrl: "", position: 0 });
     setAdding(false);
     await load();
     setSaving(false);
@@ -106,6 +108,16 @@ function OnboardingContent() {
               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
               data-testid="textarea-onboarding-desc"
             />
+            <div className="relative">
+              <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-teal-400" />
+              <input
+                value={form.linkUrl}
+                onChange={e => setForm(f => ({ ...f, linkUrl: e.target.value }))}
+                placeholder="Web link URL (optional — e.g. https://drive.google.com/…)"
+                className="w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300"
+                data-testid="input-onboarding-link"
+              />
+            </div>
             <div className="flex gap-2">
               <Button onClick={addItem} disabled={saving} className="bg-indigo-500 text-white" data-testid="button-save-onboarding">Save</Button>
               <Button variant="outline" onClick={() => setAdding(false)}>Cancel</Button>
@@ -135,9 +147,14 @@ function OnboardingContent() {
                     {it.acked ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
                   </button>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <p className={`font-semibold text-sm ${it.acked ? "line-through text-slate-400" : "text-[#1A1F2B]"}`}>{it.title}</p>
                       {it.acked && <Badge className="bg-green-100 text-green-700 text-xs">Done</Badge>}
+                      {it.link_url && (
+                        <Badge className="bg-teal-100 text-teal-700 border-teal-200 text-xs border px-1.5 py-0 flex items-center gap-0.5">
+                          <Globe className="w-3 h-3" /> Web Link
+                        </Badge>
+                      )}
                     </div>
                     {it.description && (
                       <div>
@@ -154,12 +171,38 @@ function OnboardingContent() {
                         )}
                       </div>
                     )}
+                    {it.link_url && (
+                      <a
+                        href={it.link_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700 mt-1 font-medium"
+                        data-testid={`link-onboarding-${it.id}`}
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        Open link
+                      </a>
+                    )}
                   </div>
-                  {!it.acked && (
-                    <Button size="sm" variant="outline" className="text-xs border-indigo-200 text-indigo-600 hover:bg-indigo-50" onClick={() => ack(it.id)} data-testid={`button-acknowledge-${it.id}`}>
-                      Acknowledge
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-2 shrink-0">
+                    {it.link_url && (
+                      <a
+                        href={it.link_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1.5 rounded-lg hover:bg-teal-50 text-slate-400 hover:text-teal-600 transition-colors"
+                        title="Open link"
+                        data-testid={`button-open-${it.id}`}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                    {!it.acked && (
+                      <Button size="sm" variant="outline" className="text-xs border-indigo-200 text-indigo-600 hover:bg-indigo-50" onClick={() => ack(it.id)} data-testid={`button-acknowledge-${it.id}`}>
+                        Acknowledge
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

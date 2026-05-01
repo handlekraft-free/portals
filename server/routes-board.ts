@@ -674,7 +674,7 @@ router.get("/documents/:id", async (req, res) => {
 // this appends a new version to the existing document instead of creating a duplicate.
 router.post("/documents", requireBoard as any, boardDocUpload.single("file"), async (req, res) => {
   const userId = req.user!.userId;
-  const { title, description, category, confidentiality, requireAck, retentionPolicy, versionNotes } = req.body;
+  const { title, description, category, confidentiality, requireAck, retentionPolicy, versionNotes, linkUrl } = req.body;
   if (!title || !category) return res.status(400).json({ success: false, error: "Title and category required" });
 
   // Check for existing document with same title + category (case-insensitive)
@@ -704,6 +704,7 @@ router.post("/documents", requireBoard as any, boardDocUpload.single("file"), as
       confidentiality: (confidentiality as any) || "board_only",
       requireAck: requireAck === "true" || requireAck === true,
       retentionPolicy: retentionPolicy || null,
+      linkUrl: linkUrl || null,
       uploadedBy: userId,
     }).returning();
     doc = newDoc;
@@ -811,7 +812,7 @@ router.get("/documents/:id/audit", requireBoard as any, async (req, res) => {
 router.patch("/documents/:id", requireBoard as any, async (req, res) => {
   const userId = req.user!.userId;
   const docId = parseInt(req.params.id);
-  const { title, description, category, confidentiality, requireAck, retentionPolicy } = req.body;
+  const { title, description, category, confidentiality, requireAck, retentionPolicy, linkUrl } = req.body;
   const [doc] = await db.update(boardDocuments).set({
     ...(title && { title }),
     ...(description !== undefined && { description }),
@@ -819,6 +820,7 @@ router.patch("/documents/:id", requireBoard as any, async (req, res) => {
     ...(confidentiality && { confidentiality }),
     ...(requireAck !== undefined && { requireAck }),
     ...(retentionPolicy !== undefined && { retentionPolicy }),
+    ...(linkUrl !== undefined && { linkUrl: linkUrl || null }),
   }).where(eq(boardDocuments.id, docId)).returning();
   if (!doc) return res.status(404).json({ success: false, error: "Not found" });
   auditLog(userId, "update", "document", docId, `Updated metadata: ${doc.title}`);
@@ -1328,10 +1330,11 @@ router.post("/onboarding/:id/ack", async (req, res) => {
 });
 
 router.post("/onboarding/items", requireBoard as any, async (req, res) => {
-  const { title, description, position } = req.body;
+  const { title, description, position, linkUrl } = req.body;
   if (!title) return res.status(400).json({ success: false, error: "Title required" });
   await db.execute(sql`
-    INSERT INTO board_onboarding_items (title, description, position) VALUES (${title}, ${description ?? null}, ${position ?? 0})
+    INSERT INTO board_onboarding_items (title, description, link_url, position)
+    VALUES (${title}, ${description ?? null}, ${linkUrl ?? null}, ${position ?? 0})
   `);
   res.status(201).json({ success: true, data: null });
 });

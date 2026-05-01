@@ -208,4 +208,48 @@ router.post("/chat/stream", upload.array("files", 5), async (req: any, res) => {
   }
 });
 
+// ── One-shot task advice (stateless — not saved to chat history) ──────────────
+
+const TASK_ADVICE_SYSTEM = `You are a friendly, encouraging mentor helping an early-career team member understand a task they have been assigned. Imagine you are a patient coach explaining things to a bright 14-15 year old — clear sentences, everyday words, no jargon. If you must use a technical term, explain it in one sentence right away.
+
+Your response should always have three short parts:
+1. "What this task is about" — 2-3 sentences explaining the goal in plain English
+2. "How to get started" — 3 to 5 bullet points of concrete first steps
+3. "Watch out for" — 1-3 short tips on common mistakes or things to double-check
+
+Keep the whole response under 260 words. Be warm and encouraging — remind them that everyone starts somewhere. You are giving advice only. You are not making any decisions for them and you are not taking any action on the task.`;
+
+router.post("/task-advice", async (req: any, res) => {
+  const { title, description, priority, dueDate, labels, assigneeName, question } = req.body;
+  if (!title?.trim()) return res.status(400).json({ success: false, error: "Card title required" });
+
+  const lines = [
+    `Task: ${title}`,
+    description?.trim() ? `Description: ${description.trim()}` : null,
+    `Priority: ${priority || "medium"}`,
+    dueDate ? `Due date: ${new Date(dueDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}` : null,
+    labels?.length ? `Labels: ${(labels as string[]).join(", ")}` : null,
+    assigneeName?.trim() ? `Assigned to: ${assigneeName}` : null,
+  ].filter(Boolean).join("\n");
+
+  const userMessage = question?.trim()
+    ? `Here is my task:\n\n${lines}\n\nMy specific question: ${question.trim()}`
+    : `Here is my task:\n\n${lines}\n\nPlease give me friendly beginner advice on how to approach this.`;
+
+  try {
+    const client = getClient();
+    const response = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1024,
+      system: TASK_ADVICE_SYSTEM,
+      messages: [{ role: "user", content: userMessage }],
+    });
+    const advice = response.content[0].type === "text" ? response.content[0].text : "";
+    res.json({ success: true, data: { advice } });
+  } catch (err: any) {
+    console.error("[Task Advice] Error:", err.message);
+    res.status(500).json({ success: false, error: "AI service temporarily unavailable. Please try again." });
+  }
+});
+
 export default router;

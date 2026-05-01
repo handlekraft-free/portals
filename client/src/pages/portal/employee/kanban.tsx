@@ -9,6 +9,7 @@ import {
   Plus, ArrowLeft, Kanban, X, Check, ChevronRight, Calendar, Flag,
   MessageSquare, Paperclip, Upload, Trash2, Pencil, Download, Image,
   FileText, Search, User, ClipboardList, Eye, ArrowRightLeft, ChevronDown,
+  Sparkles, Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -177,6 +178,11 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
   const [showInterest, setShowInterest] = useState(false);
   const [showMoveToBoard, setShowMoveToBoard] = useState(false);
   const [allBoards, setAllBoards] = useState<any[]>([]);
+  const [showAskClaude, setShowAskClaude] = useState(false);
+  const [claudeQuestion, setClaudeQuestion] = useState("");
+  const [claudeAdvice, setClaudeAdvice] = useState("");
+  const [claudeLoading, setClaudeLoading] = useState(false);
+  const [claudeError, setClaudeError] = useState("");
   const [boardsLoading, setBoardsLoading] = useState(false);
   const [moveTargetBoardId, setMoveTargetBoardId] = useState<number | null>(null);
   const [moveTargetColumns, setMoveTargetColumns] = useState<any[]>([]);
@@ -266,6 +272,33 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
   function onDrop(e: React.DragEvent) {
     e.preventDefault();
     handleFileUpload(e.dataTransfer.files);
+  }
+
+  async function askClaude() {
+    if (!card) return;
+    setClaudeLoading(true);
+    setClaudeAdvice("");
+    setClaudeError("");
+    const assigneeName = card.assignee ? `${card.assignee.firstName} ${card.assignee.lastName}` : "";
+    try {
+      const res = await apiRequest("POST", "/api/ai/task-advice", {
+        title: card.title,
+        description: card.description || "",
+        priority: card.priority,
+        dueDate: card.dueDate || null,
+        labels: card.labels || [],
+        assigneeName,
+        question: claudeQuestion.trim(),
+      });
+      if (res.success) {
+        setClaudeAdvice(res.data.advice);
+      } else {
+        setClaudeError(res.error || "Something went wrong. Please try again.");
+      }
+    } catch {
+      setClaudeError("Could not reach the AI service. Please try again.");
+    }
+    setClaudeLoading(false);
   }
 
   async function openMovePanel() {
@@ -383,6 +416,83 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
                 <p className={`text-sm ${card.description ? "text-slate-600" : "text-slate-300 italic"} cursor-pointer hover:bg-slate-50 rounded-lg p-2 -m-2`} onClick={() => setEditingDesc(true)} data-testid="text-card-desc">
                   {card.description || "Click to add a description…"}
                 </p>
+              )}
+            </div>
+
+            {/* Ask Claude */}
+            <div className={`rounded-xl border transition-colors ${showAskClaude ? "border-[#0D7377]/40 bg-teal-50/50" : "border-slate-200 bg-slate-50"}`}>
+              <button
+                className="w-full flex items-center justify-between px-4 py-3 text-left"
+                onClick={() => { setShowAskClaude(v => !v); if (!showAskClaude) { setClaudeAdvice(""); setClaudeError(""); setClaudeQuestion(""); } }}
+                data-testid="button-toggle-ask-claude"
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles className={`w-4 h-4 shrink-0 ${showAskClaude ? "text-[#0D7377]" : "text-slate-400"}`} />
+                  <div>
+                    <p className={`text-sm font-semibold ${showAskClaude ? "text-[#0D7377]" : "text-slate-600"}`}>Ask Claude for help</p>
+                    {!showAskClaude && <p className="text-xs text-slate-400">Get beginner-friendly advice on how to tackle this task</p>}
+                  </div>
+                </div>
+                <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform shrink-0 ${showAskClaude ? "rotate-90" : ""}`} />
+              </button>
+
+              {showAskClaude && (
+                <div className="px-4 pb-4 space-y-3 border-t border-[#0D7377]/20">
+                  <p className="text-xs text-slate-500 pt-3 leading-relaxed">
+                    Claude will read this card's title, description, priority, due date, and labels, then give you friendly advice on how to get started — written for beginners. Nothing will change on the card.
+                  </p>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
+                      Got a specific question? <span className="font-normal normal-case text-slate-400">(optional)</span>
+                    </label>
+                    <textarea
+                      value={claudeQuestion}
+                      onChange={e => setClaudeQuestion(e.target.value)}
+                      placeholder="e.g. What tools should I use? Where do I start?"
+                      rows={2}
+                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none bg-white"
+                      data-testid="textarea-claude-question"
+                    />
+                  </div>
+
+                  <Button
+                    onClick={askClaude}
+                    disabled={claudeLoading}
+                    className="w-full bg-[#0D7377] hover:bg-[#0D7377]/90 text-white gap-2"
+                    data-testid="button-get-claude-advice"
+                  >
+                    {claudeLoading ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Thinking…</>
+                    ) : (
+                      <><Sparkles className="w-4 h-4" /> Get Advice</>
+                    )}
+                  </Button>
+
+                  {claudeError && (
+                    <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2" data-testid="text-claude-error">{claudeError}</p>
+                  )}
+
+                  {claudeAdvice && (
+                    <div className="bg-white border border-[#0D7377]/20 rounded-xl p-4 space-y-2" data-testid="text-claude-advice">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <Sparkles className="w-3.5 h-3.5 text-[#0D7377]" />
+                        <p className="text-xs font-semibold text-[#0D7377] uppercase tracking-wider">Claude's Advice</p>
+                      </div>
+                      <div className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{claudeAdvice}</div>
+                      <p className="text-xs text-slate-400 pt-1 border-t border-slate-100 mt-2">
+                        AI-generated suggestions only — use your own judgment. Nothing on this card was changed.
+                      </p>
+                      <button
+                        onClick={() => { setClaudeAdvice(""); setClaudeQuestion(""); }}
+                        className="text-xs text-slate-400 hover:text-slate-600 underline"
+                        data-testid="button-clear-claude-advice"
+                      >
+                        Clear advice
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 

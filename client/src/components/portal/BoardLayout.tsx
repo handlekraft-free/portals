@@ -172,7 +172,7 @@ function NotificationBell() {
 
 export function BoardLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Show onboarding wizard for board members (not system admins) who haven't completed it yet
@@ -253,7 +253,7 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       {showWizard && (
-        <BoardOnboardingWizard onComplete={() => setShowWizard(false)} />
+        <BoardOnboardingWizard onComplete={() => { setShowWizard(false); setLocation("/portal/board/dashboard"); }} />
       )}
     <div className="min-h-screen flex bg-[#F5F3EF]">
       {sidebarOpen && (

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
+import { useLocation, Link } from "wouter";
 import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { UserCircle, Pencil, Check, X, Linkedin, Phone, Mail, Clock, ShieldCheck, Sparkles } from "lucide-react";
+import { UserCircle, Pencil, Check, X, Linkedin, Phone, Mail, Clock, ShieldCheck, Sparkles, LayoutDashboard } from "lucide-react";
 import BoardOnboardingWizard from "@/components/portal/BoardOnboardingWizard";
 
 interface BoardProfile {
@@ -28,6 +29,7 @@ interface BoardProfile {
 export default function BoardProfilePage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [profile, setProfile] = useState<BoardProfile | null>(null);
   const [showWizard, setShowWizard] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -109,6 +111,9 @@ export default function BoardProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
+      <Link href="/portal/board/dashboard" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-[#0D7377] mb-4 transition-colors no-underline" data-testid="link-back-dashboard">
+        <LayoutDashboard className="w-3.5 h-3.5" /> Back to Dashboard
+      </Link>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-display text-[#1A1F2B]">My Profile</h1>
@@ -349,7 +354,7 @@ export default function BoardProfilePage() {
       </div>
 
       {showWizard && (
-        <BoardOnboardingWizard onComplete={() => setShowWizard(false)} />
+        <BoardOnboardingWizard onComplete={() => { setShowWizard(false); setLocation("/portal/board/dashboard"); }} />
       )}
     </div>
   );

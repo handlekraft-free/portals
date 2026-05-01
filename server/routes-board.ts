@@ -517,6 +517,20 @@ router.get("/dashboard", async (req, res) => {
     LIMIT 3
   `);
 
+  // Open time polls the current user hasn't participated in yet
+  const pendingPolls = await raw(sql`
+    SELECT p.id, p.title, p.description, p.created_at,
+           (SELECT COUNT(*) FROM meeting_poll_slots s WHERE s.poll_id = p.id) AS slot_count
+    FROM meeting_time_polls p
+    WHERE p.status = 'open'
+    AND NOT EXISTS (
+      SELECT 1 FROM meeting_poll_responses r
+      JOIN meeting_poll_slots s ON s.id = r.slot_id
+      WHERE s.poll_id = p.id AND r.user_id = ${userId}
+    )
+    ORDER BY p.created_at ASC
+  `);
+
   res.json({
     success: true,
     data: {
@@ -530,6 +544,7 @@ router.get("/dashboard", async (req, res) => {
         coiYear: currentYear,
         unackedDocuments: unackedDocs,
         pendingConsents: unconsentedVotes,
+        pendingPolls,
       },
     },
   });

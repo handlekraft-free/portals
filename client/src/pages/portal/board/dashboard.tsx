@@ -3,7 +3,7 @@ import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
-import { CalendarDays, FileText, CheckSquare, ChevronRight, FileSignature, Check, X, Clock, AlertCircle, Scale, ShieldAlert } from "lucide-react";
+import { CalendarDays, FileText, CheckSquare, ChevronRight, FileSignature, Check, X, Clock, AlertCircle, Scale, ShieldAlert, BarChart2 } from "lucide-react";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,12 +59,14 @@ function BoardDashboardContent() {
   const documents = data?.recentDocuments ?? [];
   const consents = data?.openConsents ?? [];
   const needs = data?.needsAttention ?? {};
+  const pendingPolls: any[] = needs.pendingPolls ?? [];
   const overdueActions = actions.filter((a: any) => a.dueDate && new Date(a.dueDate) < new Date());
   const needsRsvp = meetings.filter((m: any) => !m.myRsvp);
   const complianceAlerts = [
     !needs.coiFiled && { key: "coi", icon: Scale, color: "amber", text: `COI disclosure not filed for ${needs.coiYear}`, href: "/portal/board/conflicts" },
     ...(needs.unackedDocuments ?? []).map((d: any) => ({ key: `ack-${d.id}`, icon: ShieldAlert, color: "red", text: `Unacknowledged document: "${d.title}"`, href: "/portal/board/documents" })),
     ...(needs.pendingConsents ?? []).map((c: any) => ({ key: `consent-${c.id}`, icon: FileSignature, color: "purple", text: `Pending consent vote: "${c.title}"`, href: "/portal/board/consents" })),
+    ...pendingPolls.map((p: any) => ({ key: `poll-${p.id}`, icon: BarChart2, color: "teal", text: `Availability poll needs your response: "${p.title}"`, href: "/portal/board/meetings" })),
     ...overdueActions.map((a: any) => ({ key: `action-${a.id}`, icon: AlertCircle, color: "red", text: `Overdue action item: "${a.title}"`, href: "/portal/board/action-items" })),
     ...needsRsvp.map((m: any) => ({ key: `rsvp-${m.id}`, icon: CalendarDays, color: "amber", text: `RSVP needed: "${m.title}"`, href: "/portal/board/meetings" })),
   ].filter(Boolean) as { key: string; icon: any; color: string; text: string; href: string }[];
@@ -132,6 +134,7 @@ function BoardDashboardContent() {
                   amber: "text-amber-600 bg-amber-100",
                   red: "text-red-600 bg-red-100",
                   purple: "text-purple-600 bg-purple-100",
+                  teal: "text-teal-600 bg-teal-100",
                 };
                 return (
                   <Link key={alert.key} href={alert.href} className="no-underline">
@@ -227,7 +230,22 @@ function BoardDashboardContent() {
               </h2>
               <Link href="/portal/board/action-items" className="text-xs text-indigo-600 hover:underline no-underline">View all</Link>
             </div>
-            {actions.length === 0 ? (
+            {/* Pending time polls shown as action items */}
+            {pendingPolls.map((poll: any) => (
+              <Link key={`poll-${poll.id}`} href="/portal/board/meetings" className="no-underline">
+                <div className="flex items-start gap-2 py-2.5 border-b border-slate-100 hover:bg-teal-50/40 -mx-1 px-1 rounded transition-colors cursor-pointer" data-testid={`dashboard-poll-${poll.id}`}>
+                  <BarChart2 className="w-4 h-4 mt-0.5 shrink-0 text-teal-500" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-[#1A1F2B] line-clamp-1">{poll.title}</p>
+                    <p className="text-xs text-teal-600 font-medium mt-0.5 flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> Availability poll — response needed
+                    </p>
+                  </div>
+                  <Badge className="bg-teal-100 text-teal-700 border-teal-200 text-xs shrink-0">Vote</Badge>
+                </div>
+              </Link>
+            ))}
+            {actions.length === 0 && pendingPolls.length === 0 ? (
               <div className="text-center py-6">
                 <Check className="w-8 h-8 mx-auto text-green-400 mb-2" />
                 <p className="text-sm text-slate-400">All caught up — great work!</p>

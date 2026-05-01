@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
+import { apiRequest } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, CalendarDays, FileText, ScrollText, CheckSquare,
   FileSignature, LogOut, Menu, Users, Scale, DollarSign, Settings, Shield,
-  BookOpen, MessageSquare, Calendar,
+  BookOpen, MessageSquare, Calendar, Bell, X, Check,
 } from "lucide-react";
 import logoImg from "@/assets/images/logo.png";
 
@@ -29,6 +30,134 @@ const adminItems = [
   { href: "/portal/board/roster", icon: <Shield className="w-4 h-4" />, label: "Manage Roster" },
   { href: "/portal/board/members", icon: <Users className="w-4 h-4" />, label: "Board Members" },
 ];
+
+function NotificationBell() {
+  const [count, setCount] = useState(0);
+  const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const fetchCount = useCallback(async () => {
+    const r = await apiRequest("GET", "/api/board/notifications/unread-count");
+    if (r.success) setCount(r.data?.count ?? 0);
+  }, []);
+
+  useEffect(() => {
+    fetchCount();
+    const interval = setInterval(fetchCount, 60000);
+    return () => clearInterval(interval);
+  }, [fetchCount]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  async function openDropdown() {
+    if (!open) {
+      setOpen(true);
+      setLoading(true);
+      const r = await apiRequest("GET", "/api/board/notifications");
+      if (r.success) setNotifications(r.data || []);
+      setLoading(false);
+    } else {
+      setOpen(false);
+    }
+  }
+
+  async function markAllRead() {
+    await apiRequest("POST", "/api/board/notifications/read", {});
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setCount(0);
+  }
+
+  function fmtTime(d: string) {
+    const date = new Date(d);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return "just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHrs = Math.floor(diffMins / 60);
+    if (diffHrs < 24) return `${diffHrs}h ago`;
+    return date.toLocaleDateString();
+  }
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={openDropdown}
+        className="relative p-1.5 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+        data-testid="button-notification-bell"
+        title="Notifications"
+      >
+        <Bell className="w-4 h-4" />
+        {count > 0 && (
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-[10px] flex items-center justify-center font-bold" data-testid="badge-notification-count">
+            {count > 9 ? "9+" : count}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-8 w-80 bg-white rounded-xl shadow-xl border border-slate-100 z-50 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+            <p className="text-sm font-semibold text-[#1A1F2B]">Notifications</p>
+            <div className="flex items-center gap-1">
+              {count > 0 && (
+                <button
+                  onClick={markAllRead}
+                  className="text-xs text-indigo-600 hover:text-indigo-700 flex items-center gap-0.5 px-2 py-0.5 rounded hover:bg-indigo-50"
+                  data-testid="button-mark-all-read"
+                >
+                  <Check className="w-3 h-3" /> Mark all read
+                </button>
+              )}
+              <button
+                onClick={() => setOpen(false)}
+                className="p-1 rounded hover:bg-slate-100 text-slate-400"
+                data-testid="button-close-notifications"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+          <div className="max-h-80 overflow-y-auto">
+            {loading ? (
+              <div className="space-y-2 p-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-12 bg-slate-100 rounded-lg animate-pulse" />
+                ))}
+              </div>
+            ) : notifications.length === 0 ? (
+              <div className="text-center py-10 text-slate-400">
+                <Bell className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">No notifications yet</p>
+              </div>
+            ) : (
+              notifications.map(n => (
+                <div
+                  key={n.id}
+                  className={`px-4 py-3 border-b border-slate-50 last:border-0 ${!n.read ? "bg-indigo-50/60" : ""}`}
+                  data-testid={`notification-${n.id}`}
+                >
+                  <p className={`text-xs ${!n.read ? "font-medium text-[#1A1F2B]" : "text-slate-600"}`}>{n.message}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{fmtTime(n.created_at || n.createdAt)}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function BoardLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
@@ -96,6 +225,7 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
             <p className="text-white text-xs font-medium truncate">{user?.firstName} {user?.lastName}</p>
             <p className="text-indigo-300 text-xs truncate">{user?.role === "board" ? "Board Member" : "Admin"}</p>
           </div>
+          <NotificationBell />
         </div>
         <Button variant="ghost" size="sm" onClick={handleLogout} className="w-full text-white/60 hover:text-white hover:bg-white/10 gap-2 justify-start text-xs" data-testid="button-logout">
           <LogOut className="w-3.5 h-3.5" /> Sign Out
@@ -120,6 +250,7 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
             <Menu className="w-5 h-5" />
           </button>
           <p className="text-white font-semibold text-sm flex-1">Board Portal</p>
+          <NotificationBell />
         </header>
 
         <main className="flex-1 p-4 md:p-6 overflow-auto">

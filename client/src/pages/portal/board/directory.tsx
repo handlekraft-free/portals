@@ -3,7 +3,7 @@ import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
-import { Users, Mail, Building2, Edit3, X, Save, Search } from "lucide-react";
+import { Users, Mail, Building2, Edit3, X, Save, Search, AlertTriangle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -138,6 +138,13 @@ function MemberCard({ member, isAdmin, onEdit }: { member: any; isAdmin: boolean
   const termStart = fmtYear(member.termStart);
   const termEnd = fmtYear(member.termEnd);
 
+  const termExpiringSoon = member.termEnd && (() => {
+    const end = new Date(member.termEnd);
+    const now = new Date();
+    const daysUntilExpiry = Math.floor((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return daysUntilExpiry >= 0 && daysUntilExpiry <= 90 ? daysUntilExpiry : null;
+  })();
+
   const POSITION_COLORS: Record<string, string> = {
     "Chair": "bg-indigo-600",
     "Vice Chair": "bg-indigo-500",
@@ -188,6 +195,12 @@ function MemberCard({ member, isAdmin, onEdit }: { member: any; isAdmin: boolean
             {(termStart || termEnd) && (
               <p className="text-xs text-slate-400 mt-0.5">
                 Term: {termStart ?? "?"} – {termEnd ?? "Present"}
+              </p>
+            )}
+            {isAdmin && termExpiringSoon !== null && (
+              <p className="text-xs text-amber-600 font-medium flex items-center gap-1 mt-0.5" data-testid={`warning-term-expiry-${member.id}`}>
+                <AlertTriangle className="w-3 h-3 shrink-0" />
+                Term expires in {termExpiringSoon} day{termExpiringSoon !== 1 ? "s" : ""}
               </p>
             )}
 

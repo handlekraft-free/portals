@@ -778,3 +778,16 @@ export const boardMeetingPacketDocs = pgTable("board_meeting_packet_docs", {
   note: text("note"),
 });
 export type BoardMeetingPacketDoc = typeof boardMeetingPacketDocs.$inferSelect;
+
+// In-app notifications for board portal users
+export const boardNotifications = pgTable("board_notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: varchar("type", { length: 50 }).notNull().default("info"),
+  message: text("message").notNull(),
+  resourceType: varchar("resource_type", { length: 50 }),
+  resourceId: integer("resource_id"),
+  read: boolean("read").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type BoardNotification = typeof boardNotifications.$inferSelect;

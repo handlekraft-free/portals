@@ -9,7 +9,7 @@ import {
   boardDocuments, boardDocumentVersions, boardDocumentAcks, boardDocumentViews,
   boardWrittenConsents, boardWrittenConsentResponses, boardCoiDisclosures,
   boardNotificationPrefs, boardFinancials, boardOnboardingItems, boardOnboardingAcks,
-  boardForumTopics, boardForumPosts,
+  boardForumTopics, boardForumPosts, boardNotifications,
   users,
   boardMinutes, boardMinutesMotions, boardMinutesVersions, boardMeetingPacketDocs,
 } from "@shared/schema";
@@ -1219,6 +1219,39 @@ router.get("/settings", async (_req, res) => {
 });
 
 router.patch("/settings", requireAdmin as any, async (_req, res) => {
+  res.json({ success: true, data: null });
+});
+
+// ── In-App Notifications ──────────────────────────────────────────────────────
+
+router.get("/notifications/unread-count", async (req, res) => {
+  const userId = req.user!.userId;
+  const rows = await raw<{ cnt: string }>(sql`
+    SELECT count(*) AS cnt FROM board_notifications WHERE user_id = ${userId} AND read = false
+  `);
+  res.json({ success: true, data: { count: parseInt(rows[0]?.cnt ?? "0") } });
+});
+
+router.get("/notifications", async (req, res) => {
+  const userId = req.user!.userId;
+  const rows = await raw(sql`
+    SELECT * FROM board_notifications WHERE user_id = ${userId}
+    ORDER BY created_at DESC LIMIT 20
+  `);
+  res.json({ success: true, data: rows });
+});
+
+router.post("/notifications/read", async (req, res) => {
+  const userId = req.user!.userId;
+  const { ids } = req.body; // optional array of ids; if omitted, mark all read
+  if (Array.isArray(ids) && ids.length > 0) {
+    await db.execute(sql`
+      UPDATE board_notifications SET read = true
+      WHERE user_id = ${userId} AND id = ANY(ARRAY[${sql.join(ids.map((id: number) => sql`${id}`), sql`, `)}]::int[])
+    `);
+  } else {
+    await db.execute(sql`UPDATE board_notifications SET read = true WHERE user_id = ${userId}`);
+  }
   res.json({ success: true, data: null });
 });
 

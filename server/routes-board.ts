@@ -12,6 +12,7 @@ import {
   boardForumTopics, boardForumPosts, boardNotifications,
   users,
   boardMinutes, boardMinutesMotions, boardMinutesVersions, boardMeetingPacketDocs,
+  boardMemberAvailability, meetingTimePolls, meetingPollSlots, meetingPollResponses,
 } from "@shared/schema";
 import { eq, and, desc, asc, sql, or, ilike } from "drizzle-orm";
 import PDFDocument from "pdfkit";
@@ -1892,6 +1893,200 @@ router.all("/meetings/:id/packet", async (req, res) => {
   }
 
   doc.end();
+});
+
+// ── Scheduling: Standing Availability ─────────────────────────────────────────
+
+// GET all members' availability (for the dashboard grid)
+router.get("/scheduling/availability", async (_req, res) => {
+  const rows = await db.select({
+    userId: boardMemberAvailability.userId,
+    slots: boardMemberAvailability.slots,
+    notes: boardMemberAvailability.notes,
+    updatedAt: boardMemberAvailability.updatedAt,
+    firstName: users.firstName,
+    lastName: users.lastName,
+    boardPosition: users.boardPosition,
+  }).from(boardMemberAvailability)
+    .leftJoin(users, eq(boardMemberAvailability.userId, users.id))
+    .orderBy(asc(users.firstName));
+  res.json({ success: true, data: rows });
+});
+
+// GET my availability
+router.get("/scheduling/availability/me", async (req, res) => {
+  const userId = req.user!.userId;
+  const [row] = await db.select().from(boardMemberAvailability).where(eq(boardMemberAvailability.userId, userId));
+  res.json({ success: true, data: row || { userId, slots: "[]", notes: "" } });
+});
+
+// PUT my availability (upsert)
+router.put("/scheduling/availability/me", async (req, res) => {
+  const userId = req.user!.userId;
+  const { slots, notes } = req.body;
+  const slotsJson = JSON.stringify(Array.isArray(slots) ? slots : []);
+  const existing = await db.select({ id: boardMemberAvailability.id }).from(boardMemberAvailability).where(eq(boardMemberAvailability.userId, userId));
+  if (existing.length > 0) {
+    await db.update(boardMemberAvailability).set({ slots: slotsJson, notes: notes ?? null, updatedAt: new Date() }).where(eq(boardMemberAvailability.userId, userId));
+  } else {
+    await db.insert(boardMemberAvailability).values({ userId, slots: slotsJson, notes: notes ?? null });
+  }
+  res.json({ success: true });
+});
+
+// ── Scheduling: Meeting Time Polls ─────────────────────────────────────────────
+
+// List all polls
+router.get("/polls", async (_req, res) => {
+  const polls = await db.select({
+    id: meetingTimePolls.id,
+    title: meetingTimePolls.title,
+    description: meetingTimePolls.description,
+    status: meetingTimePolls.status,
+    meetingId: meetingTimePolls.meetingId,
+    createdAt: meetingTimePolls.createdAt,
+    createdBy: meetingTimePolls.createdBy,
+    creatorFirst: users.firstName,
+    creatorLast: users.lastName,
+  }).from(meetingTimePolls)
+    .leftJoin(users, eq(meetingTimePolls.createdBy, users.id))
+    .orderBy(desc(meetingTimePolls.createdAt));
+
+  // Attach slot counts
+  const enriched = await Promise.all(polls.map(async (p) => {
+    const slots = await db.select({ id: meetingPollSlots.id }).from(meetingPollSlots).where(eq(meetingPollSlots.pollId, p.id));
+    return { ...p, slotCount: slots.length };
+  }));
+  res.json({ success: true, data: enriched });
+});
+
+// Create a poll
+router.post("/polls", async (req, res) => {
+  const userId = req.user!.userId;
+  const { title, description, slots } = req.body;
+  if (!title) return res.status(400).json({ success: false, error: "Title required" });
+  const [poll] = await db.insert(meetingTimePolls).values({ title, description: description || null, createdBy: userId }).returning();
+  if (Array.isArray(slots) && slots.length > 0) {
+    await db.insert(meetingPollSlots).values(
+      slots.map((s: any) => ({ pollId: poll.id, proposedAt: new Date(s.proposedAt), durationMinutes: s.durationMinutes || 90 }))
+    );
+  }
+  res.status(201).json({ success: true, data: poll });
+});
+
+// Get poll detail with slots + responses
+router.get("/polls/:id", async (req, res) => {
+  const pollId = parseInt(req.params.id);
+  const [poll] = await db.select({
+    id: meetingTimePolls.id,
+    title: meetingTimePolls.title,
+    description: meetingTimePolls.description,
+    status: meetingTimePolls.status,
+    meetingId: meetingTimePolls.meetingId,
+    createdAt: meetingTimePolls.createdAt,
+    createdBy: meetingTimePolls.createdBy,
+    creatorFirst: users.firstName,
+    creatorLast: users.lastName,
+  }).from(meetingTimePolls).leftJoin(users, eq(meetingTimePolls.createdBy, users.id)).where(eq(meetingTimePolls.id, pollId));
+  if (!poll) return res.status(404).json({ success: false, error: "Poll not found" });
+
+  const slots = await db.select().from(meetingPollSlots).where(eq(meetingPollSlots.pollId, pollId)).orderBy(asc(meetingPollSlots.proposedAt));
+  const responses = await db.select({
+    id: meetingPollResponses.id,
+    slotId: meetingPollResponses.slotId,
+    userId: meetingPollResponses.userId,
+    availability: meetingPollResponses.availability,
+    firstName: users.firstName,
+    lastName: users.lastName,
+    boardPosition: users.boardPosition,
+  }).from(meetingPollResponses)
+    .leftJoin(users, eq(meetingPollResponses.userId, users.id))
+    .where(eq(meetingPollResponses.pollId, pollId));
+
+  const members = await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName, boardPosition: users.boardPosition })
+    .from(users).where(sql`role IN ('board','admin') AND status = 'active'`).orderBy(asc(users.firstName));
+
+  res.json({ success: true, data: { ...poll, slots, responses, members } });
+});
+
+// Add a slot to a poll
+router.post("/polls/:id/slots", async (req, res) => {
+  const pollId = parseInt(req.params.id);
+  const { proposedAt, durationMinutes } = req.body;
+  if (!proposedAt) return res.status(400).json({ success: false, error: "proposedAt required" });
+  const [slot] = await db.insert(meetingPollSlots).values({ pollId, proposedAt: new Date(proposedAt), durationMinutes: durationMinutes || 90 }).returning();
+  res.status(201).json({ success: true, data: slot });
+});
+
+// Delete a slot
+router.delete("/polls/:id/slots/:slotId", requireAdmin as any, async (req, res) => {
+  await db.delete(meetingPollResponses).where(eq(meetingPollResponses.slotId, parseInt(req.params.slotId)));
+  await db.delete(meetingPollSlots).where(eq(meetingPollSlots.id, parseInt(req.params.slotId)));
+  res.json({ success: true, data: null });
+});
+
+// Submit my responses (batch upsert for all slots in one call)
+router.post("/polls/:id/respond", async (req, res) => {
+  const userId = req.user!.userId;
+  const pollId = parseInt(req.params.id);
+  const { responses } = req.body; // [{ slotId, availability }]
+  if (!Array.isArray(responses)) return res.status(400).json({ success: false, error: "responses array required" });
+  for (const r of responses) {
+    const existing = await db.select({ id: meetingPollResponses.id }).from(meetingPollResponses)
+      .where(and(eq(meetingPollResponses.slotId, r.slotId), eq(meetingPollResponses.userId, userId)));
+    if (existing.length > 0) {
+      await db.update(meetingPollResponses).set({ availability: r.availability }).where(eq(meetingPollResponses.id, existing[0].id));
+    } else {
+      await db.insert(meetingPollResponses).values({ pollId, slotId: r.slotId, userId, availability: r.availability });
+    }
+  }
+  res.json({ success: true });
+});
+
+// Confirm a slot → close poll + optionally create a board meeting
+router.post("/polls/:id/confirm/:slotId", requireAdmin as any, async (req, res) => {
+  const pollId = parseInt(req.params.id);
+  const slotId = parseInt(req.params.slotId);
+  const { createMeeting, title, meetingType, location, platform } = req.body;
+
+  await db.update(meetingPollSlots).set({ confirmed: true }).where(eq(meetingPollSlots.id, slotId));
+
+  let meetingId: number | undefined;
+  if (createMeeting) {
+    const [slot] = await db.select().from(meetingPollSlots).where(eq(meetingPollSlots.id, slotId));
+    const endMs = slot.proposedAt.getTime() + (slot.durationMinutes * 60000);
+    const userId = req.user!.userId;
+    const [mtg] = await db.insert(boardMeetings).values({
+      title: title || "Board Meeting",
+      meetingType: meetingType || "regular",
+      scheduledAt: slot.proposedAt,
+      endTime: new Date(endMs),
+      location: location || null,
+      platform: platform || null,
+      quorumNumber: 3,
+      createdBy: userId,
+    }).returning();
+    meetingId = mtg.id;
+  }
+
+  await db.update(meetingTimePolls).set({ status: "closed", ...(meetingId ? { meetingId } : {}) }).where(eq(meetingTimePolls.id, pollId));
+  res.json({ success: true, data: { meetingId } });
+});
+
+// Close poll (without confirming a slot)
+router.patch("/polls/:id", requireAdmin as any, async (req, res) => {
+  const { status } = req.body;
+  await db.update(meetingTimePolls).set({ status }).where(eq(meetingTimePolls.id, parseInt(req.params.id)));
+  res.json({ success: true });
+});
+
+// Delete poll
+router.delete("/polls/:id", requireAdmin as any, async (req, res) => {
+  const pollId = parseInt(req.params.id);
+  await db.delete(meetingPollResponses).where(eq(meetingPollResponses.pollId, pollId));
+  await db.delete(meetingPollSlots).where(eq(meetingPollSlots.pollId, pollId));
+  await db.delete(meetingTimePolls).where(eq(meetingTimePolls.id, pollId));
+  res.json({ success: true, data: null });
 });
 
 export default router;

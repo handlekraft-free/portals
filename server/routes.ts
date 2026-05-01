@@ -259,6 +259,28 @@ export async function registerRoutes(
         status varchar(20) DEFAULT 'open', created_by integer NOT NULL,
         created_at timestamp DEFAULT now() NOT NULL, completed_at timestamp
       );
+      CREATE TABLE IF NOT EXISTS board_member_availability (
+        id serial PRIMARY KEY, user_id integer NOT NULL UNIQUE,
+        slots text NOT NULL DEFAULT '[]', notes text,
+        updated_at timestamp DEFAULT now() NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS meeting_time_polls (
+        id serial PRIMARY KEY, title text NOT NULL, description text,
+        created_by integer NOT NULL, status varchar(20) NOT NULL DEFAULT 'open',
+        meeting_id integer,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS meeting_poll_slots (
+        id serial PRIMARY KEY, poll_id integer NOT NULL,
+        proposed_at timestamp NOT NULL, duration_minutes integer NOT NULL DEFAULT 90,
+        confirmed boolean DEFAULT false
+      );
+      CREATE TABLE IF NOT EXISTS meeting_poll_responses (
+        id serial PRIMARY KEY, poll_id integer NOT NULL,
+        slot_id integer NOT NULL, user_id integer NOT NULL,
+        availability varchar(20) NOT NULL DEFAULT 'no',
+        UNIQUE(slot_id, user_id)
+      );
     `);
     await migrationPool.end();
     console.log("[migrate] ✓ Schema patches applied");

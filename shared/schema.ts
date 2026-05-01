@@ -812,3 +812,47 @@ export const teamBalanceScores = pgTable("team_balance_scores", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 export type TeamBalanceScore = typeof teamBalanceScores.$inferSelect;
+
+// ─── Board Scheduling ─────────────────────────────────────────────────────────
+
+// Structured standing availability per board member (JSON array of {day,timeOfDay} objects)
+export const boardMemberAvailability = pgTable("board_member_availability", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(),
+  slots: text("slots").notNull().default("[]"), // JSON: [{day:0-6, timeOfDay:'morning'|'afternoon'|'evening'}]
+  notes: text("notes"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+export type BoardMemberAvailability = typeof boardMemberAvailability.$inferSelect;
+
+// Meeting time polls (Doodle-style)
+export const meetingTimePolls = pgTable("meeting_time_polls", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  createdBy: integer("created_by").notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("open"), // open | closed
+  meetingId: integer("meeting_id"), // set when a slot is confirmed and meeting is created
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type MeetingTimePoll = typeof meetingTimePolls.$inferSelect;
+
+// Individual date/time options within a poll
+export const meetingPollSlots = pgTable("meeting_poll_slots", {
+  id: serial("id").primaryKey(),
+  pollId: integer("poll_id").notNull(),
+  proposedAt: timestamp("proposed_at").notNull(),
+  durationMinutes: integer("duration_minutes").notNull().default(90),
+  confirmed: boolean("confirmed").default(false),
+});
+export type MeetingPollSlot = typeof meetingPollSlots.$inferSelect;
+
+// Per-member responses to each slot
+export const meetingPollResponses = pgTable("meeting_poll_responses", {
+  id: serial("id").primaryKey(),
+  pollId: integer("poll_id").notNull(),
+  slotId: integer("slot_id").notNull(),
+  userId: integer("user_id").notNull(),
+  availability: varchar("availability", { length: 20 }).notNull().default("no"), // yes | if_needed | no
+});
+export type MeetingPollResponse = typeof meetingPollResponses.$inferSelect;

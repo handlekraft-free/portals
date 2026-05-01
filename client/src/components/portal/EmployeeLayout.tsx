@@ -11,7 +11,7 @@ import { apiRequest } from "@/lib/auth";
 import logoImg from "@/assets/images/logo.png";
 import {
   VikingCrossedSwords, VikingShieldSvg, RuneDivider,
-  LongshipWatermark, VikingMotto,
+  LongshipWatermark, VikingMotto, LongshipBackground, PageViking,
 } from "@/components/portal/VikingDecor";
 
 const navItems = [
@@ -188,9 +188,11 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        <main className="flex-1 p-4 md:p-6">
-          {children}
+        <main className="flex-1 p-4 md:p-6 relative overflow-hidden">
+          <LongshipBackground />
+          <div className="relative z-10">{children}</div>
         </main>
+        <PageViking />
       </div>
     </div>
   );

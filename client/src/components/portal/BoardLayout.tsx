@@ -12,7 +12,7 @@ import logoImg from "@/assets/images/logo.png";
 import BoardOnboardingWizard from "@/components/portal/BoardOnboardingWizard";
 import {
   VikingHelmSvg, VikingShieldSvg, RuneDivider,
-  LongshipWatermark, VikingMotto,
+  LongshipWatermark, VikingMotto, LongshipBackground, PageViking,
 } from "@/components/portal/VikingDecor";
 
 const navItems = [
@@ -291,9 +291,11 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
           <NotificationBell />
         </header>
 
-        <main className="flex-1 p-4 md:p-6 overflow-auto">
-          {children}
+        <main className="flex-1 p-4 md:p-6 overflow-auto relative">
+          <LongshipBackground />
+          <div className="relative z-10">{children}</div>
         </main>
+        <PageViking />
       </div>
     </div>
     </>

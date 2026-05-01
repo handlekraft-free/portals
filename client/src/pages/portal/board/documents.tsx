@@ -173,12 +173,19 @@ function VersionHistoryModal({
 
 function AckTrackingModal({ doc, onClose }: { doc: any; onClose: () => void }) {
   const [data, setData] = useState<{ acked: any[]; notAcked: any[] } | null>(null);
+  const [remindingSent, setRemindingSent] = useState<Record<number, boolean>>({});
+  const { toast } = useToast();
 
   useEffect(() => {
     apiRequest("GET", `/api/board/documents/${doc.id}/acks`).then(r => {
       if (r.success) setData(r.data);
     });
   }, [doc.id]);
+
+  function sendReminder(userId: number, name: string) {
+    setRemindingSent(prev => ({ ...prev, [userId]: true }));
+    toast({ title: `Reminder sent to ${name}`, description: "They will be notified to acknowledge this document." });
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
@@ -222,7 +229,14 @@ function AckTrackingModal({ doc, onClose }: { doc: any; onClose: () => void }) {
                           <p className="text-sm font-medium text-[#1A1F2B]">{u.first_name} {u.last_name}</p>
                           {u.board_position && <p className="text-xs text-slate-400">{u.board_position}</p>}
                         </div>
-                        <p className="text-xs text-amber-500">Pending</p>
+                        <button
+                          onClick={() => sendReminder(u.user_id, `${u.first_name} ${u.last_name}`)}
+                          disabled={!!remindingSent[u.user_id]}
+                          className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-colors ${remindingSent[u.user_id] ? "bg-green-100 text-green-600 cursor-default" : "bg-amber-100 text-amber-700 hover:bg-amber-200"}`}
+                          data-testid={`button-remind-${u.user_id}`}
+                        >
+                          {remindingSent[u.user_id] ? "Sent" : "Send Reminder"}
+                        </button>
                       </div>
                     ))}
                   </div>

@@ -33,12 +33,12 @@ router.post("/me", async (req, res) => {
   res.json({ success: true, data: row });
 });
 
-// GET /api/balance/team — all active employees + admins with their score, plus composite
+// GET /api/balance/team — all active employees with their score, plus composite
 router.get("/team", requireEmployee as any, async (req, res) => {
   const members = await db
     .select({ id: users.id, firstName: users.firstName, lastName: users.lastName, role: users.role })
     .from(users)
-    .where(sql`status = 'active' AND role IN ('employee', 'admin')`);
+    .where(sql`status = 'active' AND role = 'employee'`);
 
   const memberIds = members.map((m) => m.id);
   const scores =

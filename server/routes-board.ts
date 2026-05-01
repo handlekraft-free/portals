@@ -1330,11 +1330,11 @@ router.post("/onboarding/:id/ack", async (req, res) => {
 });
 
 router.post("/onboarding/items", requireBoard as any, async (req, res) => {
-  const { title, description, position, linkUrl } = req.body;
+  const { title, description, position, linkUrl, section, estimatedTime } = req.body;
   if (!title) return res.status(400).json({ success: false, error: "Title required" });
   await db.execute(sql`
-    INSERT INTO board_onboarding_items (title, description, link_url, position)
-    VALUES (${title}, ${description ?? null}, ${linkUrl ?? null}, ${position ?? 0})
+    INSERT INTO board_onboarding_items (title, description, link_url, section, estimated_time, position)
+    VALUES (${title}, ${description ?? null}, ${linkUrl ?? null}, ${section ?? null}, ${estimatedTime ?? null}, ${position ?? 0})
   `);
   res.status(201).json({ success: true, data: null });
 });

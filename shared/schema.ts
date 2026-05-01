@@ -720,6 +720,8 @@ export const boardOnboardingItems = pgTable("board_onboarding_items", {
   description: text("description"),
   documentId: integer("document_id"),
   linkUrl: text("link_url"),
+  section: text("section"),
+  estimatedTime: text("estimated_time"),
   position: integer("position").default(0),
   required: boolean("required").default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),

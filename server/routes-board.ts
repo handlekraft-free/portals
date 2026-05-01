@@ -93,7 +93,7 @@ router.get("/members", async (_req, res) => {
     committees: users.committees,
     status: users.status,
     isInterestedDirector: users.isInterestedDirector,
-  }).from(users).where(sql`is_board_member = true AND status = 'active'`).orderBy(asc(users.firstName));
+  }).from(users).where(sql`(role = 'board' OR 'board' = ANY(roles)) AND status = 'active'`).orderBy(asc(users.firstName));
   res.json({ success: true, data: members });
 });
 
@@ -106,7 +106,7 @@ router.get("/directory", async (_req, res) => {
     boardPosition: users.boardPosition,
     bio: users.bio,
     committees: users.committees,
-  }).from(users).where(sql`is_board_member = true AND status = 'active'`).orderBy(asc(users.firstName));
+  }).from(users).where(sql`(role = 'board' OR 'board' = ANY(roles)) AND status = 'active'`).orderBy(asc(users.firstName));
   res.json({ success: true, data: members });
 });
 

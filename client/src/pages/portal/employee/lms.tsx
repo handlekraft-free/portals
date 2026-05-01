@@ -6,10 +6,12 @@ import { BookOpen, Plus, ArrowLeft, Users, Megaphone, Check, X, Edit, Trash2 } f
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 const STATUS_COLORS: Record<string, string> = { draft: "bg-slate-100 text-slate-600", published: "bg-green-100 text-green-700", archived: "bg-slate-100 text-slate-400" };
 
 function LMSContent() {
+  const { toast } = useToast();
   const [courses, setCourses] = useState<any[]>([]);
   const [activeCourse, setActiveCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -51,8 +53,13 @@ function LMSContent() {
   async function enrollStudent(e: React.FormEvent) {
     e.preventDefault();
     const res = await apiRequest("POST", `/api/lms/courses/${activeCourse.id}/enroll`, { email: enrollEmail });
-    if (res.success) { alert(`Enrolled ${res.data.student?.firstName}`); setEnrollEmail(""); loadCourse(activeCourse.id); }
-    else alert(res.error);
+    if (res.success) {
+      toast({ title: "Student enrolled", description: `${res.data.student?.firstName} has been added to the course.` });
+      setEnrollEmail("");
+      loadCourse(activeCourse.id);
+    } else {
+      toast({ title: "Enrollment failed", description: res.error || "Could not enroll student.", variant: "destructive" });
+    }
   }
 
   async function addModule(e: React.FormEvent) {
@@ -70,7 +77,11 @@ function LMSContent() {
   async function postAnnouncement(e: React.FormEvent) {
     e.preventDefault();
     const res = await apiRequest("POST", `/api/lms/courses/${activeCourse.id}/announcements`, announcementForm);
-    if (res.success) { setShowAnnouncement(false); setAnnouncementForm({ title: "", content: "" }); alert("Announcement posted!"); }
+    if (res.success) {
+      setShowAnnouncement(false);
+      setAnnouncementForm({ title: "", content: "" });
+      toast({ title: "Announcement posted", description: "Students will see it in their portal." });
+    }
   }
 
   if (!activeCourse) return (

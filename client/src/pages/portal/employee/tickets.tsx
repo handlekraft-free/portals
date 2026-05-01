@@ -69,7 +69,7 @@ function TicketsContent() {
                 <CardContent className="py-3 px-4 flex items-center gap-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-[#1A1F2B]">{t.title}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">Client #{t.clientId} · {t.category} · <span className={slaHours(t) > 24 ? "text-red-500" : ""}>{slaHours(t)}h open</span></p>
+                    <p className="text-xs text-slate-400 mt-0.5">{t.clientFirstName ? `${t.clientFirstName} ${t.clientLastName}` : `Client #${t.clientId}`} · {t.category} · <span className={slaHours(t) > 24 ? "text-red-500" : ""}>{slaHours(t)}h open</span></p>
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <Badge className={`text-xs ${PRIORITY_COLORS[t.priority] || ""}`}>{t.priority}</Badge>
@@ -138,7 +138,7 @@ function TicketsContent() {
               </div>
               <div className="text-xs text-slate-500 space-y-1">
                 <p>Category: <span className="text-slate-700">{activeTicket.category || "—"}</span></p>
-                <p>Client: <span className="text-slate-700">#{activeTicket.clientId}</span></p>
+                <p>Client: <span className="text-slate-700">{activeTicket.clientFirstName ? `${activeTicket.clientFirstName} ${activeTicket.clientLastName}` : `#${activeTicket.clientId}`}</span></p>
                 <p>Opened: <span className="text-slate-700">{new Date(activeTicket.createdAt).toLocaleDateString()}</span></p>
                 <p className={slaHours(activeTicket) > 24 ? "text-red-500" : "text-slate-700"}>SLA: {slaHours(activeTicket)}h open</p>
               </div>

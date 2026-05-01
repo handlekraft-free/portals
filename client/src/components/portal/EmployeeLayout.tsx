@@ -4,8 +4,8 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Clock, Kanban, Receipt, Ticket,
-  BookOpen, LogOut, Menu, X, Users, Bell, UserPlus, Shield,
-  AlertTriangle, ArrowRight
+  BookOpen, LogOut, Menu, X, Users, UserPlus,
+  AlertTriangle, ArrowRight, MessageSquare,
 } from "lucide-react";
 import { apiRequest } from "@/lib/auth";
 import logoImg from "@/assets/images/logo.png";
@@ -17,6 +17,7 @@ const navItems = [
   { href: "/portal/employee/expenses", icon: <Receipt className="w-4 h-4" />, label: "Expenses" },
   { href: "/portal/employee/tickets", icon: <Ticket className="w-4 h-4" />, label: "Client Tickets" },
   { href: "/portal/employee/lms", icon: <BookOpen className="w-4 h-4" />, label: "LMS Courses" },
+  { href: "/portal/employee/chat", icon: <MessageSquare className="w-4 h-4" />, label: "Communication" },
 ];
 
 const adminItems = [
@@ -141,14 +142,8 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
           </button>
           <div className="md:hidden font-display text-[#1A1F2B] text-sm">handləkraft.ai</div>
           <div className="flex items-center gap-2 ml-auto">
-            <button className="relative p-2 rounded-full hover:bg-slate-100 text-slate-500" data-testid="button-notifications">
-              <Bell className="w-4 h-4" />
-            </button>
-            <div className="hidden md:flex items-center gap-2 text-sm text-slate-600">
-              <div className="w-7 h-7 rounded-full bg-[#0D7377] flex items-center justify-center text-white text-xs font-bold">
-                {user?.firstName?.[0]}{user?.lastName?.[0]}
-              </div>
-              {user?.firstName} {user?.lastName}
+            <div className="w-7 h-7 rounded-full bg-[#0D7377] flex items-center justify-center text-white text-xs font-bold" title={`${user?.firstName} ${user?.lastName}`}>
+              {user?.firstName?.[0]}{user?.lastName?.[0]}
             </div>
           </div>
         </header>

@@ -234,7 +234,25 @@ router.post("/employee/messages/:id/reply", requireEmployee as any, async (req, 
 });
 
 router.get("/employee/tickets", requireEmployee as any, async (req, res) => {
-  const tickets = await db.select().from(supportTickets).orderBy(desc(supportTickets.createdAt));
+  const tickets = await db
+    .select({
+      id: supportTickets.id,
+      title: supportTickets.title,
+      description: supportTickets.description,
+      status: supportTickets.status,
+      priority: supportTickets.priority,
+      category: supportTickets.category,
+      clientId: supportTickets.clientId,
+      clientFirstName: users.firstName,
+      clientLastName: users.lastName,
+      assignedTo: supportTickets.assignedTo,
+      kanbanCardId: supportTickets.kanbanCardId,
+      createdAt: supportTickets.createdAt,
+      updatedAt: supportTickets.updatedAt,
+    })
+    .from(supportTickets)
+    .leftJoin(users, eq(supportTickets.clientId, users.id))
+    .orderBy(desc(supportTickets.createdAt));
   res.json({ success: true, data: tickets });
 });
 
@@ -262,8 +280,11 @@ router.post("/employee/tickets/:id/comments", requireEmployee as any, async (req
 router.get("/employee/tickets/:id", requireEmployee as any, async (req, res) => {
   const [ticket] = await db.select().from(supportTickets).where(eq(supportTickets.id, parseInt(req.params.id)));
   if (!ticket) return res.status(404).json({ success: false, error: "Ticket not found" });
+  const [client] = ticket.clientId
+    ? await db.select({ firstName: users.firstName, lastName: users.lastName }).from(users).where(eq(users.id, ticket.clientId))
+    : [null];
   const comments = await db.select({ id: ticketComments.id, content: ticketComments.content, createdAt: ticketComments.createdAt, internal: ticketComments.internal, userId: ticketComments.userId, firstName: users.firstName, lastName: users.lastName }).from(ticketComments).leftJoin(users, eq(ticketComments.userId, users.id)).where(eq(ticketComments.ticketId, ticket.id)).orderBy(asc(ticketComments.createdAt));
-  res.json({ success: true, data: { ...ticket, comments } });
+  res.json({ success: true, data: { ...ticket, clientFirstName: client?.firstName ?? null, clientLastName: client?.lastName ?? null, comments } });
 });
 
 export default router;

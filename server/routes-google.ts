@@ -19,7 +19,7 @@ function getRedirectUri(_req: Request): string {
 
 // GET /api/google/oauth/url
 router.get("/oauth/url", requireEmployee, (req: any, res) => {
-  const userId = req.user.id;
+  const userId = req.user.userId;
   const redirectUri = getRedirectUri(req);
   const state = jwt.sign({ userId, redirectUri }, JWT_SECRET, { expiresIn: "10m" });
 
@@ -105,7 +105,7 @@ router.get("/oauth/callback", async (req, res) => {
 
 // GET /api/google/status
 router.get("/status", requireEmployee, async (req: any, res) => {
-  const userId = req.user.id;
+  const userId = req.user.userId;
   const [row] = await db
     .select({ googleEmail: users.googleEmail, googleAccessToken: users.googleAccessToken })
     .from(users)
@@ -115,7 +115,7 @@ router.get("/status", requireEmployee, async (req: any, res) => {
 
 // DELETE /api/google/disconnect
 router.delete("/disconnect", requireEmployee, async (req: any, res) => {
-  const userId = req.user.id;
+  const userId = req.user.userId;
   await db.update(users)
     .set({ googleAccessToken: null, googleRefreshToken: null, googleTokenExpiry: null, googleEmail: null })
     .where(eq(users.id, userId));
@@ -125,7 +125,7 @@ router.delete("/disconnect", requireEmployee, async (req: any, res) => {
 
 // GET /api/google/notifications
 router.get("/notifications", requireEmployee, async (req: any, res) => {
-  const userId = req.user.id;
+  const userId = req.user.userId;
   const notifications = await db
     .select()
     .from(googleNotifications)
@@ -137,7 +137,7 @@ router.get("/notifications", requireEmployee, async (req: any, res) => {
 
 // GET /api/google/unread-count
 router.get("/unread-count", requireEmployee, async (req: any, res) => {
-  const userId = req.user.id;
+  const userId = req.user.userId;
   const rows = await db
     .select({ id: googleNotifications.id })
     .from(googleNotifications)
@@ -147,7 +147,7 @@ router.get("/unread-count", requireEmployee, async (req: any, res) => {
 
 // POST /api/google/notifications/read-all
 router.post("/notifications/read-all", requireEmployee, async (req: any, res) => {
-  const userId = req.user.id;
+  const userId = req.user.userId;
   await db.update(googleNotifications)
     .set({ isRead: true })
     .where(eq(googleNotifications.userId, userId));
@@ -156,7 +156,7 @@ router.post("/notifications/read-all", requireEmployee, async (req: any, res) =>
 
 // PATCH /api/google/notifications/:id/read
 router.patch("/notifications/:id/read", requireEmployee, async (req: any, res) => {
-  const userId = req.user.id;
+  const userId = req.user.userId;
   const id = parseInt(req.params.id, 10);
   await db.update(googleNotifications)
     .set({ isRead: true })
@@ -166,7 +166,7 @@ router.patch("/notifications/:id/read", requireEmployee, async (req: any, res) =
 
 // DELETE /api/google/notifications/:id
 router.delete("/notifications/:id", requireEmployee, async (req: any, res) => {
-  const userId = req.user.id;
+  const userId = req.user.userId;
   const id = parseInt(req.params.id, 10);
   await db.delete(googleNotifications)
     .where(and(eq(googleNotifications.id, id), eq(googleNotifications.userId, userId)));

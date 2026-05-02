@@ -9,6 +9,7 @@ import {
   Check, ChevronRight, ChevronLeft, CalendarDays, FileText,
   CheckSquare, FileSignature, DollarSign, Users, Sparkles,
   ShieldCheck, Linkedin, Phone, Mail, Clock, X, BarChart3,
+  Camera, Loader2, Upload,
 } from "lucide-react";
 import BoardExpertiseRater from "@/components/portal/BoardExpertiseRater";
 import logoImg from "@/assets/images/logo.png";
@@ -198,6 +199,10 @@ function ProfileStep({ initialData, onNext, onSkip }: {
     phone: "", linkedIn: "", preferredMeetingTimes: "", bio: "",
   });
   const [loading, setLoading] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [resumeFile, setResumeFile] = useState<{ name: string } | null>(null);
+  const [resumeUploading, setResumeUploading] = useState(false);
 
   async function save() {
     setLoading(true);
@@ -211,6 +216,34 @@ function ProfileStep({ initialData, onNext, onSkip }: {
     setLoading(false);
   }
 
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoUploading(true);
+    const fd = new FormData();
+    fd.append("photo", file);
+    const res = await fetch("/api/board/me/photo", { method: "POST", body: fd, credentials: "include" });
+    const data = await res.json();
+    if (data.success) { setPhotoUrl(data.photoUrl); toast({ title: "Photo saved!" }); }
+    else toast({ title: "Upload failed", description: data.error, variant: "destructive" });
+    setPhotoUploading(false);
+    e.target.value = "";
+  }
+
+  async function handleResumeUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setResumeUploading(true);
+    const fd = new FormData();
+    fd.append("resume", file);
+    const res = await fetch("/api/board/me/resume", { method: "POST", body: fd, credentials: "include" });
+    const data = await res.json();
+    if (data.success) { setResumeFile({ name: data.resumeName }); toast({ title: "Resume saved!" }); }
+    else toast({ title: "Upload failed", description: data.error, variant: "destructive" });
+    setResumeUploading(false);
+    e.target.value = "";
+  }
+
   return (
     <div className="space-y-5 max-w-md mx-auto">
       <div>
@@ -218,12 +251,22 @@ function ProfileStep({ initialData, onNext, onSkip }: {
         <p className="text-sm text-slate-500">Help your fellow board members know you better. All fields are optional.</p>
       </div>
 
-      {/* Read-only identity */}
+      {/* Identity card with photo upload */}
       <div className="bg-slate-50 rounded-xl p-4 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-[#0D7377]/10 text-[#0D7377] font-bold text-sm flex items-center justify-center shrink-0">
-          {initialData.firstName?.[0]}{initialData.lastName?.[0]}
+        <div className="relative group shrink-0">
+          <div className="w-14 h-14 rounded-full bg-[#0D7377]/10 text-[#0D7377] font-bold text-sm flex items-center justify-center overflow-hidden">
+            {photoUrl ? (
+              <img src={photoUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-base">{initialData.firstName?.[0]}{initialData.lastName?.[0]}</span>
+            )}
+          </div>
+          <label className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" title="Upload photo">
+            {photoUploading ? <Loader2 className="w-3.5 h-3.5 text-white animate-spin" /> : <Camera className="w-3.5 h-3.5 text-white" />}
+            <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} data-testid="input-wizard-photo" />
+          </label>
         </div>
-        <div>
+        <div className="flex-1 min-w-0">
           <p className="font-semibold text-[#1A1F2B] text-sm">{initialData.firstName} {initialData.lastName}</p>
           <p className="text-xs text-slate-500">{initialData.email}</p>
           {initialData.boardPosition && (
@@ -231,6 +274,7 @@ function ProfileStep({ initialData, onNext, onSkip }: {
               <ShieldCheck className="w-2.5 h-2.5" />{initialData.boardPosition}
             </Badge>
           )}
+          <p className="text-[10px] text-slate-400 mt-1">Hover photo to upload</p>
         </div>
       </div>
 
@@ -277,6 +321,28 @@ function ProfileStep({ initialData, onNext, onSkip }: {
             data-testid="textarea-wizard-bio"
           />
         </div>
+      </div>
+
+      {/* Resume upload */}
+      <div className="bg-slate-50 rounded-xl p-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FileText className="w-4 h-4 text-slate-400" />
+            <p className="text-sm font-medium text-[#1A1F2B]">Resume / CV</p>
+          </div>
+          <label className="flex items-center gap-1.5 text-xs font-medium text-[#0D7377] cursor-pointer hover:text-[#0a5c60] transition-colors" data-testid="wizard-upload-resume-label">
+            {resumeUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+            {resumeFile ? "Replace" : "Upload"}
+            <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleResumeUpload} data-testid="input-wizard-resume" />
+          </label>
+        </div>
+        {resumeFile ? (
+          <p className="text-xs text-emerald-600 flex items-center gap-1.5">
+            <Check className="w-3.5 h-3.5" /> {resumeFile.name}
+          </p>
+        ) : (
+          <p className="text-xs text-slate-400">PDF or Word, max 10 MB. Optional.</p>
+        )}
       </div>
 
       <div className="flex gap-2">

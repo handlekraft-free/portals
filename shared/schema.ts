@@ -97,6 +97,8 @@ export const users = pgTable("portal_users", {
   preferredMeetingTimes: text("preferred_meeting_times"),
   onboardingComplete: boolean("onboarding_complete").default(false),
   boardExpertise: jsonb("board_expertise").$type<Record<string, string>>(),
+  resumeUrl: text("resume_url"),
+  resumeName: text("resume_name"),
 });
 export type PortalUser = typeof users.$inferSelect;
 export type InsertPortalUser = typeof users.$inferInsert;

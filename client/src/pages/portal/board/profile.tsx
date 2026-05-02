@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { UserCircle, Pencil, Check, X, Linkedin, Phone, Mail, Clock, ShieldCheck, Sparkles, LayoutDashboard, CalendarClock, BarChart3 } from "lucide-react";
+import { UserCircle, Pencil, Check, X, Linkedin, Phone, Mail, Clock, ShieldCheck, Sparkles, LayoutDashboard, CalendarClock, BarChart3, Camera, Loader2, Upload, Download, FileText } from "lucide-react";
 import BoardOnboardingWizard from "@/components/portal/BoardOnboardingWizard";
 import AvailabilityGrid from "@/components/portal/AvailabilityGrid";
 import BoardExpertiseRater from "@/components/portal/BoardExpertiseRater";
@@ -29,6 +29,8 @@ interface BoardProfile {
   role: string;
   avatarUrl?: string | null;
   boardExpertise?: Record<string, string> | null;
+  resumeUrl?: string | null;
+  resumeName?: string | null;
 }
 
 function BoardProfileContent() {
@@ -50,6 +52,52 @@ function BoardProfileContent() {
     bio: "",
   });
   const [expertiseForm, setExpertiseForm] = useState<Record<string, string>>({});
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [resumeUploading, setResumeUploading] = useState(false);
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoUploading(true);
+    const fd = new FormData();
+    fd.append("photo", file);
+    try {
+      const res = await fetch("/api/board/me/photo", { method: "POST", body: fd, credentials: "include" });
+      const data = await res.json();
+      if (data.success) {
+        setProfile(prev => prev ? { ...prev, photoUrl: data.photoUrl } : prev);
+        toast({ title: "Photo updated!" });
+      } else {
+        toast({ title: "Upload failed", description: data.error || "Could not upload photo.", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Upload failed", variant: "destructive" });
+    }
+    setPhotoUploading(false);
+    e.target.value = "";
+  }
+
+  async function handleResumeUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setResumeUploading(true);
+    const fd = new FormData();
+    fd.append("resume", file);
+    try {
+      const res = await fetch("/api/board/me/resume", { method: "POST", body: fd, credentials: "include" });
+      const data = await res.json();
+      if (data.success) {
+        setProfile(prev => prev ? { ...prev, resumeUrl: data.resumeUrl, resumeName: data.resumeName } : prev);
+        toast({ title: "Resume uploaded!" });
+      } else {
+        toast({ title: "Upload failed", description: data.error || "Could not upload resume.", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Upload failed", variant: "destructive" });
+    }
+    setResumeUploading(false);
+    e.target.value = "";
+  }
 
   useEffect(() => { document.title = "My Profile | handləkraft Board"; }, []);
 
@@ -158,10 +206,16 @@ function BoardProfileContent() {
       <Card className="border-0 shadow-sm mb-5">
         <CardContent className="pt-5 pb-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-[#0D7377]/10 flex items-center justify-center text-[#0D7377] text-xl font-bold shrink-0" data-testid="profile-avatar">
-              {profile.avatarUrl ? (
-                <img src={profile.avatarUrl} alt={fullName} className="w-full h-full rounded-full object-cover" />
-              ) : initials}
+            <div className="relative group shrink-0" data-testid="profile-avatar">
+              <div className="w-16 h-16 rounded-full bg-[#0D7377]/10 flex items-center justify-center text-[#0D7377] text-xl font-bold overflow-hidden">
+                {(profile.photoUrl || profile.avatarUrl) ? (
+                  <img src={profile.photoUrl || profile.avatarUrl!} alt={fullName} className="w-full h-full object-cover" />
+                ) : initials}
+              </div>
+              <label className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" title="Upload photo">
+                {photoUploading ? <Loader2 className="w-4 h-4 text-white animate-spin" /> : <Camera className="w-4 h-4 text-white" />}
+                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} data-testid="input-photo-upload" />
+              </label>
             </div>
             <div className="flex-1 min-w-0">
               {editing ? (
@@ -322,6 +376,37 @@ function BoardProfileContent() {
           ) : (
             <BoardExpertiseRater value={profile.boardExpertise || {}} readOnly />
           )}
+        </CardContent>
+      </Card>
+
+      {/* Resume / CV card */}
+      <Card className="border-0 shadow-sm mb-5">
+        <CardContent className="pt-5 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-[#0D7377]" />
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Resume / CV</p>
+            </div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-[#0D7377] cursor-pointer hover:text-[#0a5c60] transition-colors" data-testid="button-upload-resume">
+              {resumeUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+              {profile.resumeUrl ? "Replace" : "Upload"}
+              <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleResumeUpload} data-testid="input-resume-upload" />
+            </label>
+          </div>
+          {profile.resumeUrl ? (
+            <a
+              href={profile.resumeUrl}
+              className="flex items-center gap-2 bg-slate-50 rounded-xl px-4 py-3 hover:bg-slate-100 transition-colors no-underline"
+              data-testid="link-download-resume"
+            >
+              <FileText className="w-4 h-4 text-slate-400 shrink-0" />
+              <span className="flex-1 truncate text-sm text-[#1A1F2B]">{profile.resumeName || "Resume"}</span>
+              <Download className="w-3.5 h-3.5 text-slate-400" />
+            </a>
+          ) : (
+            <p className="text-sm text-slate-400 italic">No resume uploaded.</p>
+          )}
+          <p className="text-xs text-slate-400 mt-2">PDF or Word, max 10 MB. Visible to all board members.</p>
         </CardContent>
       </Card>
 

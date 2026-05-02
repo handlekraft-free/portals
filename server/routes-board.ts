@@ -51,6 +51,51 @@ const financialsStorage = multer.diskStorage({
 });
 const financialsUpload = multer({ storage: financialsStorage, limits: { fileSize: 50 * 1024 * 1024 } });
 
+// ── Profile Photo & Resume Storage ────────────────────────────────────────────
+
+const BOARD_PROFILES_DIR = process.env.UPLOAD_DIR
+  ? path.join(process.env.UPLOAD_DIR, "board-profiles")
+  : "./data/uploads/board-profiles";
+fs.mkdirSync(BOARD_PROFILES_DIR, { recursive: true });
+
+const BOARD_RESUMES_DIR = process.env.UPLOAD_DIR
+  ? path.join(process.env.UPLOAD_DIR, "board-resumes")
+  : "./data/uploads/board-resumes";
+fs.mkdirSync(BOARD_RESUMES_DIR, { recursive: true });
+
+const photoStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, BOARD_PROFILES_DIR),
+  filename: (req: any, file, cb) => {
+    const ext = file.mimetype === "image/png" ? ".png" : file.mimetype === "image/webp" ? ".webp" : ".jpg";
+    cb(null, `${req.user.userId}-${Date.now()}${ext}`);
+  },
+});
+const photoUpload = multer({
+  storage: photoStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!file.mimetype.startsWith("image/")) { (cb as any)(new Error("Images only")); return; }
+    cb(null, true);
+  },
+});
+
+const resumeStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, BOARD_RESUMES_DIR),
+  filename: (req: any, file, cb) => {
+    const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+    cb(null, `${req.user.userId}-${Date.now()}-${safe}`);
+  },
+});
+const resumeUpload = multer({
+  storage: resumeStorage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+    if (!allowed.includes(file.mimetype)) { (cb as any)(new Error("PDF or Word only")); return; }
+    cb(null, true);
+  },
+});
+
 // Admin-restricted categories
 const RESTRICTED_CATEGORIES = ["Legal", "Personnel"];
 
@@ -123,6 +168,7 @@ router.get("/me", requireBoard as any, async (req, res) => {
     photoUrl: users.photoUrl, boardPosition: users.boardPosition,
     committees: users.committees, termStart: users.termStart, termEnd: users.termEnd,
     role: users.role, avatarUrl: users.avatarUrl,
+    boardExpertise: users.boardExpertise, resumeUrl: users.resumeUrl, resumeName: users.resumeName,
   }).from(users).where(eq(users.id, userId));
   if (!member) return res.status(404).json({ success: false, error: "Not found" });
   res.json({ success: true, data: member });
@@ -152,8 +198,43 @@ router.patch("/me", requireBoard as any, async (req, res) => {
     preferredMeetingTimes: users.preferredMeetingTimes, bio: users.bio,
     boardPosition: users.boardPosition, role: users.role,
     boardExpertise: users.boardExpertise,
+    resumeUrl: users.resumeUrl, resumeName: users.resumeName,
+    photoUrl: users.photoUrl,
   });
   res.json({ success: true, data: updated });
+});
+
+// ── Profile Photo Upload / Serve ───────────────────────────────────────────────
+
+router.post("/me/photo", requireBoard as any, photoUpload.single("photo"), async (req, res) => {
+  const userId = req.user!.userId;
+  if (!req.file) return res.status(400).json({ success: false, error: "No file uploaded" });
+  const photoUrl = `/api/board/profile-photos/${req.file.filename}`;
+  await db.update(users).set({ photoUrl }).where(eq(users.id, userId));
+  res.json({ success: true, photoUrl });
+});
+
+router.get("/profile-photos/:filename", requireBoard as any, (req, res) => {
+  const filepath = path.join(BOARD_PROFILES_DIR, req.params.filename);
+  if (!fs.existsSync(filepath)) return res.status(404).end();
+  res.sendFile(path.resolve(filepath));
+});
+
+// ── Resume Upload / Serve ──────────────────────────────────────────────────────
+
+router.post("/me/resume", requireBoard as any, resumeUpload.single("resume"), async (req, res) => {
+  const userId = req.user!.userId;
+  if (!req.file) return res.status(400).json({ success: false, error: "No file uploaded" });
+  const resumeUrl = `/api/board/resumes/${req.file.filename}`;
+  const resumeName = req.file.originalname;
+  await db.update(users).set({ resumeUrl, resumeName }).where(eq(users.id, userId));
+  res.json({ success: true, resumeUrl, resumeName });
+});
+
+router.get("/resumes/:filename", requireBoard as any, (req, res) => {
+  const filepath = path.join(BOARD_RESUMES_DIR, req.params.filename);
+  if (!fs.existsSync(filepath)) return res.status(404).end();
+  res.download(filepath);
 });
 
 // ── Committees ────────────────────────────────────────────────────────────────

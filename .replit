@@ -41,3 +41,8 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_anthropic_ai_integrations:2.0.0"]
+
+[userenv]
+
+[userenv.shared]
+GOOGLE_REDIRECT_URI = "https://handlekraft.replit.app/api/google/oauth/callback"

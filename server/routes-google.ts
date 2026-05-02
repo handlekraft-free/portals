@@ -11,10 +11,11 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 const JWT_SECRET = process.env.JWT_SECRET || "handlekraft-dev-secret-change-in-production";
 
-function getRedirectUri(req: Request): string {
-  const proto = (req.headers["x-forwarded-proto"] as string) || "http";
-  const host = (req.headers["x-forwarded-host"] as string) || (req.headers.host as string) || "localhost:5000";
-  return `${proto}://${host}/api/google/oauth/callback`;
+function getRedirectUri(_req: Request): string {
+  // Explicit override (most reliable — set GOOGLE_REDIRECT_URI in secrets)
+  if (process.env.GOOGLE_REDIRECT_URI) return process.env.GOOGLE_REDIRECT_URI;
+  // Fallback for local dev
+  return "http://localhost:5000/api/google/oauth/callback";
 }
 
 // GET /api/google/oauth/url

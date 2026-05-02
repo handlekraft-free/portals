@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard, FolderOpen, MessageSquare, Ticket, LogOut, Menu, X } from "lucide-react";
 import logoImg from "@/assets/images/logo.png";
+import { PortalSwitcher } from "@/components/portal/PortalSwitcher";
 
 const navItems = [
   { href: "/portal/client/dashboard", icon: <LayoutDashboard className="w-4 h-4" />, label: "Dashboard" },
@@ -55,6 +56,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-2">
             <div className="hidden md:flex items-center gap-2">
+              <PortalSwitcher variant="dark" />
               <div className="w-7 h-7 rounded-full bg-[#D4A843] flex items-center justify-center text-[#1A1F2B] text-xs font-bold">
                 {user?.firstName?.[0]}{user?.lastName?.[0]}
               </div>

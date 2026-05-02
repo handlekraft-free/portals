@@ -8,6 +8,7 @@ import {
   FileSignature, LogOut, Menu, Users, Scale, DollarSign, Settings, Shield,
   BookOpen, MessageSquare, Calendar, Bell, X, Check, UserCircle, CalendarClock, Newspaper,
 } from "lucide-react";
+import { PortalSwitcher } from "@/components/portal/PortalSwitcher";
 import logoImg from "@/assets/images/logo.png";
 import BoardOnboardingWizard from "@/components/portal/BoardOnboardingWizard";
 import {
@@ -260,7 +261,10 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
             <p className="text-white text-xs font-medium truncate">{user?.firstName} {user?.lastName}</p>
             <p className="text-indigo-300 text-xs truncate">{user?.role === "board" ? "Board Member" : "Admin"}</p>
           </div>
-          <NotificationBell />
+          <div className="flex items-center gap-1">
+            <PortalSwitcher variant="dark" />
+            <NotificationBell />
+          </div>
         </div>
         <Button variant="ghost" size="sm" onClick={handleLogout} className="w-full text-white/60 hover:text-white hover:bg-white/10 gap-2 justify-start text-xs" data-testid="button-logout">
           <LogOut className="w-3.5 h-3.5" /> Sign Out
@@ -289,6 +293,7 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
             <Menu className="w-5 h-5" />
           </button>
           <p className="text-white font-semibold text-sm flex-1">Board Portal</p>
+          <PortalSwitcher variant="dark" />
           <NotificationBell />
         </header>
 

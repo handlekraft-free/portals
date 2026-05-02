@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { GoogleNotificationBell } from "@/components/portal/GoogleNotificationBell";
 import { FloatingTimer } from "@/components/portal/FloatingTimer";
+import { PortalSwitcher } from "@/components/portal/PortalSwitcher";
 import { apiRequest } from "@/lib/auth";
 import logoImg from "@/assets/images/logo.png";
 import {
@@ -165,6 +166,7 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
           </button>
           <div className="md:hidden font-display text-[#1A1F2B] text-sm">handləkraft.ai</div>
           <div className="flex items-center gap-2 ml-auto">
+            <PortalSwitcher variant="light" />
             <GoogleNotificationBell />
             <div className="w-7 h-7 rounded-full bg-[#0D7377] flex items-center justify-center text-white text-xs font-bold" title={`${user?.firstName} ${user?.lastName}`}>
               {user?.firstName?.[0]}{user?.lastName?.[0]}

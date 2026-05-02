@@ -2,6 +2,7 @@ export interface PortalUser {
   id: number;
   email: string;
   role: "admin" | "employee" | "client" | "student" | "board";
+  availableRoles: string[];
   firstName: string;
   lastName: string;
   mustChangePassword?: boolean;

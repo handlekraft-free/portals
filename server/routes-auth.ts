@@ -5,6 +5,7 @@ import { db } from "./db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { signToken, requireAuth, signPendingToken, verifyPendingToken } from "./auth-middleware";
+import type { JwtPayload } from "./auth-middleware";
 
 const router: Router = createRouter();
 
@@ -173,6 +174,38 @@ router.post("/change-password", requireAuth, async (req, res) => {
     .where(eq(users.id, user.id));
 
   return res.json({ success: true, data: null });
+});
+
+// POST /api/auth/switch-portal — in-session portal switch for multi-role users
+router.post("/switch-portal", requireAuth, async (req, res) => {
+  const { role } = req.body;
+  if (!role) return res.status(400).json({ success: false, error: "Role required" });
+
+  const [user] = await db.select().from(users).where(eq(users.id, req.user!.userId));
+  if (!user) return res.status(404).json({ success: false, error: "User not found" });
+
+  const availableRoles: string[] = (user.roles && user.roles.length > 0) ? user.roles : [user.role];
+  if (!availableRoles.includes(role)) {
+    return res.status(403).json({ success: false, error: "Role not available for this user" });
+  }
+
+  const token = signToken({
+    userId: user.id,
+    email: user.email,
+    role: role as JwtPayload["role"],
+    firstName: user.firstName,
+    lastName: user.lastName,
+    boardRestrictedAccess: user.boardRestrictedAccess ?? false,
+  });
+
+  res.cookie("hk_token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  return res.json({ success: true, data: { role } });
 });
 
 // POST /api/auth/logout

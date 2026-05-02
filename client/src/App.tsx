@@ -20,6 +20,7 @@ import EmployeeExpenses from "@/pages/portal/employee/expenses";
 import EmployeeTickets from "@/pages/portal/employee/tickets";
 import EmployeeLMS from "@/pages/portal/employee/lms";
 import EmployeeChat from "@/pages/portal/employee/chat";
+import EmployeeSettings from "@/pages/portal/employee/settings";
 
 // Client Portal
 import ClientDashboard from "@/pages/portal/client/dashboard";
@@ -81,6 +82,7 @@ function Router() {
       <Route path="/portal/employee/tickets" component={EmployeeTickets} />
       <Route path="/portal/employee/lms" component={EmployeeLMS} />
       <Route path="/portal/employee/chat" component={EmployeeChat} />
+      <Route path="/portal/employee/settings" component={EmployeeSettings} />
 
       {/* Client Portal */}
       <Route path="/portal/client/dashboard" component={ClientDashboard} />

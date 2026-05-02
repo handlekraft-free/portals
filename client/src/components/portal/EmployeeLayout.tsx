@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, Clock, Kanban, Receipt, Ticket,
   BookOpen, LogOut, Menu, X, Users, UserPlus,
-  AlertTriangle, ArrowRight, MessageSquare, GraduationCap,
+  AlertTriangle, ArrowRight, MessageSquare, GraduationCap, Settings,
 } from "lucide-react";
+import { GoogleNotificationBell } from "@/components/portal/GoogleNotificationBell";
 import { apiRequest } from "@/lib/auth";
 import logoImg from "@/assets/images/logo.png";
 import {
@@ -23,6 +24,7 @@ const navItems = [
   { href: "/portal/employee/tickets", icon: <Ticket className="w-4 h-4" />, label: "Client Tickets" },
   { href: "/portal/employee/lms", icon: <BookOpen className="w-4 h-4" />, label: "LMS Courses" },
   { href: "/portal/employee/chat", icon: <MessageSquare className="w-4 h-4" />, label: "Communication" },
+  { href: "/portal/employee/settings", icon: <Settings className="w-4 h-4" />, label: "Settings" },
 ];
 
 const adminItems = [
@@ -162,6 +164,7 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
           </button>
           <div className="md:hidden font-display text-[#1A1F2B] text-sm">handləkraft.ai</div>
           <div className="flex items-center gap-2 ml-auto">
+            <GoogleNotificationBell />
             <div className="w-7 h-7 rounded-full bg-[#0D7377] flex items-center justify-center text-white text-xs font-bold" title={`${user?.firstName} ${user?.lastName}`}>
               {user?.firstName?.[0]}{user?.lastName?.[0]}
             </div>

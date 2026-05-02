@@ -31,6 +31,7 @@ import boardRoutes from "./routes-board";
 import balanceRoutes from "./routes-balance";
 import chatRoutes from "./routes-chat";
 import aiRoutes from "./routes-ai";
+import googleRoutes, { startGooglePolling } from "./routes-google";
 
 declare module "express-session" {
   interface SessionData {
@@ -105,6 +106,22 @@ export async function registerRoutes(
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS board_expertise jsonb;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS resume_url text;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS resume_name text;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS google_access_token text;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS google_refresh_token text;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS google_token_expiry timestamp;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS google_email text;
+      CREATE TABLE IF NOT EXISTS google_notifications (
+        id serial PRIMARY KEY,
+        user_id integer NOT NULL,
+        type text NOT NULL,
+        title text NOT NULL,
+        subtitle text,
+        url text NOT NULL,
+        external_id text NOT NULL,
+        event_time timestamp,
+        is_read boolean DEFAULT false NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
       UPDATE portal_users SET onboarding_complete = true WHERE role IN ('admin','employee','client','student') AND onboarding_complete = false;
       CREATE TABLE IF NOT EXISTS board_document_comments (
         id serial PRIMARY KEY,
@@ -609,6 +626,10 @@ export async function registerRoutes(
   app.use("/api/balance", balanceRoutes);
   app.use("/api/chat", chatRoutes);
   app.use("/api/ai", aiRoutes);
+  app.use("/api/google", googleRoutes);
+
+  // Start Google background polling
+  startGooglePolling();
 
   // ── Admin Charge Code CRUD ────────────────────────────────────────────────
   const { requireAdmin: reqAdmin } = await import("./auth-middleware");

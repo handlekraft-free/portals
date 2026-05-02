@@ -122,6 +122,17 @@ export async function registerRoutes(
         is_read boolean DEFAULT false NOT NULL,
         created_at timestamp DEFAULT now() NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS google_accounts (
+        id serial PRIMARY KEY,
+        user_id integer NOT NULL,
+        email text NOT NULL,
+        label text NOT NULL DEFAULT 'Primary',
+        access_token text,
+        refresh_token text,
+        token_expiry timestamp,
+        is_active boolean DEFAULT true NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
       UPDATE portal_users SET onboarding_complete = true WHERE role IN ('admin','employee','client','student') AND onboarding_complete = false;
       CREATE TABLE IF NOT EXISTS board_document_comments (
         id serial PRIMARY KEY,

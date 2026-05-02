@@ -123,6 +123,20 @@ export const googleNotifications = pgTable("google_notifications", {
 });
 export type GoogleNotification = typeof googleNotifications.$inferSelect;
 
+// ─── Google Accounts (multi-account) ──────────────────────────────────────────
+export const googleAccounts = pgTable("google_accounts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  email: text("email").notNull(),
+  label: text("label").notNull().default("Primary"),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  tokenExpiry: timestamp("token_expiry"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type GoogleAccount = typeof googleAccounts.$inferSelect;
+
 // ─── Projects ─────────────────────────────────────────────────────────────────
 
 export const projects = pgTable("projects", {

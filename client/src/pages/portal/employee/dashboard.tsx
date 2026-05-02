@@ -445,12 +445,13 @@ function ClientTicketsPanel() {
 
 function DashboardContent() {
   const { user } = useAuth();
-  const [googleData, setGoogleData] = useState<{ calendar: any[]; gmail: any[] } | null>(null);
+  type GoogleAccountData = { id: number; email: string; label: string; calendar: any[]; gmail: any[] };
+  const [googleAccounts, setGoogleAccounts] = useState<GoogleAccountData[]>([]);
 
   useEffect(() => {
     document.title = "Dashboard | handləkraft.ai";
     apiRequest("GET", "/api/google/dashboard").then((res) => {
-      if (res.success) setGoogleData(res.data);
+      if (res.success && res.data?.accounts) setGoogleAccounts(res.data.accounts);
     }).catch(() => {});
   }, []);
 
@@ -484,77 +485,93 @@ function DashboardContent() {
           <p className="text-white/65 text-sm mt-1.5">Here's your daily briefing from HQ.</p>
         </div>
 
-        {/* Google feed — only when data is available */}
-        {googleData && (googleData.calendar.length > 0 || googleData.gmail.length > 0) && (
-          <div className="border-t border-white/10 mx-4 mb-3" />
+        {/* Google feed — one section per connected account */}
+        {googleAccounts.filter(a => a.calendar.length > 0 || a.gmail.length > 0).length > 0 && (
+          <div className="border-t border-white/10 mx-4 mb-1 mt-1" />
         )}
-        {googleData && (googleData.calendar.length > 0 || googleData.gmail.length > 0) && (
-          <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-4 pr-28">
-            {/* Calendar column */}
-            {googleData.calendar.length > 0 && (
-              <div>
-                <p className="flex items-center gap-1.5 text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-2">
-                  <CalendarDays className="w-3 h-3" /> Upcoming
-                </p>
-                <div className="space-y-1.5">
-                  {googleData.calendar.map((ev: any) => {
-                    const d = ev.eventTime ? new Date(ev.eventTime) : null;
-                    const dateLabel = d
-                      ? d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
-                      : "All day";
-                    const timeLabel = d
-                      ? d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
-                      : "";
-                    return (
-                      <a
-                        key={ev.id}
-                        href={ev.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        data-testid={`banner-cal-${ev.id}`}
-                        className="flex items-start gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/10 transition-colors group"
-                      >
-                        <div className="shrink-0 text-right min-w-[5.5rem]">
-                          <div className="text-[#D4A843] text-xs font-semibold leading-tight">{dateLabel}</div>
-                          {timeLabel && <div className="text-[#D4A843]/80 text-xs font-mono leading-tight">{timeLabel}</div>}
-                        </div>
-                        <span className="text-white text-sm font-semibold truncate leading-snug group-hover:text-white/90 transition-colors pt-0.5">{ev.title}</span>
-                      </a>
-                    );
-                  })}
-                </div>
+        {googleAccounts.filter(a => a.calendar.length > 0 || a.gmail.length > 0).map((acct, acctIdx) => {
+          const LABEL_COLORS = ["text-[#D4A843]", "text-purple-300", "text-orange-300", "text-blue-300"];
+          const DOT_COLORS = ["bg-[#D4A843]", "bg-purple-400", "bg-orange-400", "bg-blue-400"];
+          const labelColor = LABEL_COLORS[acctIdx % LABEL_COLORS.length];
+          const dotColor = DOT_COLORS[acctIdx % DOT_COLORS.length];
+          const hasData = acct.calendar.length > 0 || acct.gmail.length > 0;
+          if (!hasData) return null;
+          return (
+            <div key={acct.id} className="px-4 pb-3 pr-28">
+              {/* Account label header */}
+              <div className="flex items-center gap-2 mb-2">
+                <span className={`w-2 h-2 rounded-full ${dotColor} shrink-0`} />
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${labelColor}`}>{acct.label}</span>
+                <span className="text-white/30 text-[10px] truncate">{acct.email}</span>
               </div>
-            )}
-
-            {/* Gmail column */}
-            {googleData.gmail.length > 0 && (
-              <div>
-                <p className="flex items-center gap-1.5 text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-2">
-                  <Mail className="w-3 h-3" /> Recent Mail
-                </p>
-                <div className="space-y-1.5">
-                  {googleData.gmail.map((email: any) => {
-                    const from = email.subtitle ?? "";
-                    const subject = email.title;
-                    return (
-                      <a
-                        key={email.id}
-                        href={email.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        data-testid={`banner-email-${email.id}`}
-                        className="flex items-start gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/10 transition-colors group"
-                      >
-                        <span className="text-[#D4A843] text-xs font-semibold shrink-0 truncate max-w-[5rem] leading-snug pt-0.5">{from}</span>
-                        <span className="text-white text-sm font-semibold truncate leading-snug group-hover:text-white/90 transition-colors">{subject}</span>
-                      </a>
-                    );
-                  })}
-                </div>
+              {/* Calendar + Gmail columns */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Calendar */}
+                {acct.calendar.length > 0 && (
+                  <div>
+                    <p className="flex items-center gap-1.5 text-white/40 text-[10px] font-semibold uppercase tracking-wider mb-1.5">
+                      <CalendarDays className="w-3 h-3" /> Upcoming
+                    </p>
+                    <div className="space-y-1.5">
+                      {acct.calendar.map((ev: any) => {
+                        const d = ev.eventTime ? new Date(ev.eventTime) : null;
+                        const dateLabel = d
+                          ? d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+                          : "All day";
+                        const timeLabel = d
+                          ? d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+                          : "";
+                        return (
+                          <a
+                            key={ev.id}
+                            href={ev.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            data-testid={`banner-cal-${acct.id}-${ev.id}`}
+                            className="flex items-start gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/10 transition-colors group"
+                          >
+                            <div className="shrink-0 text-right min-w-[5.5rem]">
+                              <div className={`${labelColor} text-xs font-semibold leading-tight`}>{dateLabel}</div>
+                              {timeLabel && <div className={`${labelColor} opacity-80 text-xs font-mono leading-tight`}>{timeLabel}</div>}
+                            </div>
+                            <span className="text-white text-sm font-semibold truncate leading-snug group-hover:text-white/80 transition-colors pt-0.5">{ev.title}</span>
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {/* Gmail */}
+                {acct.gmail.length > 0 && (
+                  <div>
+                    <p className="flex items-center gap-1.5 text-white/40 text-[10px] font-semibold uppercase tracking-wider mb-1.5">
+                      <Mail className="w-3 h-3" /> Recent Mail
+                    </p>
+                    <div className="space-y-1.5">
+                      {acct.gmail.map((email: any) => (
+                        <a
+                          key={email.id}
+                          href={email.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          data-testid={`banner-email-${acct.id}-${email.id}`}
+                          className="flex items-start gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/10 transition-colors group"
+                        >
+                          <span className={`${labelColor} text-xs font-semibold shrink-0 truncate max-w-[5rem] leading-snug pt-0.5`}>{email.subtitle ?? ""}</span>
+                          <span className="text-white text-sm font-semibold truncate leading-snug group-hover:text-white/80 transition-colors">{email.title}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        )}
+              {/* Divider between accounts */}
+              {acctIdx < googleAccounts.filter(a => a.calendar.length > 0 || a.gmail.length > 0).length - 1 && (
+                <div className="border-t border-white/10 mt-3" />
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* My Tasks + Client Tickets */}

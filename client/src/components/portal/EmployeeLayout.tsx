@@ -8,6 +8,7 @@ import {
   AlertTriangle, ArrowRight, MessageSquare, GraduationCap, Settings,
 } from "lucide-react";
 import { GoogleNotificationBell } from "@/components/portal/GoogleNotificationBell";
+import { FloatingTimer } from "@/components/portal/FloatingTimer";
 import { apiRequest } from "@/lib/auth";
 import logoImg from "@/assets/images/logo.png";
 import {
@@ -192,11 +193,12 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        <main className="flex-1 p-4 md:p-6 relative overflow-hidden">
+        <main className="flex-1 p-4 md:p-6 pb-16 relative overflow-hidden">
           <LongshipBackground />
           <div className="relative z-10">{children}</div>
         </main>
         <PageViking />
+        <FloatingTimer />
       </div>
     </div>
   );

@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState } from "react";
 import { EmployeeLayout } from "@/components/portal/EmployeeLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/auth";
-import { Clock, Kanban, MessageSquare, Play, Square, Users, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, Ticket, CreditCard, CalendarDays, Mail } from "lucide-react";
+import { MessageSquare, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, CalendarDays, Mail } from "lucide-react";
 import vikingCodingImg from "@/assets/images/viking-coding.png";
 import { VikingArsenal, RuneDivider } from "@/components/portal/VikingDecor";
 import { Button } from "@/components/ui/button";
@@ -445,67 +445,14 @@ function ClientTicketsPanel() {
 
 function DashboardContent() {
   const { user } = useAuth();
-  const [weekHours, setWeekHours] = useState<number>(0);
-  const [runningTimer, setRunningTimer] = useState<any>(null);
-  const [timerSeconds, setTimerSeconds] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [timerTask, setTimerTask] = useState("");
   const [googleData, setGoogleData] = useState<{ calendar: any[]; gmail: any[] } | null>(null);
 
   useEffect(() => {
     document.title = "Dashboard | handləkraft.ai";
-    loadDashboard();
     apiRequest("GET", "/api/google/dashboard").then((res) => {
       if (res.success) setGoogleData(res.data);
     }).catch(() => {});
   }, []);
-
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-    if (runningTimer) {
-      const startMs = new Date(runningTimer.startTime).getTime();
-      interval = setInterval(() => {
-        setTimerSeconds(Math.floor((Date.now() - startMs) / 1000));
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [runningTimer]);
-
-  async function loadDashboard() {
-    setLoading(true);
-    const [timerRes, entriesRes] = await Promise.all([
-      apiRequest("GET", "/api/time/timer/running"),
-      apiRequest("GET", "/api/time/entries"),
-    ]);
-    if (timerRes.success && timerRes.data) {
-      setRunningTimer(timerRes.data);
-      setTimerSeconds(Math.floor((Date.now() - new Date(timerRes.data.startTime).getTime()) / 1000));
-    }
-    if (entriesRes.success) {
-      const thisWeek = new Date();
-      thisWeek.setDate(thisWeek.getDate() - thisWeek.getDay());
-      const weekEntries = entriesRes.data.filter((e: any) => new Date(e.createdAt) >= thisWeek);
-      const totalMin = weekEntries.reduce((sum: number, e: any) => sum + (e.durationMinutes || 0), 0);
-      setWeekHours(Math.round((totalMin / 60) * 10) / 10);
-    }
-    setLoading(false);
-  }
-
-  async function startTimer() {
-    if (!timerTask.trim()) return;
-    const res = await apiRequest("POST", "/api/time/timer/start", { taskDescription: timerTask });
-    if (res.success) { setRunningTimer(res.data); setTimerSeconds(0); setTimerTask(""); }
-  }
-
-  async function stopTimer() {
-    await apiRequest("POST", "/api/time/timer/stop");
-    setRunningTimer(null);
-    setTimerSeconds(0);
-    loadDashboard();
-  }
-
-  const formatTime = (s: number) =>
-    `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   const greetings = ["Ready to raid the backlog", "Onward, Viking", "The longship awaits", "Shields up"];
   const greeting = greetings[new Date().getHours() % greetings.length];
@@ -603,62 +550,6 @@ function DashboardContent() {
         )}
       </div>
 
-      {/* Hours This Week */}
-      <div className="mb-6">
-        <Card className="border-0 shadow-sm">
-          <CardContent className="pt-4 pb-3 flex items-center gap-4">
-            <div className="w-9 h-9 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
-              <Clock className="w-5 h-5 text-[#0D7377]" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-[#1A1F2B]" data-testid="stat-hours-week">{loading ? "—" : `${weekHours}h`}</p>
-              <p className="text-xs text-slate-500">Hours This Week</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Timer Widget */}
-      <Card className="border-0 shadow-sm mb-6">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-[#0D7377]" /> Quick Timer
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {runningTimer ? (
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <p className="text-3xl font-mono font-bold text-[#0D7377]" data-testid="text-timer-running">{formatTime(timerSeconds)}</p>
-                <p className="text-sm text-slate-500 mt-1 truncate">{runningTimer.taskDescription}</p>
-              </div>
-              <Button onClick={stopTimer} className="bg-red-500 hover:bg-red-600 text-white gap-2 shrink-0" data-testid="button-stop-timer">
-                <Square className="w-4 h-4" /> Stop
-              </Button>
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <input
-                value={timerTask}
-                onChange={(e) => setTimerTask(e.target.value)}
-                placeholder="What are you working on?"
-                className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
-                data-testid="input-timer-task"
-                onKeyDown={(e) => e.key === "Enter" && startTimer()}
-              />
-              <Button
-                onClick={startTimer}
-                disabled={!timerTask.trim()}
-                className="bg-[#0D7377] hover:bg-[#0D7377]/90 text-white gap-2 shrink-0"
-                data-testid="button-start-timer"
-              >
-                <Play className="w-4 h-4" /> Start
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
       {/* My Tasks + Client Tickets */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <MyTasksPanel />
@@ -670,26 +561,6 @@ function DashboardContent() {
 
       {/* Team Pulse */}
       <TeamPulse />
-
-      {/* Quick Links */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-        {[
-          { href: "/portal/employee/time", label: "Log Time", icon: <Clock className="w-5 h-5" />, color: "bg-[#0D7377] text-white" },
-          { href: "/portal/employee/kanban", label: "View Boards", icon: <Kanban className="w-5 h-5" />, color: "bg-[#1A1F2B] text-white" },
-          { href: "/portal/employee/expenses", label: "Add Expense", icon: <CreditCard className="w-5 h-5" />, color: "bg-[#D4A843] text-[#1A1F2B]" },
-          { href: "/portal/employee/tickets", label: "View Tickets", icon: <MessageSquare className="w-5 h-5" />, color: "bg-purple-600 text-white" },
-        ].map((link) => (
-          <a
-            key={link.href}
-            href={link.href}
-            className={`${link.color} rounded-xl p-4 flex flex-col items-center justify-center gap-2 text-sm font-medium hover:opacity-90 transition-opacity text-center`}
-            data-testid={`link-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
-          >
-            {link.icon}
-            {link.label}
-          </a>
-        ))}
-      </div>
 
       {/* ── Communication Hub ─────────────────────────────────────────────── */}
       <div className="mb-2">

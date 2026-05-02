@@ -3,7 +3,7 @@ import { EmployeeLayout } from "@/components/portal/EmployeeLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/auth";
-import { MessageSquare, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, CalendarDays, Mail, Users, Kanban, Ticket } from "lucide-react";
+import { MessageSquare, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, CalendarDays, Mail, Users, Kanban, Ticket, RefreshCw } from "lucide-react";
 import vikingCodingImg from "@/assets/images/viking-coding.png";
 import { VikingArsenal, RuneDivider } from "@/components/portal/VikingDecor";
 import { Button } from "@/components/ui/button";
@@ -447,12 +447,20 @@ function DashboardContent() {
   const { user } = useAuth();
   type GoogleAccountData = { id: number; email: string; label: string; calendar: any[]; gmail: any[] };
   const [googleAccounts, setGoogleAccounts] = useState<GoogleAccountData[]>([]);
+  const [syncing, setSyncing] = useState(false);
+
+  async function syncGoogle() {
+    setSyncing(true);
+    try {
+      const res = await apiRequest("GET", "/api/google/dashboard");
+      if (res.success && res.data?.accounts) setGoogleAccounts(res.data.accounts);
+    } catch {}
+    setSyncing(false);
+  }
 
   useEffect(() => {
     document.title = "Dashboard | handləkraft.ai";
-    apiRequest("GET", "/api/google/dashboard").then((res) => {
-      if (res.success && res.data?.accounts) setGoogleAccounts(res.data.accounts);
-    }).catch(() => {});
+    syncGoogle();
   }, []);
 
   const greetings = ["Ready to raid the backlog", "Onward, Viking", "The longship awaits", "Shields up"];
@@ -502,7 +510,16 @@ function DashboardContent() {
               <div className="flex items-center gap-2 mb-2">
                 <span className={`w-2 h-2 rounded-full ${dotColor} shrink-0`} />
                 <span className={`text-[10px] font-bold uppercase tracking-widest ${labelColor}`}>{acct.label}</span>
-                <span className="text-white/30 text-[10px] truncate">{acct.email}</span>
+                <span className="text-white/30 text-[10px] truncate flex-1">{acct.email}</span>
+                <button
+                  onClick={syncGoogle}
+                  disabled={syncing}
+                  title="Sync now"
+                  data-testid={`button-sync-google-${acct.id}`}
+                  className="text-white/30 hover:text-white/70 disabled:opacity-30 transition-colors p-0.5 rounded shrink-0"
+                >
+                  <RefreshCw className={`w-3 h-3 ${syncing ? "animate-spin" : ""}`} />
+                </button>
               </div>
               {/* Calendar + Gmail columns */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -90,7 +90,7 @@ async function fetchCalendarForAccount(accessToken: string): Promise<any[]> {
   });
 }
 
-async function fetchGmailForAccount(accessToken: string): Promise<any[]> {
+async function fetchGmailForAccount(accessToken: string, accountEmail: string): Promise<any[]> {
   const gmailRes = await fetch(
     "https://gmail.googleapis.com/gmail/v1/users/me/messages?q=in:inbox&maxResults=4",
     { headers: { Authorization: `Bearer ${accessToken}` } }
@@ -99,6 +99,8 @@ async function fetchGmailForAccount(accessToken: string): Promise<any[]> {
   const gmailData = await gmailRes.json() as any;
   const messageIds: string[] = (gmailData.messages ?? []).map((m: any) => m.id);
   const gmail: any[] = [];
+  // Use the account email in the URL so Gmail opens the correct account
+  const gmailBase = `https://mail.google.com/mail/u/${encodeURIComponent(accountEmail)}`;
   await Promise.all(
     messageIds.map(async (id) => {
       const msgRes = await fetch(
@@ -111,7 +113,7 @@ async function fetchGmailForAccount(accessToken: string): Promise<any[]> {
       const subject = headers.find((h: any) => h.name === "Subject")?.value || "(no subject)";
       const from = headers.find((h: any) => h.name === "From")?.value || "";
       const fromName = from.replace(/<[^>]*>/g, "").trim() || from;
-      gmail.push({ id, title: subject, subtitle: fromName, url: `https://mail.google.com/mail/u/0/#inbox/${id}` });
+      gmail.push({ id, title: subject, subtitle: fromName, url: `${gmailBase}/#inbox/${id}` });
     })
   );
   gmail.sort((a, b) => messageIds.indexOf(a.id) - messageIds.indexOf(b.id));
@@ -338,7 +340,7 @@ router.get("/dashboard", requireEmployee, async (req: any, res) => {
     if (!token) return { id: acct.id, email: acct.email, label: acct.label, calendar: [], gmail: [] };
     const [calendar, gmail] = await Promise.all([
       fetchCalendarForAccount(token),
-      fetchGmailForAccount(token),
+      fetchGmailForAccount(token, acct.email),
     ]);
     return { id: acct.id, email: acct.email, label: acct.label, calendar, gmail };
   }));
@@ -393,7 +395,7 @@ router.delete("/notifications/:id", requireEmployee, async (req: any, res) => {
 
 // ── Background Polling ────────────────────────────────────────────────────────
 
-async function pollGmailForAccount(userId: number, accountId: number, accessToken: string) {
+async function pollGmailForAccount(userId: number, accountId: number, accessToken: string, accountEmail: string) {
   try {
     const listRes = await fetch(
       "https://gmail.googleapis.com/gmail/v1/users/me/messages?q=is:unread+in:inbox&maxResults=10",
@@ -402,6 +404,8 @@ async function pollGmailForAccount(userId: number, accountId: number, accessToke
     if (!listRes.ok) return;
     const listData = await listRes.json() as any;
     if (!listData.messages?.length) return;
+
+    const gmailBase = `https://mail.google.com/mail/u/${encodeURIComponent(accountEmail)}`;
 
     for (const msg of listData.messages.slice(0, 10)) {
       const existing = await db.select({ id: googleNotifications.id })
@@ -432,7 +436,7 @@ async function pollGmailForAccount(userId: number, accountId: number, accessToke
         type: "gmail",
         title: subject,
         subtitle,
-        url: `https://mail.google.com/mail/u/0/#inbox/${msg.id}`,
+        url: `${gmailBase}/#inbox/${msg.id}`,
         externalId: `${accountId}:${msg.id}`,
         isRead: false,
       });
@@ -535,7 +539,7 @@ export async function startGooglePolling() {
       for (const acct of allAccounts) {
         const token = await getValidAccountToken(acct);
         if (!token) continue;
-        await pollGmailForAccount(acct.userId, acct.id, token);
+        await pollGmailForAccount(acct.userId, acct.id, token, acct.email);
         await pollCalendarForAccount(acct.userId, acct.id, token);
       }
     } catch (err) {

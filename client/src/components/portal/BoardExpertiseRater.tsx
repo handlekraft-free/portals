@@ -11,6 +11,9 @@ export const BOARD_KNOWLEDGE_AREAS = [
   { key: "human_resources",      label: "Human Resources & Organizational Development",    tier: 4, tierLabel: "Strengthens Specific Capabilities" },
   { key: "dei_strategy",         label: "Diversity, Equity & Inclusion Strategy",          tier: 4, tierLabel: "Strengthens Specific Capabilities" },
   { key: "government_relations", label: "Government Relations & Public Sector Navigation", tier: 4, tierLabel: "Strengthens Specific Capabilities" },
+  { key: "web_accessibility",        label: "Web Accessibility & Inclusive Design",                          tier: 5, tierLabel: "Accessibility & Neurodivergence" },
+  { key: "lived_experience_disability", label: "Lived Experience: Disability & Neurodivergence",            tier: 5, tierLabel: "Accessibility & Neurodivergence" },
+  { key: "universal_design_learning",label: "Inclusive Workforce Development & Universal Design for Learning", tier: 5, tierLabel: "Accessibility & Neurodivergence" },
 ] as const;
 
 export const EXPERTISE_LEVELS = [
@@ -34,7 +37,7 @@ interface Props {
 }
 
 export default function BoardExpertiseRater({ value, onChange, readOnly = false }: Props) {
-  const tiers = [1, 2, 3, 4];
+  const tiers = [1, 2, 3, 4, 5];
   const tierAreas = (tier: number) => BOARD_KNOWLEDGE_AREAS.filter(a => a.tier === tier);
 
   return (

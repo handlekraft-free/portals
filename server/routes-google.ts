@@ -3,7 +3,7 @@ import type { Request } from "express";
 import { requireEmployee } from "./auth-middleware";
 import { db } from "./db";
 import { users, googleNotifications } from "@shared/schema";
-import { eq, and, isNotNull } from "drizzle-orm";
+import { eq, and, isNotNull, desc, asc } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 
 const router = Router();
@@ -101,6 +101,31 @@ router.get("/oauth/callback", async (req, res) => {
     console.error("[Google OAuth] Callback error:", err);
     res.redirect("/portal/employee/settings?google=error&msg=server_error");
   }
+});
+
+// GET /api/google/dashboard — next 3 calendar events + newest 3 gmail messages
+router.get("/dashboard", requireEmployee, async (req: any, res) => {
+  const userId = req.user.userId;
+  const now = new Date();
+
+  const [calRows, mailRows] = await Promise.all([
+    db.select()
+      .from(googleNotifications)
+      .where(and(eq(googleNotifications.userId, userId), eq(googleNotifications.type, "calendar")))
+      .orderBy(asc(googleNotifications.eventTime))
+      .limit(10),
+    db.select()
+      .from(googleNotifications)
+      .where(and(eq(googleNotifications.userId, userId), eq(googleNotifications.type, "gmail")))
+      .orderBy(desc(googleNotifications.createdAt))
+      .limit(3),
+  ]);
+
+  const upcoming = calRows
+    .filter(r => r.eventTime && new Date(r.eventTime) >= now)
+    .slice(0, 3);
+
+  res.json({ success: true, data: { calendar: upcoming, gmail: mailRows } });
 });
 
 // GET /api/google/status

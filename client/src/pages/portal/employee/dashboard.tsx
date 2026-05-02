@@ -3,7 +3,7 @@ import { EmployeeLayout } from "@/components/portal/EmployeeLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/auth";
-import { Clock, Kanban, MessageSquare, Play, Square, Users, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, Ticket, CreditCard } from "lucide-react";
+import { Clock, Kanban, MessageSquare, Play, Square, Users, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, Ticket, CreditCard, CalendarDays, Mail } from "lucide-react";
 import vikingCodingImg from "@/assets/images/viking-coding.png";
 import { VikingArsenal, RuneDivider } from "@/components/portal/VikingDecor";
 import { Button } from "@/components/ui/button";
@@ -450,10 +450,14 @@ function DashboardContent() {
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [loading, setLoading] = useState(true);
   const [timerTask, setTimerTask] = useState("");
+  const [googleData, setGoogleData] = useState<{ calendar: any[]; gmail: any[] } | null>(null);
 
   useEffect(() => {
     document.title = "Dashboard | handləkraft.ai";
     loadDashboard();
+    apiRequest("GET", "/api/google/dashboard").then((res) => {
+      if (res.success) setGoogleData(res.data);
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -509,7 +513,7 @@ function DashboardContent() {
   return (
     <div>
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-[#1A1F2B] to-[#0D7377] rounded-2xl p-6 mb-6 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#1A1F2B] to-[#0D7377] rounded-2xl mb-6 text-white relative overflow-hidden">
         {/* Decorative Viking */}
         <img
           src={vikingCodingImg}
@@ -520,14 +524,83 @@ function DashboardContent() {
         {/* Subtle background rune pattern */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none select-none" aria-hidden="true"
           style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/cubes.png')" }} />
-        <p className="text-white/55 text-sm mb-1">
-          {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-        </p>
-        <h1 className="text-2xl font-display flex items-center gap-2 flex-wrap">
-          {greeting}, {user?.firstName}!
-          <VikingArsenal className="text-white/30" />
-        </h1>
-        <p className="text-white/65 text-sm mt-1.5">Here's your daily briefing from HQ.</p>
+
+        {/* Top row: greeting */}
+        <div className="px-6 pt-5 pb-4 pr-28">
+          <p className="text-white/55 text-sm mb-1">
+            {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+          </p>
+          <h1 className="text-2xl font-display flex items-center gap-2 flex-wrap">
+            {greeting}, {user?.firstName}!
+            <VikingArsenal className="text-white/30" />
+          </h1>
+          <p className="text-white/65 text-sm mt-1.5">Here's your daily briefing from HQ.</p>
+        </div>
+
+        {/* Google feed — only when data is available */}
+        {googleData && (googleData.calendar.length > 0 || googleData.gmail.length > 0) && (
+          <div className="border-t border-white/10 mx-4 mb-3" />
+        )}
+        {googleData && (googleData.calendar.length > 0 || googleData.gmail.length > 0) && (
+          <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-3 pr-28">
+            {/* Calendar column */}
+            {googleData.calendar.length > 0 && (
+              <div>
+                <p className="flex items-center gap-1.5 text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-1.5">
+                  <CalendarDays className="w-3 h-3" /> Upcoming
+                </p>
+                <div className="space-y-1">
+                  {googleData.calendar.map((ev: any) => {
+                    const t = ev.eventTime
+                      ? new Date(ev.eventTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+                      : "All day";
+                    return (
+                      <a
+                        key={ev.id}
+                        href={ev.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-testid={`banner-cal-${ev.id}`}
+                        className="flex items-start gap-2 rounded-lg px-2 py-1.5 hover:bg-white/10 transition-colors group"
+                      >
+                        <span className="text-[#D4A843] text-[10px] font-mono mt-0.5 shrink-0 w-14">{t}</span>
+                        <span className="text-white/90 text-xs truncate leading-snug group-hover:text-white transition-colors">{ev.title}</span>
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Gmail column */}
+            {googleData.gmail.length > 0 && (
+              <div>
+                <p className="flex items-center gap-1.5 text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-1.5">
+                  <Mail className="w-3 h-3" /> Recent Mail
+                </p>
+                <div className="space-y-1">
+                  {googleData.gmail.map((email: any) => {
+                    const from = email.subtitle?.split(" — ")[0] ?? "";
+                    const subject = email.title;
+                    return (
+                      <a
+                        key={email.id}
+                        href={email.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-testid={`banner-email-${email.id}`}
+                        className="flex items-start gap-2 rounded-lg px-2 py-1.5 hover:bg-white/10 transition-colors group"
+                      >
+                        <span className="text-[#D4A843] text-[10px] mt-0.5 shrink-0 truncate max-w-[4rem]">{from}</span>
+                        <span className="text-white/90 text-xs truncate leading-snug group-hover:text-white transition-colors">{subject}</span>
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Hours This Week */}

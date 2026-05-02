@@ -104,6 +104,7 @@ export default function EmployeeSettings() {
   const { toast } = useToast();
   const [addingAccount, setAddingAccount] = useState(false);
   const [newLabel, setNewLabel] = useState("");
+  const [newEmail, setNewEmail] = useState("");
   const [connectPending, setConnectPending] = useState(false);
 
   const { data: accountsData, isLoading, refetch } = useQuery({
@@ -140,9 +141,12 @@ export default function EmployeeSettings() {
 
   async function startConnect() {
     const label = newLabel.trim() || "Primary";
+    const hint = newEmail.trim();
     setConnectPending(true);
     try {
-      const res = await apiRequest("GET", `/api/google/oauth/url?label=${encodeURIComponent(label)}`);
+      const qs = new URLSearchParams({ label });
+      if (hint) qs.set("hint", hint);
+      const res = await apiRequest("GET", `/api/google/oauth/url?${qs}`);
       if (res?.data?.url) {
         window.location.href = res.data.url;
       } else {
@@ -268,12 +272,28 @@ export default function EmployeeSettings() {
                 {addingAccount && (
                   <div className="rounded-xl border border-[#0D7377]/20 bg-teal-50/60 p-4 space-y-3">
                     <p className="text-sm font-semibold text-[#1A1F2B]">Add another Google account</p>
+
                     <div>
                       <label className="text-xs font-medium text-slate-500 mb-1 block">
-                        Label for this account <span className="text-slate-400 font-normal">(e.g. "Work", "Personal")</span>
+                        Google email address <span className="text-slate-400 font-normal">(ensures the right account is selected)</span>
                       </label>
                       <input
                         autoFocus
+                        type="email"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && startConnect()}
+                        placeholder="you@example.com"
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+                        data-testid="input-new-account-email"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-medium text-slate-500 mb-1 block">
+                        Label <span className="text-slate-400 font-normal">(e.g. "Work", "Personal")</span>
+                      </label>
+                      <input
                         value={newLabel}
                         onChange={(e) => setNewLabel(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && startConnect()}
@@ -282,6 +302,7 @@ export default function EmployeeSettings() {
                         data-testid="input-new-account-label"
                       />
                     </div>
+
                     <div className="flex gap-2">
                       <Button
                         size="sm"
@@ -300,7 +321,7 @@ export default function EmployeeSettings() {
                         )}
                         Continue to Google
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => setAddingAccount(false)}>
+                      <Button variant="outline" size="sm" onClick={() => { setAddingAccount(false); setNewLabel(""); setNewEmail(""); }}>
                         Cancel
                       </Button>
                     </div>

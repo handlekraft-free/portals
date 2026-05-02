@@ -120,10 +120,11 @@ async function fetchGmailForAccount(accessToken: string): Promise<any[]> {
 
 // ── OAuth ─────────────────────────────────────────────────────────────────────
 
-// GET /api/google/oauth/url?label=Work
+// GET /api/google/oauth/url?label=Work&hint=you@example.com
 router.get("/oauth/url", requireEmployee, (req: any, res) => {
   const userId = req.user.userId;
   const label = (req.query.label as string)?.trim() || "Primary";
+  const hint = (req.query.hint as string)?.trim() || "";
   const redirectUri = getRedirectUri(req);
   const state = jwt.sign({ userId, redirectUri, label }, JWT_SECRET, { expiresIn: "10m" });
 
@@ -141,6 +142,9 @@ router.get("/oauth/url", requireEmployee, (req: any, res) => {
     response_type: "code",
     state,
   });
+
+  // login_hint tells Google to pre-select / lock onto this specific account
+  if (hint) params.set("login_hint", hint);
 
   res.json({ success: true, data: { url: `https://accounts.google.com/o/oauth2/v2/auth?${params}` } });
 });

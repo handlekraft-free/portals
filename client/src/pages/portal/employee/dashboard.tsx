@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { EmployeeLayout } from "@/components/portal/EmployeeLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/auth";
-import { MessageSquare, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, CalendarDays, Mail } from "lucide-react";
+import { MessageSquare, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, CalendarDays, Mail, Users, Kanban, Ticket } from "lucide-react";
 import vikingCodingImg from "@/assets/images/viking-coding.png";
 import { VikingArsenal, RuneDivider } from "@/components/portal/VikingDecor";
 import { Button } from "@/components/ui/button";
@@ -489,18 +489,22 @@ function DashboardContent() {
           <div className="border-t border-white/10 mx-4 mb-3" />
         )}
         {googleData && (googleData.calendar.length > 0 || googleData.gmail.length > 0) && (
-          <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-3 pr-28">
+          <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-4 pr-28">
             {/* Calendar column */}
             {googleData.calendar.length > 0 && (
               <div>
-                <p className="flex items-center gap-1.5 text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-1.5">
+                <p className="flex items-center gap-1.5 text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-2">
                   <CalendarDays className="w-3 h-3" /> Upcoming
                 </p>
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   {googleData.calendar.map((ev: any) => {
-                    const t = ev.eventTime
-                      ? new Date(ev.eventTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+                    const d = ev.eventTime ? new Date(ev.eventTime) : null;
+                    const dateLabel = d
+                      ? d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
                       : "All day";
+                    const timeLabel = d
+                      ? d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+                      : "";
                     return (
                       <a
                         key={ev.id}
@@ -508,10 +512,13 @@ function DashboardContent() {
                         target="_blank"
                         rel="noopener noreferrer"
                         data-testid={`banner-cal-${ev.id}`}
-                        className="flex items-start gap-2 rounded-lg px-2 py-1.5 hover:bg-white/10 transition-colors group"
+                        className="flex items-start gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/10 transition-colors group"
                       >
-                        <span className="text-[#D4A843] text-[10px] font-mono mt-0.5 shrink-0 w-14">{t}</span>
-                        <span className="text-white/90 text-xs truncate leading-snug group-hover:text-white transition-colors">{ev.title}</span>
+                        <div className="shrink-0 text-right min-w-[5.5rem]">
+                          <div className="text-[#D4A843] text-xs font-semibold leading-tight">{dateLabel}</div>
+                          {timeLabel && <div className="text-[#D4A843]/80 text-xs font-mono leading-tight">{timeLabel}</div>}
+                        </div>
+                        <span className="text-white text-sm font-semibold truncate leading-snug group-hover:text-white/90 transition-colors pt-0.5">{ev.title}</span>
                       </a>
                     );
                   })}
@@ -522,12 +529,12 @@ function DashboardContent() {
             {/* Gmail column */}
             {googleData.gmail.length > 0 && (
               <div>
-                <p className="flex items-center gap-1.5 text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-1.5">
+                <p className="flex items-center gap-1.5 text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-2">
                   <Mail className="w-3 h-3" /> Recent Mail
                 </p>
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   {googleData.gmail.map((email: any) => {
-                    const from = email.subtitle?.split(" — ")[0] ?? "";
+                    const from = email.subtitle ?? "";
                     const subject = email.title;
                     return (
                       <a
@@ -536,10 +543,10 @@ function DashboardContent() {
                         target="_blank"
                         rel="noopener noreferrer"
                         data-testid={`banner-email-${email.id}`}
-                        className="flex items-start gap-2 rounded-lg px-2 py-1.5 hover:bg-white/10 transition-colors group"
+                        className="flex items-start gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/10 transition-colors group"
                       >
-                        <span className="text-[#D4A843] text-[10px] mt-0.5 shrink-0 truncate max-w-[4rem]">{from}</span>
-                        <span className="text-white/90 text-xs truncate leading-snug group-hover:text-white transition-colors">{subject}</span>
+                        <span className="text-[#D4A843] text-xs font-semibold shrink-0 truncate max-w-[5rem] leading-snug pt-0.5">{from}</span>
+                        <span className="text-white text-sm font-semibold truncate leading-snug group-hover:text-white/90 transition-colors">{subject}</span>
                       </a>
                     );
                   })}

@@ -130,14 +130,14 @@ router.get("/dashboard", requireEmployee, async (req: any, res) => {
   }
 
   const now = new Date();
-  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const sevenDays = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
   const [calRes, gmailRes] = await Promise.all([
     fetch(
       "https://www.googleapis.com/calendar/v3/calendars/primary/events?" +
         new URLSearchParams({
           timeMin: now.toISOString(),
-          timeMax: tomorrow.toISOString(),
+          timeMax: sevenDays.toISOString(),
           singleEvents: "true",
           orderBy: "startTime",
           maxResults: "3",
@@ -145,7 +145,7 @@ router.get("/dashboard", requireEmployee, async (req: any, res) => {
       { headers: { Authorization: `Bearer ${accessToken}` } }
     ),
     fetch(
-      "https://gmail.googleapis.com/gmail/v1/users/me/messages?q=in:inbox&maxResults=3",
+      "https://gmail.googleapis.com/gmail/v1/users/me/messages?q=in:inbox&maxResults=4",
       { headers: { Authorization: `Bearer ${accessToken}` } }
     ),
   ]);

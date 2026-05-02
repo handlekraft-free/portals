@@ -99,9 +99,29 @@ export const users = pgTable("portal_users", {
   boardExpertise: jsonb("board_expertise").$type<Record<string, string>>(),
   resumeUrl: text("resume_url"),
   resumeName: text("resume_name"),
+  // Google OAuth
+  googleAccessToken: text("google_access_token"),
+  googleRefreshToken: text("google_refresh_token"),
+  googleTokenExpiry: timestamp("google_token_expiry"),
+  googleEmail: text("google_email"),
 });
 export type PortalUser = typeof users.$inferSelect;
 export type InsertPortalUser = typeof users.$inferInsert;
+
+// ─── Google Notifications ──────────────────────────────────────────────────────
+export const googleNotifications = pgTable("google_notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  subtitle: text("subtitle"),
+  url: text("url").notNull(),
+  externalId: text("external_id").notNull(),
+  eventTime: timestamp("event_time"),
+  isRead: boolean("is_read").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type GoogleNotification = typeof googleNotifications.$inferSelect;
 
 // ─── Projects ─────────────────────────────────────────────────────────────────
 

@@ -2,7 +2,8 @@ import { Router } from "express";
 import type { Request } from "express";
 import { requireEmployee } from "./auth-middleware";
 import { db } from "./db";
-import { sql } from "drizzle-orm";
+import { users, googleNotifications } from "@shared/schema";
+import { eq, and, isNotNull } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 
 const router = Router();
@@ -12,9 +13,7 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 const JWT_SECRET = process.env.JWT_SECRET || "handlekraft-dev-secret-change-in-production";
 
 function getRedirectUri(_req: Request): string {
-  // Explicit override (most reliable — set GOOGLE_REDIRECT_URI in secrets)
   if (process.env.GOOGLE_REDIRECT_URI) return process.env.GOOGLE_REDIRECT_URI;
-  // Fallback for local dev
   return "http://localhost:5000/api/google/oauth/callback";
 }
 
@@ -81,21 +80,21 @@ router.get("/oauth/callback", async (req, res) => {
       return res.redirect("/portal/employee/settings?google=error&msg=token_exchange_failed");
     }
 
-    const expiresAt = new Date(Date.now() + tokens.expires_in * 1000);
+    const expiresAt = new Date(Date.now() + (tokens.expires_in ?? 3600) * 1000);
 
     const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
       headers: { Authorization: `Bearer ${tokens.access_token}` },
     });
     const userInfo = await userInfoRes.json() as any;
 
-    await db.execute(sql`
-      UPDATE portal_users
-      SET google_access_token  = ${tokens.access_token},
-          google_refresh_token = ${tokens.refresh_token ?? null},
-          google_token_expiry  = ${expiresAt},
-          google_email         = ${userInfo.email ?? null}
-      WHERE id = ${userId}
-    `);
+    await db.update(users)
+      .set({
+        googleAccessToken: tokens.access_token,
+        googleRefreshToken: tokens.refresh_token ?? null,
+        googleTokenExpiry: expiresAt,
+        googleEmail: userInfo.email ?? null,
+      })
+      .where(eq(users.id, userId));
 
     res.redirect("/portal/employee/settings?google=connected");
   } catch (err) {
@@ -107,53 +106,51 @@ router.get("/oauth/callback", async (req, res) => {
 // GET /api/google/status
 router.get("/status", requireEmployee, async (req: any, res) => {
   const userId = req.user.id;
-  const result = await db.execute(sql`
-    SELECT google_email, google_access_token FROM portal_users WHERE id = ${userId}
-  `);
-  const row = result.rows[0] as any;
-  res.json({ success: true, data: { connected: !!row?.google_access_token, email: row?.google_email ?? null } });
+  const [row] = await db
+    .select({ googleEmail: users.googleEmail, googleAccessToken: users.googleAccessToken })
+    .from(users)
+    .where(eq(users.id, userId));
+  res.json({ success: true, data: { connected: !!row?.googleAccessToken, email: row?.googleEmail ?? null } });
 });
 
 // DELETE /api/google/disconnect
 router.delete("/disconnect", requireEmployee, async (req: any, res) => {
   const userId = req.user.id;
-  await db.execute(sql`
-    UPDATE portal_users
-    SET google_access_token = NULL, google_refresh_token = NULL,
-        google_token_expiry = NULL, google_email = NULL
-    WHERE id = ${userId}
-  `);
-  await db.execute(sql`DELETE FROM google_notifications WHERE user_id = ${userId}`);
+  await db.update(users)
+    .set({ googleAccessToken: null, googleRefreshToken: null, googleTokenExpiry: null, googleEmail: null })
+    .where(eq(users.id, userId));
+  await db.delete(googleNotifications).where(eq(googleNotifications.userId, userId));
   res.json({ success: true });
 });
 
 // GET /api/google/notifications
 router.get("/notifications", requireEmployee, async (req: any, res) => {
   const userId = req.user.id;
-  const result = await db.execute(sql`
-    SELECT * FROM google_notifications
-    WHERE user_id = ${userId}
-    ORDER BY created_at DESC
-    LIMIT 50
-  `);
-  res.json({ success: true, data: { notifications: result.rows } });
+  const notifications = await db
+    .select()
+    .from(googleNotifications)
+    .where(eq(googleNotifications.userId, userId))
+    .orderBy(googleNotifications.createdAt)
+    .limit(50);
+  res.json({ success: true, data: { notifications } });
 });
 
 // GET /api/google/unread-count
 router.get("/unread-count", requireEmployee, async (req: any, res) => {
   const userId = req.user.id;
-  const result = await db.execute(sql`
-    SELECT COUNT(*) as cnt FROM google_notifications
-    WHERE user_id = ${userId} AND is_read = false
-  `);
-  const cnt = parseInt((result.rows[0] as any)?.cnt ?? "0", 10);
-  res.json({ success: true, data: { count: cnt } });
+  const rows = await db
+    .select({ id: googleNotifications.id })
+    .from(googleNotifications)
+    .where(and(eq(googleNotifications.userId, userId), eq(googleNotifications.isRead, false)));
+  res.json({ success: true, data: { count: rows.length } });
 });
 
 // POST /api/google/notifications/read-all
 router.post("/notifications/read-all", requireEmployee, async (req: any, res) => {
   const userId = req.user.id;
-  await db.execute(sql`UPDATE google_notifications SET is_read = true WHERE user_id = ${userId}`);
+  await db.update(googleNotifications)
+    .set({ isRead: true })
+    .where(eq(googleNotifications.userId, userId));
   res.json({ success: true });
 });
 
@@ -161,9 +158,9 @@ router.post("/notifications/read-all", requireEmployee, async (req: any, res) =>
 router.patch("/notifications/:id/read", requireEmployee, async (req: any, res) => {
   const userId = req.user.id;
   const id = parseInt(req.params.id, 10);
-  await db.execute(sql`
-    UPDATE google_notifications SET is_read = true WHERE id = ${id} AND user_id = ${userId}
-  `);
+  await db.update(googleNotifications)
+    .set({ isRead: true })
+    .where(and(eq(googleNotifications.id, id), eq(googleNotifications.userId, userId)));
   res.json({ success: true });
 });
 
@@ -171,9 +168,8 @@ router.patch("/notifications/:id/read", requireEmployee, async (req: any, res) =
 router.delete("/notifications/:id", requireEmployee, async (req: any, res) => {
   const userId = req.user.id;
   const id = parseInt(req.params.id, 10);
-  await db.execute(sql`
-    DELETE FROM google_notifications WHERE id = ${id} AND user_id = ${userId}
-  `);
+  await db.delete(googleNotifications)
+    .where(and(eq(googleNotifications.id, id), eq(googleNotifications.userId, userId)));
   res.json({ success: true });
 });
 
@@ -196,12 +192,10 @@ async function refreshAccessToken(userId: number, refreshToken: string): Promise
       console.error(`[Google] Token refresh failed for user ${userId}:`, data.error);
       return null;
     }
-    const expiresAt = new Date(Date.now() + data.expires_in * 1000);
-    await db.execute(sql`
-      UPDATE portal_users
-      SET google_access_token = ${data.access_token}, google_token_expiry = ${expiresAt}
-      WHERE id = ${userId}
-    `);
+    const expiresAt = new Date(Date.now() + (data.expires_in ?? 3600) * 1000);
+    await db.update(users)
+      .set({ googleAccessToken: data.access_token, googleTokenExpiry: expiresAt })
+      .where(eq(users.id, userId));
     return data.access_token;
   } catch (err) {
     console.error(`[Google] Token refresh error for user ${userId}:`, err);
@@ -220,11 +214,15 @@ async function pollGmailForUser(userId: number, accessToken: string) {
     if (!listData.messages?.length) return;
 
     for (const msg of listData.messages.slice(0, 10)) {
-      const existing = await db.execute(sql`
-        SELECT id FROM google_notifications
-        WHERE user_id = ${userId} AND external_id = ${msg.id} AND type = 'gmail'
-      `);
-      if (existing.rows.length > 0) continue;
+      const existing = await db
+        .select({ id: googleNotifications.id })
+        .from(googleNotifications)
+        .where(and(
+          eq(googleNotifications.userId, userId),
+          eq(googleNotifications.externalId, msg.id),
+          eq(googleNotifications.type, "gmail")
+        ));
+      if (existing.length > 0) continue;
 
       const msgRes = await fetch(
         `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject`,
@@ -240,14 +238,15 @@ async function pollGmailForUser(userId: number, accessToken: string) {
       const snippet = (msgData.snippet || "").slice(0, 100);
       const subtitle = fromName + (snippet ? ` — ${snippet}` : "");
 
-      await db.execute(sql`
-        INSERT INTO google_notifications (user_id, type, title, subtitle, url, external_id, is_read, created_at)
-        VALUES (
-          ${userId}, 'gmail', ${subject}, ${subtitle},
-          ${"https://mail.google.com/mail/u/0/#inbox/" + msg.id},
-          ${msg.id}, false, now()
-        )
-      `);
+      await db.insert(googleNotifications).values({
+        userId,
+        type: "gmail",
+        title: subject,
+        subtitle,
+        url: `https://mail.google.com/mail/u/0/#inbox/${msg.id}`,
+        externalId: msg.id,
+        isRead: false,
+      });
     }
   } catch (err) {
     console.error(`[Google] Gmail poll error for user ${userId}:`, err);
@@ -278,11 +277,15 @@ async function pollCalendarForUser(userId: number, accessToken: string) {
       const startRaw = event.start?.dateTime || event.start?.date;
       const externalId = `${event.id}_${startRaw}`;
 
-      const existing = await db.execute(sql`
-        SELECT id FROM google_notifications
-        WHERE user_id = ${userId} AND external_id = ${externalId} AND type = 'calendar'
-      `);
-      if (existing.rows.length > 0) continue;
+      const existing = await db
+        .select({ id: googleNotifications.id })
+        .from(googleNotifications)
+        .where(and(
+          eq(googleNotifications.userId, userId),
+          eq(googleNotifications.externalId, externalId),
+          eq(googleNotifications.type, "calendar")
+        ));
+      if (existing.length > 0) continue;
 
       const eventTime = startRaw ? new Date(startRaw) : null;
       const timeStr = eventTime
@@ -290,14 +293,16 @@ async function pollCalendarForUser(userId: number, accessToken: string) {
         : "All day";
       const subtitle = timeStr + (event.location ? ` · ${event.location}` : "");
 
-      await db.execute(sql`
-        INSERT INTO google_notifications (user_id, type, title, subtitle, url, external_id, event_time, is_read, created_at)
-        VALUES (
-          ${userId}, 'calendar', ${event.summary || "Untitled Event"}, ${subtitle},
-          ${"https://calendar.google.com/calendar/r"},
-          ${externalId}, ${eventTime}, false, now()
-        )
-      `);
+      await db.insert(googleNotifications).values({
+        userId,
+        type: "calendar",
+        title: event.summary || "Untitled Event",
+        subtitle,
+        url: "https://calendar.google.com/calendar/r",
+        externalId,
+        eventTime: eventTime ?? undefined,
+        isRead: false,
+      });
     }
   } catch (err) {
     console.error(`[Google] Calendar poll error for user ${userId}:`, err);
@@ -307,19 +312,23 @@ async function pollCalendarForUser(userId: number, accessToken: string) {
 export async function startGooglePolling() {
   const poll = async () => {
     try {
-      const result = await db.execute(sql`
-        SELECT id, google_access_token, google_refresh_token, google_token_expiry
-        FROM portal_users
-        WHERE google_refresh_token IS NOT NULL
-      `);
+      const filtered = await db
+        .select({
+          id: users.id,
+          googleAccessToken: users.googleAccessToken,
+          googleRefreshToken: users.googleRefreshToken,
+          googleTokenExpiry: users.googleTokenExpiry,
+        })
+        .from(users)
+        .where(isNotNull(users.googleRefreshToken));
 
-      for (const row of result.rows as any[]) {
-        let accessToken: string | null = row.google_access_token;
-        const expiry = row.google_token_expiry ? new Date(row.google_token_expiry) : null;
+      for (const row of filtered) {
+        let accessToken: string | null = row.googleAccessToken;
+        const expiry = row.googleTokenExpiry ? new Date(row.googleTokenExpiry) : null;
 
         if (!accessToken || !expiry || expiry.getTime() - Date.now() < 5 * 60 * 1000) {
-          if (!row.google_refresh_token) continue;
-          accessToken = await refreshAccessToken(row.id, row.google_refresh_token);
+          if (!row.googleRefreshToken) continue;
+          accessToken = await refreshAccessToken(row.id, row.googleRefreshToken);
           if (!accessToken) continue;
         }
 

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, varchar, boolean, numeric, pgEnum, uniqueIndex, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, varchar, boolean, numeric, pgEnum, uniqueIndex, real, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -96,6 +96,7 @@ export const users = pgTable("portal_users", {
   linkedIn: text("linked_in"),
   preferredMeetingTimes: text("preferred_meeting_times"),
   onboardingComplete: boolean("onboarding_complete").default(false),
+  boardExpertise: jsonb("board_expertise").$type<Record<string, string>>(),
 });
 export type PortalUser = typeof users.$inferSelect;
 export type InsertPortalUser = typeof users.$inferInsert;

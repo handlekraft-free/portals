@@ -136,7 +136,7 @@ router.patch("/onboarding-complete", requireBoard as any, async (req, res) => {
 
 router.patch("/me", requireBoard as any, async (req, res) => {
   const userId = req.user!.userId;
-  const { firstName, lastName, email, phone, linkedIn, preferredMeetingTimes, bio } = req.body;
+  const { firstName, lastName, email, phone, linkedIn, preferredMeetingTimes, bio, boardExpertise } = req.body;
   const [updated] = await db.update(users).set({
     ...(firstName !== undefined && firstName && { firstName }),
     ...(lastName !== undefined && lastName && { lastName }),
@@ -145,11 +145,13 @@ router.patch("/me", requireBoard as any, async (req, res) => {
     ...(linkedIn !== undefined && { linkedIn }),
     ...(preferredMeetingTimes !== undefined && { preferredMeetingTimes }),
     ...(bio !== undefined && { bio }),
+    ...(boardExpertise !== undefined && { boardExpertise }),
   }).where(eq(users.id, userId)).returning({
     id: users.id, firstName: users.firstName, lastName: users.lastName,
     email: users.email, phone: users.phone, linkedIn: users.linkedIn,
     preferredMeetingTimes: users.preferredMeetingTimes, bio: users.bio,
     boardPosition: users.boardPosition, role: users.role,
+    boardExpertise: users.boardExpertise,
   });
   res.json({ success: true, data: updated });
 });

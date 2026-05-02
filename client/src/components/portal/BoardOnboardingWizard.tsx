@@ -8,8 +8,9 @@ import {
   KeyRound, User, CalendarClock, LayoutDashboard, Eye, EyeOff,
   Check, ChevronRight, ChevronLeft, CalendarDays, FileText,
   CheckSquare, FileSignature, DollarSign, Users, Sparkles,
-  ShieldCheck, Linkedin, Phone, Mail, Clock, X,
+  ShieldCheck, Linkedin, Phone, Mail, Clock, X, BarChart3,
 } from "lucide-react";
+import BoardExpertiseRater from "@/components/portal/BoardExpertiseRater";
 import logoImg from "@/assets/images/logo.png";
 import AvailabilityGrid from "@/components/portal/AvailabilityGrid";
 
@@ -17,6 +18,7 @@ const STEPS = [
   { id: "welcome",      label: "Welcome",      icon: <Sparkles className="w-4 h-4" /> },
   { id: "password",     label: "Password",     icon: <KeyRound className="w-4 h-4" /> },
   { id: "profile",      label: "Profile",      icon: <User className="w-4 h-4" /> },
+  { id: "expertise",    label: "Expertise",    icon: <BarChart3 className="w-4 h-4" /> },
   { id: "availability", label: "Availability", icon: <CalendarClock className="w-4 h-4" /> },
   { id: "tour",         label: "Portal Tour",  icon: <LayoutDashboard className="w-4 h-4" /> },
 ];
@@ -40,6 +42,7 @@ function WelcomeStep({ firstName, onNext }: { firstName: string; onNext: () => v
         {[
           { icon: <KeyRound className="w-4 h-4 text-[#0D7377]" />, text: "Set a secure password" },
           { icon: <User className="w-4 h-4 text-[#0D7377]" />, text: "Complete your profile" },
+          { icon: <BarChart3 className="w-4 h-4 text-[#0D7377]" />, text: "Rate your expertise" },
           { icon: <CalendarClock className="w-4 h-4 text-[#0D7377]" />, text: "Set your availability" },
           { icon: <LayoutDashboard className="w-4 h-4 text-[#0D7377]" />, text: "Tour the portal" },
         ].map((item, i) => (
@@ -288,7 +291,49 @@ function ProfileStep({ initialData, onNext, onSkip }: {
   );
 }
 
-// ── Step 4: Availability ──────────────────────────────────────────────────────
+// ── Step 4: Expertise ─────────────────────────────────────────────────────────
+
+function ExpertiseStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
+  const { toast } = useToast();
+  const [expertise, setExpertise] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+
+  async function save() {
+    setLoading(true);
+    const r = await apiRequest("PATCH", "/api/board/me", { boardExpertise: expertise });
+    if (r.success) {
+      toast({ title: "Expertise saved!", description: "Your self-ratings have been recorded." });
+      onNext();
+    } else {
+      toast({ title: "Error", description: r.error || "Failed to save.", variant: "destructive" });
+    }
+    setLoading(false);
+  }
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-xl font-display text-[#1A1F2B] mb-1">Your Board Expertise</h2>
+        <p className="text-sm text-slate-500">
+          Rate yourself on each knowledge area. This helps the board understand its collective strengths and gaps — and guides recruitment priorities. All ratings are visible to fellow board members.
+        </p>
+      </div>
+      <div className="bg-white rounded-2xl border border-slate-200 p-4 max-h-[50vh] overflow-y-auto">
+        <BoardExpertiseRater value={expertise} onChange={setExpertise} />
+      </div>
+      <div className="flex gap-2">
+        <Button onClick={onSkip} variant="outline" className="flex-1" data-testid="wizard-skip-expertise">
+          Skip for now
+        </Button>
+        <Button onClick={save} disabled={loading} className="flex-1 bg-[#0D7377] hover:bg-[#0a5c60] text-white gap-2" data-testid="wizard-save-expertise">
+          {loading ? "Saving…" : <><Check className="w-4 h-4" /> Save Expertise</>}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ── Step 5: Availability ──────────────────────────────────────────────────────
 
 function AvailabilityStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
   return (
@@ -456,6 +501,9 @@ export default function BoardOnboardingWizard({ onComplete }: { onComplete: () =
               onNext={next}
               onSkip={next}
             />
+          )}
+          {stepId === "expertise" && (
+            <ExpertiseStep onNext={next} onSkip={next} />
           )}
           {stepId === "availability" && (
             <AvailabilityStep onNext={next} onSkip={next} />

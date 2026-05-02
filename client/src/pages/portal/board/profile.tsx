@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { UserCircle, Pencil, Check, X, Linkedin, Phone, Mail, Clock, ShieldCheck, Sparkles, LayoutDashboard, CalendarClock } from "lucide-react";
+import { UserCircle, Pencil, Check, X, Linkedin, Phone, Mail, Clock, ShieldCheck, Sparkles, LayoutDashboard, CalendarClock, BarChart3 } from "lucide-react";
 import BoardOnboardingWizard from "@/components/portal/BoardOnboardingWizard";
 import AvailabilityGrid from "@/components/portal/AvailabilityGrid";
+import BoardExpertiseRater from "@/components/portal/BoardExpertiseRater";
 
 interface BoardProfile {
   id: number;
@@ -27,6 +28,7 @@ interface BoardProfile {
   termEnd?: string | null;
   role: string;
   avatarUrl?: string | null;
+  boardExpertise?: Record<string, string> | null;
 }
 
 function BoardProfileContent() {
@@ -47,6 +49,7 @@ function BoardProfileContent() {
     preferredMeetingTimes: "",
     bio: "",
   });
+  const [expertiseForm, setExpertiseForm] = useState<Record<string, string>>({});
 
   useEffect(() => { document.title = "My Profile | handləkraft Board"; }, []);
 
@@ -64,6 +67,7 @@ function BoardProfileContent() {
           preferredMeetingTimes: r.data.preferredMeetingTimes || "",
           bio: r.data.bio || "",
         });
+        setExpertiseForm(r.data.boardExpertise || {});
       }
       setLoading(false);
     }
@@ -72,7 +76,7 @@ function BoardProfileContent() {
 
   async function save() {
     setSaving(true);
-    const r = await apiRequest("PATCH", "/api/board/me", form);
+    const r = await apiRequest("PATCH", "/api/board/me", { ...form, boardExpertise: expertiseForm });
     if (r.success) {
       setProfile(prev => prev ? { ...prev, ...r.data } : prev);
       setEditing(false);
@@ -94,6 +98,7 @@ function BoardProfileContent() {
         preferredMeetingTimes: profile.preferredMeetingTimes || "",
         bio: profile.bio || "",
       });
+      setExpertiseForm(profile.boardExpertise || {});
     }
     setEditing(false);
   }
@@ -301,6 +306,21 @@ function BoardProfileContent() {
             <p className="text-sm text-[#1A1F2B] whitespace-pre-wrap" data-testid="profile-bio">
               {profile.bio || <span className="text-slate-400 italic">No bio provided. Click "Edit Profile" to add one.</span>}
             </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Board Expertise card */}
+      <Card className="border-0 shadow-sm mb-5">
+        <CardContent className="pt-5 pb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <BarChart3 className="w-4 h-4 text-[#0D7377]" />
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Board Expertise</p>
+          </div>
+          {editing ? (
+            <BoardExpertiseRater value={expertiseForm} onChange={setExpertiseForm} />
+          ) : (
+            <BoardExpertiseRater value={profile.boardExpertise || {}} readOnly />
           )}
         </CardContent>
       </Card>

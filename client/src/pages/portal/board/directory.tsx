@@ -3,16 +3,199 @@ import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
-import { Users, Mail, Building2, Edit3, X, Save, Search, AlertTriangle } from "lucide-react";
+import {
+  Users, Mail, Building2, Edit3, X, Save, Search, AlertTriangle,
+  FileText, Download, Phone, Clock, BarChart3,
+} from "lucide-react";
+import { SiLinkedin } from "react-icons/si";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import BoardExpertiseRater from "@/components/portal/BoardExpertiseRater";
 
 function fmtYear(d: string | null | undefined) {
   if (!d) return null;
   return new Date(d).getFullYear();
 }
+
+function fmtMonthYear(d: string | null | undefined) {
+  if (!d) return null;
+  return new Date(d).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+
+const POSITION_COLORS: Record<string, string> = {
+  "Chair": "bg-indigo-600",
+  "Vice Chair": "bg-indigo-500",
+  "Treasurer": "bg-emerald-600",
+  "Secretary": "bg-violet-600",
+};
+
+// ── Member Profile Modal (read-only) ──────────────────────────────────────────
+
+function MemberProfileModal({ member, onClose }: { member: any; onClose: () => void }) {
+  const initials = `${member.firstName?.[0] ?? ""}${member.lastName?.[0] ?? ""}`;
+  const avatarBg = POSITION_COLORS[member.boardPosition] || "bg-indigo-400";
+  const hasExpertise = member.boardExpertise && Object.keys(member.boardExpertise).length > 0;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+        data-testid="modal-member-profile"
+      >
+        {/* Header */}
+        <div className="relative p-6 bg-gradient-to-br from-slate-50 to-indigo-50/40 rounded-t-2xl border-b border-slate-100">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors"
+            data-testid="button-close-member-profile"
+          >
+            <X className="w-4 h-4" />
+          </button>
+          <div className="flex items-center gap-4">
+            <div className={`w-16 h-16 rounded-xl ${avatarBg} flex items-center justify-center text-white font-bold text-xl shrink-0 uppercase overflow-hidden`}>
+              {(member.photoUrl || member.avatarUrl) ? (
+                <img
+                  src={member.photoUrl || member.avatarUrl}
+                  alt={`${member.firstName} ${member.lastName}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : initials}
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-lg font-semibold text-[#1A1F2B]" data-testid="modal-member-name">
+                {member.firstName} {member.lastName}
+              </h2>
+              {member.boardPosition && (
+                <p className="text-sm text-indigo-600 font-medium flex items-center gap-1 mt-0.5">
+                  <Building2 className="w-3.5 h-3.5 shrink-0" />{member.boardPosition}
+                </p>
+              )}
+              {member.role === "admin" && (
+                <Badge className="bg-red-100 text-red-700 text-xs mt-1">Admin</Badge>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="p-5 space-y-5 divide-y divide-slate-50">
+
+          {/* Contact */}
+          <div className="space-y-2 pb-4">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Contact</p>
+            <a
+              href={`mailto:${member.email}`}
+              onClick={e => e.stopPropagation()}
+              className="flex items-center gap-2.5 text-sm text-[#1A1F2B] hover:text-indigo-600 no-underline transition-colors"
+              data-testid="modal-member-email"
+            >
+              <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              {member.email}
+            </a>
+            {member.phone && (
+              <a
+                href={`tel:${member.phone}`}
+                onClick={e => e.stopPropagation()}
+                className="flex items-center gap-2.5 text-sm text-[#1A1F2B] hover:text-indigo-600 no-underline transition-colors"
+              >
+                <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                {member.phone}
+              </a>
+            )}
+            {member.linkedIn && (
+              <a
+                href={member.linkedIn.startsWith("http") ? member.linkedIn : `https://${member.linkedIn}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                className="flex items-center gap-2.5 text-sm text-[#1A1F2B] hover:text-indigo-600 no-underline transition-colors"
+              >
+                <SiLinkedin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                LinkedIn Profile
+              </a>
+            )}
+          </div>
+
+          {/* Bio */}
+          {member.bio && (
+            <div className="pt-4 pb-4">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">About</p>
+              <p className="text-sm text-[#1A1F2B] leading-relaxed whitespace-pre-wrap">{member.bio}</p>
+            </div>
+          )}
+
+          {/* Preferred meeting times */}
+          {member.preferredMeetingTimes && (
+            <div className="pt-4 pb-4 flex items-start gap-2.5">
+              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Preferred Meeting Times</p>
+                <p className="text-sm text-[#1A1F2B]">{member.preferredMeetingTimes}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Expertise */}
+          {hasExpertise && (
+            <div className="pt-4 pb-4">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <BarChart3 className="w-3.5 h-3.5" />Board Expertise
+              </p>
+              <BoardExpertiseRater value={member.boardExpertise} readOnly />
+            </div>
+          )}
+
+          {/* Resume */}
+          {member.resumeUrl && (
+            <div className="pt-4 pb-4">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Resume / CV</p>
+              <a
+                href={member.resumeUrl}
+                onClick={e => e.stopPropagation()}
+                className="flex items-center gap-2 bg-slate-50 rounded-xl px-4 py-3 hover:bg-slate-100 transition-colors no-underline"
+                data-testid="modal-member-resume"
+              >
+                <FileText className="w-4 h-4 text-slate-400 shrink-0" />
+                <span className="flex-1 truncate text-sm text-[#1A1F2B]">{member.resumeName || "Resume"}</span>
+                <Download className="w-3.5 h-3.5 text-slate-400" />
+              </a>
+            </div>
+          )}
+
+          {/* Committees */}
+          {member.committees?.length > 0 && (
+            <div className="pt-4 pb-4">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Committees</p>
+              <div className="flex flex-wrap gap-1.5">
+                {member.committees.map((c: string) => (
+                  <Badge key={c} variant="secondary" className="text-xs">{c}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Term */}
+          {(member.termStart || member.termEnd) && (
+            <div className="pt-4">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Board Term</p>
+              <p className="text-sm text-[#1A1F2B]">
+                {fmtMonthYear(member.termStart) ?? "?"} – {fmtMonthYear(member.termEnd) ?? "Present"}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Edit Member Modal (admin only) ────────────────────────────────────────────
 
 function EditMemberModal({ member, onClose, onSaved }: { member: any; onClose: () => void; onSaved: () => void }) {
   const [form, setForm] = useState({
@@ -133,7 +316,14 @@ function EditMemberModal({ member, onClose, onSaved }: { member: any; onClose: (
   );
 }
 
-function MemberCard({ member, isAdmin, onEdit }: { member: any; isAdmin: boolean; onEdit: () => void }) {
+// ── Member Card ───────────────────────────────────────────────────────────────
+
+function MemberCard({ member, isAdmin, onEdit, onView }: {
+  member: any;
+  isAdmin: boolean;
+  onEdit: () => void;
+  onView: () => void;
+}) {
   const initials = `${member.firstName?.[0] ?? ""}${member.lastName?.[0] ?? ""}`;
   const termStart = fmtYear(member.termStart);
   const termEnd = fmtYear(member.termEnd);
@@ -145,20 +335,20 @@ function MemberCard({ member, isAdmin, onEdit }: { member: any; isAdmin: boolean
     return daysUntilExpiry >= 0 && daysUntilExpiry <= 90 ? daysUntilExpiry : null;
   })();
 
-  const POSITION_COLORS: Record<string, string> = {
-    "Chair": "bg-indigo-600",
-    "Vice Chair": "bg-indigo-500",
-    "Treasurer": "bg-emerald-600",
-    "Secretary": "bg-violet-600",
-  };
-  const avatarColor = POSITION_COLORS[member.boardPosition] || "bg-indigo-400";
+  const avatarBg = POSITION_COLORS[member.boardPosition] || "bg-indigo-400";
 
   return (
-    <Card className="border border-slate-100 shadow-sm hover:shadow-md transition-shadow" data-testid={`directory-member-${member.id}`}>
+    <Card
+      className="border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer"
+      onClick={onView}
+      data-testid={`directory-member-${member.id}`}
+    >
       <CardContent className="pt-4 pb-4">
         <div className="flex items-start gap-3">
-          <div className={`w-12 h-12 rounded-xl ${avatarColor} flex items-center justify-center text-white font-bold text-base shrink-0 uppercase`}>
-            {initials}
+          <div className={`w-12 h-12 rounded-xl ${avatarBg} flex items-center justify-center text-white font-bold text-base shrink-0 uppercase overflow-hidden`}>
+            {(member.photoUrl || member.avatarUrl) ? (
+              <img src={member.photoUrl || member.avatarUrl} alt={initials} className="w-full h-full object-cover" />
+            ) : initials}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
@@ -175,7 +365,7 @@ function MemberCard({ member, isAdmin, onEdit }: { member: any; isAdmin: boolean
               </div>
               {isAdmin && (
                 <button
-                  onClick={onEdit}
+                  onClick={e => { e.stopPropagation(); onEdit(); }}
                   className="p-1.5 rounded-lg hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 transition-colors shrink-0"
                   data-testid={`button-edit-member-${member.id}`}
                 >
@@ -186,6 +376,7 @@ function MemberCard({ member, isAdmin, onEdit }: { member: any; isAdmin: boolean
 
             <a
               href={`mailto:${member.email}`}
+              onClick={e => e.stopPropagation()}
               className="text-xs text-slate-500 hover:text-indigo-600 flex items-center gap-1 mt-1 no-underline w-fit"
               data-testid={`link-email-${member.id}`}
             >
@@ -222,6 +413,8 @@ function MemberCard({ member, isAdmin, onEdit }: { member: any; isAdmin: boolean
   );
 }
 
+// ── Directory Content ─────────────────────────────────────────────────────────
+
 function DirectoryContent() {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin" || user?.role === "board";
@@ -229,6 +422,7 @@ function DirectoryContent() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [editMember, setEditMember] = useState<any | null>(null);
+  const [viewMember, setViewMember] = useState<any | null>(null);
 
   const load = useCallback(() => {
     apiRequest("GET", "/api/board/members").then(r => {
@@ -250,7 +444,6 @@ function DirectoryContent() {
       })
     : members;
 
-  // Sort: Chair first, then alphabetical
   const ORDER = ["Chair", "Vice Chair", "Treasurer", "Secretary"];
   const sorted = [...filtered].sort((a, b) => {
     const ai = ORDER.indexOf(a.boardPosition ?? "");
@@ -273,6 +466,7 @@ function DirectoryContent() {
         </h1>
         <p className="text-slate-500 text-sm mt-0.5">
           Contact info, positions, and committee assignments for all {members.length} board members.
+          <span className="text-slate-400"> Click any card to view the full profile.</span>
         </p>
       </div>
 
@@ -295,9 +489,19 @@ function DirectoryContent() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {sorted.map(m => (
-            <MemberCard key={m.id} member={m} isAdmin={isAdmin} onEdit={() => setEditMember(m)} />
+            <MemberCard
+              key={m.id}
+              member={m}
+              isAdmin={isAdmin}
+              onEdit={() => setEditMember(m)}
+              onView={() => setViewMember(m)}
+            />
           ))}
         </div>
+      )}
+
+      {viewMember && (
+        <MemberProfileModal member={viewMember} onClose={() => setViewMember(null)} />
       )}
 
       {editMember && isAdmin && (

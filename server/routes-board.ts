@@ -140,6 +140,14 @@ router.get("/members", async (_req, res) => {
     status: users.status,
     isInterestedDirector: users.isInterestedDirector,
     lastLogin: users.lastLogin,
+    photoUrl: users.photoUrl,
+    avatarUrl: users.avatarUrl,
+    phone: users.phone,
+    linkedIn: users.linkedIn,
+    preferredMeetingTimes: users.preferredMeetingTimes,
+    boardExpertise: users.boardExpertise,
+    resumeUrl: users.resumeUrl,
+    resumeName: users.resumeName,
   }).from(users).where(sql`(role = 'board' OR 'board' = ANY(roles)) AND status = 'active'`).orderBy(asc(users.firstName));
   res.json({ success: true, data: members });
 });

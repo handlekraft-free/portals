@@ -3,7 +3,7 @@ import { EmployeeLayout } from "@/components/portal/EmployeeLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/auth";
-import { MessageSquare, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, CalendarDays, Mail, Users, Kanban, Ticket, RefreshCw } from "lucide-react";
+import { MessageSquare, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, CalendarDays, Mail, Users, Kanban, Ticket, RefreshCw, Clock } from "lucide-react";
 import vikingCodingImg from "@/assets/images/viking-coding.png";
 import { VikingArsenal, RuneDivider } from "@/components/portal/VikingDecor";
 import { Button } from "@/components/ui/button";
@@ -532,6 +532,11 @@ function DashboardContent() {
                     <div className="space-y-1.5">
                       {acct.calendar.map((ev: any) => {
                         const d = ev.eventTime ? new Date(ev.eventTime) : null;
+                        const minsUntil = d ? Math.round((d.getTime() - Date.now()) / 60000) : null;
+                        const isImminent = minsUntil !== null && minsUntil >= 0 && minsUntil <= 60;
+                        const countdown = minsUntil !== null && minsUntil >= 0
+                          ? minsUntil === 0 ? "now!" : `in ${minsUntil}m`
+                          : null;
                         const dateLabel = d
                           ? d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
                           : "All day";
@@ -545,13 +550,27 @@ function DashboardContent() {
                             target="_blank"
                             rel="noopener noreferrer"
                             data-testid={`banner-cal-${acct.id}-${ev.id}`}
-                            className="flex items-start gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/10 transition-colors group"
+                            className={`flex items-start gap-2.5 rounded-lg px-2 py-1.5 transition-colors group ${
+                              isImminent
+                                ? "bg-amber-400/20 border border-amber-400/30 hover:bg-amber-400/25"
+                                : "hover:bg-white/10"
+                            }`}
                           >
                             <div className="shrink-0 text-right min-w-[5.5rem]">
-                              <div className={`${labelColor} text-xs font-semibold leading-tight`}>{dateLabel}</div>
-                              {timeLabel && <div className={`${labelColor} opacity-80 text-xs font-mono leading-tight`}>{timeLabel}</div>}
+                              <div className={`text-xs font-semibold leading-tight ${isImminent ? "text-amber-300" : labelColor}`}>{dateLabel}</div>
+                              {timeLabel && <div className={`text-xs font-mono leading-tight ${isImminent ? "text-amber-300/80" : `${labelColor} opacity-80`}`}>{timeLabel}</div>}
+                              {isImminent && countdown && (
+                                <div className="text-[10px] font-bold text-amber-400 animate-pulse mt-0.5">{countdown}</div>
+                              )}
                             </div>
-                            <span className="text-white text-sm font-semibold truncate leading-snug group-hover:text-white/80 transition-colors pt-0.5">{ev.title}</span>
+                            <div className="flex items-center gap-1.5 min-w-0 pt-0.5">
+                              {isImminent && (
+                                <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
+                              )}
+                              <span className={`text-sm font-semibold truncate leading-snug transition-colors ${
+                                isImminent ? "text-amber-100" : "text-white group-hover:text-white/80"
+                              }`}>{ev.title}</span>
+                            </div>
                           </a>
                         );
                       })}

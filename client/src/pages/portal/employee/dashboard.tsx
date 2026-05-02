@@ -86,7 +86,7 @@ function BalanceSlider() {
   const pct = ((display - 1) / 4) * 100;
 
   return (
-    <Card className="border-0 shadow-sm mb-6">
+    <Card className="border-0 shadow-sm h-full">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
           <Zap className="w-4 h-4 text-[#D4A843]" /> My Energy Level
@@ -174,7 +174,7 @@ function TeamPulse() {
 
   if (!data) {
     return (
-      <Card className="border-0 shadow-sm mb-6">
+      <Card className="border-0 shadow-sm h-full">
         <CardContent className="pt-6">
           <div className="animate-pulse flex gap-3">
             {[1, 2, 3].map((i) => <div key={i} className="h-16 flex-1 bg-slate-100 rounded-xl" />)}
@@ -188,7 +188,7 @@ function TeamPulse() {
   const compositeBg = scoreBg(data.composite);
 
   return (
-    <Card className="border-0 shadow-sm mb-6">
+    <Card className="border-0 shadow-sm h-full">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
           <Users className="w-4 h-4 text-[#0D7377]" /> Team Pulse
@@ -597,14 +597,8 @@ function DashboardContent() {
         <ClientTicketsPanel />
       </div>
 
-      {/* Energy Slider */}
-      <BalanceSlider />
-
-      {/* Team Pulse */}
-      <TeamPulse />
-
       {/* ── Communication Hub ─────────────────────────────────────────────── */}
-      <div className="mb-2">
+      <div className="mb-6">
         <h2 className="text-base font-semibold text-[#1A1F2B] mb-4 flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-[#0D7377]" /> Communication Hub
         </h2>
@@ -621,6 +615,17 @@ function DashboardContent() {
             </p>
             <ClaudeChat />
           </div>
+        </div>
+      </div>
+
+      {/* ── Balance Hub ───────────────────────────────────────────────────── */}
+      <div>
+        <h2 className="text-base font-semibold text-[#1A1F2B] mb-4 flex items-center gap-2">
+          <Zap className="w-4 h-4 text-[#D4A843]" /> Balance Hub
+        </h2>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <BalanceSlider />
+          <TeamPulse />
         </div>
       </div>
     </div>

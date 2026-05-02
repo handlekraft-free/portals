@@ -103,29 +103,103 @@ router.get("/oauth/callback", async (req, res) => {
   }
 });
 
-// GET /api/google/dashboard — next 3 calendar events + newest 3 gmail messages
+// GET /api/google/dashboard — live fetch: next 3 calendar events + newest 3 gmail messages
 router.get("/dashboard", requireEmployee, async (req: any, res) => {
   const userId = req.user.userId;
-  const now = new Date();
 
-  const [calRows, mailRows] = await Promise.all([
-    db.select()
-      .from(googleNotifications)
-      .where(and(eq(googleNotifications.userId, userId), eq(googleNotifications.type, "calendar")))
-      .orderBy(asc(googleNotifications.eventTime))
-      .limit(10),
-    db.select()
-      .from(googleNotifications)
-      .where(and(eq(googleNotifications.userId, userId), eq(googleNotifications.type, "gmail")))
-      .orderBy(desc(googleNotifications.createdAt))
-      .limit(3),
+  // Get stored tokens
+  const [userRow] = await db
+    .select({
+      googleAccessToken: users.googleAccessToken,
+      googleRefreshToken: users.googleRefreshToken,
+      googleTokenExpiry: users.googleTokenExpiry,
+    })
+    .from(users)
+    .where(eq(users.id, userId));
+
+  if (!userRow?.googleRefreshToken) {
+    return res.json({ success: true, data: { calendar: [], gmail: [] } });
+  }
+
+  // Refresh token if needed
+  let accessToken = userRow.googleAccessToken;
+  const expiry = userRow.googleTokenExpiry ? new Date(userRow.googleTokenExpiry) : null;
+  if (!accessToken || !expiry || expiry.getTime() - Date.now() < 60_000) {
+    accessToken = await refreshAccessToken(userId, userRow.googleRefreshToken);
+    if (!accessToken) return res.json({ success: true, data: { calendar: [], gmail: [] } });
+  }
+
+  const now = new Date();
+  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+  const [calRes, gmailRes] = await Promise.all([
+    fetch(
+      "https://www.googleapis.com/calendar/v3/calendars/primary/events?" +
+        new URLSearchParams({
+          timeMin: now.toISOString(),
+          timeMax: tomorrow.toISOString(),
+          singleEvents: "true",
+          orderBy: "startTime",
+          maxResults: "3",
+        }),
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    ),
+    fetch(
+      "https://gmail.googleapis.com/gmail/v1/users/me/messages?q=in:inbox&maxResults=3",
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    ),
   ]);
 
-  const upcoming = calRows
-    .filter(r => r.eventTime && new Date(r.eventTime) >= now)
-    .slice(0, 3);
+  // Parse calendar
+  const calendar: any[] = [];
+  if (calRes.ok) {
+    const calData = await calRes.json() as any;
+    for (const event of calData.items ?? []) {
+      const startRaw = event.start?.dateTime || event.start?.date;
+      const eventTime = startRaw ? new Date(startRaw) : null;
+      const timeStr = eventTime
+        ? eventTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+        : "All day";
+      calendar.push({
+        id: event.id,
+        title: event.summary || "Untitled Event",
+        subtitle: timeStr + (event.location ? ` · ${event.location}` : ""),
+        url: event.htmlLink || "https://calendar.google.com/calendar/r",
+        eventTime: eventTime?.toISOString() ?? null,
+      });
+    }
+  }
 
-  res.json({ success: true, data: { calendar: upcoming, gmail: mailRows } });
+  // Parse gmail
+  const gmail: any[] = [];
+  if (gmailRes.ok) {
+    const gmailData = await gmailRes.json() as any;
+    const messageIds: string[] = (gmailData.messages ?? []).map((m: any) => m.id);
+    await Promise.all(
+      messageIds.map(async (id) => {
+        const msgRes = await fetch(
+          `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject`,
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        if (!msgRes.ok) return;
+        const msg = await msgRes.json() as any;
+        const headers = msg.payload?.headers ?? [];
+        const subject = headers.find((h: any) => h.name === "Subject")?.value || "(no subject)";
+        const from = headers.find((h: any) => h.name === "From")?.value || "";
+        const fromName = from.replace(/<[^>]*>/g, "").trim() || from;
+        gmail.push({
+          id,
+          title: subject,
+          subtitle: fromName,
+          url: `https://mail.google.com/mail/u/0/#inbox/${id}`,
+        });
+      })
+    );
+    // Sort in original order (parallel fetch scrambles order)
+    gmail.sort((a, b) => messageIds.indexOf(a.id) - messageIds.indexOf(b.id));
+  }
+
+  res.json({ success: true, data: { calendar, gmail } });
 });
 
 // GET /api/google/status

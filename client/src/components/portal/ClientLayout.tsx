@@ -6,11 +6,16 @@ import { LayoutDashboard, FolderOpen, MessageSquare, Ticket, LogOut, Menu, X } f
 import logoImg from "@/assets/images/logo.png";
 import { PortalSwitcher } from "@/components/portal/PortalSwitcher";
 
+// ── Brand tokens ──────────────────────────────────────────────────────────────
+// Client portal: deep ocean blue header + sky accent + light blue background
+const HEADER_BG = "#0c4a6e";
+const ACCENT    = "#0ea5e9";
+
 const navItems = [
   { href: "/portal/client/dashboard", icon: <LayoutDashboard className="w-4 h-4" />, label: "Dashboard" },
-  { href: "/portal/client/files", icon: <FolderOpen className="w-4 h-4" />, label: "Files" },
-  { href: "/portal/client/messages", icon: <MessageSquare className="w-4 h-4" />, label: "Messages" },
-  { href: "/portal/client/tickets", icon: <Ticket className="w-4 h-4" />, label: "Support Tickets" },
+  { href: "/portal/client/files",     icon: <FolderOpen className="w-4 h-4" />,      label: "Files" },
+  { href: "/portal/client/messages",  icon: <MessageSquare className="w-4 h-4" />,   label: "Messages" },
+  { href: "/portal/client/tickets",   icon: <Ticket className="w-4 h-4" />,          label: "Support Tickets" },
 ];
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -23,25 +28,30 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
     window.location.href = "/login";
   };
 
+  const isActive = (href: string) => location === href || location.startsWith(href + "/");
+
   const linkClass = (href: string) =>
-    `flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors no-underline ${
-      location === href || location.startsWith(href + "/")
-        ? "bg-[#0D7377] text-white"
+    `flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors no-underline font-medium ${
+      isActive(href)
+        ? "bg-white/20 text-white shadow-sm"
         : "text-white/70 hover:bg-white/10 hover:text-white"
     }`;
 
   const mobileLinkClass = (href: string) =>
     `flex items-center gap-2 px-3 py-2 rounded-lg text-sm no-underline ${
-      location === href ? "bg-[#0D7377] text-white" : "text-white/70 hover:bg-white/10 hover:text-white"
+      isActive(href) ? "bg-white/20 text-white" : "text-white/70 hover:bg-white/10 hover:text-white"
     }`;
 
   return (
-    <div className="min-h-screen bg-[#f5f3ef] font-body">
-      <header className="bg-[#1A1F2B] text-white shadow-lg sticky top-0 z-30">
+    <div className="min-h-screen font-body" style={{ background: "#f0f9ff" }}>
+      <header className="text-white shadow-lg sticky top-0 z-30" style={{ background: HEADER_BG }}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 no-underline">
             <img src={logoImg} alt="handləkraft.ai" className="w-8 h-8 rounded-lg" />
-            <span className="font-display text-sm hidden sm:block text-white">handləkraft.ai</span>
+            <div className="hidden sm:block">
+              <p className="text-white font-display text-sm leading-none">handləkraft.ai</p>
+              <p className="text-xs mt-0.5" style={{ color: ACCENT }}>Client Portal</p>
+            </div>
           </Link>
 
           {/* Desktop Nav */}
@@ -57,7 +67,10 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
             <div className="hidden md:flex items-center gap-2">
               <PortalSwitcher variant="dark" />
-              <div className="w-7 h-7 rounded-full bg-[#D4A843] flex items-center justify-center text-[#1A1F2B] text-xs font-bold">
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                style={{ background: ACCENT }}
+              >
                 {user?.firstName?.[0]}{user?.lastName?.[0]}
               </div>
               <span className="text-sm text-white/70">{user?.firstName} {user?.lastName}</span>

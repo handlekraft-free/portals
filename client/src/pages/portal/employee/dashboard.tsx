@@ -287,6 +287,7 @@ const PRIORITY_STYLES: Record<string, { bg: string; text: string; label: string 
 function MyTasksPanel() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     apiRequest("GET", "/api/kanban/my-tasks").then((res) => {
@@ -297,6 +298,7 @@ function MyTasksPanel() {
 
   const open = tasks.filter((t) => t.column?.title?.toLowerCase() !== "done" && t.column?.title?.toLowerCase() !== "valhalla");
   const overdue = open.filter((t) => t.dueDate && new Date(t.dueDate) < new Date());
+  const VISIBLE = 3;
 
   return (
     <Card className="border-0 shadow-sm h-full">
@@ -318,7 +320,7 @@ function MyTasksPanel() {
           </div>
         ) : (
           <div className="space-y-2">
-            {open.slice(0, 6).map((task) => {
+            {(showAll ? open : open.slice(0, VISIBLE)).map((task) => {
               const pri = PRIORITY_STYLES[task.priority] ?? PRIORITY_STYLES.medium;
               const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
               const dueLabel = task.dueDate
@@ -347,10 +349,15 @@ function MyTasksPanel() {
                 </a>
               );
             })}
-            {open.length > 6 && (
-              <a href="/portal/employee/kanban" className="flex items-center gap-1 text-xs text-[#0D7377] font-medium px-3 py-1 hover:underline">
-                View {open.length - 6} more <ArrowRight className="w-3 h-3" />
-              </a>
+            {open.length > VISIBLE && (
+              <button
+                onClick={() => setShowAll(v => !v)}
+                className="flex items-center gap-1 text-xs text-[#0D7377] font-medium px-3 py-1 hover:underline w-full text-left"
+                data-testid="button-tasks-toggle"
+              >
+                {showAll ? "Show less" : `See ${open.length - VISIBLE} more`}
+                <ArrowRight className={`w-3 h-3 transition-transform ${showAll ? "rotate-90" : ""}`} />
+              </button>
             )}
           </div>
         )}

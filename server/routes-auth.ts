@@ -2,8 +2,13 @@ import type { Router } from "express";
 import { Router as createRouter } from "express";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
-import { users } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import {
+  users,
+  directMessageConversations, directMessageEntries,
+  messages as clientMessages,
+  kanbanCards, supportTickets, timeReports,
+} from "@shared/schema";
+import { eq, or, ne, isNull, and, lt, gte, lte, inArray } from "drizzle-orm";
 import { signToken, requireAuth, signPendingToken, verifyPendingToken } from "./auth-middleware";
 import type { JwtPayload } from "./auth-middleware";
 
@@ -239,6 +244,103 @@ router.get("/me", requireAuth, async (req, res) => {
       boardRestrictedAccess: user.boardRestrictedAccess ?? false,
     },
   });
+});
+
+// GET /api/auth/nav-counts — single lightweight call for all sidebar badge counts
+router.get("/nav-counts", requireAuth as any, async (req: any, res) => {
+  const userId = req.user.userId;
+  const role   = req.user.role as string;
+  const now    = new Date();
+
+  try {
+    // ── DM unread ──────────────────────────────────────────────────────────
+    const myConvs = await db
+      .select({ id: directMessageConversations.id })
+      .from(directMessageConversations)
+      .where(or(
+        eq(directMessageConversations.user1Id, userId),
+        eq(directMessageConversations.user2Id, userId),
+      ));
+
+    let dmUnread = 0;
+    if (myConvs.length > 0) {
+      const convIds = myConvs.map(c => c.id);
+      const unreadRows = await db
+        .select({ id: directMessageEntries.id })
+        .from(directMessageEntries)
+        .where(and(
+          inArray(directMessageEntries.conversationId, convIds),
+          ne(directMessageEntries.senderId, userId),
+          isNull(directMessageEntries.readAt),
+        ));
+      dmUnread = unreadRows.length;
+    }
+
+    // ── Client messages unread (employee/admin only) ───────────────────────
+    let clientMsgUnread = 0;
+    if (role === "admin" || role === "employee") {
+      const rows = await db
+        .select({ id: clientMessages.id })
+        .from(clientMessages)
+        .where(and(
+          eq(clientMessages.recipientId, userId),
+          eq(clientMessages.read, false),
+        ));
+      clientMsgUnread = rows.length;
+    }
+
+    // ── Overdue kanban tasks (employee/admin only) ─────────────────────────
+    let overdueTaskCount = 0;
+    if (role === "admin" || role === "employee") {
+      const rows = await db
+        .select({ id: kanbanCards.id })
+        .from(kanbanCards)
+        .where(and(
+          eq(kanbanCards.assignedTo, userId),
+          eq(kanbanCards.archived, false),
+          lt(kanbanCards.dueDate, now),
+        ));
+      overdueTaskCount = rows.length;
+    }
+
+    // ── Open support tickets (employee/admin only) ─────────────────────────
+    let openTicketCount = 0;
+    if (role === "admin" || role === "employee") {
+      const rows = await db
+        .select({ id: supportTickets.id })
+        .from(supportTickets)
+        .where(inArray(supportTickets.status, ["open", "in_progress"]));
+      openTicketCount = rows.length;
+    }
+
+    // ── Timesheet due last month (employee/admin only) ─────────────────────
+    let timesheetDue = false;
+    if (role === "admin" || role === "employee") {
+      const lastMonthYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+      const lastMonthNum  = now.getMonth() === 0 ? 12 : now.getMonth();
+      const monthStart    = new Date(lastMonthYear, lastMonthNum - 1, 1);
+      const monthEnd      = new Date(lastMonthYear, lastMonthNum, 0, 23, 59, 59, 999);
+      const submitted = await db
+        .select({ id: timeReports.id })
+        .from(timeReports)
+        .where(and(
+          eq(timeReports.employeeId, userId),
+          gte(timeReports.periodStart, monthStart),
+          lte(timeReports.periodStart, monthEnd),
+          inArray(timeReports.status, ["submitted", "approved"]),
+        ))
+        .limit(1);
+      timesheetDue = submitted.length === 0;
+    }
+
+    res.json({
+      success: true,
+      data: { dmUnread, clientMsgUnread, overdueTaskCount, openTicketCount, timesheetDue },
+    });
+  } catch (err) {
+    console.error("[nav-counts]", err);
+    res.json({ success: true, data: { dmUnread: 0, clientMsgUnread: 0, overdueTaskCount: 0, openTicketCount: 0, timesheetDue: false } });
+  }
 });
 
 export default router;

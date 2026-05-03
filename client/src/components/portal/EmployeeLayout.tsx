@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,9 @@ import {
   LayoutDashboard, Clock, Kanban, Receipt, Ticket,
   BookOpen, LogOut, Menu, X, Users, UserPlus,
   ArrowRight, MessageSquare, GraduationCap, Settings,
+  Lightbulb, Send, ChevronDown,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { GoogleNotificationBell } from "@/components/portal/GoogleNotificationBell";
 import { FloatingTimer } from "@/components/portal/FloatingTimer";
 import { PortalSwitcher } from "@/components/portal/PortalSwitcher";
@@ -16,6 +18,130 @@ import {
   VikingCrossedSwords, VikingShieldSvg, RuneDivider,
   LongshipWatermark, VikingMotto, LongshipBackground, PageViking,
 } from "@/components/portal/VikingDecor";
+
+// ── Brain Dump ────────────────────────────────────────────────────────────────
+// Floating capture button — bottom-left. Thought → Kanban card in one shot.
+
+function BrainDump() {
+  const { toast } = useToast();
+  const [open, setOpen]       = useState(false);
+  const [text, setText]       = useState("");
+  const [saving, setSaving]   = useState(false);
+  const [boards, setBoards]   = useState<Array<{ id: number; name: string; columns: Array<{ id: number; title: string }> }>>([]);
+  const [boardId, setBoardId] = useState<number | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Fetch boards (with columns) lazily when the modal opens
+  useEffect(() => {
+    if (!open) return;
+    apiRequest("GET", "/api/kanban/boards").then(async res => {
+      if (res.success && res.data?.length) {
+        const firstId = res.data[0].id;
+        // Fetch full detail for first board to get columns
+        const detail = await apiRequest("GET", `/api/kanban/boards/${firstId}`);
+        const fullBoards = [detail.data, ...res.data.slice(1)].filter(Boolean);
+        setBoards(fullBoards);
+        if (!boardId) setBoardId(firstId);
+      }
+    });
+    setTimeout(() => inputRef.current?.focus(), 60);
+  }, [open]);
+
+  async function capture() {
+    if (!text.trim() || !boardId) return;
+    setSaving(true);
+    const board = boards.find(b => b.id === boardId);
+    const colId = board?.columns?.[0]?.id;
+    if (!colId) { setSaving(false); return; }
+    const res = await apiRequest("POST", "/api/kanban/cards", {
+      title: text.trim(),
+      boardId,
+      columnId: colId,
+      priority: "medium",
+    });
+    setSaving(false);
+    if (res.success) {
+      toast({ title: "Captured!", description: `Added to ${board?.name ?? "board"}` });
+      setText("");
+      setOpen(false);
+    } else {
+      toast({ title: "Couldn't save", description: "Try again", variant: "destructive" });
+    }
+  }
+
+  function handleKey(e: React.KeyboardEvent) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); capture(); }
+    if (e.key === "Escape") setOpen(false);
+  }
+
+  return (
+    <>
+      {/* Floating trigger */}
+      <button
+        onClick={() => setOpen(v => !v)}
+        title="Brain Dump — capture a thought"
+        data-testid="button-brain-dump"
+        className="fixed bottom-4 left-4 z-20 w-11 h-11 rounded-full bg-[#1A1F2B] hover:bg-[#0D7377] text-white shadow-lg flex items-center justify-center transition-colors duration-200 group"
+      >
+        <Lightbulb className="w-5 h-5 group-hover:scale-110 transition-transform" />
+      </button>
+
+      {/* Mini modal */}
+      {open && (
+        <>
+          <div className="fixed inset-0 z-[45]" onClick={() => setOpen(false)} />
+          <div
+            className="fixed bottom-16 left-4 z-[46] bg-white rounded-2xl shadow-2xl border border-slate-100 w-72 p-4"
+            onClick={e => e.stopPropagation()}
+            data-testid="modal-brain-dump"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <Lightbulb className="w-4 h-4 text-[#D4A843]" />
+              <p className="text-sm font-semibold text-[#1A1F2B]">Brain Dump</p>
+              <p className="text-xs text-slate-400 ml-auto">Enter to save</p>
+            </div>
+
+            <textarea
+              ref={inputRef}
+              value={text}
+              onChange={e => setText(e.target.value)}
+              onKeyDown={handleKey}
+              placeholder="What's on your mind?"
+              rows={3}
+              className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 placeholder:text-slate-300"
+              data-testid="input-brain-dump"
+            />
+
+            {boards.length > 1 && (
+              <div className="relative mt-2">
+                <select
+                  value={boardId ?? ""}
+                  onChange={e => setBoardId(Number(e.target.value))}
+                  className="w-full text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 appearance-none focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 text-slate-600 bg-slate-50"
+                  data-testid="select-brain-dump-board"
+                >
+                  {boards.map(b => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
+              </div>
+            )}
+
+            <button
+              onClick={capture}
+              disabled={!text.trim() || saving}
+              className="mt-3 w-full flex items-center justify-center gap-1.5 bg-[#0D7377] hover:bg-[#0a5f62] disabled:opacity-40 text-white text-sm font-medium rounded-xl py-2 transition-colors"
+              data-testid="button-brain-dump-save"
+            >
+              <Send className="w-3.5 h-3.5" /> {saving ? "Saving…" : "Capture it"}
+            </button>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
 
 // ── Nav counts type ───────────────────────────────────────────────────────────
 
@@ -301,6 +427,7 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
         </main>
         <PageViking />
         <FloatingTimer />
+        <BrainDump />
       </div>
     </div>
   );

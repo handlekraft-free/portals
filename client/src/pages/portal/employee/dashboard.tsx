@@ -3,7 +3,7 @@ import { EmployeeLayout } from "@/components/portal/EmployeeLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/auth";
-import { MessageSquare, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, CalendarDays, Mail, Users, Kanban, Ticket, RefreshCw, Clock } from "lucide-react";
+import { MessageSquare, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, CalendarDays, Mail, Users, Kanban, Ticket, RefreshCw, Clock, MapPin, RotateCcw, BookOpen, Target } from "lucide-react";
 import vikingCodingImg from "@/assets/images/viking-coding.png";
 import { VikingArsenal, RuneDivider } from "@/components/portal/VikingDecor";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import TeamChat from "@/components/portal/TeamChat";
 import ClaudeChat from "@/components/portal/ClaudeChat";
+import {
+  PlanDayWizard,
+  loadTodayPlan,
+  saveTodayPlan,
+  togglePlanTaskDone,
+  type DayPlan,
+} from "@/components/portal/PlanDayWizard";
 
 // ── Score helpers ─────────────────────────────────────────────────────────────
 
@@ -275,6 +282,118 @@ function TeamPulse() {
   );
 }
 
+// ── Day Plan Card ─────────────────────────────────────────────────────────────
+
+function DayPlanCard({
+  plan,
+  onReplan,
+  onUpdate,
+}: {
+  plan: DayPlan;
+  onReplan: () => void;
+  onUpdate: (p: DayPlan) => void;
+}) {
+  const { user } = useAuth();
+  const [checked, setChecked] = useState<Set<number>>(new Set(plan.completedTaskIds));
+
+  function toggle(id: number) {
+    const next = new Set(checked);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setChecked(next);
+    if (user) togglePlanTaskDone(user.id, id, next.has(id));
+  }
+
+  const allDone = plan.tasks.length > 0 && plan.tasks.every(t => checked.has(t.id));
+
+  return (
+    <div className={`rounded-2xl border mb-6 overflow-hidden transition-all ${
+      allDone ? "border-green-200 bg-green-50" : "border-[#0D7377]/20 bg-white"
+    }`}>
+      <div className={`px-5 py-3 flex items-center justify-between ${
+        allDone ? "bg-green-100/60" : "bg-gradient-to-r from-[#1A1F2B]/5 to-[#0D7377]/5"
+      }`}>
+        <div className="flex items-center gap-2">
+          <MapPin className={`w-4 h-4 ${allDone ? "text-green-600" : "text-[#0D7377]"}`} />
+          <span className={`text-sm font-semibold ${allDone ? "text-green-700" : "text-[#1A1F2B]"}`}>
+            {allDone ? "Today's quests — all conquered! ⚔️" : "Today's Quest Plan"}
+          </span>
+          <span className="text-xs text-slate-400">{new Date(plan.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}</span>
+        </div>
+        <button
+          onClick={onReplan}
+          className="flex items-center gap-1 text-xs text-slate-400 hover:text-[#0D7377] transition-colors"
+          data-testid="button-replan"
+          title="Re-plan your day"
+        >
+          <RotateCcw className="w-3 h-3" /> Re-plan
+        </button>
+      </div>
+
+      <div className="px-5 py-3 flex flex-wrap gap-4">
+        {/* Tasks */}
+        {plan.tasks.length > 0 && (
+          <div className="flex-1 min-w-48">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <Target className="w-3 h-3 text-[#0D7377]" /> Quests
+            </p>
+            <div className="space-y-1.5">
+              {plan.tasks.map((t, i) => (
+                <button
+                  key={t.id}
+                  onClick={() => toggle(t.id)}
+                  className="flex items-center gap-2.5 w-full text-left group"
+                  data-testid={`plan-task-${t.id}`}
+                >
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                    checked.has(t.id)
+                      ? "border-[#0D7377] bg-[#0D7377]"
+                      : "border-slate-300 group-hover:border-[#0D7377]"
+                  }`}>
+                    {checked.has(t.id) && (
+                      <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 10" fill="none">
+                        <path d="M2 5l2.5 2.5L8 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className={`text-sm leading-tight transition-colors ${
+                    checked.has(t.id)
+                      ? "line-through text-slate-400"
+                      : "text-[#1A1F2B] group-hover:text-[#0D7377]"
+                  }`}>
+                    <span className="text-slate-400 text-xs mr-1 font-bold">{i + 1}.</span>
+                    {t.title}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Learning goal */}
+        {plan.learningGoal && (
+          <div className="shrink-0">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <BookOpen className="w-3 h-3 text-purple-500" /> Learning
+            </p>
+            <a
+              href={`/portal/student/courses/${plan.learningGoal.courseId}`}
+              className="flex items-start gap-2 text-sm text-[#1A1F2B] hover:text-purple-600 transition-colors"
+            >
+              <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center shrink-0 mt-0.5">
+                <BookOpen className="w-2.5 h-2.5 text-purple-500" />
+              </div>
+              <div>
+                <p className="font-medium leading-tight">{plan.learningGoal.lessonTitle}</p>
+                <p className="text-xs text-slate-400">{plan.learningGoal.courseTitle}</p>
+              </div>
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── My Kanban Tasks Panel ─────────────────────────────────────────────────────
 
 const PRIORITY_STYLES: Record<string, { bg: string; text: string; label: string }> = {
@@ -455,6 +574,10 @@ function DashboardContent() {
   type GoogleAccountData = { id: number; email: string; label: string; calendar: any[]; gmail: any[] };
   const [googleAccounts, setGoogleAccounts] = useState<GoogleAccountData[]>([]);
   const [syncing, setSyncing] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [todayPlan, setTodayPlan] = useState<DayPlan | null>(() =>
+    user ? loadTodayPlan(user.id) : null
+  );
 
   async function syncGoogle() {
     setSyncing(true);
@@ -468,6 +591,7 @@ function DashboardContent() {
   useEffect(() => {
     document.title = "Dashboard | handləkraft.ai";
     syncGoogle();
+    if (user) setTodayPlan(loadTodayPlan(user.id));
   }, []);
 
   const greetings = ["Ready to raid the backlog", "Onward, Viking", "The longship awaits", "Shields up"];
@@ -477,12 +601,14 @@ function DashboardContent() {
     <div>
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-[#1A1F2B] to-[#0D7377] rounded-2xl mb-6 text-white relative overflow-hidden">
-        {/* Decorative Viking */}
+        {/* Viking — clickable to open Plan My Day */}
         <img
           src={vikingCodingImg}
-          alt=""
-          aria-hidden="true"
-          className="absolute right-0 bottom-0 h-28 sm:h-32 opacity-90 pointer-events-none select-none object-contain object-bottom"
+          alt="Plan my day"
+          onClick={() => setWizardOpen(true)}
+          className="absolute right-0 bottom-0 h-28 sm:h-32 opacity-90 select-none object-contain object-bottom cursor-pointer hover:opacity-100 hover:scale-105 transition-all duration-200 z-10"
+          title="Click to plan your day"
+          data-testid="button-viking-plan"
         />
         {/* Subtle background rune pattern */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none select-none" aria-hidden="true"
@@ -490,9 +616,18 @@ function DashboardContent() {
 
         {/* Top row: greeting */}
         <div className="px-6 pt-5 pb-4 pr-28">
-          <p className="text-white/55 text-sm mb-1">
-            {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-          </p>
+          <div className="flex items-center gap-3 mb-1">
+            <p className="text-white/55 text-sm">
+              {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+            </p>
+            <button
+              onClick={() => setWizardOpen(true)}
+              className="flex items-center gap-1 text-[10px] font-semibold text-[#D4A843] hover:text-[#f0c050] border border-[#D4A843]/40 hover:border-[#D4A843]/70 rounded-full px-2.5 py-0.5 transition-colors"
+              data-testid="button-plan-day"
+            >
+              ⚔️ {todayPlan ? "Re-plan my day" : "Plan my day"}
+            </button>
+          </div>
           <h1 className="text-2xl font-display flex items-center gap-2 flex-wrap">
             {greeting}, {user?.firstName}!
             <VikingArsenal className="text-white/30" />
@@ -617,6 +752,15 @@ function DashboardContent() {
         })}
       </div>
 
+      {/* Day Plan Card */}
+      {todayPlan && (
+        <DayPlanCard
+          plan={todayPlan}
+          onReplan={() => setWizardOpen(true)}
+          onUpdate={setTodayPlan}
+        />
+      )}
+
       {/* My Tasks + Client Tickets */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <MyTasksPanel />
@@ -654,6 +798,16 @@ function DashboardContent() {
           <TeamPulse />
         </div>
       </div>
+
+      {/* Plan My Day wizard */}
+      <PlanDayWizard
+        isOpen={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        onComplete={plan => {
+          setTodayPlan(plan);
+          setWizardOpen(false);
+        }}
+      />
     </div>
   );
 }

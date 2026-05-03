@@ -2,6 +2,7 @@
 // Shared SVG paraphernalia used across Employee and Board portals.
 // All components are aria-hidden decorative elements.
 
+import { useState } from "react";
 import { useLocation } from "wouter";
 import vikingProudPath from "@/assets/images/viking-proud.png";
 import vikingCodingPath from "@/assets/images/viking-coding.png";
@@ -276,24 +277,40 @@ const PAGE_VIKINGS: Record<string, VikingConfig> = {
   "conflicts-of-interest": { img: vikingLostPath, caption: "Navigating troubled waters…" },
 };
 
-export function PageViking() {
+export function PageViking({ onClick }: { onClick?: () => void }) {
   const [location] = useLocation();
+  const [hovered, setHovered] = useState(false);
   const segment = location.split("/").filter(Boolean).pop() ?? "dashboard";
   const config: VikingConfig = PAGE_VIKINGS[segment] ?? { img: vikingProudPath, caption: "Onward!" };
 
+  const isClickable = typeof onClick === "function";
+
   return (
     <div
-      className="fixed bottom-4 right-4 z-20 flex flex-col items-center pointer-events-none select-none"
-      aria-hidden="true"
+      className={`fixed bottom-4 right-4 z-20 flex flex-col items-center select-none ${
+        isClickable ? "cursor-pointer" : "pointer-events-none"
+      }`}
+      aria-hidden={!isClickable}
+      aria-label={isClickable ? "Plan your day" : undefined}
+      onClick={isClickable ? onClick : undefined}
+      onMouseEnter={() => isClickable && setHovered(true)}
+      onMouseLeave={() => isClickable && setHovered(false)}
     >
-      <div className="bg-white/85 backdrop-blur-sm rounded-2xl px-3 py-1.5 text-[11px] text-slate-500 italic shadow-md mb-2 max-w-[160px] text-center leading-snug border border-slate-100">
-        {config.caption}
+      {/* Caption / hover prompt */}
+      <div className={`bg-white/85 backdrop-blur-sm rounded-2xl px-3 py-1.5 text-[11px] italic shadow-md mb-2 max-w-[160px] text-center leading-snug border transition-all duration-200 ${
+        isClickable && hovered
+          ? "text-[#0D7377] border-[#0D7377]/30 scale-105"
+          : "text-slate-500 border-slate-100"
+      }`}>
+        {isClickable && hovered ? "Plan my day →" : config.caption}
       </div>
       <img
         src={config.img}
         alt=""
-        className="h-32 w-auto drop-shadow-xl"
-        style={{ opacity: 0.82 }}
+        className={`h-32 w-auto drop-shadow-xl transition-all duration-200 ${
+          isClickable && hovered ? "scale-105 drop-shadow-2xl" : ""
+        }`}
+        style={{ opacity: isClickable && hovered ? 1 : 0.82 }}
       />
     </div>
   );

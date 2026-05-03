@@ -9,7 +9,7 @@ import {
   Plus, ArrowLeft, Kanban, X, Check, ChevronRight, Calendar, Flag,
   MessageSquare, Paperclip, Upload, Trash2, Pencil, Download, Image,
   FileText, Search, User, ClipboardList, Eye, ArrowRightLeft, ChevronDown,
-  Sparkles, Loader2,
+  Sparkles, Loader2, Ship, Anchor, FileUp, FileDown, Info,
 } from "lucide-react";
 import { VikingCrossedSwords, VikingHelmSvg, VikingAxeSvg, RuneDivider } from "@/components/portal/VikingDecor";
 import { Button } from "@/components/ui/button";
@@ -901,6 +901,377 @@ function TaskRow({ task, onOpen, onOpenBoard }: { task: any; onOpen: () => void;
   );
 }
 
+// ── Longship Factory ──────────────────────────────────────────────────────────
+
+function ClaimModal({ card, boards, onClose, onClaimed }: {
+  card: any; boards: any[]; onClose: () => void; onClaimed: () => void;
+}) {
+  const { toast } = useToast();
+  const [targetBoardId, setTargetBoardId] = useState("");
+  const [targetColumnId, setTargetColumnId] = useState("");
+  const [boardColumns, setBoardColumns] = useState<any[]>([]);
+  const [loadingCols, setLoadingCols] = useState(false);
+  const [claiming, setClaiming] = useState(false);
+  const nonFactoryBoards = boards.filter((b: any) => !b.isLongshipFactory);
+
+  useEffect(() => {
+    if (!targetBoardId) { setBoardColumns([]); setTargetColumnId(""); return; }
+    setLoadingCols(true);
+    apiRequest("GET", `/api/kanban/boards/${targetBoardId}`).then(r => {
+      if (r.success) setBoardColumns(r.data.columns || []);
+      setLoadingCols(false);
+    });
+  }, [targetBoardId]);
+
+  async function doClaim() {
+    setClaiming(true);
+    const body: any = {};
+    if (targetBoardId && targetColumnId) {
+      body.targetBoardId = parseInt(targetBoardId);
+      body.targetColumnId = parseInt(targetColumnId);
+    }
+    const res = await apiRequest("POST", `/api/kanban/cards/${card.id}/claim`, body);
+    setClaiming(false);
+    if (res.success) {
+      toast({ title: "Quest claimed! ⚔️", description: targetBoardId ? "Moved to your board." : "Assigned to you in the Factory." });
+      onClaimed();
+    } else {
+      toast({ title: "Failed to claim", description: res.error, variant: "destructive" });
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Ship className="w-5 h-5 text-[#0D7377]" />
+            <h2 className="text-lg font-display text-[#1A1F2B]">Claim This Quest</h2>
+          </div>
+          <button onClick={onClose} className="p-1 rounded hover:bg-slate-100 text-slate-400"><X className="w-4 h-4" /></button>
+        </div>
+
+        <div className={`rounded-xl border-l-4 ${PRIORITY_BORDER[card.priority] || "border-l-slate-200"} bg-slate-50 p-4 mb-5`}>
+          <div className="flex items-center gap-1.5 flex-wrap mb-1">
+            <span className={`text-xs px-1.5 py-0.5 rounded border ${PRIORITY_COLORS[card.priority] || ""}`}>{card.priority}</span>
+            {(card.labels || []).map((l: string) => (
+              <span key={l} className="text-xs bg-white text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded">{l}</span>
+            ))}
+          </div>
+          <p className="font-semibold text-[#1A1F2B] text-sm">{card.title}</p>
+          {card.description && <p className="text-xs text-slate-500 mt-1 line-clamp-3">{card.description}</p>}
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Move to board <span className="text-slate-400 font-normal">(optional — leave blank to stay in Factory)</span></label>
+            <select value={targetBoardId} onChange={e => { setTargetBoardId(e.target.value); setTargetColumnId(""); }}
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="select-claim-board">
+              <option value="">— Stay in Factory (just assign to me)</option>
+              {nonFactoryBoards.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
+            </select>
+          </div>
+          {targetBoardId && (
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Move to column</label>
+              {loadingCols ? <div className="h-10 bg-slate-100 rounded-lg animate-pulse" /> : (
+                <select value={targetColumnId} onChange={e => setTargetColumnId(e.target.value)}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="select-claim-column">
+                  <option value="">— Pick a column</option>
+                  {boardColumns.map((c: any) => <option key={c.id} value={c.id}>{c.title}</option>)}
+                </select>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="flex gap-2 mt-5">
+          <Button onClick={doClaim} disabled={claiming || (!!targetBoardId && !targetColumnId)}
+            className="bg-[#0D7377] text-white flex-1 gap-2" data-testid="button-claim-quest">
+            {claiming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Anchor className="w-4 h-4" />}
+            Claim Quest
+          </Button>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddTaskModal({ onClose, onAdded }: { onClose: () => void; onAdded: () => void }) {
+  const { toast } = useToast();
+  const [title, setTitle] = useState("");
+  const [desc, setDesc] = useState("");
+  const [priority, setPriority] = useState("medium");
+  const [labels, setLabels] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  async function doAdd() {
+    if (!title.trim()) return;
+    setAdding(true);
+    const res = await apiRequest("POST", "/api/kanban/factory/cards", {
+      title: title.trim(), description: desc.trim() || null,
+      priority, labels: labels ? labels.split(",").map(l => l.trim()).filter(Boolean) : [],
+    });
+    setAdding(false);
+    if (res.success) { toast({ title: "Quest added to the Factory ⚓" }); onAdded(); }
+    else toast({ title: "Failed", description: res.error, variant: "destructive" });
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <Plus className="w-5 h-5 text-[#0D7377]" />
+            <h2 className="text-lg font-display text-[#1A1F2B]">Add Quest to Factory</h2>
+          </div>
+          <button onClick={onClose} className="p-1 rounded hover:bg-slate-100 text-slate-400"><X className="w-4 h-4" /></button>
+        </div>
+        <div className="space-y-3">
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Title <span className="text-red-400">*</span></label>
+            <input autoFocus value={title} onChange={e => setTitle(e.target.value)} onKeyDown={e => e.key === "Enter" && doAdd()}
+              placeholder="What needs to be built?" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-factory-title" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
+            <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} placeholder="More context about this quest..."
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none" data-testid="input-factory-desc" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Priority</label>
+              <select value={priority} onChange={e => setPriority(e.target.value)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="select-factory-priority">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Labels <span className="text-slate-400 font-normal">(comma-sep)</span></label>
+              <input value={labels} onChange={e => setLabels(e.target.value)} placeholder="ai, automation"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-factory-labels" />
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-5">
+          <Button onClick={doAdd} disabled={adding || !title.trim()} className="bg-[#0D7377] text-white flex-1 gap-2" data-testid="button-add-factory-task">
+            {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Add to Factory
+          </Button>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard }: {
+  factoryData: any; boards: any[]; onRefresh: () => void; onOpenInBoard: () => void;
+}) {
+  const { toast } = useToast();
+  const [search, setSearch] = useState("");
+  const [filterPriority, setFilterPriority] = useState("all");
+  const [filterColumn, setFilterColumn] = useState("all");
+  const [showCsvGuide, setShowCsvGuide] = useState(false);
+  const [claimingCard, setClaimingCard] = useState<any>(null);
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ inserted: number; skipped: number } | null>(null);
+  const csvInputRef = useRef<HTMLInputElement>(null);
+
+  const columns = factoryData?.columns || [];
+  const allCards = columns.flatMap((col: any) =>
+    (col.cards || []).map((card: any) => ({ ...card, columnTitle: col.title, columnColor: col.color }))
+  );
+  const filtered = allCards.filter((card: any) => {
+    if (filterPriority !== "all" && card.priority !== filterPriority) return false;
+    if (filterColumn !== "all" && String(card.columnId) !== filterColumn) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      return card.title.toLowerCase().includes(q) ||
+        (card.description || "").toLowerCase().includes(q) ||
+        (card.labels || []).some((l: string) => l.toLowerCase().includes(q));
+    }
+    return true;
+  });
+
+  async function handleCsvImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true); setImportResult(null);
+    const form = new FormData();
+    form.append("csv", file);
+    try {
+      const resp = await fetch("/api/kanban/factory/import", { method: "POST", credentials: "include", body: form });
+      const data = await resp.json();
+      if (data.success) {
+        setImportResult(data.data);
+        toast({ title: `Imported ${data.data.inserted} quest${data.data.inserted !== 1 ? "s" : ""} ⚓` });
+        onRefresh();
+      } else toast({ title: "Import failed", description: data.error, variant: "destructive" });
+    } catch { toast({ title: "Import failed", description: "Network error", variant: "destructive" }); }
+    setImporting(false);
+    if (csvInputRef.current) csvInputRef.current.value = "";
+  }
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-start gap-3 mb-5">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <Ship className="w-5 h-5 text-[#0D7377]" />
+            <h2 className="text-xl font-display text-[#1A1F2B]">Longship Factory</h2>
+            <Badge variant="secondary" className="text-xs">{allCards.length} quests</Badge>
+          </div>
+          <p className="text-sm text-slate-500">Unassigned future-building tasks. Browse, add to the pile, or claim one to make it yours.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <Button variant="outline" size="sm" onClick={onOpenInBoard} className="gap-1.5 text-xs border-slate-200" data-testid="button-factory-board-view">
+            <Kanban className="w-3.5 h-3.5" /> Board View
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowCsvGuide(p => !p)}
+            className={`gap-1.5 text-xs ${showCsvGuide ? "border-[#0D7377] text-[#0D7377]" : "border-slate-200"}`} data-testid="button-csv-guide">
+            <Info className="w-3.5 h-3.5" /> CSV Guide
+            <ChevronDown className={`w-3 h-3 transition-transform ${showCsvGuide ? "rotate-180" : ""}`} />
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => csvInputRef.current?.click()} disabled={importing}
+            className="gap-1.5 text-xs border-slate-200" data-testid="button-import-csv">
+            {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileUp className="w-3.5 h-3.5" />} Import CSV
+          </Button>
+          <input ref={csvInputRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleCsvImport} data-testid="input-csv-file" />
+          <Button size="sm" onClick={() => setShowAddTask(true)} className="bg-[#0D7377] text-white gap-1.5 text-xs" data-testid="button-add-factory-quest">
+            <Plus className="w-3.5 h-3.5" /> Add Quest
+          </Button>
+        </div>
+      </div>
+
+      {/* CSV Guide */}
+      {showCsvGuide && (
+        <div className="mb-5 rounded-xl border border-[#0D7377]/20 bg-teal-50/50 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold text-[#0D7377] flex items-center gap-1.5"><Info className="w-4 h-4" /> CSV Format Guide</p>
+            <a href="/api/kanban/factory/sample.csv" download className="inline-flex items-center gap-1 text-xs text-[#0D7377] hover:underline" data-testid="link-download-sample-csv">
+              <FileDown className="w-3.5 h-3.5" /> Download sample.csv
+            </a>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-xs">
+            {([
+              ["title", "Required. The name of the quest.", true],
+              ["description", "Optional. More detail about the task.", false],
+              ["priority", "Optional: low · medium · high · urgent", false],
+              ["labels", "Optional. Comma-separated tags (e.g. ai,mobile)", false],
+              ["due_date", "Optional. Format: YYYY-MM-DD", false],
+            ] as [string, string, boolean][]).map(([field, desc, req]) => (
+              <div key={field} className="flex items-start gap-2">
+                <span className={`font-mono font-bold shrink-0 ${req ? "text-red-600" : "text-slate-600"}`}>{field}{req ? " *" : ""}</span>
+                <span className="text-slate-500">{desc}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 rounded-lg bg-white border border-slate-200 p-2.5 font-mono text-xs text-slate-600 overflow-x-auto whitespace-nowrap">
+            title,description,priority,labels,due_date<br />
+            "Build AI form","Automate intake",high,"ai,automation",2026-07-01<br />
+            "Write grant templates","Reusable templates",low,"grants,content",
+          </div>
+          {importResult && (
+            <p className="mt-2 text-xs text-[#0D7377] font-medium">
+              Last import: {importResult.inserted} added{importResult.skipped > 0 ? `, ${importResult.skipped} skipped` : ""}.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-2 mb-5">
+        <div className="relative flex-1 min-w-[160px] max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search quests..."
+            className="w-full pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+            data-testid="input-factory-search" />
+        </div>
+        <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
+          className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+          data-testid="select-factory-priority-filter">
+          <option value="all">All priorities</option>
+          <option value="urgent">Urgent</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+        <select value={filterColumn} onChange={e => setFilterColumn(e.target.value)}
+          className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+          data-testid="select-factory-column-filter">
+          <option value="all">All columns</option>
+          {columns.map((col: any) => <option key={col.id} value={col.id}>{col.title}</option>)}
+        </select>
+        <span className="text-xs text-slate-400 ml-auto">{filtered.length} of {allCards.length} quests</span>
+      </div>
+
+      {/* Cards */}
+      {filtered.length === 0 ? (
+        <div className="text-center py-16 text-slate-400">
+          <Ship className="w-12 h-12 mx-auto mb-3 opacity-30" />
+          <p className="text-sm font-medium">{allCards.length === 0 ? "The Factory is empty — add the first quest!" : "No quests match your filters."}</p>
+          {allCards.length === 0 && (
+            <Button onClick={() => setShowAddTask(true)} className="mt-4 bg-[#0D7377] text-white gap-2"><Plus className="w-4 h-4" /> Add First Quest</Button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filtered.map((card: any) => (
+            <div key={card.id}
+              className={`bg-white rounded-xl p-4 shadow-sm border-l-4 ${PRIORITY_BORDER[card.priority] || "border-l-slate-200"} hover:shadow-md transition-shadow flex flex-col`}
+              data-testid={`factory-card-${card.id}`}>
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className={`text-xs px-1.5 py-0.5 rounded border ${PRIORITY_COLORS[card.priority] || ""}`}>{card.priority}</span>
+                  {(card.labels || []).map((l: string) => (
+                    <span key={l} className="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{l}</span>
+                  ))}
+                </div>
+                {card.assignee && (
+                  <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded shrink-0">claimed</span>
+                )}
+              </div>
+              <p className="text-sm font-semibold text-[#1A1F2B] mb-1 line-clamp-2">{card.title}</p>
+              {card.description && <p className="text-xs text-slate-500 line-clamp-3 mb-3">{card.description}</p>}
+              <div className="flex items-center justify-between gap-2 mt-auto pt-3 border-t border-slate-100">
+                <div className="flex items-center gap-2 text-xs text-slate-400">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full inline-block" style={{ background: card.columnColor || "#64748b" }} />
+                    {card.columnTitle}
+                  </span>
+                  {card.dueDate && (
+                    <span className={`flex items-center gap-1 ${new Date(card.dueDate) < new Date() ? "text-red-500" : ""}`}>
+                      <Calendar className="w-3 h-3" />{new Date(card.dueDate).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+                <Button size="sm" onClick={() => setClaimingCard(card)}
+                  className="bg-[#0D7377] text-white text-xs gap-1 h-7 px-2 shrink-0" data-testid={`button-claim-${card.id}`}>
+                  <Anchor className="w-3 h-3" /> Claim
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {claimingCard && (
+        <ClaimModal card={claimingCard} boards={boards} onClose={() => setClaimingCard(null)}
+          onClaimed={() => { setClaimingCard(null); onRefresh(); }} />
+      )}
+      {showAddTask && (
+        <AddTaskModal onClose={() => setShowAddTask(false)} onAdded={() => { setShowAddTask(false); onRefresh(); }} />
+      )}
+    </div>
+  );
+}
+
 // ── Main Kanban Content ───────────────────────────────────────────────────────
 
 function KanbanContent() {
@@ -915,10 +1286,12 @@ function KanbanContent() {
   const [newBoardName, setNewBoardName] = useState("");
   const [showNewBoard, setShowNewBoard] = useState(false);
   const [portalUsers, setPortalUsers] = useState<any[]>([]);
-  const [view, setView] = useState<"boards" | "my-tasks">("boards");
+  const [view, setView] = useState<"boards" | "my-tasks" | "factory">("boards");
   const [editingBoard, setEditingBoard] = useState<any>(null);
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
+  const [factoryData, setFactoryData] = useState<any>(null);
+  const [factoryLoading, setFactoryLoading] = useState(false);
 
   useEffect(() => {
     document.title = "Kanban | handləkraft.ai";
@@ -931,6 +1304,13 @@ function KanbanContent() {
     const res = await apiRequest("GET", "/api/kanban/boards");
     if (res.success) setBoards(res.data);
     setLoading(false);
+  }
+
+  async function loadFactory() {
+    setFactoryLoading(true);
+    const res = await apiRequest("GET", "/api/kanban/factory");
+    if (res.success) setFactoryData(res.data);
+    setFactoryLoading(false);
   }
 
   async function loadBoard(id: number) {
@@ -1143,12 +1523,15 @@ function KanbanContent() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-5 border-b border-slate-200">
-        <button onClick={() => setView("boards")} className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px flex items-center gap-1.5 transition-colors ${view === "boards" ? "border-[#0D7377] text-[#0D7377]" : "border-transparent text-slate-500 hover:text-slate-700"}`} data-testid="tab-boards">
-          <Kanban className="w-4 h-4" /> All Boards <span className="text-xs">{boards.length}</span>
+      <div className="flex gap-1 mb-5 border-b border-slate-200 overflow-x-auto">
+        <button onClick={() => setView("boards")} className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px flex items-center gap-1.5 transition-colors whitespace-nowrap ${view === "boards" ? "border-[#0D7377] text-[#0D7377]" : "border-transparent text-slate-500 hover:text-slate-700"}`} data-testid="tab-boards">
+          <Kanban className="w-4 h-4" /> All Boards <span className="text-xs">{boards.filter((b: any) => !b.isLongshipFactory).length}</span>
         </button>
-        <button onClick={() => setView("my-tasks")} className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px flex items-center gap-1.5 transition-colors ${view === "my-tasks" ? "border-[#0D7377] text-[#0D7377]" : "border-transparent text-slate-500 hover:text-slate-700"}`} data-testid="tab-my-tasks">
+        <button onClick={() => setView("my-tasks")} className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px flex items-center gap-1.5 transition-colors whitespace-nowrap ${view === "my-tasks" ? "border-[#0D7377] text-[#0D7377]" : "border-transparent text-slate-500 hover:text-slate-700"}`} data-testid="tab-my-tasks">
           <ClipboardList className="w-4 h-4" /> My Tasks
+        </button>
+        <button onClick={() => { setView("factory"); if (!factoryData) loadFactory(); }} className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px flex items-center gap-1.5 transition-colors whitespace-nowrap ${view === "factory" ? "border-[#D4A843] text-[#D4A843]" : "border-transparent text-slate-500 hover:text-slate-700"}`} data-testid="tab-factory">
+          <Ship className="w-4 h-4" /> Longship Factory
         </button>
       </div>
 
@@ -1157,6 +1540,20 @@ function KanbanContent() {
           onOpenCard={(cardId, boardId) => { loadBoard(boardId).then(() => setSelectedCardId(cardId)); }}
           onOpenBoard={loadBoard}
         />
+      ) : view === "factory" ? (
+        factoryLoading ? (
+          <div className="space-y-4">{[...Array(6)].map((_, i) => <div key={i} className="h-40 bg-white rounded-xl animate-pulse" />)}</div>
+        ) : (
+          <LongshipFactoryView
+            factoryData={factoryData}
+            boards={boards}
+            onRefresh={loadFactory}
+            onOpenInBoard={() => {
+              const factoryBoard = boards.find((b: any) => b.isLongshipFactory);
+              if (factoryBoard) loadBoard(factoryBoard.id);
+            }}
+          />
+        )
       ) : (
         <>
           {showNewBoard && (
@@ -1171,7 +1568,7 @@ function KanbanContent() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {boards.length === 0 ? (
               <div className="col-span-3 text-center py-16 text-slate-400"><Kanban className="w-12 h-12 mx-auto mb-3 opacity-30" /><p>No boards yet. Create your first board to organize work.</p></div>
-            ) : boards.map((board: any) => (
+            ) : boards.filter((b: any) => !b.isLongshipFactory).map((board: any) => (
               <Card key={board.id} className="cursor-pointer hover:shadow-md transition-shadow border-0 shadow-sm group" onClick={() => loadBoard(board.id)} data-testid={`card-board-${board.id}`}>
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-start justify-between gap-2">

@@ -5,13 +5,189 @@ import fs from "fs";
 import multer from "multer";
 import { db } from "./db";
 import { kanbanBoards, kanbanColumns, kanbanCards, kanbanCardComments, kanbanCardAttachments, teams, teamMembers, users } from "@shared/schema";
-import { eq, and, asc, desc, or, inArray } from "drizzle-orm";
+import { eq, and, asc, desc, or, inArray, isNull } from "drizzle-orm";
 import { requireAuth } from "./auth-middleware";
 
 const router: Router = createRouter();
 router.use(requireAuth as any);
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || "./data/uploads";
+
+// Memory-storage multer for CSV imports (no disk write needed)
+const csvUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+
+// ── Longship Factory helpers ──────────────────────────────────────────────────
+
+async function getOrCreateFactory(userId: number) {
+  let [factory] = await db.select().from(kanbanBoards)
+    .where(and(eq(kanbanBoards.isLongshipFactory, true), eq(kanbanBoards.archived, false)));
+  if (!factory) {
+    const result = await db.insert(kanbanBoards).values({
+      name: "Longship Factory",
+      description: "Collective backlog of future-building tasks. Anyone can add — anyone can claim.",
+      createdBy: userId,
+      isLongshipFactory: true,
+    }).returning();
+    factory = result[0];
+    await db.insert(kanbanColumns).values([
+      { boardId: factory.id, title: "Available Quests ⚓", position: 0, color: "#0D7377" },
+      { boardId: factory.id, title: "In Progress 🪓",     position: 1, color: "#D4A843" },
+      { boardId: factory.id, title: "Valhalla ⚔️",        position: 2, color: "#16a34a" },
+    ]);
+  }
+  return factory;
+}
+
+function parseCsvLine(line: string): string[] {
+  const fields: string[] = [];
+  let cur = "";
+  let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (ch === ',' && !inQ) { fields.push(cur.trim()); cur = ""; }
+    else cur += ch;
+  }
+  fields.push(cur.trim());
+  return fields;
+}
+
+// ── Longship Factory routes ───────────────────────────────────────────────────
+
+// GET factory board with all cards (visible to all employees)
+router.get("/factory", async (req, res) => {
+  const userId = req.user!.userId;
+  const factory = await getOrCreateFactory(userId);
+  const columns = await db.select().from(kanbanColumns)
+    .where(eq(kanbanColumns.boardId, factory.id)).orderBy(asc(kanbanColumns.position));
+  const cards = await db.select().from(kanbanCards)
+    .where(and(eq(kanbanCards.boardId, factory.id), eq(kanbanCards.archived, false)))
+    .orderBy(asc(kanbanCards.position));
+  const userIds = Array.from(new Set(cards.flatMap(c => [c.assignedTo, c.createdBy].filter(Boolean) as number[])));
+  let userLookup: Record<number, any> = {};
+  if (userIds.length > 0) {
+    const us = await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
+      .from(users).where(inArray(users.id, userIds));
+    for (const u of us) userLookup[u.id] = u;
+  }
+  res.json({
+    success: true, data: {
+      ...factory,
+      columns: columns.map(col => ({
+        ...col,
+        cards: cards.filter(c => c.columnId === col.id).map(card => ({
+          ...card, assignee: card.assignedTo ? userLookup[card.assignedTo] : null,
+          creator: card.createdBy ? userLookup[card.createdBy] : null,
+        })),
+      })),
+    },
+  });
+});
+
+// Add a card to the factory (placed in first/Available column, no assignee)
+router.post("/factory/cards", async (req, res) => {
+  const userId = req.user!.userId;
+  const { title, description, priority, labels, dueDate } = req.body;
+  if (!title?.trim()) return res.status(400).json({ success: false, error: "Title required" });
+  const factory = await getOrCreateFactory(userId);
+  const [firstCol] = await db.select().from(kanbanColumns)
+    .where(eq(kanbanColumns.boardId, factory.id)).orderBy(asc(kanbanColumns.position)).limit(1);
+  if (!firstCol) return res.status(500).json({ success: false, error: "Factory has no columns" });
+  const existing = await db.select({ id: kanbanCards.id }).from(kanbanCards)
+    .where(and(eq(kanbanCards.columnId, firstCol.id), eq(kanbanCards.archived, false)));
+  const [card] = await db.insert(kanbanCards).values({
+    columnId: firstCol.id, boardId: factory.id, title: title.trim(),
+    description: description?.trim() || null,
+    priority: priority || "medium", labels: labels || [],
+    dueDate: dueDate ? new Date(dueDate) : null,
+    position: existing.length, createdBy: userId,
+  }).returning();
+  res.status(201).json({ success: true, data: card });
+});
+
+// CSV bulk import into factory
+router.post("/factory/import", csvUpload.single("csv"), async (req, res) => {
+  const userId = req.user!.userId;
+  if (!req.file) return res.status(400).json({ success: false, error: "No CSV file uploaded" });
+  const text = req.file.buffer.toString("utf-8");
+  const allRows = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  if (allRows.length < 2) return res.status(400).json({ success: false, error: "CSV needs a header row and at least one data row" });
+  const headers = parseCsvLine(allRows[0]).map(h => h.toLowerCase().replace(/\s+/g, "_"));
+  const idx = (name: string) => headers.indexOf(name);
+  if (idx("title") === -1) return res.status(400).json({ success: false, error: "CSV must have a 'title' column" });
+
+  const factory = await getOrCreateFactory(userId);
+  const [firstCol] = await db.select().from(kanbanColumns)
+    .where(eq(kanbanColumns.boardId, factory.id)).orderBy(asc(kanbanColumns.position)).limit(1);
+  const existing = await db.select({ id: kanbanCards.id }).from(kanbanCards)
+    .where(and(eq(kanbanCards.columnId, firstCol.id), eq(kanbanCards.archived, false)));
+  let position = existing.length;
+
+  const VALID_PRIORITIES = new Set(["low", "medium", "high", "urgent"]);
+  let inserted = 0;
+  const skipped: string[] = [];
+
+  for (const rawLine of allRows.slice(1)) {
+    const row = parseCsvLine(rawLine);
+    const title = idx("title") >= 0 ? row[idx("title")] : "";
+    if (!title?.trim()) { skipped.push(`Missing title: ${rawLine.slice(0, 60)}`); continue; }
+    const desc = idx("description") >= 0 ? (row[idx("description")] || null) : null;
+    const rawPri = (idx("priority") >= 0 ? row[idx("priority")] : "").toLowerCase();
+    const priority = VALID_PRIORITIES.has(rawPri) ? rawPri : "medium";
+    const rawLabels = idx("labels") >= 0 ? row[idx("labels")] : "";
+    const labels = rawLabels ? rawLabels.split(/[;,]/).map(l => l.trim()).filter(Boolean) : [];
+    const rawDue = idx("due_date") >= 0 ? row[idx("due_date")] : "";
+    const dueDate = rawDue ? new Date(rawDue) : null;
+    await db.insert(kanbanCards).values({
+      columnId: firstCol.id, boardId: factory.id, title: title.trim(),
+      description: desc?.trim() || null, priority: priority as any,
+      labels, dueDate: dueDate && !isNaN(dueDate.getTime()) ? dueDate : null,
+      position: position++, createdBy: userId,
+    });
+    inserted++;
+  }
+  res.json({ success: true, data: { inserted, skipped: skipped.length, skippedRows: skipped } });
+});
+
+// Download sample CSV
+router.get("/factory/sample.csv", (_req, res) => {
+  const csv = [
+    "title,description,priority,labels,due_date",
+    '"Build AI-powered intake form","Automate client intake using AI to extract key info","high","ai,automation",2026-07-01',
+    '"Create impact dashboard","Public dashboard showing real-time community metrics","high","dashboard,analytics",',
+    '"Volunteer management system","Track volunteer hours and match skills to projects","medium","volunteers,crm",2026-08-01',
+    '"Write grant templates","Reusable templates for common grant types","low","grants,content",',
+    '"Automated email sequences","Onboarding sequences for new clients and students","medium","email,automation",2026-06-15',
+    '"Mobile portal audit","Audit and fix mobile usability across all client pages","high","mobile,ui",',
+    '"Data backup and recovery plan","Implement automated backups with tested recovery","urgent","infrastructure,security",2026-06-01',
+    '"Mentorship matching algorithm","AI-match students with mentors by skills and goals","medium","ai,fellows",',
+  ].join("\n");
+  res.setHeader("Content-Type", "text/csv");
+  res.setHeader("Content-Disposition", 'attachment; filename="longship-factory-sample.csv"');
+  res.send(csv);
+});
+
+// Claim a card — assign to self, optionally move to a different board/column
+router.post("/cards/:id/claim", async (req, res) => {
+  const userId = req.user!.userId;
+  const cardId = parseInt(req.params.id);
+  const { targetBoardId, targetColumnId } = req.body;
+  const [card] = await db.select().from(kanbanCards).where(eq(kanbanCards.id, cardId));
+  if (!card) return res.status(404).json({ success: false, error: "Card not found" });
+  const updateData: any = { assignedTo: userId, updatedAt: new Date() };
+  if (targetBoardId && targetColumnId) {
+    const colId = parseInt(targetColumnId);
+    const existing = await db.select({ id: kanbanCards.id }).from(kanbanCards)
+      .where(and(eq(kanbanCards.columnId, colId), eq(kanbanCards.archived, false)));
+    updateData.boardId = parseInt(targetBoardId);
+    updateData.columnId = colId;
+    updateData.position = existing.length;
+  }
+  const [updated] = await db.update(kanbanCards).set(updateData).where(eq(kanbanCards.id, cardId)).returning();
+  res.json({ success: true, data: updated });
+});
 const kanbanStorage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, path.join(UPLOAD_DIR, "kanban-attachments")),
   filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_")}`),
@@ -171,6 +347,7 @@ router.get("/boards", async (req, res) => {
       eq(kanbanBoards.createdBy, userId),
       ...teamIds.map(id => eq(kanbanBoards.teamId, id)),
       ...assignedBoardIds.map(id => eq(kanbanBoards.id, id)),
+      eq(kanbanBoards.isLongshipFactory, true), // always visible to all employees
     ];
 
     boards = await db

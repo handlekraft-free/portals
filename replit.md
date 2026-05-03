@@ -29,6 +29,7 @@ Preferred communication style: Simple, everyday language.
 ## Portal System
 - **Login:** A unified `/login` page with role selection (Team Member, Client, Student, Board Member).
 - **Employee Portal:** Features dashboard, time tracking, Kanban boards, expenses, client tickets, and LMS course management. Includes an "Admin Users" section for administrators.
+- **Longship Factory (Kanban):** A special shared Kanban board visible to all employees. Acts as a collective unassigned task backlog — anyone can add quests (manually or via CSV bulk import), claim quests to assign them to themselves (optionally moving to a target board/column), and search/filter by priority or column. Seeded with 20 sample tasks. Accessible via the "Longship Factory" tab in the Kanban page. API: `GET /api/kanban/factory`, `POST /api/kanban/factory/cards`, `POST /api/kanban/factory/import` (CSV multer), `GET /api/kanban/factory/sample.csv`, `POST /api/kanban/cards/:id/claim`.
 - **Client Portal:** Provides a dashboard, file management, messaging, and support ticket functionalities.
 - **Student Portal:** Offers a dashboard, course access, file management, and announcements.
 - **Board Portal:** Manages meetings, documents, minutes, action items, written consents, board member directories, and communication (board-scoped team chat + AI assistant).

@@ -240,6 +240,7 @@ export const kanbanBoards = pgTable("kanban_boards", {
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   archived: boolean("archived").default(false),
+  isLongshipFactory: boolean("is_longship_factory").default(false),
 });
 export type KanbanBoard = typeof kanbanBoards.$inferSelect;
 

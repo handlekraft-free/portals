@@ -10,7 +10,7 @@ import {
   users, expenseCategories, chargeCodes,
   boardMeetings, boardAgendaItems, boardMeetingAttendees, boardMeetingNotices, boardActionItems,
   boardDocuments, boardDocumentVersions,
-  kanbanBoards, kanbanColumns, boardOnboardingItems, employeeOnboardingItems,
+  kanbanBoards, kanbanColumns, kanbanCards, boardOnboardingItems, employeeOnboardingItems,
 } from "@shared/schema";
 import { db } from "./db";
 import { sql, count, eq, inArray, desc } from "drizzle-orm";
@@ -98,6 +98,7 @@ export async function registerRoutes(
       ALTER TABLE time_reports ADD COLUMN IF NOT EXISTS notes text;
       ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS reviewer_id integer;
       ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS interest_rating integer;
+      ALTER TABLE kanban_boards ADD COLUMN IF NOT EXISTS is_longship_factory boolean DEFAULT false;
       ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS kanban_card_id integer;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS phone text;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS linked_in text;
@@ -542,6 +543,63 @@ export async function registerRoutes(
     }
   } catch (e: any) {
     console.error("[seed] Could not seed Internal Team board:", e.message);
+  }
+
+  // Seed Longship Factory board
+  try {
+    const factoryExists = await db.select({ id: kanbanBoards.id }).from(kanbanBoards)
+      .where(sql`is_longship_factory = true`).limit(1);
+    if (factoryExists.length === 0) {
+      const adminRows = await db.select({ id: users.id }).from(users).where(sql`role = 'admin'`).limit(1);
+      if (adminRows.length > 0) {
+        const adminId = adminRows[0].id;
+        const [factory] = await db.insert(kanbanBoards).values({
+          name: "Longship Factory",
+          description: "Collective backlog of unassigned future-building tasks. Anyone can add to it — anyone can claim from it.",
+          createdBy: adminId,
+          isLongshipFactory: true,
+        }).returning();
+        const cols = await db.insert(kanbanColumns).values([
+          { boardId: factory.id, title: "Available Quests ⚓", position: 0, color: "#0D7377" },
+          { boardId: factory.id, title: "In Progress 🪓",     position: 1, color: "#D4A843" },
+          { boardId: factory.id, title: "Valhalla ⚔️",        position: 2, color: "#16a34a" },
+        ]).returning();
+        const availColId = cols[0].id;
+        const sampleTasks: Array<{ title: string; description: string; priority: "low"|"medium"|"high"|"urgent"; labels: string[] }> = [
+          { title: "Build AI-powered client intake form",        description: "Automate client intake using AI to extract key info and pre-populate our systems — reducing staff time per application.",   priority: "high",   labels: ["ai", "automation"] },
+          { title: "Create nonprofit impact dashboard",          description: "Public-facing dashboard showing real-time metrics of community impact — clients served, hours logged, outcomes tracked.",     priority: "high",   labels: ["dashboard", "analytics"] },
+          { title: "Develop volunteer management system",        description: "Track volunteer hours and skills to match volunteers with client project needs intelligently.",                               priority: "medium", labels: ["volunteers", "crm"] },
+          { title: "Write grant application templates",          description: "Reusable, AI-assisted templates for the most common grant types we apply for — cuts application time in half.",              priority: "low",    labels: ["grants", "content"] },
+          { title: "Set up automated onboarding email sequences",description: "Configure welcome and onboarding email sequences for new clients and students using our mailing system.",                    priority: "medium", labels: ["email", "automation"] },
+          { title: "Mobile-responsive client portal audit",      description: "Audit every client-facing page for mobile usability and fix the top 10 issues found.",                                       priority: "high",   labels: ["mobile", "ui"] },
+          { title: "Data backup and disaster recovery plan",     description: "Document and implement automated backup procedures for all critical data with tested recovery procedures.",                  priority: "urgent", labels: ["infrastructure", "security"] },
+          { title: "Mentorship matching algorithm",              description: "Match fellowship students with industry mentors based on declared skills, goals, and availability — AI-assisted.",           priority: "medium", labels: ["ai", "fellows"] },
+          { title: "Alumni network directory and portal",        description: "Connect past fellowship graduates with each other and with current students for networking and opportunities.",               priority: "medium", labels: ["community", "fellows"] },
+          { title: "Accessibility audit and remediation plan",   description: "Run a WCAG 2.1 AA audit on all public-facing pages and create a prioritized fix list.",                                     priority: "high",   labels: ["accessibility", "ui"] },
+          { title: "Partner organization directory",             description: "Searchable directory of partner nonprofits, government agencies, and community organizations we work with.",                 priority: "low",    labels: ["community", "content"] },
+          { title: "AI writing assistant for grant writing",     description: "Internal tool that uses Claude to draft, review, and improve grant proposals based on our mission and track record.",        priority: "high",   labels: ["ai", "grants"] },
+          { title: "Video interview screening platform",         description: "Async video interview tool for fellowship applicants — reduces scheduling burden and improves screening consistency.",        priority: "medium", labels: ["recruitment", "tech"] },
+          { title: "Skills assessment tool for students",        description: "Interactive tool for students to self-assess skills and get a personalized learning path recommendation.",                   priority: "medium", labels: ["lms", "students"] },
+          { title: "Automated board meeting minutes (AI)",       description: "Record board meetings and auto-generate structured minutes, action items, and follow-up reminders using AI transcription.",  priority: "medium", labels: ["ai", "governance"] },
+          { title: "Client project showcase / portfolio page",   description: "Public page showing completed client projects with before/after impact metrics — used for fundraising and recruitment.",    priority: "low",    labels: ["marketing", "content"] },
+          { title: "Internal knowledge base wiki",               description: "Structured, searchable internal wiki for processes, templates, how-tos, and institutional knowledge.",                      priority: "medium", labels: ["documentation", "team"] },
+          { title: "Automated donor acknowledgment system",      description: "Auto-generate and send personalized thank-you letters and tax receipts when donations are received.",                       priority: "medium", labels: ["crm", "email"] },
+          { title: "Program outcome measurement framework",      description: "Define KPIs for each program type and build a data collection system that feeds the impact dashboard.",                     priority: "high",   labels: ["impact", "reporting"] },
+          { title: "AI-assisted code review for student projects",description: "Integrate Claude into the student LMS to review code submissions and give structured feedback automatically.",             priority: "medium", labels: ["ai", "lms"] },
+        ];
+        for (let i = 0; i < sampleTasks.length; i++) {
+          const task = sampleTasks[i];
+          await db.insert(kanbanCards).values({
+            columnId: availColId, boardId: factory.id, title: task.title,
+            description: task.description, priority: task.priority,
+            labels: task.labels, position: i, createdBy: adminId,
+          });
+        }
+        console.log("[seed] ✓ Longship Factory board seeded with", sampleTasks.length, "tasks");
+      }
+    }
+  } catch (e: any) {
+    console.error("[seed] Could not seed Longship Factory:", e.message);
   }
 
   // Seed sample board meetings if none exist (development only)

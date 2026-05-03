@@ -80,6 +80,36 @@ const STATUS_COLORS: Record<string, string> = {
   rejected: "bg-red-100 text-red-700",
 };
 
+// Helpers used by HistoryPanel for rendering period pills
+function isMonthlyReport(r: any): boolean {
+  if (!r.periodStart || !r.periodEnd) return false;
+  const diffMs = new Date(r.periodEnd).getTime() - new Date(r.periodStart).getTime();
+  return diffMs / (1000 * 60 * 60 * 24) > 20;
+}
+
+function fmtMonthLabel(d: Date): string {
+  return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+
+// Day index ranges for the biweekly format: d0–d6 = week 1, d7–d13 = week 2
+const WEEK_KEYS = ["w1", "w2"] as const;
+type WeekBucketKey = typeof WEEK_KEYS[number];
+const WEEK_BUCKET_LABELS: Record<WeekBucketKey, string> = { w1: "Week 1", w2: "Week 2" };
+
+function bucketBiweekHours(parsedHours: Record<string, Record<string, number>>): Record<WeekBucketKey, number> {
+  const totals: Record<WeekBucketKey, number> = { w1: 0, w2: 0 };
+  for (const ccHours of Object.values(parsedHours)) {
+    for (const [key, val] of Object.entries(ccHours)) {
+      const idx = parseInt(key.replace("d", ""));
+      if (!isNaN(idx)) {
+        if (idx <= 6) totals.w1 += val as number;
+        else totals.w2 += val as number;
+      }
+    }
+  }
+  return totals;
+}
+
 // ── Two-Week Simple Timesheet (Charge Code × Daily Hours Matrix) ──────────────
 
 function BiWeeklyTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; onSubmitted: () => void }) {
@@ -527,20 +557,15 @@ function HistoryPanel() {
         const monthly = isMonthlyReport(r);
         const parsedHours = r.simpleDayHours ? (() => { try { return JSON.parse(r.simpleDayHours); } catch { return null; } })() : null;
 
-        // Build pill tags — works for both monthly (w1/w2…) and legacy day-key formats
+        // Build pill tags — works for both biweekly (ccId → {d0…d13}) and legacy (mon/tue…) formats
         const hourPills: { label: string; val: number }[] = [];
         if (parsedHours && typeof parsedHours === "object") {
           const firstVal = Object.values(parsedHours)[0];
           if (firstVal && typeof firstVal === "object") {
-            // keyed by ccId (monthly format)
-            const weekTotals: Record<string, number> = {};
-            for (const weekHours of Object.values(parsedHours) as Record<string, number>[]) {
-              for (const [wk, val] of Object.entries(weekHours)) {
-                weekTotals[wk] = (weekTotals[wk] || 0) + (val as number);
-              }
-            }
+            // Biweekly format keyed by ccId: bucket into Week 1 / Week 2 totals
+            const buckets = bucketBiweekHours(parsedHours as Record<string, Record<string, number>>);
             for (const wk of WEEK_KEYS) {
-              if (weekTotals[wk] > 0) hourPills.push({ label: `Days ${WEEK_BUCKET_LABELS[wk]}`, val: weekTotals[wk] });
+              if (buckets[wk] > 0) hourPills.push({ label: WEEK_BUCKET_LABELS[wk], val: buckets[wk] });
             }
           } else {
             // Legacy flat day-key format

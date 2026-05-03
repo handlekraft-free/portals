@@ -3,7 +3,7 @@ import { EmployeeLayout } from "@/components/portal/EmployeeLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/auth";
-import { MessageSquare, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, CalendarDays, Mail, Users, Kanban, Ticket, RefreshCw, Clock, MapPin, RotateCcw, BookOpen, Target } from "lucide-react";
+import { MessageSquare, Zap, AlertCircle, CheckCircle2, Circle, ArrowRight, CalendarDays, Mail, Users, Kanban, Ticket, RefreshCw, Clock, MapPin, RotateCcw, BookOpen, Target, ClipboardCheck } from "lucide-react";
 import vikingCodingImg from "@/assets/images/viking-coding.png";
 import { VikingArsenal, RuneDivider } from "@/components/portal/VikingDecor";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,85 @@ import {
   togglePlanTaskDone,
   type DayPlan,
 } from "@/components/portal/PlanDayWizard";
+
+// ── Timesheet Nudge ───────────────────────────────────────────────────────────
+
+function TimesheetNudge() {
+  const [nudge, setNudge] = useState<{
+    periodStart: string;
+    periodEnd: string;
+    totalHours: string | null;
+    draftId: number | null;
+    status: string;
+  } | null | false>(null);
+
+  useEffect(() => {
+    if (sessionStorage.getItem("timesheetNudgeDismissed") === "1") {
+      setNudge(false);
+      return;
+    }
+    apiRequest("GET", "/api/time/reports/due").then((res) => {
+      if (res.success && res.data) setNudge(res.data);
+      else setNudge(false);
+    }).catch(() => setNudge(false));
+  }, []);
+
+  function dismiss() {
+    sessionStorage.setItem("timesheetNudgeDismissed", "1");
+    setNudge(false);
+  }
+
+  if (nudge === null || nudge === false) return null;
+
+  const start = new Date(nudge.periodStart);
+  const end = new Date(nudge.periodEnd);
+  const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const periodLabel = `${fmt(start)} – ${fmt(end)}`;
+  const periodParam = start.toISOString().split("T")[0];
+  const timePath = `/portal/employee/time?period=${periodParam}`;
+  const hours = nudge.totalHours ? `${parseFloat(nudge.totalHours).toFixed(0)}h` : null;
+
+  return (
+    <div
+      className="mb-5 rounded-2xl bg-gradient-to-br from-teal-50 via-white to-white border border-[#0D7377]/20 p-4 flex items-start gap-4 shadow-sm"
+      data-testid="banner-timesheet-nudge"
+    >
+      <div className="shrink-0 w-10 h-10 rounded-xl bg-[#0D7377]/10 flex items-center justify-center mt-0.5">
+        <ClipboardCheck className="w-5 h-5 text-[#0D7377]" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-[#1A1F2B]">
+          Your timesheet is ready to review
+        </p>
+        <p className="text-sm text-slate-500 mt-0.5">
+          The period <span className="font-medium text-slate-700">{periodLabel}</span> is complete.
+          Your hours are already prefilled — just take a look and click Submit if everything looks right.
+        </p>
+        {hours && (
+          <p className="text-xs text-[#0D7377] font-medium mt-1.5">
+            {hours} logged and ready to go
+          </p>
+        )}
+      </div>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 mt-0.5">
+        <button
+          onClick={dismiss}
+          className="text-xs text-slate-400 hover:text-slate-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100"
+          data-testid="button-timesheet-nudge-dismiss"
+        >
+          Later
+        </button>
+        <a
+          href={timePath}
+          className="bg-[#0D7377] text-white text-xs font-medium px-4 py-2 rounded-xl hover:bg-[#0D7377]/90 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
+          data-testid="link-timesheet-nudge-review"
+        >
+          Review & Submit <ArrowRight className="w-3.5 h-3.5" />
+        </a>
+      </div>
+    </div>
+  );
+}
 
 // ── Score helpers ─────────────────────────────────────────────────────────────
 
@@ -751,6 +830,9 @@ function DashboardContent() {
           );
         })}
       </div>
+
+      {/* Timesheet Nudge */}
+      <TimesheetNudge />
 
       {/* Day Plan Card */}
       {todayPlan && (

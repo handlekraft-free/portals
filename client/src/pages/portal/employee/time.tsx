@@ -915,7 +915,16 @@ function TimeContent() {
   const [timesheetMode, setTimesheetMode] = useState<"simple" | "project">("simple");
   const [tab, setTab] = useState<"current" | "history" | "approvals" | "reports">("current");
   // weekStart is always a Monday; two-week periods start here
-  const [weekStart, setWeekStart] = useState<Date>(getMondayOfWeek());
+  // Support ?period=YYYY-MM-DD from dashboard nudge link
+  const [weekStart, setWeekStart] = useState<Date>(() => {
+    const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+    const p = params.get("period");
+    if (p) {
+      const d = new Date(p + "T12:00:00");
+      if (!isNaN(d.getTime())) return d;
+    }
+    return getMondayOfWeek();
+  });
   const [historyKey, setHistoryKey] = useState(0);
 
   const canApprove = user?.role === "admin" || user?.canApprove === true;

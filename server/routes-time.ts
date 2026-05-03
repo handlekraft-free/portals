@@ -186,6 +186,65 @@ router.get("/export/csv", async (req, res) => {
 
 // ── Time Reports (Timesheets) ─────────────────────────────────────────────────
 
+// Due/overdue timesheet nudge — returns the previous period if it has no submitted/approved report
+router.get("/reports/due", async (req, res) => {
+  const userId = req.user!.userId;
+  const now = new Date();
+
+  // Calculate the start of the current 14-day period (most recent Monday)
+  const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon…
+  const daysToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const currentPeriodStart = new Date(now);
+  currentPeriodStart.setHours(0, 0, 0, 0);
+  currentPeriodStart.setDate(now.getDate() + daysToMon);
+
+  // Previous period = 14 days before the current period start
+  const prevPeriodStart = new Date(currentPeriodStart);
+  prevPeriodStart.setDate(currentPeriodStart.getDate() - 14);
+  const prevPeriodEnd = new Date(currentPeriodStart);
+  prevPeriodEnd.setDate(currentPeriodStart.getDate() - 1);
+  prevPeriodEnd.setHours(23, 59, 59, 999);
+
+  // If previous period hasn't ended yet there's nothing to nudge about
+  if (prevPeriodEnd > now) {
+    return res.json({ success: true, data: null });
+  }
+
+  // Check if a submitted or approved report already exists for that period
+  const alreadyDone = await db.select({ id: timeReports.id })
+    .from(timeReports)
+    .where(and(
+      eq(timeReports.employeeId, userId),
+      inArray(timeReports.status, ["submitted", "approved"]),
+      gte(timeReports.periodStart, prevPeriodStart),
+      lte(timeReports.periodStart, prevPeriodEnd),
+    )).limit(1);
+
+  if (alreadyDone.length > 0) {
+    return res.json({ success: true, data: null });
+  }
+
+  // Look for an existing draft for that period
+  const [draft] = await db.select().from(timeReports)
+    .where(and(
+      eq(timeReports.employeeId, userId),
+      eq(timeReports.status, "draft"),
+      gte(timeReports.periodStart, prevPeriodStart),
+      lte(timeReports.periodStart, prevPeriodEnd),
+    )).limit(1);
+
+  return res.json({
+    success: true,
+    data: {
+      periodStart: prevPeriodStart.toISOString(),
+      periodEnd: prevPeriodEnd.toISOString(),
+      totalHours: draft?.totalHours ?? null,
+      draftId: draft?.id ?? null,
+      status: draft?.status ?? "missing",
+    },
+  });
+});
+
 // List reports: employees see own, managers/admins see reports where they are the approver or admin sees all
 router.get("/reports", async (req, res) => {
   const userId = req.user!.userId;

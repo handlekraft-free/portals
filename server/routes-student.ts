@@ -59,17 +59,28 @@ router.post("/courses/:courseId/lessons/:lessonId/complete", requireStudent as a
   await db.update(courseEnrollments).set({ progressPct: pct, ...(completedAt && { completedAt }) }).where(and(eq(courseEnrollments.courseId, courseId), eq(courseEnrollments.studentId, studentId)));
 
   // ── Craft XP on first completion ────────────────────────────────────────
-  // Lesson completion is the canonical source of Craft progression. Idempotent
-  // via UNIQUE(source_type, source_id) on xp_events using lesson_id.
+  // Lesson completion is the canonical source of Craft progression. The global
+  // UNIQUE(source_type, source_id) dedupe means we must encode the user into
+  // source_id so each student gets credit for the same lesson exactly once.
+  // studentId * 10_000_000 + lessonId fits inside int4 for any realistic
+  // lessonId (< 10M) and studentId (< 200).
+  interface XpAwardRow { awarded: number | string | null; total: number | string | null }
+  function rowsOf<T>(result: unknown): T[] {
+    if (result && typeof result === "object" && "rows" in result) {
+      return (result as { rows: T[] }).rows;
+    }
+    return Array.isArray(result) ? (result as T[]) : [];
+  }
   let xpAwarded: { amount: number; reason: string; newTotal: number; stat: string } | null = null;
   if (isFirstCompletion) {
     try {
       const [lesson] = await db.select().from(courseLessons).where(eq(courseLessons.id, lessonId));
       const title = (lesson?.title ?? "Lesson").slice(0, 180);
+      const dedupeId = studentId * 10_000_000 + lessonId;
       const tx = await db.execute(sql`
         WITH inserted AS (
           INSERT INTO xp_events (user_id, amount, reason, source_type, source_id, stat, multiplier)
-          VALUES (${studentId}, 25, ${"Lesson finished: " + title}, 'lesson_complete', ${lessonId}, 'craft', 1.0)
+          VALUES (${studentId}, 25, ${"Lesson finished: " + title}, 'lesson_complete', ${dedupeId}, 'craft', 1.0)
           ON CONFLICT (source_type, source_id) DO NOTHING
           RETURNING amount
         ),
@@ -80,8 +91,7 @@ router.post("/courses/:courseId/lessons/:lessonId/complete", requireStudent as a
         )
         SELECT (SELECT amount FROM inserted) AS awarded, (SELECT xp_total FROM bumped) AS total
       `);
-      const rows = (tx as any).rows ?? (Array.isArray(tx) ? tx : []);
-      const r = rows[0];
+      const r = rowsOf<XpAwardRow>(tx)[0];
       if (r && r.awarded != null) {
         xpAwarded = { amount: Number(r.awarded), reason: `Lesson finished: ${title}`, newTotal: Number(r.total ?? 0), stat: "craft" };
       }

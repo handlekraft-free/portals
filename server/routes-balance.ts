@@ -89,7 +89,7 @@ router.post("/me", async (req, res) => {
         const tx = await db.execute(sql`
           WITH inserted AS (
             INSERT INTO xp_events (user_id, amount, reason, source_type, source_id, stat, multiplier)
-            VALUES (${userId}, ${PULSE_STREAK_DAILY_XP}, 'Honest Pulse streak', 'pulse_streak_day', ${dedupeId}, 'focus', 1.0)
+            VALUES (${userId}, ${PULSE_STREAK_DAILY_XP}, 'Honest Pulse streak', 'pulse_streak_day', ${dedupeId}, 'stewardship', 1.0)
             ON CONFLICT (source_type, source_id) DO NOTHING
             RETURNING amount
           ),
@@ -106,7 +106,7 @@ router.post("/me", async (req, res) => {
             amount: Number(r.awarded),
             reason: `Honest Pulse · day ${update.newStreak}`,
             newTotal: Number(r.total ?? 0),
-            stat: "focus",
+            stat: "stewardship",
           };
         }
       }

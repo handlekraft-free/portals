@@ -706,19 +706,23 @@ router.patch("/cards/:id", async (req, res) => {
       const [newCol] = await db.select().from(kanbanColumns).where(eq(kanbanColumns.id, card.columnId));
       const [oldCol] = await db.select().from(kanbanColumns).where(eq(kanbanColumns.id, currentCard.columnId));
 
-      // ── Completion: award assignee Focus or Initiative XP, plus Loved-this bonus ──
+      // ── Completion: award assignee Initiative XP, plus Loved-this Craft bonus ──
+      // All quest completions reward Initiative (the "doing" stat). Factory-claimed
+      // quests get the 1.5× multiplier on top. Focus is reserved for Plan Day,
+      // Stewardship for Honest Pulse + Reviewer handoffs, and Craft for LMS +
+      // Loved-this — see shared/xp.ts STAT_META.
       if (newCol && _isDone(newCol.title) && card.assignedTo) {
         const baseAmount = xpForPriority(card.priority);
-        const isInitiative = !!card.claimedFromFactory;
-        const finalAmount = isInitiative ? Math.round(baseAmount * INITIATIVE_MULTIPLIER) : baseAmount;
-        const reason = isInitiative
+        const isFactoryClaim = !!card.claimedFromFactory;
+        const finalAmount = isFactoryClaim ? Math.round(baseAmount * INITIATIVE_MULTIPLIER) : baseAmount;
+        const reason = isFactoryClaim
           ? `Initiative bonus: ${card.title}`.slice(0, 200)
           : `Quest complete: ${card.title}`.slice(0, 200);
         const a = await tryAward({
           userId: card.assignedTo, amount: finalAmount, reason,
           sourceType: "kanban_card_complete", sourceId: card.id,
-          stat: isInitiative ? "initiative" : "focus",
-          multiplier: isInitiative ? INITIATIVE_MULTIPLIER : 1.0,
+          stat: "initiative",
+          multiplier: isFactoryClaim ? INITIATIVE_MULTIPLIER : 1.0,
         });
         if (a && req.user!.userId === card.assignedTo) xpAwards.push(a);
 

@@ -506,4 +506,105 @@ router.post("/task-advice", async (req: any, res) => {
   }
 });
 
+// ── Forum topic AI commentary ─────────────────────────────────────────────────
+
+router.post("/forum-comment", async (req: any, res) => {
+  const { topicId } = req.body;
+  if (!topicId) return res.status(400).json({ success: false, error: "topicId required" });
+
+  // Only board members and admins may use this on board forums
+  if (req.user.role !== "board" && req.user.role !== "admin") {
+    return res.status(403).json({ success: false, error: "Board access required" });
+  }
+
+  try {
+    // Fetch topic + author
+    const [topicRow] = await db
+      .select({
+        id: boardForumTopics.id,
+        title: boardForumTopics.title,
+        content: boardForumTopics.content,
+        authorId: boardForumTopics.authorId,
+        firstName: users.firstName,
+        lastName: users.lastName,
+      })
+      .from(boardForumTopics)
+      .leftJoin(users, eq(users.id, boardForumTopics.authorId))
+      .where(eq(boardForumTopics.id, Number(topicId)))
+      .limit(1);
+
+    if (!topicRow) return res.status(404).json({ success: false, error: "Topic not found" });
+
+    // Fetch posts in chronological order with author names
+    const replies = await db
+      .select({
+        content: boardForumPosts.content,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        createdAt: boardForumPosts.createdAt,
+      })
+      .from(boardForumPosts)
+      .leftJoin(users, eq(users.id, boardForumPosts.authorId))
+      .where(eq(boardForumPosts.topicId, Number(topicId)))
+      .orderBy(asc(boardForumPosts.createdAt))
+      .limit(80);
+
+    const repliesText = replies.length === 0
+      ? "(no replies yet)"
+      : replies.map((r, i) =>
+          `Reply ${i + 1} — ${r.firstName ?? "Unknown"} ${r.lastName ?? ""}:\n${r.content}`
+        ).join("\n\n");
+
+    const systemPrompt = `You are the AI advisor for handləkraft's board portal, asked to weigh in on an ongoing forum discussion. Apply the foundational briefing below as your governing context.
+
+${FOUNDATION}
+
+---
+
+## How to respond on a forum thread
+
+You are commenting publicly inside a board discussion. Your reply will be posted as a forum message visible to all board members. Follow these rules:
+
+- Address the substance of the topic directly and briefly. Aim for 150–300 words.
+- Distinguish (a) what handləkraft has documented, (b) typical nonprofit practice, and (c) your own analysis. Use phrases like "handləkraft's documented position is…", "typical practice suggests…", and "my analysis would suggest…".
+- Surface relevant prior discussions, governance documents, or policies from the briefing when they apply — name them.
+- If the discussion touches a disqualified-person matter, family-employment dynamic, regulatory question, or anything that warrants professional input, say so explicitly and recommend the appropriate channel (counsel, CPA, ED, Board Chair, etc.).
+- Be candid but warm. Match handləkraft's communication norms: direct, plain language, no corporate jargon.
+- Do NOT vote, decide, or speak for the organization. You inform; you do not act.
+- Do NOT comment on individual board members or staff by name in evaluative ways.
+- If you don't have grounded information on the question, say so plainly rather than speculating.
+- Do not start with "Hi everyone" or sign off with your name — your reply will appear with an "AI Advisor" label automatically. Just write the substantive comment.`;
+
+    const userMessage = `# Forum topic: ${topicRow.title}
+
+**Started by:** ${topicRow.firstName ?? "Unknown"} ${topicRow.lastName ?? ""}
+
+**Original post:**
+${topicRow.content}
+
+**Replies so far (${replies.length}):**
+${repliesText}
+
+---
+
+Please post a substantive comment on this discussion as the AI advisor. Apply the briefing context above.`;
+
+    const client = getClient();
+    const response = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 2048,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userMessage }],
+    });
+
+    const comment = response.content[0].type === "text" ? response.content[0].text.trim() : "";
+    if (!comment) return res.status(500).json({ success: false, error: "AI returned empty response" });
+
+    res.json({ success: true, data: { comment } });
+  } catch (err: any) {
+    console.error("[Forum AI] Error:", err.message);
+    res.status(500).json({ success: false, error: "AI service temporarily unavailable. Please try again." });
+  }
+});
+
 export default router;

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
-import { MessageSquare, Plus, Send, ChevronLeft, MessageCircle } from "lucide-react";
+import { MessageSquare, Plus, Send, ChevronLeft, MessageCircle, Sparkles, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,9 @@ function ForumsContent() {
   const [topicForm, setTopicForm] = useState({ title: "", content: "" });
   const [replyText, setReplyText] = useState("");
   const [posting, setPosting] = useState(false);
+  const [aiDraft, setAiDraft] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = "Board Forums | handləkraft.ai";
@@ -32,10 +35,39 @@ function ForumsContent() {
 
   async function openTopic(t: any) {
     setActiveTopic(t);
+    setAiDraft(null);
+    setAiError(null);
     setPostsLoading(true);
     const r = await apiRequest("GET", `/api/board/forums/topics/${t.id}/posts`);
     if (r.success) setPosts(r.data || []);
     setPostsLoading(false);
+  }
+
+  async function askAi() {
+    if (!activeTopic) return;
+    setAiLoading(true);
+    setAiError(null);
+    setAiDraft(null);
+    const r = await apiRequest("POST", "/api/ai/forum-comment", { topicId: activeTopic.id });
+    if (r.success && r.data?.comment) {
+      setAiDraft(r.data.comment);
+    } else {
+      setAiError(r.error || "Could not generate AI commentary.");
+    }
+    setAiLoading(false);
+  }
+
+  async function postAiDraft() {
+    if (!aiDraft || !activeTopic) return;
+    setPosting(true);
+    const content = `[AI Advisor]\n\n${aiDraft}`;
+    const r = await apiRequest("POST", `/api/board/forums/topics/${activeTopic.id}/posts`, { content });
+    if (r.success) {
+      setAiDraft(null);
+      const r2 = await apiRequest("GET", `/api/board/forums/topics/${activeTopic.id}/posts`);
+      if (r2.success) setPosts(r2.data || []);
+    }
+    setPosting(false);
   }
 
   async function createTopic() {
@@ -97,15 +129,59 @@ function ForumsContent() {
           <div className="space-y-2 my-4">{[...Array(2)].map((_, i) => <div key={i} className="h-14 bg-white rounded-xl animate-pulse" />)}</div>
         ) : (
           <div className="space-y-2 my-4">
-            {posts.map(p => (
-              <Card key={p.id} className="border-0 shadow-sm" data-testid={`post-${p.id}`}>
-                <CardContent className="pt-3 pb-3">
-                  <p className="text-xs font-semibold text-indigo-600 mb-1">{p.first_name} {p.last_name} · {new Date(p.created_at || p.createdAt).toLocaleDateString()}</p>
-                  <p className="text-sm text-slate-700 whitespace-pre-wrap">{p.content}</p>
-                </CardContent>
-              </Card>
-            ))}
+            {posts.map(p => {
+              const isAi = typeof p.content === "string" && p.content.startsWith("[AI Advisor]");
+              const displayContent = isAi ? p.content.replace(/^\[AI Advisor\]\s*\n*/, "") : p.content;
+              return (
+                <Card key={p.id} className={`border-0 shadow-sm ${isAi ? "bg-gradient-to-br from-violet-50 to-indigo-50 ring-1 ring-violet-200" : ""}`} data-testid={`post-${p.id}`}>
+                  <CardContent className="pt-3 pb-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      {isAi ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-violet-700">
+                          <Sparkles className="w-3.5 h-3.5" /> AI Advisor
+                          <span className="text-slate-400 font-normal ml-0.5">· posted by {p.first_name} {p.last_name}</span>
+                        </span>
+                      ) : (
+                        <p className="text-xs font-semibold text-indigo-600">{p.first_name} {p.last_name}</p>
+                      )}
+                      <span className="text-xs text-slate-400">· {new Date(p.created_at || p.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{displayContent}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
+        )}
+
+        {/* AI commentary panel */}
+        {aiDraft && (
+          <Card className="my-4 border-0 shadow-sm bg-gradient-to-br from-violet-50 to-indigo-50 ring-1 ring-violet-200" data-testid="card-ai-draft">
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-700">
+                  <Sparkles className="w-4 h-4" /> AI Advisor draft — review before posting
+                </span>
+                <button onClick={() => setAiDraft(null)} className="text-slate-400 hover:text-slate-600" data-testid="button-discard-ai-draft" aria-label="Discard">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-sm text-slate-700 whitespace-pre-wrap mb-3" data-testid="text-ai-draft">{aiDraft}</p>
+              <div className="flex gap-2">
+                <Button onClick={postAiDraft} disabled={posting} className="bg-violet-600 hover:bg-violet-700 text-white gap-1.5" data-testid="button-post-ai-draft">
+                  <Send className="w-4 h-4" /> Post as reply
+                </Button>
+                <Button variant="outline" onClick={askAi} disabled={aiLoading} className="gap-1.5" data-testid="button-regenerate-ai">
+                  <Sparkles className="w-4 h-4" /> Regenerate
+                </Button>
+                <Button variant="ghost" onClick={() => setAiDraft(null)}>Discard</Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {aiError && (
+          <div className="my-3 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 text-xs text-rose-700" data-testid="text-ai-error">{aiError}</div>
         )}
 
         <div className="mt-4 flex gap-2">
@@ -117,9 +193,15 @@ function ForumsContent() {
             className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
             data-testid="textarea-reply"
           />
-          <Button onClick={postReply} disabled={posting || !replyText.trim()} className="bg-indigo-500 text-white self-end gap-1.5" data-testid="button-post-reply">
-            <Send className="w-4 h-4" /> Reply
-          </Button>
+          <div className="flex flex-col gap-2 self-end">
+            <Button onClick={postReply} disabled={posting || !replyText.trim()} className="bg-indigo-500 text-white gap-1.5" data-testid="button-post-reply">
+              <Send className="w-4 h-4" /> Reply
+            </Button>
+            <Button onClick={askAi} disabled={aiLoading} variant="outline" className="border-violet-300 text-violet-700 hover:bg-violet-50 gap-1.5" data-testid="button-ask-ai">
+              {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              {aiLoading ? "Thinking…" : "Ask AI"}
+            </Button>
+          </div>
         </div>
       </div>
     );

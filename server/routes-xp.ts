@@ -112,28 +112,36 @@ router.post("/sound", async (req, res) => {
   res.json({ success: true, data: { soundEnabled: enabled } });
 });
 
-// Start of the current day in the supplied IANA timezone, returned as a Date
-// (which is timezone-independent — JS Date is always UTC-instant under the hood).
-// Falls back to UTC midnight on invalid tz strings.
+// Start of the current day in the supplied IANA timezone, returned as a Date.
+// DST-safe: instead of subtracting a time-of-day delta from "now" (which
+// drifts by ±1h on DST transition days), we ask Intl what calendar day it is
+// in `tz` and then binary-search backwards from "now" for the earliest UTC
+// instant that still belongs to that local calendar day.
 function startOfLocalDay(tz: string): Date {
-  try {
-    const fmt = new Intl.DateTimeFormat("en-US", {
-      timeZone: tz,
-      year: "numeric", month: "2-digit", day: "2-digit",
-      hour: "2-digit", minute: "2-digit", second: "2-digit",
-      hour12: false,
-    });
-    const parts = Object.fromEntries(
-      fmt.formatToParts(new Date()).map((p) => [p.type, p.value]),
-    );
-    // Compute local-midnight by subtracting the local time-of-day from "now".
-    const h = Number(parts.hour ?? 0), m = Number(parts.minute ?? 0), s = Number(parts.second ?? 0);
-    const ms = ((h * 60 + m) * 60 + s) * 1000;
-    return new Date(Date.now() - ms);
-  } catch {
+  const fmt = (() => {
+    try {
+      return new Intl.DateTimeFormat("en-CA", {
+        timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit",
+      });
+    } catch {
+      return null;
+    }
+  })();
+  if (!fmt) {
     const d = new Date();
     return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
   }
+  const today = fmt.format(new Date()); // "YYYY-MM-DD" in tz
+  // Binary search the last 36h (covers any DST jump) for the first instant
+  // whose local calendar day equals `today`. Resolution: 1 minute is plenty.
+  let lo = Date.now() - 36 * 3600 * 1000;
+  let hi = Date.now();
+  while (hi - lo > 60_000) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (fmt.format(new Date(mid)) >= today) hi = mid;
+    else lo = mid;
+  }
+  return new Date(hi);
 }
 
 // GET /api/xp/today — XP events created since local midnight in the caller's

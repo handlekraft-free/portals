@@ -251,15 +251,26 @@ router.get("/me", requireAuth, async (req, res) => {
   });
 });
 
-// Avatar config shape — mirrors shared/schema.ts users.avatarConfig.
+// Avatar config shape — mirrors shared/schema.ts users.avatarConfig and the
+// option enums in client/src/components/portal/AvatarRenderer.tsx. Kept in
+// sync by hand (one tiny set of strings on each side) — server is the source
+// of truth and silently coerces unknown values to null so junk POSTs can't
+// pollute the column.
+const AVATAR_OPTIONS = {
+  helm:   new Set(["none", "ironcap", "horned", "winged"]),
+  cloak:  new Set(["none", "wool", "fur", "royal"]),
+  beard:  new Set(["none", "short", "long", "braided"]),
+  emblem: new Set(["none", "raven", "wolf", "tree"]),
+} as const;
+type AvatarLayer = keyof typeof AVATAR_OPTIONS;
 type AvatarConfigShape = {
   helm?: string | null;
   cloak?: string | null;
   beard?: string | null;
   emblem?: string | null;
 };
-function pickStrOrNull(v: unknown): string | null {
-  return typeof v === "string" ? v : null;
+function pickEnum(layer: AvatarLayer, v: unknown): string | null {
+  return typeof v === "string" && AVATAR_OPTIONS[layer].has(v) ? v : null;
 }
 
 // PATCH /api/auth/avatar — save cosmetic avatar layers (helm/cloak/beard/emblem).
@@ -269,10 +280,10 @@ router.patch("/avatar", requireAuth, async (req, res) => {
   const userId = req.user!.userId;
   const body = (req.body ?? {}) as Partial<AvatarConfigShape>;
   const config: AvatarConfigShape = {
-    helm:   pickStrOrNull(body.helm),
-    cloak:  pickStrOrNull(body.cloak),
-    beard:  pickStrOrNull(body.beard),
-    emblem: pickStrOrNull(body.emblem),
+    helm:   pickEnum("helm",   body.helm),
+    cloak:  pickEnum("cloak",  body.cloak),
+    beard:  pickEnum("beard",  body.beard),
+    emblem: pickEnum("emblem", body.emblem),
   };
   // Compute current rank for unlock gating
   const [u] = await db.select().from(users).where(eq(users.id, userId));

@@ -289,10 +289,15 @@ router.post("/cards/:id/claim", async (req, res) => {
   const [card] = await db.select().from(kanbanCards).where(eq(kanbanCards.id, cardId));
   if (!card) return res.status(404).json({ success: false, error: "Card not found" });
   const [sourceBoard] = await db.select().from(kanbanBoards).where(eq(kanbanBoards.id, card.boardId));
+  // Initiative bonus eligibility: only when claiming an UNASSIGNED card from a
+  // Longship Factory board. Reassignments and already-claimed cards do not
+  // qualify, even if they later move through Done. Flag is sticky once set.
   const fromFactory = !!sourceBoard?.isLongshipFactory;
+  const wasUnassigned = card.assignedTo == null;
   const updateData: any = { assignedTo: userId, updatedAt: new Date() };
-  // Once flagged, stay flagged (never clear back to false on subsequent claims).
-  if (fromFactory) updateData.claimedFromFactory = true;
+  if (fromFactory && wasUnassigned && !card.claimedFromFactory) {
+    updateData.claimedFromFactory = true;
+  }
   if (targetBoardId && targetColumnId) {
     const colId = parseInt(targetColumnId);
     const existing = await db.select({ id: kanbanCards.id }).from(kanbanCards)
@@ -746,15 +751,18 @@ router.patch("/cards/:id", async (req, res) => {
         }
       }
 
-      // ── Reviewer XP: card moved OUT of "In Review" with a reviewer set ──
-      if (oldCol && newCol && isInReviewColumn(oldCol.title) && !isInReviewColumn(newCol.title) && card.reviewerId) {
+      // ── Stewardship: actor who pulled the card out of In Review ──
+      // Credits the user performing the move (req.user) — they are the reviewer
+      // signing off the handoff. Idempotent per-card via source_type='kanban_card_review'.
+      if (oldCol && newCol && isInReviewColumn(oldCol.title) && !isInReviewColumn(newCol.title)) {
+        const actorId = req.user!.userId;
         const reviewReason = `Review handoff: ${card.title}`.slice(0, 200);
         const rv = await tryAward({
-          userId: card.reviewerId, amount: REVIEWER_XP, reason: reviewReason,
+          userId: actorId, amount: REVIEWER_XP, reason: reviewReason,
           sourceType: "kanban_card_review", sourceId: card.id,
           stat: "stewardship", multiplier: 1.0,
         });
-        if (rv && req.user!.userId === card.reviewerId) xpAwards.push(rv);
+        if (rv) xpAwards.push(rv); // actor is req.user — always surface
       }
     }
   } catch (e) {

@@ -113,9 +113,9 @@ export const STAT_META: Record<Stat, StatMeta> = {
   craft: {
     key: "craft",
     name: "Craft",
-    blurb: "Finishing work you genuinely love.",
+    blurb: "Sharpening your skills through deliberate learning.",
     color: "#dc2626",
-    earnedHow: "Earned when you complete a 4★ or 5★ rated task — Loved this.",
+    earnedHow: "Earned when you finish a course lesson in the LMS.",
   },
 };
 
@@ -222,6 +222,19 @@ export function advanceStreak(opts: {
 
   // Refresh tokens if we've crossed a month boundary
   const tokens = opts.tokenMonth === monthKey ? opts.remainingTokens : REST_TOKENS_PER_MONTH;
+
+  // Workday-only: weekends never advance the streak, never award XP, never
+  // spend tokens. Returning alreadyCountedToday=true makes the caller no-op.
+  if (!isWorkday(today)) {
+    return {
+      newStreak: opts.currentStreak,
+      spentTokens: 0,
+      remainingTokens: tokens,
+      monthKey,
+      alreadyCountedToday: true,
+      brokeStreak: false,
+    };
+  }
 
   if (opts.lastDate === today) {
     return {

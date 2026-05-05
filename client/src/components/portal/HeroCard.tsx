@@ -30,6 +30,16 @@ const STAT_ICON: Record<Stat, typeof Target> = {
 // Persists locally + best-effort to server (PATCH /api/auth/sound-prefs).
 function PerEventSoundToggles() {
   const [muted, setMuted] = useState<Set<SoundName>>(() => new Set(getSoundMuted()));
+  // Stay in sync with mute changes from any other surface (server hydration on
+  // boot, future settings UIs, cross-tab) so this panel never drifts.
+  useEffect(() => {
+    const onChanged = (e: Event) => {
+      const list = (e as CustomEvent<{ muted: SoundName[] }>).detail?.muted;
+      if (Array.isArray(list)) setMuted(new Set(list));
+    };
+    window.addEventListener("hk:sound-muted-changed", onChanged);
+    return () => window.removeEventListener("hk:sound-muted-changed", onChanged);
+  }, []);
   function toggle(name: SoundName) {
     const next = new Set(muted);
     if (next.has(name)) next.delete(name); else next.add(name);

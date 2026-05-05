@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
-import { apiRequest } from "@/lib/auth";
-import { MessageSquare, Plus, Send, ChevronLeft, MessageCircle, Sparkles, Loader2, Paperclip, X, Download, FileText, Image as ImageIcon } from "lucide-react";
+import { apiRequest, getCurrentUser, type PortalUser } from "@/lib/auth";
+import { MessageSquare, Plus, Send, ChevronLeft, MessageCircle, Sparkles, Loader2, Paperclip, X, Download, FileText, Image as ImageIcon, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -194,11 +194,44 @@ function ForumsContent() {
   const [posting, setPosting] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [me, setMe] = useState<PortalUser | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = "Board Forums | handləkraft.ai";
     loadTopics();
+    getCurrentUser().then(setMe);
   }, []);
+
+  function canDelete(authorId: number | undefined | null) {
+    if (!me || authorId == null) return false;
+    return me.id === authorId || me.role === "admin";
+  }
+
+  async function deleteTopic(topic: any) {
+    if (!confirm(`Delete topic "${topic.title}"? This will remove all replies and attachments.`)) return;
+    setDeletingId(`topic-${topic.id}`);
+    const r = await apiRequest("DELETE", `/api/board/forums/topics/${topic.id}`);
+    setDeletingId(null);
+    if (r.success) {
+      if (activeTopic?.id === topic.id) setActiveTopic(null);
+      await loadTopics();
+    } else {
+      alert(r.error || "Could not delete topic.");
+    }
+  }
+
+  async function deletePost(post: any) {
+    if (!confirm("Delete this reply? Attachments will be removed too.")) return;
+    setDeletingId(`post-${post.id}`);
+    const r = await apiRequest("DELETE", `/api/board/forums/posts/${post.id}`);
+    setDeletingId(null);
+    if (r.success && activeTopic) {
+      await refreshPosts(activeTopic.id);
+    } else if (!r.success) {
+      alert(r.error || "Could not delete reply.");
+    }
+  }
 
   async function loadTopics() {
     setLoading(true);
@@ -303,7 +336,22 @@ function ForumsContent() {
         <button onClick={() => setActiveTopic(null)} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700 mb-5" data-testid="button-back-topics">
           <ChevronLeft className="w-4 h-4" /> All topics
         </button>
-        <h1 className="text-xl font-display text-[#1A1F2B] mb-1" data-testid="text-topic-title">{activeTopic.title}</h1>
+        <div className="flex items-start justify-between gap-3 mb-1">
+          <h1 className="text-xl font-display text-[#1A1F2B]" data-testid="text-topic-title">{activeTopic.title}</h1>
+          {canDelete(activeTopic.author_id ?? activeTopic.authorId) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => deleteTopic(activeTopic)}
+              disabled={deletingId === `topic-${activeTopic.id}`}
+              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1.5"
+              data-testid={`button-delete-topic-${activeTopic.id}`}
+            >
+              {deletingId === `topic-${activeTopic.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+              Delete topic
+            </Button>
+          )}
+        </div>
         <p className="text-xs text-slate-400 mb-6">Posted by {activeTopic.first_name} {activeTopic.last_name} · {new Date(activeTopic.created_at || activeTopic.createdAt).toLocaleDateString()}</p>
 
         <Card className="border-0 shadow-sm mb-3">
@@ -336,6 +384,21 @@ function ForumsContent() {
                     </div>
                     <p className="text-sm text-slate-700 whitespace-pre-wrap">{displayContent}</p>
                     <AttachmentList items={(p.attachments as Attachment[]) || []} testIdPrefix={`link-post-attachment-${p.id}`} />
+                    {canDelete(p.author_id ?? p.authorId) && (
+                      <div className="mt-2 flex justify-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deletePost(p)}
+                          disabled={deletingId === `post-${p.id}`}
+                          className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1 h-7 px-2 text-xs"
+                          data-testid={`button-delete-post-${p.id}`}
+                        >
+                          {deletingId === `post-${p.id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                          Delete
+                        </Button>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               );
@@ -463,6 +526,19 @@ function ForumsContent() {
                     <p className="text-xs text-slate-500 truncate mt-0.5">{t.content}</p>
                   </div>
                   <Badge variant="secondary" className="shrink-0 text-xs">{t.post_count ?? 0} replies</Badge>
+                  {canDelete(t.author_id ?? t.authorId) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => { e.stopPropagation(); deleteTopic(t); }}
+                      disabled={deletingId === `topic-${t.id}`}
+                      className="shrink-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50 h-7 w-7 p-0"
+                      data-testid={`button-delete-topic-list-${t.id}`}
+                      aria-label="Delete topic"
+                    >
+                      {deletingId === `topic-${t.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

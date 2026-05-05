@@ -1572,6 +1572,50 @@ router.post("/forums/topics/:id/posts", uploadForumFiles, async (req, res) => {
   res.status(201).json({ success: true, data: { id: postId } });
 });
 
+function unlinkForumFiles(filenames: string[]) {
+  for (const name of filenames) {
+    if (!name) continue;
+    const filepath = path.join(BOARD_FORUM_DIR, name);
+    fs.unlink(filepath, () => {});
+  }
+}
+
+router.delete("/forums/topics/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (Number.isNaN(id)) return res.status(400).json({ success: false, error: "Invalid id" });
+  const rows = await raw<any>(sql`SELECT * FROM board_forum_topics WHERE id = ${id}`);
+  const topic = rows[0];
+  if (!topic) return res.status(404).json({ success: false, error: "Topic not found" });
+  if (topic.author_id !== req.user!.userId && req.user!.role !== "admin") {
+    return res.status(403).json({ success: false, error: "Not allowed" });
+  }
+  const postRows = await raw<any>(sql`SELECT id FROM board_forum_posts WHERE topic_id = ${id}`);
+  const postIds = postRows.map(r => r.id as number);
+  const topicAttachments = await storage.listBoardForumAttachmentsByTopic(id);
+  const postAttachments = await storage.listBoardForumAttachmentsByPostIds(postIds);
+  const filenames = [...topicAttachments, ...postAttachments].map(a => a.filename);
+  await db.execute(sql`DELETE FROM board_forum_posts WHERE topic_id = ${id}`);
+  await db.execute(sql`DELETE FROM board_forum_topics WHERE id = ${id}`);
+  unlinkForumFiles(filenames);
+  res.json({ success: true, data: null });
+});
+
+router.delete("/forums/posts/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (Number.isNaN(id)) return res.status(400).json({ success: false, error: "Invalid id" });
+  const rows = await raw<any>(sql`SELECT * FROM board_forum_posts WHERE id = ${id}`);
+  const post = rows[0];
+  if (!post) return res.status(404).json({ success: false, error: "Post not found" });
+  if (post.author_id !== req.user!.userId && req.user!.role !== "admin") {
+    return res.status(403).json({ success: false, error: "Not allowed" });
+  }
+  const attachments = await storage.listBoardForumAttachmentsByPost(id);
+  const filenames = attachments.map(a => a.filename);
+  await db.execute(sql`DELETE FROM board_forum_posts WHERE id = ${id}`);
+  unlinkForumFiles(filenames);
+  res.json({ success: true, data: null });
+});
+
 router.get("/forums/attachments/:id/download", async (req, res) => {
   const id = parseInt(req.params.id);
   if (Number.isNaN(id)) return res.status(400).json({ success: false, error: "Invalid id" });

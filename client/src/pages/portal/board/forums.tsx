@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
-import { MessageSquare, Plus, Send, ChevronLeft, MessageCircle, Sparkles, Loader2, X } from "lucide-react";
+import { MessageSquare, Plus, Send, ChevronLeft, MessageCircle, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +17,6 @@ function ForumsContent() {
   const [topicForm, setTopicForm] = useState({ title: "", content: "" });
   const [replyText, setReplyText] = useState("");
   const [posting, setPosting] = useState(false);
-  const [aiDraft, setAiDraft] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
@@ -35,7 +34,6 @@ function ForumsContent() {
 
   async function openTopic(t: any) {
     setActiveTopic(t);
-    setAiDraft(null);
     setAiError(null);
     setPostsLoading(true);
     const r = await apiRequest("GET", `/api/board/forums/topics/${t.id}/posts`);
@@ -47,27 +45,17 @@ function ForumsContent() {
     if (!activeTopic) return;
     setAiLoading(true);
     setAiError(null);
-    setAiDraft(null);
-    const r = await apiRequest("POST", "/api/ai/forum-comment", { topicId: activeTopic.id });
-    if (r.success && r.data?.comment) {
-      setAiDraft(r.data.comment);
+    const r = await apiRequest("POST", "/api/ai/forum-comment", {
+      topicId: activeTopic.id,
+      autoPost: true,
+    });
+    if (r.success) {
+      const r2 = await apiRequest("GET", `/api/board/forums/topics/${activeTopic.id}/posts`);
+      if (r2.success) setPosts(r2.data || []);
     } else {
       setAiError(r.error || "Could not generate AI commentary.");
     }
     setAiLoading(false);
-  }
-
-  async function postAiDraft() {
-    if (!aiDraft || !activeTopic) return;
-    setPosting(true);
-    const content = `[AI Advisor]\n\n${aiDraft}`;
-    const r = await apiRequest("POST", `/api/board/forums/topics/${activeTopic.id}/posts`, { content });
-    if (r.success) {
-      setAiDraft(null);
-      const r2 = await apiRequest("GET", `/api/board/forums/topics/${activeTopic.id}/posts`);
-      if (r2.success) setPosts(r2.data || []);
-    }
-    setPosting(false);
   }
 
   async function createTopic() {
@@ -152,32 +140,6 @@ function ForumsContent() {
               );
             })}
           </div>
-        )}
-
-        {/* AI commentary panel */}
-        {aiDraft && (
-          <Card className="my-4 border-0 shadow-sm bg-gradient-to-br from-violet-50 to-indigo-50 ring-1 ring-violet-200" data-testid="card-ai-draft">
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-700">
-                  <Sparkles className="w-4 h-4" /> AI Advisor draft — review before posting
-                </span>
-                <button onClick={() => setAiDraft(null)} className="text-slate-400 hover:text-slate-600" data-testid="button-discard-ai-draft" aria-label="Discard">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              <p className="text-sm text-slate-700 whitespace-pre-wrap mb-3" data-testid="text-ai-draft">{aiDraft}</p>
-              <div className="flex gap-2">
-                <Button onClick={postAiDraft} disabled={posting} className="bg-violet-600 hover:bg-violet-700 text-white gap-1.5" data-testid="button-post-ai-draft">
-                  <Send className="w-4 h-4" /> Post as reply
-                </Button>
-                <Button variant="outline" onClick={askAi} disabled={aiLoading} className="gap-1.5" data-testid="button-regenerate-ai">
-                  <Sparkles className="w-4 h-4" /> Regenerate
-                </Button>
-                <Button variant="ghost" onClick={() => setAiDraft(null)}>Discard</Button>
-              </div>
-            </CardContent>
-          </Card>
         )}
 
         {aiError && (

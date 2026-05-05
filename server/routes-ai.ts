@@ -509,7 +509,7 @@ router.post("/task-advice", async (req: any, res) => {
 // ── Forum topic AI commentary ─────────────────────────────────────────────────
 
 router.post("/forum-comment", async (req: any, res) => {
-  const { topicId } = req.body;
+  const { topicId, autoPost } = req.body;
   if (!topicId) return res.status(400).json({ success: false, error: "topicId required" });
 
   // Only board members and admins may use this on board forums
@@ -600,7 +600,17 @@ Please post a substantive comment on this discussion as the AI advisor. Apply th
     const comment = response.content[0].type === "text" ? response.content[0].text.trim() : "";
     if (!comment) return res.status(500).json({ success: false, error: "AI returned empty response" });
 
-    res.json({ success: true, data: { comment } });
+    if (autoPost) {
+      const content = `[AI Advisor]\n\n${comment}`;
+      const { sql } = await import("drizzle-orm");
+      await db.execute(sql`
+        INSERT INTO board_forum_posts (topic_id, author_id, content)
+        VALUES (${Number(topicId)}, ${req.user.userId}, ${content})
+      `);
+      await db.execute(sql`UPDATE board_forum_topics SET last_activity_at = NOW() WHERE id = ${Number(topicId)}`);
+    }
+
+    res.json({ success: true, data: { comment, posted: !!autoPost } });
   } catch (err: any) {
     console.error("[Forum AI] Error:", err.message);
     res.status(500).json({ success: false, error: "AI service temporarily unavailable. Please try again." });

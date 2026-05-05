@@ -107,6 +107,13 @@ export const users = pgTable("portal_users", {
   // Gamification
   xpTotal: integer("xp_total").notNull().default(0),
   soundEnabled: boolean("sound_enabled").notNull().default(false),
+  // Streaks (Daily Raid = Plan Day; Honest Pulse = energy log)
+  dailyRaidStreak: integer("daily_raid_streak").notNull().default(0),
+  dailyRaidLast: varchar("daily_raid_last", { length: 10 }),
+  honestPulseStreak: integer("honest_pulse_streak").notNull().default(0),
+  honestPulseLast: varchar("honest_pulse_last", { length: 10 }),
+  restTokens: integer("rest_tokens").notNull().default(2),
+  restTokenMonth: varchar("rest_token_month", { length: 7 }),
 });
 export type PortalUser = typeof users.$inferSelect;
 export type InsertPortalUser = typeof users.$inferInsert;
@@ -118,6 +125,8 @@ export const xpEvents = pgTable("xp_events", {
   reason: text("reason").notNull(),
   sourceType: varchar("source_type", { length: 40 }).notNull(),
   sourceId: integer("source_id"),
+  stat: varchar("stat", { length: 20 }), // focus | initiative | stewardship | craft | null
+  multiplier: real("multiplier").notNull().default(1.0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 export type XpEvent = typeof xpEvents.$inferSelect;
@@ -288,6 +297,9 @@ export const kanbanCards = pgTable("kanban_cards", {
   reviewApproved: boolean("review_approved").notNull().default(false),
   reviewedBy: integer("reviewed_by"),
   reviewedAt: timestamp("reviewed_at"),
+  // Gamification — used to scope Initiative bonus + manager-visible "Loved this"
+  claimedFromFactory: boolean("claimed_from_factory").notNull().default(false),
+  lovedThis: boolean("loved_this").notNull().default(false),
 });
 export type KanbanCard = typeof kanbanCards.$inferSelect;
 

@@ -279,14 +279,20 @@ router.get("/factory/sample.csv", (_req, res) => {
   res.send(csv);
 });
 
-// Claim a card — assign to self, optionally move to a different board/column
+// Claim a card — assign to self, optionally move to a different board/column.
+// Marks claimed_from_factory=true if the card currently lives on a Longship
+// Factory board, so completion can later award the 1.5× Initiative bonus.
 router.post("/cards/:id/claim", async (req, res) => {
   const userId = req.user!.userId;
   const cardId = parseInt(req.params.id);
   const { targetBoardId, targetColumnId } = req.body;
   const [card] = await db.select().from(kanbanCards).where(eq(kanbanCards.id, cardId));
   if (!card) return res.status(404).json({ success: false, error: "Card not found" });
+  const [sourceBoard] = await db.select().from(kanbanBoards).where(eq(kanbanBoards.id, card.boardId));
+  const fromFactory = !!sourceBoard?.isLongshipFactory;
   const updateData: any = { assignedTo: userId, updatedAt: new Date() };
+  // Once flagged, stay flagged (never clear back to false on subsequent claims).
+  if (fromFactory) updateData.claimedFromFactory = true;
   if (targetBoardId && targetColumnId) {
     const colId = parseInt(targetColumnId);
     const existing = await db.select({ id: kanbanCards.id }).from(kanbanCards)
@@ -656,7 +662,7 @@ router.patch("/cards/:id", async (req, res) => {
   }).where(eq(kanbanCards.id, cardId)).returning();
   if (!card) return res.status(404).json({ success: false, error: "Card not found" });
 
-  // ── XP award on completion (idempotent) ──────────────────────────────────
+  // ── XP awards on column transitions (all idempotent) ──────────────────────
   interface XpAwardRow { awarded: number | string | null; total: number | string | null }
   function rowsOf<T>(result: unknown): T[] {
     if (result && typeof result === "object" && "rows" in result) {
@@ -665,51 +671,92 @@ router.patch("/cards/:id", async (req, res) => {
     return Array.isArray(result) ? (result as T[]) : [];
   }
 
-  let xpAwarded: { amount: number; reason: string; newTotal: number } | null = null;
+  type Stat = "focus" | "initiative" | "stewardship" | "craft";
+  type Award = { amount: number; reason: string; newTotal: number; stat: Stat | null };
+  const xpAwards: Award[] = [];
+
+  async function tryAward(opts: {
+    userId: number; amount: number; reason: string;
+    sourceType: string; sourceId: number; stat: Stat | null; multiplier: number;
+  }): Promise<Award | null> {
+    const { userId: uid, amount, reason, sourceType, sourceId, stat, multiplier } = opts;
+    const txResult = await db.execute(sql`
+      WITH inserted AS (
+        INSERT INTO xp_events (user_id, amount, reason, source_type, source_id, stat, multiplier)
+        VALUES (${uid}, ${amount}, ${reason}, ${sourceType}, ${sourceId}, ${stat}, ${multiplier})
+        ON CONFLICT (source_type, source_id) DO NOTHING
+        RETURNING amount
+      ),
+      bumped AS (
+        UPDATE portal_users SET xp_total = xp_total + (SELECT amount FROM inserted)
+        WHERE id = ${uid} AND EXISTS (SELECT 1 FROM inserted)
+        RETURNING xp_total
+      )
+      SELECT (SELECT amount FROM inserted) AS awarded, (SELECT xp_total FROM bumped) AS total
+    `);
+    const row = rowsOf<XpAwardRow>(txResult)[0];
+    if (!row || row.awarded == null) return null;
+    return { amount: Number(row.awarded), reason, newTotal: Number(row.total ?? 0), stat };
+  }
+
   try {
-    if (
-      columnId !== undefined &&
-      parseInt(columnId) !== currentCard.columnId &&
-      card.assignedTo
-    ) {
+    const colChanged = columnId !== undefined && parseInt(columnId) !== currentCard.columnId;
+    if (colChanged) {
+      const { xpForPriority, isInReviewColumn, INITIATIVE_MULTIPLIER, LOVED_THIS_THRESHOLD, LOVED_THIS_BONUS, REVIEWER_XP } = await import("@shared/xp");
       const [newCol] = await db.select().from(kanbanColumns).where(eq(kanbanColumns.id, card.columnId));
-      const { xpForPriority } = await import("@shared/xp");
-      if (newCol && _isDone(newCol.title)) {
-        const amount = xpForPriority(card.priority);
-        const reason = `Completed: ${card.title}`.slice(0, 200);
-        // Idempotent: unique index on (user_id, source_type, source_id) — title rename
-        // does NOT re-award. Single-CTE statement keeps insert + xp_total bump consistent.
-        const txResult = await db.execute(sql`
-          WITH inserted AS (
-            INSERT INTO xp_events (user_id, amount, reason, source_type, source_id)
-            VALUES (${card.assignedTo}, ${amount}, ${reason}, 'kanban_card_complete', ${card.id})
-            ON CONFLICT (source_type, source_id) DO NOTHING
-            RETURNING amount
-          ),
-          bumped AS (
-            UPDATE portal_users
-            SET xp_total = xp_total + COALESCE((SELECT amount FROM inserted), 0)
-            WHERE id = ${card.assignedTo}
-            RETURNING xp_total
-          )
-          SELECT (SELECT amount FROM inserted) AS awarded, (SELECT xp_total FROM bumped) AS total
-        `);
-        const row = rowsOf<XpAwardRow>(txResult)[0];
-        if (row && row.awarded != null) {
-          // Only surface xpAwarded to the authenticated viewer if THEY are the
-          // recipient. Otherwise an admin/teammate moving someone else's card
-          // would see the other hero's XP/rank-up overlay in their own UI.
-          if (req.user!.userId === card.assignedTo) {
-            xpAwarded = { amount: Number(row.awarded), reason, newTotal: Number(row.total ?? 0) };
+      const [oldCol] = await db.select().from(kanbanColumns).where(eq(kanbanColumns.id, currentCard.columnId));
+
+      // ── Completion: award assignee Focus or Initiative XP, plus Loved-this bonus ──
+      if (newCol && _isDone(newCol.title) && card.assignedTo) {
+        const baseAmount = xpForPriority(card.priority);
+        const isInitiative = !!card.claimedFromFactory;
+        const finalAmount = isInitiative ? Math.round(baseAmount * INITIATIVE_MULTIPLIER) : baseAmount;
+        const reason = isInitiative
+          ? `Initiative bonus: ${card.title}`.slice(0, 200)
+          : `Quest complete: ${card.title}`.slice(0, 200);
+        const a = await tryAward({
+          userId: card.assignedTo, amount: finalAmount, reason,
+          sourceType: "kanban_card_complete", sourceId: card.id,
+          stat: isInitiative ? "initiative" : "focus",
+          multiplier: isInitiative ? INITIATIVE_MULTIPLIER : 1.0,
+        });
+        if (a && req.user!.userId === card.assignedTo) xpAwards.push(a);
+
+        // Loved this — set flag (manager-visible) and award Craft bonus
+        const interest = card.interestRating ?? -1;
+        if (interest >= LOVED_THIS_THRESHOLD) {
+          if (!card.lovedThis) {
+            await db.update(kanbanCards).set({ lovedThis: true }).where(eq(kanbanCards.id, card.id));
+            card.lovedThis = true;
           }
+          const lovedReason = `Loved this: ${card.title}`.slice(0, 200);
+          const lv = await tryAward({
+            userId: card.assignedTo, amount: LOVED_THIS_BONUS, reason: lovedReason,
+            sourceType: "kanban_card_loved", sourceId: card.id,
+            stat: "craft", multiplier: 1.0,
+          });
+          if (lv && req.user!.userId === card.assignedTo) xpAwards.push(lv);
         }
+      }
+
+      // ── Reviewer XP: card moved OUT of "In Review" with a reviewer set ──
+      if (oldCol && newCol && isInReviewColumn(oldCol.title) && !isInReviewColumn(newCol.title) && card.reviewerId) {
+        const reviewReason = `Review handoff: ${card.title}`.slice(0, 200);
+        const rv = await tryAward({
+          userId: card.reviewerId, amount: REVIEWER_XP, reason: reviewReason,
+          sourceType: "kanban_card_review", sourceId: card.id,
+          stat: "stewardship", multiplier: 1.0,
+        });
+        if (rv && req.user!.userId === card.reviewerId) xpAwards.push(rv);
       }
     }
   } catch (e) {
     console.error("[xp] award failed:", e instanceof Error ? e.message : String(e));
   }
 
-  res.json({ success: true, data: card, xpAwarded });
+  // Backward-compat: legacy clients still read `xpAwarded` (singular).
+  const xpAwarded = xpAwards.length > 0 ? xpAwards[0] : null;
+  res.json({ success: true, data: card, xpAwarded, xpAwards });
 });
 
 router.delete("/cards/:id", async (req, res) => {

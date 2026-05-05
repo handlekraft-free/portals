@@ -238,6 +238,9 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
       createdAt: new Date().toISOString(),
     };
     saveTodayPlan(user.id, plan);
+    // Fire-and-forget: advance the Daily Raid streak. apiRequest broadcasts
+    // any xpAwards via the xp:awarded event so XpProvider toasts naturally.
+    void apiRequest("POST", "/api/xp/streak/raid");
     onComplete(plan);
   }
 

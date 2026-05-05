@@ -49,6 +49,13 @@ Preferred communication style: Simple, everyday language.
 - **Development:** `tsx server/index.ts` integrated with Vite middleware for Hot Module Replacement.
 - **Production:** Custom `script/build.ts` orchestrates Vite for the client and esbuild for the server, outputting to `dist/`.
 
+## Gamification (XP, Stats, Streaks)
+- **Single XP pool** in `portal_users.xp_total`; full audit in `xp_events` with idempotent `UNIQUE(source_type, source_id)`. Logic in `shared/xp.ts`.
+- **Six Norse ranks** (Thrall→Konungr) and **four stat tracks** (Focus, Initiative, Stewardship, Craft). Stat totals derived by `SUM(amount) GROUP BY stat` — no extra columns.
+- **Bonuses**: factory-claimed completions earn 1.5× Initiative XP (`kanban_cards.claimed_from_factory`); 4★+ rated completions get a +25 Craft "Loved this" bonus and set `kanban_cards.loved_this` (gold heart marker visible to admins); reviewers earn 30 Stewardship XP when an In-Review card moves to a non-review column (separate `source_type='kanban_card_review'`).
+- **Forgiving streaks**: Daily Raid (Plan Day) and Honest Pulse (energy log) pause via 2 monthly Rest Day tokens (`portal_users.rest_tokens` + `rest_token_month`) before resetting. Pure logic in `advanceStreak()`. Endpoints: `POST /api/xp/streak/raid`, side-effect on `POST /api/balance/me`.
+- **Toasts**: server returns `xpAwards: XpAward[]`; `apiRequest` dispatches `xp:awarded` event; `XpProvider` aggregates within 250ms into one toast (e.g. "+90 XP — 2 awards"). My Saga tab in `HeroCard` popover shows stat tracks + streaks + tokens.
+
 ## Key Design Decisions
 - **Full-stack application** built with Express, React, and PostgreSQL.
 - **Comprehensive component library** using shadcn/ui for rapid development.

@@ -396,6 +396,18 @@ export async function registerRoutes(
       -- never double-awards.
       CREATE UNIQUE INDEX IF NOT EXISTS xp_events_source_dedupe_idx ON xp_events (source_type, source_id);
       CREATE INDEX IF NOT EXISTS xp_events_user_idx ON xp_events (user_id, created_at DESC);
+      -- Task #22: stat tracks + multipliers + streaks + factory-claim flag
+      ALTER TABLE xp_events ADD COLUMN IF NOT EXISTS stat varchar(20);
+      ALTER TABLE xp_events ADD COLUMN IF NOT EXISTS multiplier real NOT NULL DEFAULT 1.0;
+      CREATE INDEX IF NOT EXISTS xp_events_user_stat_idx ON xp_events (user_id, stat);
+      ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS claimed_from_factory boolean NOT NULL DEFAULT false;
+      ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS loved_this boolean NOT NULL DEFAULT false;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS daily_raid_streak integer NOT NULL DEFAULT 0;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS daily_raid_last varchar(10);
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS honest_pulse_streak integer NOT NULL DEFAULT 0;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS honest_pulse_last varchar(10);
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS rest_tokens integer NOT NULL DEFAULT 2;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS rest_token_month varchar(7);
     `);
     await migrationPool.end();
     console.log("[migrate] ✓ Schema patches applied");

@@ -9,7 +9,7 @@ import {
   Plus, ArrowLeft, Kanban, X, Check, ChevronRight, Calendar, Flag,
   MessageSquare, Paperclip, Upload, Trash2, Pencil, Download, Image,
   FileText, Search, User, ClipboardList, Eye, ArrowRightLeft, ChevronDown,
-  Sparkles, Loader2, Ship, Anchor, FileUp, FileDown, Info,
+  Sparkles, Loader2, Ship, Anchor, FileUp, FileDown, Info, Heart,
 } from "lucide-react";
 import { VikingCrossedSwords, VikingHelmSvg, VikingAxeSvg, RuneDivider } from "@/components/portal/VikingDecor";
 import { Button } from "@/components/ui/button";
@@ -1568,6 +1568,16 @@ function KanbanContent() {
                                 )}
                                 {card.interestRating !== null && card.interestRating !== undefined && (
                                   <span className="text-xs" title={`Interest: ${card.interestRating}/5`}>{INTEREST_LABELS[card.interestRating]?.emoji}</span>
+                                )}
+                                {/* Manager-visible "Loved this" gold marker — set when a 4★+ rated card is completed */}
+                                {card.lovedThis && (user?.role === "admin") && (
+                                  <span
+                                    className="text-[#D4A843]"
+                                    title="Loved this — completed and rated 4★ or higher"
+                                    data-testid={`badge-loved-${card.id}`}
+                                  >
+                                    <Heart className="w-3 h-3 fill-current" />
+                                  </span>
                                 )}
                                 {/* Reviewer dot (yellow) */}
                                 {card.reviewer && <Avatar user={card.reviewer} size="sm" variant="reviewer" />}

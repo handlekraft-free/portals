@@ -1,6 +1,9 @@
 import { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
-import { apiRequest } from "@/lib/auth";
-import { getRankProgress, type RankProgress, type Rank } from "@shared/xp";
+import { apiRequest, type XpAward } from "@/lib/auth";
+import {
+  getRankProgress, type RankProgress, type Rank,
+  type Stat, type StatProgress,
+} from "@shared/xp";
 import { useToast } from "@/hooks/use-toast";
 import { Anchor, Hammer, Crown, Swords, Scroll, Sparkles, type LucideIcon } from "lucide-react";
 
@@ -13,14 +16,23 @@ const RANK_ICONS: Record<string, LucideIcon> = {
   konungr: Sparkles,
 };
 
-type XpAwardDetail = { amount: number; reason: string; newTotal: number };
+interface XpMeData extends RankProgress {
+  soundEnabled?: boolean;
+  recentEvents?: any[];
+  stats?: StatProgress[];
+  streaks?: {
+    dailyRaid:   { count: number; lastDate: string | null };
+    honestPulse: { count: number; lastDate: string | null };
+  };
+  restTokens?: number;
+  restTokenMonth?: string;
+}
 
 interface XpContextValue {
   progress: RankProgress | null;
+  data: XpMeData | null;
   soundEnabled: boolean;
   loading: boolean;
-  /** True only after a real xp:awarded event arrived this session; the bar
-   *  uses this to decide whether to animate or just snap to the loaded value. */
   hasGainedThisSession: boolean;
   setSoundEnabled: (v: boolean) => Promise<void>;
   refresh: () => Promise<void>;
@@ -62,9 +74,7 @@ function playCompletionSound() {
     drum.start();
     drum.stop(ctx.currentTime + 0.3);
     setTimeout(() => { void ctx.close(); }, 400);
-  } catch {
-    /* user gesture / audio policy can block; silently no-op */
-  }
+  } catch { /* user gesture / audio policy can block; silently no-op */ }
 }
 
 function playRankUpSound() {
@@ -86,33 +96,23 @@ function playRankUpSound() {
       o.stop(t0 + 1.3);
     });
     setTimeout(() => { void ctx.close(); }, 1400);
-  } catch {
-    /* see playCompletionSound */
-  }
+  } catch { /* see playCompletionSound */ }
 }
 
-// ── Rank-up title-card overlay (Escape + click + auto-dismiss) ───────────
+// ── Rank-up title-card overlay ─────────────────────────────────────────────
 function RankUpOverlay({ rank, onDismiss }: { rank: Rank; onDismiss: () => void }) {
   useEffect(() => {
     const t = setTimeout(onDismiss, 4000);
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape" || e.key === "Enter") {
-        e.preventDefault();
-        onDismiss();
-      }
+      if (e.key === "Escape" || e.key === "Enter") { e.preventDefault(); onDismiss(); }
     }
     window.addEventListener("keydown", onKey);
-    return () => {
-      clearTimeout(t);
-      window.removeEventListener("keydown", onKey);
-    };
+    return () => { clearTimeout(t); window.removeEventListener("keydown", onKey); };
   }, [onDismiss]);
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="rank-up-title"
+      role="dialog" aria-modal="true" aria-labelledby="rank-up-title"
       className="fixed inset-0 z-[80] flex items-center justify-center pointer-events-none animate-in fade-in duration-300"
       data-testid="overlay-rank-up"
     >
@@ -121,10 +121,7 @@ function RankUpOverlay({ rank, onDismiss }: { rank: Rank; onDismiss: () => void 
         {(() => {
           const Icon = RANK_ICONS[rank.key] ?? Sparkles;
           return (
-            <div
-              className="mx-auto mb-3 w-14 h-14 rounded-full bg-[#D4A843]/15 ring-2 ring-[#D4A843]/50 flex items-center justify-center"
-              data-testid="icon-new-rank"
-            >
+            <div className="mx-auto mb-3 w-14 h-14 rounded-full bg-[#D4A843]/15 ring-2 ring-[#D4A843]/50 flex items-center justify-center" data-testid="icon-new-rank">
               <Icon className="w-7 h-7 text-[#D4A843]" />
             </div>
           );
@@ -135,20 +132,32 @@ function RankUpOverlay({ rank, onDismiss }: { rank: Rank; onDismiss: () => void 
         </div>
         <div className="text-white/70 text-sm italic">{rank.blurb}</div>
         <button
-          onClick={onDismiss}
-          autoFocus
+          onClick={onDismiss} autoFocus
           className="mt-5 text-white/50 hover:text-white text-xs underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-[#D4A843]/50 rounded px-2 py-0.5"
           data-testid="button-dismiss-rank-up"
-        >
-          continue (Esc)
-        </button>
+        >continue (Esc)</button>
       </div>
     </div>
   );
 }
 
+// Plain-language reason for a single award. Keeps copy short, friendly,
+// and stat-aware ("Initiative bonus", "Loved this", "Review handoff", …).
+function shortReason(a: XpAward): string {
+  const r = (a.reason ?? "").toLowerCase();
+  if (r.startsWith("initiative bonus")) return "Initiative bonus";
+  if (r.startsWith("loved this"))       return "Loved this";
+  if (r.startsWith("review handoff"))   return "Review handoff";
+  if (r.startsWith("daily raid"))       return a.reason; // already plain
+  if (r.startsWith("honest pulse"))     return a.reason;
+  if (r.startsWith("quest complete"))   return "quest complete";
+  if (r.startsWith("completed:"))       return "quest complete";
+  return a.reason;
+}
+
 export function XpProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
+  const [data, setData] = useState<XpMeData | null>(null);
   const [progress, setProgress] = useState<RankProgress | null>(null);
   const [soundEnabled, setSoundEnabledState] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -157,13 +166,19 @@ export function XpProvider({ children }: { children: React.ReactNode }) {
   const lastRankKeyRef = useRef<string | null>(null);
   const hasLoadedRef = useRef(false);
 
+  // Aggregation buffer: collect awards arriving within ~250ms into one toast.
+  const bufferRef = useRef<XpAward[]>([]);
+  const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const refresh = useCallback(async () => {
     const res = await apiRequest("GET", "/api/xp/me");
     if (res?.success && res.data) {
-      setProgress(res.data);
-      setSoundEnabledState(!!res.data.soundEnabled);
+      const d = res.data as XpMeData;
+      setData(d);
+      setProgress(d);
+      setSoundEnabledState(!!d.soundEnabled);
       if (!hasLoadedRef.current) {
-        lastRankKeyRef.current = res.data.rank?.key ?? null;
+        lastRankKeyRef.current = d.rank?.key ?? null;
         hasLoadedRef.current = true;
       }
       setLoading(false);
@@ -172,35 +187,57 @@ export function XpProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { void refresh(); }, [refresh]);
 
-  // Listen for XP gains broadcast by apiRequest
+  // Listen for XP gains broadcast by apiRequest (single-aggregated event)
   useEffect(() => {
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent<XpAwardDetail>).detail;
-      if (!detail) return;
+    function flush() {
+      const awards = bufferRef.current;
+      bufferRef.current = [];
+      flushTimerRef.current = null;
+      if (awards.length === 0) return;
 
-      const next = getRankProgress(detail.newTotal);
+      // Use the LAST award's newTotal as the canonical post-gain XP — server
+      // applies them sequentially so the last total reflects all gains.
+      const finalTotal = awards[awards.length - 1].newTotal;
+      const next = getRankProgress(finalTotal);
       setProgress(next);
       setHasGainedThisSession(true);
+      // Refresh stats/streaks in the My Saga tab without blocking the toast.
+      void refresh();
 
-      // Compact quest-style copy: "+70 XP — quest complete"; strip the
-      // "Completed: " prefix the server adds to keep the toast tight.
-      const trimmed = detail.reason.replace(/^Completed:\s*/i, "");
-      toast({
-        title: `+${detail.amount} XP — quest complete`,
-        description: trimmed,
-      });
+      const total = awards.reduce((s, a) => s + a.amount, 0);
+      const title = awards.length === 1
+        ? `+${awards[0].amount} XP — ${shortReason(awards[0])}`
+        : `+${total} XP — ${awards.length} awards`;
+      const description = awards.length === 1
+        ? awards[0].reason
+        : awards.map(a => `+${a.amount} · ${shortReason(a)}`).join("  ·  ");
+
+      toast({ title, description });
 
       const isRankUp = lastRankKeyRef.current && next.rank.key !== lastRankKeyRef.current;
       if (soundEnabled) {
-        if (isRankUp) playRankUpSound();
-        else playCompletionSound();
+        if (isRankUp) playRankUpSound(); else playCompletionSound();
       }
       if (isRankUp) setRankUp(next.rank);
       lastRankKeyRef.current = next.rank.key;
-    };
+    }
+
+    function handler(e: Event) {
+      const detail = (e as CustomEvent<{ awards: XpAward[] }>).detail;
+      const awards = detail?.awards;
+      if (!awards || awards.length === 0) return;
+      bufferRef.current.push(...awards);
+      if (flushTimerRef.current == null) {
+        flushTimerRef.current = setTimeout(flush, 250);
+      }
+    }
+
     window.addEventListener("xp:awarded", handler as EventListener);
-    return () => window.removeEventListener("xp:awarded", handler as EventListener);
-  }, [toast, soundEnabled]);
+    return () => {
+      window.removeEventListener("xp:awarded", handler as EventListener);
+      if (flushTimerRef.current) clearTimeout(flushTimerRef.current);
+    };
+  }, [toast, soundEnabled, refresh]);
 
   const setSoundEnabled = useCallback(async (v: boolean) => {
     setSoundEnabledState(v);
@@ -208,7 +245,7 @@ export function XpProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <XpContext.Provider value={{ progress, soundEnabled, loading, hasGainedThisSession, setSoundEnabled, refresh }}>
+    <XpContext.Provider value={{ progress, data, soundEnabled, loading, hasGainedThisSession, setSoundEnabled, refresh }}>
       {children}
       {rankUp && <RankUpOverlay rank={rankUp} onDismiss={() => setRankUp(null)} />}
     </XpContext.Provider>

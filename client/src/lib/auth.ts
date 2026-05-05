@@ -106,15 +106,27 @@ export function getPortalPath(role: string): string {
   }
 }
 
-export function apiRequest<T = any>(method: string, url: string, body?: any): Promise<{ success: boolean; data: T; error?: string; xpAwarded?: { amount: number; reason: string; newTotal: number } | null }> {
+export type XpAward = { amount: number; reason: string; newTotal: number; stat?: string | null };
+
+export function apiRequest<T = any>(
+  method: string, url: string, body?: any
+): Promise<{ success: boolean; data: T; error?: string; xpAwarded?: XpAward | null; xpAwards?: XpAward[] }> {
   return fetch(url, {
     method,
     headers: body instanceof FormData ? undefined : { "Content-Type": "application/json" },
     body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
     credentials: "include",
   }).then(r => r.json()).then(json => {
-    if (json && json.xpAwarded && typeof window !== "undefined") {
-      try { window.dispatchEvent(new CustomEvent("xp:awarded", { detail: json.xpAwarded })); } catch {}
+    if (typeof window !== "undefined" && json) {
+      // Prefer the array form (multi-award); fall back to legacy single object.
+      const awards: XpAward[] | null = Array.isArray(json.xpAwards) && json.xpAwards.length > 0
+        ? json.xpAwards
+        : json.xpAwarded
+          ? [json.xpAwarded]
+          : null;
+      if (awards) {
+        try { window.dispatchEvent(new CustomEvent("xp:awarded", { detail: { awards } })); } catch {}
+      }
     }
     return json;
   });

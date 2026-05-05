@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
 import { changePassword } from "@/lib/auth";
@@ -156,30 +156,86 @@ function ForcePasswordChangeModal() {
   );
 }
 
+// Prefer a portal-specific role over a catch-all "admin" so that an admin who
+// also has, e.g., "board" lands in the board context (and so guards behave
+// consistently regardless of allowedRoles ordering).
+function pickSwitchTarget(allowedRoles: string[], availableRoles: string[]): string | null {
+  const eligible = allowedRoles.filter(r => availableRoles.includes(r));
+  if (eligible.length === 0) return null;
+  const nonAdmin = eligible.find(r => r !== "admin");
+  return nonAdmin ?? eligible[0];
+}
+
 export function PortalGuard({ allowedRoles, children }: PortalGuardProps) {
-  const { user, loading } = useAuth();
+  const { user, loading, refresh } = useAuth();
   const [, setLocation] = useLocation();
+  const [switching, setSwitching] = useState(false);
+  // One-shot guard: only ever attempt switch-portal once per (user × allowed
+  // roles) mount. Prevents an indefinite retry loop if the server returns
+  // a non-success response or the network call fails.
+  const switchAttemptedRef = useRef<string | null>(null);
+
+  // Multi-role users land on, e.g., /portal/board/* with their JWT still set
+  // to "employee". The server's APIs key off the JWT role, so without a
+  // switch the page would 403 silently. Auto-call switch-portal here so the
+  // session matches the portal the user navigated to. Falls through to the
+  // not-authorized redirect if the user truly lacks the role.
+  useEffect(() => {
+    if (loading || !user) return;
+    const availableRoles: string[] = user.availableRoles ?? [user.role];
+    const activeMatches = allowedRoles.includes(user.role);
+    const availableMatches = availableRoles.some(r => allowedRoles.includes(r));
+    if (activeMatches || !availableMatches || switching) return;
+    const target = pickSwitchTarget(allowedRoles, availableRoles);
+    if (!target) return;
+    const attemptKey = `${user.id}:${allowedRoles.join(",")}`;
+    if (switchAttemptedRef.current === attemptKey) return;
+    switchAttemptedRef.current = attemptKey;
+    setSwitching(true);
+    fetch("/api/auth/switch-portal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: target }),
+      credentials: "include",
+    })
+      .then(r => r.json())
+      .then(async (data) => {
+        if (data?.success) await refresh();
+        // On failure, fall through to the availableRoles-based render — the
+        // server-side requireRole fallback still permits access. We
+        // deliberately do NOT retry; the one-shot ref prevents a loop.
+      })
+      .catch(() => { /* swallowed — see comment above */ })
+      .finally(() => setSwitching(false));
+  }, [user, loading, allowedRoles, switching, refresh]);
 
   useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        setLocation("/login");
-      } else if (!allowedRoles.includes(user.role)) {
-        if (user.role === "client") setLocation("/portal/client/dashboard");
-        else if (user.role === "student") setLocation("/portal/student/dashboard");
-        else if (user.role === "board") setLocation("/portal/board/dashboard");
-        else setLocation("/portal/employee/dashboard");
-      }
+    if (loading || switching) return;
+    if (!user) {
+      setLocation("/login");
+      return;
     }
-  }, [user, loading, allowedRoles, setLocation]);
+    const availableRoles: string[] = user.availableRoles ?? [user.role];
+    const activeMatches = allowedRoles.includes(user.role);
+    const availableMatches = availableRoles.some(r => allowedRoles.includes(r));
+    if (!activeMatches && !availableMatches) {
+      if (user.role === "client") setLocation("/portal/client/dashboard");
+      else if (user.role === "student") setLocation("/portal/student/dashboard");
+      else if (user.role === "board") setLocation("/portal/board/dashboard");
+      else setLocation("/portal/employee/dashboard");
+    }
+  }, [user, loading, switching, allowedRoles, setLocation]);
 
-  if (loading) return (
+  if (loading || switching) return (
     <div className="min-h-screen flex items-center justify-center bg-[#f5f3ef]">
       <div className="w-8 h-8 border-2 border-[#0D7377] border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
-  if (!user || !allowedRoles.includes(user.role)) return null;
+  if (!user) return null;
+  const availableRoles: string[] = user.availableRoles ?? [user.role];
+  const allowed = allowedRoles.includes(user.role) || availableRoles.some(r => allowedRoles.includes(r));
+  if (!allowed) return null;
 
   // Render portal content but overlay the force-change modal if needed
   return (

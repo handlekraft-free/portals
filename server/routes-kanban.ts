@@ -547,6 +547,14 @@ router.patch("/cards/:id", async (req, res) => {
   if (!card) return res.status(404).json({ success: false, error: "Card not found" });
 
   // ── XP award on completion (idempotent) ──────────────────────────────────
+  interface XpAwardRow { awarded: number | string | null; total: number | string | null }
+  function rowsOf<T>(result: unknown): T[] {
+    if (result && typeof result === "object" && "rows" in result) {
+      return (result as { rows: T[] }).rows;
+    }
+    return Array.isArray(result) ? (result as T[]) : [];
+  }
+
   let xpAwarded: { amount: number; reason: string; newTotal: number } | null = null;
   try {
     if (
@@ -560,9 +568,8 @@ router.patch("/cards/:id", async (req, res) => {
         const amount = xpForPriority(card.priority);
         const reason = `Completed: ${card.title}`.slice(0, 200);
         // Idempotent: unique index on (user_id, source_type, source_id) — title rename
-        // does NOT re-award. Wrapped in a transaction so xp_events insert and
-        // xp_total increment stay consistent.
-        const txResult: any = await db.execute(sql`
+        // does NOT re-award. Single-CTE statement keeps insert + xp_total bump consistent.
+        const txResult = await db.execute(sql`
           WITH inserted AS (
             INSERT INTO xp_events (user_id, amount, reason, source_type, source_id)
             VALUES (${card.assignedTo}, ${amount}, ${reason}, 'kanban_card_complete', ${card.id})
@@ -577,14 +584,14 @@ router.patch("/cards/:id", async (req, res) => {
           )
           SELECT (SELECT amount FROM inserted) AS awarded, (SELECT xp_total FROM bumped) AS total
         `);
-        const row = (txResult.rows ?? txResult)[0] ?? {};
-        if (row.awarded != null) {
-          xpAwarded = { amount: Number(row.awarded), reason, newTotal: Number(row.total) };
+        const row = rowsOf<XpAwardRow>(txResult)[0];
+        if (row && row.awarded != null) {
+          xpAwarded = { amount: Number(row.awarded), reason, newTotal: Number(row.total ?? 0) };
         }
       }
     }
-  } catch (e: any) {
-    console.error("[xp] award failed:", e.message);
+  } catch (e) {
+    console.error("[xp] award failed:", e instanceof Error ? e.message : String(e));
   }
 
   res.json({ success: true, data: card, xpAwarded });

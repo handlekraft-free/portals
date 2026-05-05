@@ -7,14 +7,28 @@ import { getRankProgress } from "@shared/xp";
 const router = Router();
 router.use(requireAuth);
 
+interface UserXpRow { xp_total: number | string | null; sound_enabled: boolean | null }
+interface XpEventRow {
+  id: number; amount: number | string; reason: string;
+  source_type: string; source_id: number | null; created_at: Date | string;
+}
+
+function rowsOf<T>(result: unknown): T[] {
+  // node-postgres returns { rows: [...] }; drizzle proxies expose either shape.
+  if (result && typeof result === "object" && "rows" in result) {
+    return (result as { rows: T[] }).rows;
+  }
+  return Array.isArray(result) ? (result as T[]) : [];
+}
+
 // GET /api/xp/me — total XP, derived rank/level, recent events, sound pref
 router.get("/me", async (req, res) => {
   const userId = req.user!.userId;
-  const userRow = await db.execute(sql`
+  const userRes = await db.execute(sql`
     SELECT xp_total, sound_enabled
     FROM portal_users WHERE id = ${userId}
   `);
-  const u = (userRow as any).rows?.[0] ?? (userRow as any)[0] ?? {};
+  const u = rowsOf<UserXpRow>(userRes)[0] ?? { xp_total: 0, sound_enabled: false };
   const xp = Number(u.xp_total ?? 0);
   const soundEnabled = !!u.sound_enabled;
 
@@ -23,9 +37,12 @@ router.get("/me", async (req, res) => {
     FROM xp_events WHERE user_id = ${userId}
     ORDER BY created_at DESC LIMIT 20
   `);
-  const events = ((eventsRes as any).rows ?? (eventsRes as any) ?? []).map((r: any) => ({
-    id: r.id, amount: Number(r.amount), reason: r.reason,
-    sourceType: r.source_type, sourceId: r.source_id,
+  const events = rowsOf<XpEventRow>(eventsRes).map(r => ({
+    id: r.id,
+    amount: Number(r.amount),
+    reason: r.reason,
+    sourceType: r.source_type,
+    sourceId: r.source_id,
     createdAt: r.created_at,
   }));
 

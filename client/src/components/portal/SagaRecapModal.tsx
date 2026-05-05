@@ -78,14 +78,18 @@ export function SagaRecapModal() {
   }, [user?.id]);
 
   // Schedule check — gated on `prefs !== null` so we never fire before the
-  // server has confirmed the user's enabled/time settings.
+  // server has confirmed the user's enabled/time settings. We hoist the two
+  // nullable fields into locals so neither the effect's closure nor its
+  // dependency array dereferences `prefs` directly (keeps TS strict-null happy).
+  const recapEnabled = prefs?.enabled ?? false;
+  const recapTime    = prefs?.time    ?? "17:00";
   useEffect(() => {
-    if (!user || !prefs || !prefs.enabled || open) return;
+    if (!user || !recapEnabled || open) return;
     function check() {
       try {
         if (localStorage.getItem(lsKey(user!.id)) === "1") return;
       } catch { return; }
-      const [h, m] = prefs.time.split(":").map((s) => parseInt(s, 10));
+      const [h, m] = recapTime.split(":").map((s) => parseInt(s, 10));
       if (Number.isNaN(h) || Number.isNaN(m)) return;
       const now = new Date();
       const target = new Date();
@@ -104,7 +108,7 @@ export function SagaRecapModal() {
     check();
     const id = setInterval(check, 60_000);
     return () => clearInterval(id);
-  }, [user?.id, prefs.enabled, prefs.time, open]);
+  }, [user?.id, recapEnabled, recapTime, open]);
 
   if (!user) return null;
 

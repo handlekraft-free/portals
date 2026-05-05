@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { X, Scroll, Sparkles } from "lucide-react";
 import { apiRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
@@ -134,19 +134,30 @@ function RecapDialog({
     : `+${data.total} XP across ${eventCount} ${eventCount === 1 ? "deed" : "deeds"}.`;
   const rank = useMemo(() => getRankProgress(data.xpTotal), [data.xpTotal]);
   const xpToNext = rank.nextRank ? Math.max(0, rank.nextRank.threshold - data.xpTotal) : 0;
+  // Honor `prefers-reduced-motion`: skip enter/exit transforms and fades so
+  // the recap modal appears instantly without any motion.
+  const reduce = useReducedMotion();
+  const fade = reduce
+    ? { initial: false as const, animate: { opacity: 1 }, exit: { opacity: 1 } }
+    : { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
+  const pop = reduce
+    ? { initial: false as const, animate: { scale: 1, opacity: 1, y: 0 }, exit: { scale: 1, opacity: 1, y: 0 }, transition: { duration: 0 } }
+    : {
+        initial: { scale: 0.94, opacity: 0, y: 10 },
+        animate: { scale: 1, opacity: 1, y: 0 },
+        exit: { scale: 0.94, opacity: 0, y: 10 },
+        transition: { duration: 0.25, ease: "easeOut" as const },
+      };
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4" data-testid="modal-saga-recap">
       <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        {...fade}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
       <motion.div
-        initial={{ scale: 0.94, opacity: 0, y: 10 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.94, opacity: 0, y: 10 }}
-        transition={{ duration: 0.25, ease: "easeOut" }}
+        {...pop}
         className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >

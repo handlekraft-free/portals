@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { X, Lock, Check } from "lucide-react";
 import { apiRequest } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -73,19 +73,30 @@ export function AvatarCustomizer({ isOpen, initials, initialConfig, onClose, onS
 
   if (!isOpen) return null;
 
+  // Honor `prefers-reduced-motion`: render instantly with no transforms/fades.
+  const reduce = useReducedMotion();
+  const fade = reduce
+    ? { initial: false as const, animate: { opacity: 1 }, exit: { opacity: 1 } }
+    : { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
+  const pop = reduce
+    ? { initial: false as const, animate: { scale: 1, opacity: 1, y: 0 }, exit: { scale: 1, opacity: 1, y: 0 }, transition: { duration: 0 } }
+    : {
+        initial: { scale: 0.94, opacity: 0, y: 10 },
+        animate: { scale: 1, opacity: 1, y: 0 },
+        exit: { scale: 0.94, opacity: 0, y: 10 },
+        transition: { duration: 0.22, ease: "easeOut" as const },
+      };
+
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-[120] flex items-center justify-center p-4" data-testid="modal-avatar-customizer">
         <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          {...fade}
           className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           onClick={onClose}
         />
         <motion.div
-          initial={{ scale: 0.94, opacity: 0, y: 10 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.94, opacity: 0, y: 10 }}
-          transition={{ duration: 0.22, ease: "easeOut" }}
+          {...pop}
           className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >

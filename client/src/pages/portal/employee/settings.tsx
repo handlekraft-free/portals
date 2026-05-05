@@ -13,8 +13,57 @@ import { apiRequest } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import {
   Mail, Calendar, CheckCircle2, Loader2, LogOut, ExternalLink,
-  RefreshCw, Plus, Pencil, Trash2, Check, X,
+  RefreshCw, Plus, Pencil, Trash2, Check, X, Wand2,
 } from "lucide-react";
+import { AvatarRenderer, type AvatarConfig } from "@/components/portal/AvatarRenderer";
+import { AvatarCustomizer } from "@/components/portal/AvatarCustomizer";
+
+// Profile-surface avatar customization card. Mirrors the HeroCard popover
+// entry-point so users can find avatar customization on the Settings page
+// (the de facto profile surface in this portal — there's no separate /profile).
+function AvatarCustomizationCard() {
+  const { user } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [cfg, setCfg] = useState<AvatarConfig | null>(null);
+  useEffect(() => {
+    apiRequest("GET", "/api/auth/me").then((res) => {
+      if (res?.success) setCfg((res.data?.avatarConfig as AvatarConfig) ?? null);
+    }).catch(() => {});
+  }, []);
+  const initials = `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`;
+  return (
+    <Card className="border border-slate-200 shadow-sm" data-testid="card-avatar-customization">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Wand2 className="w-4 h-4 text-slate-400" />
+          Your hero avatar
+        </CardTitle>
+        <CardDescription>
+          Cosmetic layers (helm, beard, cloak, emblem) unlock as you climb the ranks.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex items-center gap-4">
+        <div className="rounded-full bg-slate-50 p-2 ring-1 ring-slate-200">
+          <AvatarRenderer initials={initials} config={cfg} size={64} />
+        </div>
+        <Button
+          onClick={() => setOpen(true)}
+          variant="outline"
+          data-testid="button-customize-avatar-settings"
+        >
+          Customize
+        </Button>
+      </CardContent>
+      <AvatarCustomizer
+        isOpen={open}
+        initials={initials}
+        initialConfig={cfg}
+        onClose={() => setOpen(false)}
+        onSaved={(c) => { setCfg(c); setOpen(false); }}
+      />
+    </Card>
+  );
+}
 
 const ACCOUNT_COLORS = [
   { bg: "bg-teal-500", text: "text-teal-600", light: "bg-teal-50 border-teal-200" },
@@ -535,6 +584,7 @@ export default function EmployeeSettings() {
 
         {/* Team Saga opt-out (admin/manager only) */}
         <SagaRecapCard />
+        <AvatarCustomizationCard />
         {isManager && <SagaOptOutCard />}
 
         {/* Sync schedule */}

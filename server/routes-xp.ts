@@ -112,13 +112,41 @@ router.post("/sound", async (req, res) => {
   res.json({ success: true, data: { soundEnabled: enabled } });
 });
 
-// GET /api/xp/today — XP events created since local midnight (server time).
-// Used by SagaRecapModal for end-of-day summary.
+// Start of the current day in the supplied IANA timezone, returned as a Date
+// (which is timezone-independent — JS Date is always UTC-instant under the hood).
+// Falls back to UTC midnight on invalid tz strings.
+function startOfLocalDay(tz: string): Date {
+  try {
+    const fmt = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+      hour12: false,
+    });
+    const parts = Object.fromEntries(
+      fmt.formatToParts(new Date()).map((p) => [p.type, p.value]),
+    );
+    // Compute local-midnight by subtracting the local time-of-day from "now".
+    const h = Number(parts.hour ?? 0), m = Number(parts.minute ?? 0), s = Number(parts.second ?? 0);
+    const ms = ((h * 60 + m) * 60 + s) * 1000;
+    return new Date(Date.now() - ms);
+  } catch {
+    const d = new Date();
+    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  }
+}
+
+// GET /api/xp/today — XP events created since local midnight in the caller's
+// IANA timezone (?tz=America/New_York). Used by SagaRecapModal for end-of-day
+// summary; the modal passes the browser's timezone so day boundaries are
+// correct regardless of where the server runs.
 router.get("/today", async (req, res) => {
   const userId = req.user!.userId;
-  // Local midnight on the server. Good enough — recap fires on the user's clock too.
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
+  // Compute the start of "today" in the caller's IANA timezone (defaults to UTC
+  // if no `tz` query param is supplied or the value is invalid). Without this,
+  // a user east of the server would see yesterday's events bleed into today.
+  const tz = typeof req.query.tz === "string" ? req.query.tz : "UTC";
+  const start = startOfLocalDay(tz);
   const eventsRes = await db.execute(sql`
     SELECT id, amount, reason, source_type, source_id, stat, multiplier, created_at
     FROM xp_events

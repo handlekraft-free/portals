@@ -70,7 +70,7 @@ function RankUpOverlay({ rank, onDismiss }: { rank: Rank; onDismiss: () => void 
       kind: "rank_up",
       title: `Reached ${rank.name}`,
       blurb: rank.blurb,
-      meta: { rankKey: rank.key, minXp: rank.minXp },
+      meta: { rankKey: rank.key, threshold: rank.threshold },
     });
     setSaving(false);
     if (res?.success) {
@@ -81,14 +81,31 @@ function RankUpOverlay({ rank, onDismiss }: { rank: Rank; onDismiss: () => void 
     }
   }
 
+  // Per-rank visual theme. Each rank gets its own gradient + decorative SVG
+  // backdrop motif so the title card feels like a distinct moment, not the
+  // same generic chrome each time.
+  const theme = RANK_THEMES[rank.key] ?? RANK_THEMES.thrall;
   return (
     <div
       role="dialog" aria-modal="true" aria-labelledby="rank-up-title"
       className="fixed inset-0 z-[80] flex items-center justify-center pointer-events-none animate-in fade-in duration-300"
       data-testid="overlay-rank-up"
+      data-rank={rank.key}
     >
       <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-auto" onClick={onDismiss} />
-      <div className="relative pointer-events-auto bg-gradient-to-br from-[#1A1F2B] to-[#0D7377] rounded-2xl shadow-2xl border border-[#D4A843]/40 px-10 py-8 max-w-sm text-center animate-in zoom-in-95 duration-500">
+      <div
+        className={`relative pointer-events-auto rounded-2xl shadow-2xl border border-[#D4A843]/40 px-10 py-8 max-w-sm text-center animate-in zoom-in-95 duration-500 overflow-hidden ${theme.gradient}`}
+      >
+        {/* Rank-specific decorative backdrop SVG — pure decoration, no interaction. */}
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 200 200"
+          className="absolute inset-0 w-full h-full opacity-15 pointer-events-none"
+          data-testid={`rank-backdrop-${rank.key}`}
+        >
+          {theme.backdrop}
+        </svg>
+        <div className="relative">
         {(() => {
           const Icon = RANK_ICONS[rank.key] ?? Sparkles;
           return (
@@ -117,10 +134,83 @@ function RankUpOverlay({ rank, onDismiss }: { rank: Rank; onDismiss: () => void 
             data-testid="button-dismiss-rank-up"
           >continue (Esc)</button>
         </div>
+        </div>
       </div>
     </div>
   );
 }
+
+// Deterministic per-rank visual theme. Six ranks, six distinct treatments.
+// Backdrop motifs are tiny inline SVGs (no asset files), each meant to evoke
+// the rank: rough oar strokes for Thrall → crown rays for Konungr.
+const RANK_THEMES: Record<string, { gradient: string; backdrop: React.ReactNode }> = {
+  thrall: {
+    gradient: "bg-gradient-to-br from-[#3A4154] to-[#1A1F2B]",
+    backdrop: (
+      <g stroke="#D4A843" strokeWidth="2" fill="none">
+        <path d="M30 160 L50 60" /><path d="M70 170 L90 70" />
+        <path d="M110 165 L130 65" /><path d="M150 175 L170 75" />
+      </g>
+    ),
+  },
+  karl: {
+    gradient: "bg-gradient-to-br from-[#1A1F2B] to-[#0D7377]",
+    backdrop: (
+      <g stroke="#D4A843" strokeWidth="1.5" fill="none">
+        <circle cx="100" cy="100" r="40" />
+        <circle cx="100" cy="100" r="60" />
+        <circle cx="100" cy="100" r="80" />
+      </g>
+    ),
+  },
+  jarl: {
+    gradient: "bg-gradient-to-br from-[#0D7377] to-[#14A085]",
+    backdrop: (
+      <g fill="#D4A843">
+        <polygon points="100,30 110,70 150,70 118,95 130,140 100,115 70,140 82,95 50,70 90,70" />
+      </g>
+    ),
+  },
+  hersir: {
+    gradient: "bg-gradient-to-br from-[#1A1F2B] via-[#2D3748] to-[#0D7377]",
+    backdrop: (
+      <g stroke="#D4A843" strokeWidth="2" fill="none">
+        <path d="M40 160 L100 40 L160 160 Z" />
+        <path d="M70 160 L100 90 L130 160" />
+      </g>
+    ),
+  },
+  skald: {
+    gradient: "bg-gradient-to-br from-[#2D1B4E] via-[#1A1F2B] to-[#0D7377]",
+    backdrop: (
+      <g fill="#D4A843">
+        <circle cx="40" cy="40" r="2" /><circle cx="80" cy="60" r="2.5" />
+        <circle cx="120" cy="35" r="2" /><circle cx="160" cy="55" r="3" />
+        <circle cx="50" cy="120" r="2.5" /><circle cx="100" cy="160" r="3" />
+        <circle cx="150" cy="130" r="2" /><circle cx="180" cy="170" r="2.5" />
+      </g>
+    ),
+  },
+  konungr: {
+    gradient: "bg-gradient-to-br from-[#5A2D0C] via-[#1A1F2B] to-[#D4A843]/40",
+    backdrop: (
+      <g stroke="#D4A843" strokeWidth="2" fill="none">
+        {KONUNGR_RAYS.map(([x2, y2], i) => (
+          <line key={i} x1="100" y1="100" x2={x2} y2={y2} />
+        ))}
+        <circle cx="100" cy="100" r="35" />
+      </g>
+    ),
+  },
+};
+
+// Precomputed crown-ray endpoints for the Konungr backdrop. Kept outside the
+// JSX literal so the babel/jsx parser doesn't choke on a block-bodied arrow
+// nested inside a JSX expression container.
+const KONUNGR_RAYS: Array<[number, number]> = Array.from({ length: 12 }, (_, i) => {
+  const a = (i * Math.PI * 2) / 12;
+  return [100 + Math.cos(a) * 90, 100 + Math.sin(a) * 90];
+});
 
 // Plain-language reason for a single award. Keeps copy short, friendly,
 // and stat-aware ("Initiative bonus", "Loved this", "Review handoff", …).

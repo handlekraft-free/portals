@@ -83,7 +83,8 @@ export function SagaRecapModal() {
       target.setHours(h, m, 0, 0);
       if (now < target) return;
       // Time has passed — fetch today's XP and open
-      apiRequest("GET", "/api/xp/today").then((res) => {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      apiRequest("GET", `/api/xp/today?tz=${encodeURIComponent(tz)}`).then((res) => {
         if (res?.success && res.data) {
           setData(res.data);
           try { localStorage.setItem(lsKey(user!.id), "1"); } catch { /* ignore */ }
@@ -132,7 +133,7 @@ function RecapDialog({
     ? "A quiet day. Rest sharpens the next raid."
     : `+${data.total} XP across ${eventCount} ${eventCount === 1 ? "deed" : "deeds"}.`;
   const rank = useMemo(() => getRankProgress(data.xpTotal), [data.xpTotal]);
-  const xpToNext = rank.nextRank ? Math.max(0, rank.nextRank.minXp - data.xpTotal) : 0;
+  const xpToNext = rank.nextRank ? Math.max(0, rank.nextRank.threshold - data.xpTotal) : 0;
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4" data-testid="modal-saga-recap">

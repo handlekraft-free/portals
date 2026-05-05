@@ -279,15 +279,20 @@ function pickEnum(layer: AvatarLayer, v: unknown): string | null {
 router.patch("/avatar", requireAuth, async (req, res) => {
   const userId = req.user!.userId;
   const body = (req.body ?? {}) as Partial<AvatarConfigShape>;
-  const config: AvatarConfigShape = {
-    helm:   pickEnum("helm",   body.helm),
-    cloak:  pickEnum("cloak",  body.cloak),
-    beard:  pickEnum("beard",  body.beard),
-    emblem: pickEnum("emblem", body.emblem),
-  };
-  // Compute current rank for unlock gating
+  // Load current config first so partial PATCHes (e.g. only `helm`) preserve
+  // unspecified layers instead of nulling them out. A field is considered
+  // "present" if the caller actually sent the key — `null` means clear it.
   const [u] = await db.select().from(users).where(eq(users.id, userId));
   if (!u) return res.status(404).json({ success: false, error: "User not found" });
+  const existing = ((u as { avatarConfig?: AvatarConfigShape | null }).avatarConfig ?? {}) as AvatarConfigShape;
+  const has = (k: AvatarLayer) => Object.prototype.hasOwnProperty.call(body, k);
+  const config: AvatarConfigShape = {
+    helm:   has("helm")   ? pickEnum("helm",   body.helm)   : (existing.helm   ?? null),
+    cloak:  has("cloak")  ? pickEnum("cloak",  body.cloak)  : (existing.cloak  ?? null),
+    beard:  has("beard")  ? pickEnum("beard",  body.beard)  : (existing.beard  ?? null),
+    emblem: has("emblem") ? pickEnum("emblem", body.emblem) : (existing.emblem ?? null),
+  };
+  // Compute current rank for unlock gating
   const xp = (u as { xpTotal?: number | null }).xpTotal ?? 0;
   // Mirror shared/xp.ts thresholds (Thrall=0, Karl=200, Jarl=600, Hersir=1500, Skald=3000, Konungr=6000)
   const unlock = {

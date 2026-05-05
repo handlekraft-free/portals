@@ -1,0 +1,243 @@
+Strategic Proposal
+An Operating Model for handlekraft
+Building Free Tools, Sustained by Implementation Services
+Prepared for the Board of Directors
+From: Robert Rasmussen, Founder & Executive Director
+May 2026
+
+Executive Summary
+This proposal asks the board to consider whether handlekraft should adopt an explicit operating model centered on building open-source tools for community organizations and underserved learners, sustained by paid implementation services.
+Today, handlekraft has three program elements: a fellowship that trains non-traditional learners, direct technology services to client organizations, and a small set of internal tools we have built to run our own operations. This proposal suggests we name a fourth element — public open-source tool development — and use it to integrate the other three into a more coherent whole.
+The Proposal in One Paragraph
+handlekraft adopts open-source tool development as a central operating activity. Tools we build for our own use, for client engagements, and through fellowship learning are released as free open-source projects under handlekraft's stewardship. We offer paid implementation, customization, training, and support services to organizations that adopt these tools and want professional help deploying them. Fellowship participants contribute to tool development as part of their learning. Paid staff deliver paid services. The fellowship produces future paid staff. The tools become both our public contribution to the nonprofit sector and a sustainable revenue stream that diversifies our funding.
+What This Changes
+Our public identity gains a clear, distinctive frame: handlekraft is the organization that builds free tools for community organizations and trains people through that building.
+Our funding diversifies meaningfully. Implementation services revenue is mission-aligned earned income that strengthens our public charity classification under §509(a)(2) considerations and reduces dependence on founder donations.
+Our fellowship gains pedagogical clarity. Fellows learn by contributing to real open-source projects with real users — building public portfolios that help them get hired.
+Our client work integrates naturally. The tools we build for clients become reusable open-source projects that benefit other organizations facing similar problems.
+What This Does Not Change
+Our mission, our 30-hour workweek, our accessibility-first culture, our self-managed team practice.
+Our public charity status or our DAF-routed funding strategy.
+Our deliberate posture on educational regulations — the fellowship remains free, uncredentialed, and outside the BPPE-regulated postsecondary education space.
+Our small, intentional team philosophy.
+What I'm Asking the Board to Decide
+This proposal is for a strategic direction decision, not yet a tactical plan. Specifically I am asking the board to:
+Affirm or reject open-source-plus-services as handlekraft's central operating model, alongside the fellowship and direct services.
+Authorize a phased rollout: pilot with one tool, learn, then scale.
+Direct that the strategic plan and operating budget be updated to reflect this direction if approved.
+Direct counsel review of specific structural questions identified in Section 8.
+I am not asking for budget commitments beyond what's already approved in the current operating budget, or for staffing changes, or for specific tool releases. Those follow from the strategic direction, not the other way around.
+
+1. Where This Idea Came From
+This proposal emerged from an honest conversation about what handlekraft is good at and what funding model fits our work.
+In the course of building handlekraft's operations, we have produced several pieces of software:
+A board governance portal for managing documents, decisions, and discussions
+A gamified task management tool designed to be neurodivergent-friendly, which we use internally as the Longship Factory
+Smaller utilities for managing our own work
+These are not products we set out to build for sale. We built them because we needed them and existing tools did not fit our specific requirements: small nonprofit governance with strong privacy and accessibility, neurodivergent-friendly self-managed task workflows, and tooling for an AI-native team.
+In considering what to do with these tools, the obvious question was whether to commercialize them as products. After thinking it through, neither I nor the structures we have built lend themselves cleanly to that path. handlekraft is not set up to be a commercial software company, and turning these into products would distort the organization's purpose.
+What emerged instead was a clearer idea: these tools serve organizations like the ones we already exist to serve. Other small nonprofits face the same governance challenges. Other accommodating workplaces want neurodivergent-friendly task management. Other AI-native teams need similar workflows. We could give the tools away, freely and openly. We could earn revenue by helping organizations actually deploy and use them well.
+Stepping back, this pattern is bigger than the three tools we already have. It's an operating model that handlekraft could adopt as central, not incidental. The rest of this document explains why I think we should do that, what it would mean, and what it would require.
+
+2. The Model Explained
+2.1 The Core Pattern
+Open-source-plus-services is a recognized operating model with established players in both for-profit and nonprofit sectors. The pattern works as follows:
+The organization builds software that solves a real problem for a defined community.
+The software is released under an open-source license. Anyone can use it, modify it, and deploy it without payment.
+The organization earns revenue by offering services that help adopters use the software well: implementation, configuration, integration, training, customization, hosting, and ongoing support.
+Free use serves the mission. Paid services sustain the organization.
+2.2 Why It Works
+The model balances several forces that nonprofits struggle to balance:
+Mission breadth: free distribution means the tools reach organizations that could never afford commercial software. The mission ratio (people served by free use vs. paid services) is naturally tilted toward free.
+Operational sustainability: services revenue is durable. Every adoption that wants professional help becomes a potential revenue source. Unlike donor revenue, which is event-driven, services revenue compounds with adoption.
+Quality discipline: open-source code is reviewed publicly. The quality bar is higher than internal-only tools. This is a feature, not a bug — it produces better tools.
+Network effects: as adoption grows, the community contributes back. Bug reports, feature suggestions, code contributions, and word-of-mouth all expand the value of the work.
+Talent pipeline: fellows who contribute to public open-source projects build portfolios that help them get hired. The work itself produces both our trainees and our future staff.
+2.3 Examples in Practice
+This model has worked in several contexts, both commercial and mission-driven:
+Commercial examples (illustrating the model's economic durability): Red Hat (Linux), Automattic (WordPress), HashiCorp, GitLab, Sentry. Each built substantial businesses on free, openly-available software with paid services and support.
+Nonprofit examples (closer to our context): Sahana (disaster management software), DHIS2 (health data systems used by 70+ countries), Kobo Toolbox (data collection for humanitarian organizations), CiviCRM (nonprofit constituent management). Each operates as a nonprofit producing free open-source software for mission-aligned communities.
+None of these are perfect analogies for handlekraft, but they demonstrate that the model is durable in mission-driven contexts.
+
+3. Why This Fits handlekraft
+3.1 It Aligns Mission and Method
+handlekraft exists to give nonprofits and underserved learners the power to act. Our current programs do this in two ways: by training people (fellowship) and by serving organizations directly (client work). Open-source tool development is a third way that compounds with both:
+Tools released as open source can be used by any organization that finds them, not just those handlekraft can directly serve.
+Fellows learn by building real tools for real users.
+Client engagements that produce reusable solutions become open-source projects that benefit many organizations.
+The integration is meaningful. Each program element strengthens the others rather than competing for attention.
+3.2 It Suits Our Strengths
+handlekraft's actual capabilities map well to this model:
+We build software. The Tools and Development Lead's role is centrally about building, and we have an AI-native development practice that makes us productive at building production software.
+We understand nonprofits. Our mission focus and likely client engagements give us insight into what tools community organizations actually need.
+We value documentation and clear communication. These are exactly the skills needed to make open-source projects accessible to outside contributors and adopters.
+We commit to accessibility and neurodivergent-friendly practice. These commitments differentiate our tools in markets where competing products often miss these considerations.
+3.3 It Solves Real Problems We Have
+Three concrete handlekraft problems that this model addresses:
+Problem 1 — Founder funding dependency. Our funding plan currently relies heavily on founder donations through Year 5. Earned services revenue diversifies this. Even modest services income (e.g., $25,000-$50,000 per year by Year 3) materially changes our funding mix and our public support test math.
+Problem 2 — Fellowship pedagogical scaffolding. The Tier 1 plan describes fellows working on real projects, but "real" is hard to operationalize when projects are private to a single client. Open-source projects are durable, public, and continuously available. Fellows have real work to do, real users to serve, and real portfolios to build.
+Problem 3 — Strategic distinctiveness. Many nonprofits do tech training or nonprofit consulting. "handlekraft trains people and serves nonprofits" describes hundreds of organizations. "handlekraft builds free tools for nonprofits and trains people through that work" is more specific and more memorable. Funders, partners, and prospective fellows all find clearer organizations easier to support.
+3.4 It Uses What We Already Have
+We have already built tools (board portal, ADHD task management) that fit this model. We have not commercialized them. Open-sourcing what we have is a smaller step than starting from scratch — it captures value from work we have already done while establishing the pattern for future work.
+
+4. What This Would Look Like in Practice
+4.1 A Day in the Life — Year 2
+To make this concrete, here is what handlekraft might look like operating this model in 2027:
+A small nonprofit in a rural California county finds handlekraft's open-source ADHD-friendly task management tool. They install it themselves on a free hosting service. It works, but they want to add SMS reminders and integrate it with their existing email system. They contact handlekraft and engage us for a 20-hour customization at $150/hour: $3,000 of services revenue.
+Meanwhile, a current fellow has been contributing to handlekraft's open-source board governance project. They've added an accessibility improvement that all users benefit from. They mention this in their fellowship demos and in their LinkedIn updates. A regional foundation board member sees the work and reaches out about whether handlekraft might help them adopt the tool for their own grantmaking governance.
+Our Tools and Development Lead spends some hours reviewing community-contributed pull requests, some hours on a paid implementation engagement for a new client, and some hours mentoring the fellow whose contribution sparked the foundation conversation. The work is varied, real, and mission-aligned.
+4.2 What We Build
+Tools that handlekraft might develop fall into clear categories aligned with our mission:
+Governance and operations tools for small nonprofits (board portals, decision tracking, document management)
+Accessibility and inclusion tools (neurodivergent-friendly task management, plain-language editors, accessibility auditing)
+Workforce development tools (cohort management, portfolio platforms, skills tracking)
+Community engagement tools (volunteer management, simple CRMs designed for very small orgs)
+Educational tools that emerge from fellowship work (curriculum platforms, skills demonstrations)
+This is a wide range. The discipline matters more than the breadth. We need a project selection process to ensure we build only tools that meet our mission and capacity criteria, rather than everything we could build.
+4.3 What We Charge For
+Services revenue would come from:
+Implementation: helping an organization deploy the open-source tool to their environment
+Customization: building specific features they need beyond the base tool
+Integration: connecting the tool to other systems they use
+Training: workshops on using the tool well
+Hosting: running the tool for them if they don't have technical capacity
+Support: ongoing help, bug fixes, and minor updates under a maintenance agreement
+We would not charge for the software itself. Anyone can use it free. We charge for human work that helps them use it well.
+4.4 Who Does What
+The division of labor that makes this model legally and operationally clean:
+Paid staff: build and maintain the open-source projects, deliver paid services, lead community management.
+Fellows (unpaid trainees): contribute to open-source projects as part of their fellowship learning. Build portfolios. Develop skills. Are explicitly the primary beneficiaries of fellowship participation.
+Voluntary contributors (former fellows, community members, staff of adopting organizations): contribute features, fixes, and improvements to handlekraft's open-source projects. No expectation of compensation. Standard open-source community pattern.
+Paid contractors (when needed): if a paid services engagement requires more capacity than staff can deliver, handlekraft engages contractors. Fellowship graduates who are now skilled may be the natural pool.
+The bright line: paid work that benefits handlekraft commercially is done by paid people. Unpaid work is genuinely voluntary, structured around the volunteer's own learning and benefit, and not displacing what would otherwise be paid work.
+
+5. What This Would Ask of handlekraft
+I want to be clear-eyed about the costs and commitments. This model is not free.
+5.1 Engineering Discipline
+Open-source-quality software is meaningfully harder to produce than internal tools. It needs better documentation, clearer error messages, broader test coverage, more careful packaging, and consideration for users on environments different from ours. Plan for roughly 1.5x to 2x the engineering effort to take an internal tool to public-quality release.
+This implies our hiring and team structure should reflect this commitment. The Tools and Development Lead role is the foundation; future hires in development should be evaluated against open-source production standards, not just feature delivery.
+5.2 Maintenance Forever
+Once a tool is released and adopted, handlekraft has ongoing responsibility. Security vulnerabilities require timely response. Major dependency updates need to be addressed. Community questions and bug reports need someone to handle them. Projects that go silent damage the organization's reputation.
+Plan for ongoing maintenance time per active project: typically 5-15% of the original build effort per year, depending on the project's complexity and adoption. A handlekraft with 5 active projects has meaningful sustained maintenance load.
+This also means we need to be willing to retire projects. A project that has lost its mission relevance or its community can be sunset gracefully — but only if we have a process for doing so. Letting projects rot in place is the failure mode to avoid.
+5.3 Project Selection Discipline
+The temptation will be to release everything we build. The discipline is to release only what serves the mission and what we can sustain.
+A project selection framework that we should adopt before releasing anything:
+Does it serve our defined community (nonprofits, community organizations, underserved learners)?
+Is there evidence of real demand?
+Does building it teach skills the fellowship needs?
+Is the maintenance burden compatible with our capacity over multi-year timeframes?
+Does the implementation services market for this tool justify the build cost?
+Projects that don't get clear yes answers on at least four of five should remain internal tools, not public releases.
+5.4 Services Delivery Capacity
+Services revenue requires staff time to deliver services. Unlike donor revenue, you cannot grow services revenue without growing services capacity. The math:
+If staff bills 20 hours per week at $150 per hour with 30% utilization (the rest going to product development, fellowship, and admin), that produces $36,000 of services revenue per year per staff person.
+Two staff doing this generates roughly $72,000 of services revenue at the model's mature operation.
+Scaling beyond that requires hiring additional services-capable staff, which requires the services revenue to support them — a chicken-and-egg dynamic typical of services businesses.
+These numbers are illustrative, not commitments. Actual rates and utilization will emerge with experience. The point is that services revenue is bounded by services capacity, and we should plan accordingly.
+5.5 Marketing and Adoption Work
+Open-source projects don't market themselves. Adoption depends on people knowing the tool exists and finding it credible enough to try. This means handlekraft needs:
+Project websites that are clear about what the tool does and who it's for
+Documentation that lets a competent technical person deploy without our help
+Public engagement (talks, blog posts, social media) that surface the work to potential adopters
+Reference cases — organizations using the tool whose stories can be shared (with consent)
+The Marketing and Social Media Lead role gains importance under this model. Open-source community building is real work, and good community management is what separates thriving open-source projects from abandoned ones.
+5.6 Legal and Operational Infrastructure
+Several pieces of infrastructure are needed to operationalize this model cleanly:
+IP assignment paperwork from current and future contributors to handlekraft
+Standard services agreement template, drafted by counsel
+Open-source license selection and consistent application across projects
+Contributor License Agreement or Developer Certificate of Origin for outside contributions
+Volunteer agreement for fellows contributing beyond curriculum
+Code of conduct for project communities
+Documentation of project selection decisions for board records
+None of these are individually difficult. Together they're the infrastructure that makes the model run smoothly. Counsel can help us assemble them efficiently.
+
+6. What This Does Not Mean
+Some clarifications worth naming explicitly to prevent misreadings:
+6.1 We Are Not Becoming a Software Company
+handlekraft remains a nonprofit with a charitable mission. Tools serve the mission; they do not replace it. The success measure is not lines of code shipped or services revenue earned — it is whether non-traditional learners gain capability and community organizations gain technology that helps them serve their communities.
+6.2 The Fellowship Remains Central
+Training non-traditional learners is and remains the heart of handlekraft. Open-source tool development creates better fellowship learning conditions, not a substitute for the fellowship. Fellows are still the primary beneficiaries of the program; the tools they contribute to are the substrate, not the product.
+6.3 Direct Client Services Continue
+Some community organizations need bespoke help that doesn't fit the open-source pattern. handlekraft can still take on direct service engagements that produce custom solutions for specific clients. Those engagements may or may not produce reusable open-source artifacts; both outcomes are fine.
+6.4 We Are Not Promising Outcomes
+Adopting this model does not mean we promise specific revenue, specific adoption numbers, or specific impact metrics by specific dates. We commit to building well, releasing well, supporting well, and reporting transparently. Outcomes follow from execution and from market conditions we don't fully control.
+6.5 We Are Not Locked In
+If after 12-18 months of practicing this model we conclude it's not working as expected, we revisit the strategy. Adopting open-source-plus-services as a direction now does not commit handlekraft to it permanently. It commits us to learning whether it works for us in our context.
+
+7. Risks and How We Would Address Them
+7.1 Mission Drift Risk
+The risk: Services revenue becomes a tail that wags the dog. We start choosing projects based on commercial appeal rather than mission relevance, or we shift staff time toward services delivery and away from teaching.
+How we'd address it: The board reviews the program mix annually. A documented project selection framework ensures every release decision references mission criteria. We monitor a "mission ratio" — the share of users served by free use versus paid services — and target keeping at least 80% of users on free use. The strategic plan is updated to make these commitments explicit.
+7.2 Maintenance Burden Risk
+The risk: We release several tools, get distracted by new builds, and let existing tools fall behind on security, dependencies, and bug fixes. Reputation damage follows.
+How we'd address it: Cap the number of actively maintained projects to what we can sustain (suggesting 1-3 maximum at our current capacity). Build maintenance time into staff capacity plans. Establish a "sunset gracefully" process for projects we can no longer maintain — better to retire a project with notice than to let it rot. Annual review of each active project against maintenance capacity.
+7.3 Services Capacity Risk
+The risk: Services demand exceeds our delivery capacity, customers wait, reputation suffers — or services demand is below what we expected and revenue projections don't materialize.
+How we'd address it: Start small with conservative projections. Build a contractor pool from fellowship graduates who can flex services capacity up. Monitor demand quarterly and adjust pricing or scope based on what we learn. Avoid making promises to clients we can't keep, even if it means turning down work.
+7.4 Tax-Exempt Status Risk
+The risk: If services revenue becomes substantial relative to mission activity, the IRS could question whether we are primarily organized for exempt purposes. UBTI exposure could grow.
+How we'd address it: Counsel reviews the structure to confirm services revenue is properly characterized (related vs. unrelated business income). Annual public support test review continues. Services targeted at mission-aligned customers (nonprofits, community organizations) strengthens the related-business argument. We monitor revenue mix and consult counsel if services revenue exceeds ~40% of total revenue or if the character of services drifts from mission.
+7.5 Open-Source Community Management Risk
+The risk: Open-source projects can become hostile environments, especially around questions of access, governance, and contributor disagreements. Poorly managed communities damage the host organization.
+How we'd address it: Adopt a strong code of conduct (Contributor Covenant or similar) for all projects. Empower the team to enforce it. Build community management as a recognized staff function, not an afterthought. Lean on the same accessibility-first, neurodivergent-friendly, NVC-informed communication norms that govern handlekraft internally.
+7.6 IP and Contributor Risk
+The risk: Without proper IP assignments and contributor agreements, ownership of the open-source projects becomes ambiguous, exposing handlekraft to legal complications.
+How we'd address it: Counsel drafts IP assignment paperwork and contributor agreement templates. All staff (current and future) sign IP assignments as a condition of employment. Outside contributors agree to contributor terms before their work is merged. Regular legal review as the project portfolio grows.
+
+8. Questions for the Board
+This proposal asks the board to engage substantively with several questions, not just ratify a direction. The questions below are the ones I most want input on:
+8.1 Strategic Framing
+Does the open-source-plus-services framing fit handlekraft's identity, or does it feel like a departure from what we set out to do?
+Should we adopt this as a central operating model (Framing A — "This is what we are"), or as one program area among several (Framing B — "This is one thing we do")? My recommendation is Framing A; I want the board's view on whether that's right.
+Are we leaving important alternatives unexplored? Specifically: are there reasons not to release our current tools as open source that I haven't considered?
+8.2 Operational Implications
+Is the team currently constituted to execute this model, or will it require additional hiring? Specifically, do we have the right balance of engineering, services delivery, and community management capacity?
+How should this affect the operating budget — should services revenue be projected modestly into Year 2 and Year 3, or held off until we have actual experience?
+Is the board comfortable with the maintenance commitments this implies — including the implication that handlekraft will need to maintain projects even when other priorities feel more urgent?
+8.3 Boundary Setting
+How do we want to handle the line between fellowship contribution and paid work? My proposal is the bright line described in Section 4.4, but the board should weigh in.
+Should there be a board-approved project selection framework, with releases requiring formal approval, or should this be delegated to staff with quarterly board review?
+How do we want to handle situations where commercial demand exists for tools that aren't strongly mission-aligned — say, a for-profit that wants to use our task management tool? Do we serve them, refer them away, or charge premium rates?
+8.4 Approval Path
+If the board affirms this direction, what specific resolution should be adopted? Suggested form: "The Board affirms open-source-plus-services as a central operating model for handlekraft, alongside the fellowship and direct client services, and directs the Executive Director to update the strategic plan accordingly and report progress quarterly."
+Should we engage counsel on the structural questions identified in Section 5.6 before any public release, or as we develop each release?
+
+9. Proposed Phased Rollout
+If the board affirms this direction, here is the rollout I would recommend:
+Phase 1: Foundation (Months 1-6)
+Counsel review and execution of IP assignments for existing software
+Counsel-drafted templates: services agreement, contributor agreement, volunteer agreement
+Project selection framework drafted, board-approved, and adopted in policy
+License selection (recommend Apache 2.0 as default)
+Update strategic plan and operating budget to reflect the model
+Phase 2: First Public Release (Months 6-12)
+Pilot with one tool — recommend the gamified ADHD task management tool, given its strongest mission alignment
+Production-quality preparation: documentation, packaging, accessibility audit, security review
+Public release announcement with clear statement of handlekraft's stewardship model
+Begin tracking adoption metrics and any incoming services inquiries
+First services engagement, even if at-cost or below-market, to test the delivery model
+Phase 3: Second Tool and Pattern Establishment (Months 12-18)
+Apply lessons from Phase 2 to a second release (likely the board governance portal)
+Establish ongoing maintenance routines
+Begin formal services pricing structure based on initial engagement experience
+Document patterns and refine project selection framework
+First fellowship cohort contributes to the open-source projects as part of curriculum
+Phase 4: Mature Operation (Year 2)
+3-5 active projects under handlekraft stewardship
+Services revenue contributing meaningfully to operating budget
+Fellowship pipeline producing graduates who become services-capable contractors or staff
+Annual board review of program mix, mission ratio, and structural integrity
+Each phase has decision gates. If Phase 1 reveals legal complications, we pause. If Phase 2 reveals that the engineering effort is much higher than expected, we adjust scope before proceeding. The rollout is sequential by design — each step informs the next.
+
+10. Closing
+I am bringing this proposal because I believe it could be the most important strategic decision handlekraft makes in its first year. Not because the open-source-plus-services model is novel — it isn't — but because choosing it explicitly, now, would align our work in a way that none of our individual decisions to date have.
+If we adopt this direction, handlekraft has a clear, distinctive story: we build free tools for community organizations and underserved learners, sustained by paid implementation services, and we train people through that work. Fellows learn by contributing to real public projects. Clients adopt tools that other clients can also adopt. Services revenue diversifies our funding without compromising our mission. Each piece reinforces the others.
+If we don't adopt this direction, that's a legitimate decision. handlekraft can succeed as a fellowship and direct services organization without making open-source tool development a central activity. I want to be careful not to overstate the case. The current path is workable; the proposed path is potentially better, but only if we are willing to make the commitments it requires.
+What I'd ask is that the board engage seriously with this proposal — read it, push back where it doesn't land, name what's missing — and reach a clear decision rather than letting it drift. Whatever direction we choose, we benefit from choosing it deliberately.
+I look forward to the conversation.
+With gratitude,
+Robert Rasmussen
+Founder & Volunteer Executive Director
+handlekraft

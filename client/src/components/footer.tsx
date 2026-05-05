@@ -15,11 +15,14 @@ export function Footer() {
           <p className="max-w-md text-sm leading-relaxed mb-2">
             <span className="italic text-white/40">handləkraft.ai</span> — <span className="text-white/80">the power to act</span>.
           </p>
+          <p className="max-w-md text-sm leading-relaxed mb-4 text-white/70">
+            We build free, open-source AI tools for community organizations and train non-traditional product builders to put them to work for the causes they care about.
+          </p>
           <p className="max-w-md text-sm leading-relaxed mb-4">
             A 501(c)(3) nonprofit initiative. All donations are tax-deductible.
           </p>
           <p className="max-w-md text-sm leading-relaxed mb-8 text-white/40">
-            Founded by a father-son team. Powered by agency, code, and community.
+            Founded by a father-son team. Sustained by mission-aligned implementation services.
           </p>
           <div className="flex gap-4">
             <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-[#0D7377] hover:text-white transition-colors"><Twitter size={18} /></a>
@@ -34,8 +37,9 @@ export function Footer() {
           <ul className="space-y-4 text-sm">
             <li><a href="#mission" className="hover:text-[#D4A843] transition-colors">Our Mission</a></li>
             <li><a href="#what-we-do" className="hover:text-[#D4A843] transition-colors">What We Do</a></li>
+            <li><a href="#open-source" className="hover:text-[#D4A843] transition-colors">Open-Source Tools</a></li>
             <li><a href="#training" className="hover:text-[#D4A843] transition-colors">Fellowship</a></li>
-            <li><a href="/proposal.pdf" className="hover:text-[#D4A843] transition-colors">Our Proposal</a></li>
+            <li><a href="/proposal.pdf" className="hover:text-[#D4A843] transition-colors">Strategic Proposal (PDF)</a></li>
           </ul>
         </div>
 

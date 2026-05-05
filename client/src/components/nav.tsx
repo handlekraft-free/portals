@@ -23,6 +23,7 @@ export function Navbar() {
   const navLinks = [
     { name: "Our Mission", href: "#mission" },
     { name: "What We Do", href: "#what-we-do" },
+    { name: "Open Source", href: "#open-source" },
     { name: "Who We Serve", href: "#who-we-serve" },
     { name: "Fellowship", href: "#training" },
   ];

@@ -15,7 +15,7 @@ import vikingShield from "@/assets/images/viking-shield.png";
 import vikingTriumph from "@/assets/images/viking-triumph.png";
 
 export default function Home() {
-  useEffect(() => { document.title = "handləkraft.ai — The Power to Act"; }, []);
+  useEffect(() => { document.title = "handləkraft.ai — Free Open-Source AI Tools for Community Organizations"; }, []);
   return (
     <div className="min-h-screen font-body selection:bg-[#0D7377] selection:text-white">
       <Navbar />
@@ -46,12 +46,12 @@ export default function Home() {
               <Wordmark size="hero" className="text-white" showTagline taglineClassName="text-[#D4A843] text-center" />
             </div>
 
-            <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-4 font-light leading-relaxed" data-testid="text-hero-subtitle">
-              <span className="italic text-white/50">Handl&#x259;kraft</span> is Norwegian for <span className="text-[#D4A843] font-medium">the power to act on your own behalf</span>. We give that power to the people and organizations who need it most.
+            <p className="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto mb-4 font-light leading-relaxed" data-testid="text-hero-subtitle">
+              We build <span className="text-[#D4A843] font-medium">free, open-source AI tools</span> for community organizations &mdash; and train <span className="text-[#D4A843] font-medium">non-traditional product builders</span> to put them to work for the causes they care about.
             </p>
 
-            <p className="text-lg text-white/50 max-w-xl mx-auto mb-10 font-light">
-              Technology services and training for community organizations. Real careers for non-traditional learners. Accessibility for everyone.
+            <p className="text-base md:text-lg text-white/55 max-w-2xl mx-auto mb-10 font-light">
+              <span className="italic text-white/50">Handl&#x259;kraft</span> is Norwegian for <span className="text-white/70">the power to act</span>. Our tools are free for any organization to use forever. We sustain the work through paid implementation services for those who want professional help deploying them.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
@@ -76,12 +76,12 @@ export default function Home() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto border-t border-white/10 pt-12">
               <div className="text-center">
-                <div className="text-4xl font-display text-[#D4A843] mb-1" data-testid="text-stat-cost">$0</div>
-                <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Cost to Organizations</div>
+                <div className="text-4xl font-display text-[#D4A843] mb-1" data-testid="text-stat-cost">Free</div>
+                <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Forever, For Anyone</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-display text-[#D4A843] mb-1">100%</div>
-                <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Donation Funded</div>
+                <div className="text-4xl font-display text-[#D4A843] mb-1" data-testid="text-stat-license">Apache 2.0</div>
+                <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Open Source by Default</div>
               </div>
               <div className="text-center">
                 <div className="text-4xl font-display text-[#D4A843] mb-1">30h</div>
@@ -105,18 +105,21 @@ export default function Home() {
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div>
             <SectionHeader 
-              title="Agency changes everything." 
+              title="Free tools. Real builders. Sustained work." 
               className="mb-8"
             />
             <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
               <p>
-                Thousands of community organizations — shelters, clinics, food banks, mutual aid groups — run critical operations on a patchwork of spreadsheets, email threads, and institutional memory. They don't need more software. They need help choosing the right tools, configuring them well, and building the confidence to run them independently.
+                Thousands of community organizations &mdash; shelters, clinics, food banks, mutual aid groups, small foundations &mdash; run critical operations on patchwork spreadsheets and institutional memory. The software they need exists; what they lack is access to tools designed for their reality and people who can help them deploy those tools well.
               </p>
               <p>
-                At the same time, capable people are locked out of technology careers — not for lack of ability, but for lack of access. Non-traditional learners, neurodivergent thinkers, veterans, caregivers, people in recovery. Our fellowship trains them on real client engagements using AI-native tools, with small cohorts and close mentorship.
+                We build <span className="font-semibold text-[#1A1F2B]">free, open-source AI tools</span> for that reality &mdash; tools we use to run our own operations and that any organization can adopt without paying us a cent. When an organization wants professional help deploying or customizing one of our tools, we offer paid implementation services. That earned, mission-aligned revenue sustains the work.
+              </p>
+              <p>
+                In parallel, we train <span className="font-semibold text-[#1A1F2B]">non-traditional product builders</span> &mdash; veterans, caregivers, neurodivergent thinkers, career changers, people locked out of conventional pathways &mdash; by having them contribute to those same public projects. They graduate with real portfolios, real references, and real users.
               </p>
               <p className="font-semibold text-[#1A1F2B]">
-                handləkraft multiplies the power to act — for organizations underserved by technology, for learners underserved by traditional pathways, and for end users whom technology too often forgets.
+                Free tools serve the mission. Paid services sustain the organization. The fellowship produces both our trainees and the people who can deliver those services. Each piece reinforces the others.
               </p>
             </div>
           </div>
@@ -134,14 +137,14 @@ export default function Home() {
               alt="" 
               className="absolute top-4 right-4 w-[100px] h-[100px] z-20 opacity-90 pointer-events-none"
             />
-            <h3 className="text-2xl font-display mb-4 relative z-10">Handle + Kraft</h3>
-            <p className="text-white/60 text-sm mb-8 relative z-10 italic">Norwegian: to act + power = the power to act</p>
+            <h3 className="text-2xl font-display mb-4 relative z-10">Open Source + Services</h3>
+            <p className="text-white/60 text-sm mb-8 relative z-10 italic">A recognized model used by Sahana, DHIS2, CiviCRM, Kobo Toolbox &mdash; mission-driven nonprofits sustained by services on freely available software.</p>
             <ul className="space-y-6 relative z-10">
               {[
-                "A community organization reaches out. We start with a free conversation to understand what they actually do, what hurts, and what would genuinely help.",
-                "We recommend honestly — often that means configuring an existing tool, not building something new. If you don't need us, we'll say so.",
-                "We configure what's needed, train the team to run it, and document everything. Our exit is part of the engagement from day one.",
-                "Fellows work real engagements as part of their training. They graduate with a portfolio of real work — and organizations gain capability that lasts."
+                "We build tools we ourselves need to run handləkraft &mdash; board governance, neurodivergent-friendly task management, lightweight CRMs &mdash; and release them as free open-source projects under our stewardship.",
+                "Any community organization can download, install, and use these tools without paying us anything, ever. The license is Apache 2.0; the code is public.",
+                "When an organization wants help deploying, customizing, integrating, training staff, or hosting one of our tools, we offer paid implementation services delivered by our team.",
+                "Fellows learn by contributing to those same public projects &mdash; building real portfolios with real users, on code anyone can read."
               ].map((step, i) => (
                 <li key={i} className="flex gap-4 items-start">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#D4A843] text-[#1A1F2B] font-bold flex items-center justify-center text-sm">
@@ -157,27 +160,32 @@ export default function Home() {
 
       <Section id="what-we-do" background="white">
         <SectionHeader 
-          title="Three integrated streams." 
-          subtitle="We don't just build — we assess, train, transfer capability, and design with accessibility as the default."
+          title="Four streams. One mission." 
+          subtitle="Public open-source tools, paid implementation services, a fellowship that produces both, and accessibility woven through everything."
           centered
         />
         
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {[
             {
-              icon: Users,
-              title: "Technology Services for Nonprofits",
-              desc: "Discovery and assessment, tool selection, hands-on configuration, staff training, and capability transfer. Custom builds only when existing tools genuinely fall short — and we'll tell you honestly which it is."
-            },
-            {
-              icon: GraduationCap,
-              title: "Fellowship & Career Pathways",
-              desc: "Small, attentive cohorts of non-traditional learners work on real client engagements. AI is the co-worker; fellows own the product decisions, the communication, and the outcome."
+              icon: Code2,
+              title: "Open-Source Tools",
+              desc: "We build free AI-powered tools for community organizations &mdash; board governance, ADHD-friendly task management, lightweight CRMs &mdash; and release them under Apache 2.0. Any nonprofit can download and run them, forever, at no cost."
             },
             {
               icon: HeartHandshake,
+              title: "Implementation Services",
+              desc: "When an organization wants professional help deploying, customizing, training staff, or hosting one of our tools, we sell those services at fair-market rates. Earned, mission-aligned income that sustains the rest of the work."
+            },
+            {
+              icon: GraduationCap,
+              title: "Fellowship Pathways",
+              desc: "Small, attentive cohorts of non-traditional learners contribute to our public projects with real users. They graduate with a portfolio of public commits, professional references, and a path into our paid services team or the broader sector."
+            },
+            {
+              icon: Users,
               title: "Accessibility by Default",
-              desc: "Every engagement includes an accessibility component. Every fellow learns WCAG fundamentals, trauma-informed design, and plain-language principles. The people our clients serve deserve better than afterthought design."
+              desc: "Every tool ships with WCAG fundamentals, plain-language principles, and trauma-informed design baked in. Every fellow learns it. The people our clients serve deserve better than afterthought design."
             }
           ].map((card, i) => (
             <motion.div
@@ -276,6 +284,66 @@ export default function Home() {
               </div>
             </motion.div>
           ))}
+        </div>
+      </Section>
+
+      <Section id="open-source" background="white">
+        <SectionHeader
+          title="The tools we're building."
+          subtitle="Each one started as something we needed to run handləkraft. Each one is free, open source, and ready for any community organization to adopt."
+          centered
+        />
+
+        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          {[
+            {
+              status: "In Production",
+              statusColor: "bg-[#0D7377]",
+              title: "Board Portal",
+              tagline: "Governance for small, working boards.",
+              desc: "Board meeting management, document libraries, action items, written consents, member directory, and a board-scoped chat with AI assistance. Built for nonprofits that need real governance hygiene without enterprise overhead.",
+              audience: "Small nonprofit boards, working committees, advisory councils.",
+            },
+            {
+              status: "Pilot — ADHD/Neurodivergent Task Manager",
+              statusColor: "bg-[#D4A843]",
+              title: "Longship Factory",
+              tagline: "A gamified shared task board built for the brains that struggle with traditional ones.",
+              desc: "A communal quest board with energy-aware planning, low-friction claim workflows, forgiving streaks (weekends and rest days don't punish you), and gentle gamification grounded in research on neurodivergent motivation. Designed first for ADHD &mdash; useful for anyone who finds standard project tools exhausting.",
+              audience: "Mutual-aid groups, recovery communities, neurodivergent teams, families coordinating care.",
+            },
+          ].map((tool, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="p-8 rounded-2xl bg-white border border-slate-200 shadow-xl shadow-slate-200/50 flex flex-col"
+              data-testid={`card-tool-${i}`}
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <span className={`inline-block w-2 h-2 rounded-full ${tool.statusColor}`} />
+                <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">{tool.status}</span>
+              </div>
+              <h3 className="text-2xl font-display text-[#1A1F2B] mb-1" data-testid={`text-tool-name-${i}`}>{tool.title}</h3>
+              <p className="text-[#0D7377] font-medium mb-4">{tool.tagline}</p>
+              <p className="text-muted-foreground leading-relaxed mb-4 flex-1">{tool.desc}</p>
+              <div className="border-t border-slate-100 pt-4 text-sm">
+                <span className="font-semibold text-[#1A1F2B]">Built for: </span>
+                <span className="text-muted-foreground">{tool.audience}</span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="max-w-3xl mx-auto mt-12 bg-[#F5F3EF] rounded-2xl p-8 border border-slate-200 text-center">
+          <p className="text-muted-foreground leading-relaxed mb-4">
+            More tools are on the roadmap &mdash; a lightweight donor/volunteer CRM, an accessibility-audit assistant, and the small operational tools we're building for our own client engagements. Each is released publicly as it stabilizes.
+          </p>
+          <p className="text-sm text-slate-500">
+            All projects are licensed under <span className="font-semibold text-[#1A1F2B]">Apache 2.0</span>. Free to use, fork, modify, and self-host. We sell professional services around them &mdash; never the software itself.
+          </p>
         </div>
       </Section>
 
@@ -429,10 +497,10 @@ export default function Home() {
         <div className="bg-[#F5F3EF] rounded-3xl p-8 md:p-16 text-center border border-slate-200">
           <Code2 className="w-12 h-12 text-[#1A1F2B] mx-auto mb-6" />
           <h2 className="text-3xl md:text-4xl font-display text-[#1A1F2B] mb-4" data-testid="text-proposal-heading">
-            Read the full story.
+            Read the full strategic proposal.
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            Our strategic plan lays out the complete picture — our purpose, our operating principles, how we serve organizations and learners, our commitment to accessibility-first design, and where we're headed over the next five years. We welcome your thoughts, questions, and support.
+            Our board proposal lays out the open-source-plus-services operating model in full &mdash; the four program elements, the four-phase rollout, governance and funding implications, financial projections, and the open questions we're still working through. We welcome your thoughts, questions, and support.
           </p>
           <Button 
             className="bg-[#1A1F2B] hover:bg-[#1A1F2B]/90 text-white font-bold rounded-full px-8 py-6 h-auto"
@@ -455,12 +523,20 @@ export default function Home() {
           <Accordion type="single" collapsible className="space-y-3">
             {[
               {
-                q: "Is this really free for organizations?",
-                a: "Yes. We're a 501(c)(3) nonprofit funded by donations. Organizations never pay for our services — assessment, configuration, training, or anything else we provide. That's the whole point."
+                q: "Wait — are your tools free, or do you charge?",
+                a: "The tools themselves are always free. Every project we build is released as open source under Apache 2.0; any organization can download, install, customize, and run them forever at no cost. What we charge for is professional implementation: hands-on help deploying a tool, customizing it for your workflow, training your staff, integrating it with your other systems, or hosting it for you. Self-serve organizations pay nothing. Organizations that want a partner pay fair-market rates for that service work — and that revenue is what sustains continued tool development."
               },
               {
-                q: "What services do you provide?",
-                a: "Discovery and honest assessment, tool selection and configuration, staff training and capability transfer, accessibility audits, light customization, and — when genuinely needed — custom software. Most organizations benefit more from getting existing tools configured well than from building something new. We'll tell you honestly which you need."
+                q: "Why open source? Couldn't you make more money keeping it proprietary?",
+                a: "Maybe — but that's not the point. We're a nonprofit. Open source means a shelter in a city we'll never visit can still benefit from work funded by a donor in San Diego. It means our fellows graduate with public portfolios anyone can verify. It means if we ever shut down, the tools live on. And it puts us in good company: Sahana, DHIS2, CiviCRM, Kobo Toolbox — some of the most impactful nonprofit software in the world is built this way."
+              },
+              {
+                q: "What does it cost an organization to just use the tools?",
+                a: "Nothing from us, ever. You'll have ordinary infrastructure costs (a server or hosting account, maybe a domain) — typically $20–$100 a month for small organizations, or $0 if you have a tech-comfortable volunteer who can self-host. Everything we build is documented for self-deployment."
+              },
+              {
+                q: "What does paid implementation cost?",
+                a: "It depends on scope, but our rates are deliberately accessible to mission-driven organizations and significantly below commercial agencies. Discovery conversations are always free. We'll quote any engagement transparently before you commit, and we'll happily tell you when self-deployment is the right call."
               },
               {
                 q: "Do I need coding experience to apply for the fellowship?",
@@ -472,7 +548,11 @@ export default function Home() {
               },
               {
                 q: "How is this different from a coding bootcamp?",
-                a: "Bootcamps train you to code. We train you to configure, advise, and deliver outcomes for real organizations — using AI tools to handle technical complexity while you own the product thinking, communication, and results. Small cohorts, real client engagements, close mentorship, no tuition, and accessibility woven into everything."
+                a: "Bootcamps train you to code. We train you to be a product builder — to configure, advise, and deliver outcomes for real organizations — using AI tools to handle technical complexity while you own the product thinking, communication, and results. Fellows contribute to real public open-source projects with real users. Small cohorts, close mentorship, no tuition, accessibility woven into everything."
+              },
+              {
+                q: "Which tools have you built so far?",
+                a: "Two are running today: a Board Portal for nonprofit governance (meetings, documents, action items, written consents, board chat with AI assistance) and Longship Factory, a gamified ADHD/neurodivergent-friendly task management tool with energy-aware planning and forgiving streaks. We use both internally to run handləkraft, and they're available for any organization to adopt. More tools — a donor/volunteer CRM, an accessibility-audit assistant — are on the roadmap and will be released publicly as they stabilize."
               },
               {
                 q: "How can I support handləkraft.ai?",

@@ -751,10 +751,11 @@ router.patch("/cards/:id", async (req, res) => {
         }
       }
 
-      // ── Stewardship: actor who pulled the card out of In Review ──
-      // Credits the user performing the move (req.user) — they are the reviewer
-      // signing off the handoff. Idempotent per-card via source_type='kanban_card_review'.
-      if (oldCol && newCol && isInReviewColumn(oldCol.title) && !isInReviewColumn(newCol.title)) {
+      // ── Stewardship: actor who approved the handoff out of In Review ──
+      // Only awards on In Review → Done (forward approval). Rollbacks (In Review
+      // → To Do, etc.) do NOT consume the per-card reviewer reward, so the true
+      // approval handoff still pays out. Credits req.user (the actor).
+      if (oldCol && newCol && isInReviewColumn(oldCol.title) && _isDone(newCol.title)) {
         const actorId = req.user!.userId;
         const reviewReason = `Review handoff: ${card.title}`.slice(0, 200);
         const rv = await tryAward({

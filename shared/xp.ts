@@ -92,9 +92,9 @@ export const STAT_META: Record<Stat, StatMeta> = {
   focus: {
     key: "focus",
     name: "Focus",
-    blurb: "Showing up and finishing your own quests.",
+    blurb: "Showing up day after day with intention.",
     color: "#0D7377",
-    earnedHow: "Earned for completing tasks assigned to you.",
+    earnedHow: "Earned by finishing your Daily Raid (Plan Day).",
   },
   initiative: {
     key: "initiative",

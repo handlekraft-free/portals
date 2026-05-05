@@ -1458,15 +1458,40 @@ router.delete("/financials/:id", requireBoard as any, async (req, res) => {
 
 // ── Forums ────────────────────────────────────────────────────────────────────
 
-router.get("/forums/topics", async (_req, res) => {
-  const rows = await raw(sql`
-    SELECT t.*, u.first_name, u.last_name,
+async function getViewerCommitteeNames(userId: number): Promise<string[]> {
+  const rows = await raw<any>(sql`SELECT committees FROM portal_users WHERE id = ${userId}`);
+  const list = rows[0]?.committees;
+  return Array.isArray(list) ? list.filter((c: any) => typeof c === "string") : [];
+}
+
+async function viewerCanAccessTopic(req: any, topic: { committeeId: number | null } | { committee_id: number | null }): Promise<boolean> {
+  const cid = (topic as any).committeeId ?? (topic as any).committee_id ?? null;
+  if (cid == null) return true;
+  if (req.user?.role === "admin") return true;
+  const [row] = await raw<any>(sql`SELECT name FROM board_committees WHERE id = ${cid}`);
+  if (!row) return true;
+  const mine = await getViewerCommitteeNames(req.user!.userId);
+  return mine.includes(row.name);
+}
+
+router.get("/forums/topics", async (req, res) => {
+  const rows = await raw<any>(sql`
+    SELECT t.*, u.first_name, u.last_name, c.name AS committee_name,
       (SELECT count(*) FROM board_forum_posts p WHERE p.topic_id = t.id) AS post_count,
       (SELECT count(*) FROM board_forum_attachments a WHERE a.topic_id = t.id) AS attachment_count
-    FROM board_forum_topics t LEFT JOIN portal_users u ON u.id = t.author_id
+    FROM board_forum_topics t
+    LEFT JOIN portal_users u ON u.id = t.author_id
+    LEFT JOIN board_committees c ON c.id = t.committee_id
     ORDER BY t.pinned DESC, t.last_activity_at DESC
   `);
-  res.json({ success: true, data: rows });
+  const isAdmin = req.user?.role === "admin";
+  const mine = isAdmin ? [] : await getViewerCommitteeNames(req.user!.userId);
+  const filtered = rows.filter((r: any) => {
+    if (r.committee_id == null) return true;
+    if (isAdmin) return true;
+    return r.committee_name && mine.includes(r.committee_name);
+  });
+  res.json({ success: true, data: filtered });
 });
 
 async function persistForumFiles(
@@ -1513,8 +1538,18 @@ router.post("/forums/topics", uploadForumFiles, async (req, res) => {
     cleanupUploadedFiles(req.files as Express.Multer.File[]);
     return res.status(400).json({ success: false, error: "Title and content required" });
   }
-  const rows = await raw(sql`
-    INSERT INTO board_forum_topics (title, content, author_id) VALUES (${title}, ${content}, ${req.user!.userId}) RETURNING *
+  let committeeId: number | null = null;
+  if (req.user?.role === "admin") {
+    const cidRaw = req.body.committeeId;
+    if (cidRaw !== undefined && cidRaw !== null && cidRaw !== "") {
+      const parsed = parseInt(String(cidRaw), 10);
+      if (Number.isFinite(parsed)) committeeId = parsed;
+    }
+  }
+  const rows = await raw<any>(sql`
+    INSERT INTO board_forum_topics (title, content, author_id, committee_id)
+    VALUES (${title}, ${content}, ${req.user!.userId}, ${committeeId})
+    RETURNING *
   `);
   const topic = rows[0];
   await persistForumFiles(req.files as Express.Multer.File[], req.user!.userId, { topicId: topic.id });
@@ -1522,8 +1557,16 @@ router.post("/forums/topics", uploadForumFiles, async (req, res) => {
   res.status(201).json({ success: true, data: { ...topic, attachments } });
 });
 
+async function loadTopicForAccess(topicId: number) {
+  const [t] = await raw<any>(sql`SELECT id, committee_id FROM board_forum_topics WHERE id = ${topicId}`);
+  return t || null;
+}
+
 router.get("/forums/topics/:id/posts", async (req, res) => {
   const topicId = parseInt(req.params.id);
+  const t = await loadTopicForAccess(topicId);
+  if (!t) return res.status(404).json({ success: false, error: "Topic not found" });
+  if (!(await viewerCanAccessTopic(req, t))) return res.status(403).json({ success: false, error: "Forbidden" });
   const rows = await raw<any>(sql`
     SELECT p.*, u.first_name, u.last_name FROM board_forum_posts p
     LEFT JOIN portal_users u ON u.id = p.author_id WHERE p.topic_id = ${topicId}
@@ -1544,12 +1587,20 @@ router.get("/forums/topics/:id/posts", async (req, res) => {
 
 router.get("/forums/topics/:id/attachments", async (req, res) => {
   const topicId = parseInt(req.params.id);
+  const t = await loadTopicForAccess(topicId);
+  if (!t) return res.status(404).json({ success: false, error: "Topic not found" });
+  if (!(await viewerCanAccessTopic(req, t))) return res.status(403).json({ success: false, error: "Forbidden" });
   const data = await storage.listBoardForumAttachmentsByTopic(topicId);
   res.json({ success: true, data });
 });
 
 router.get("/forums/posts/:id/attachments", async (req, res) => {
   const postId = parseInt(req.params.id);
+  const [p] = await raw<any>(sql`SELECT topic_id FROM board_forum_posts WHERE id = ${postId}`);
+  if (p) {
+    const t = await loadTopicForAccess(p.topic_id);
+    if (t && !(await viewerCanAccessTopic(req, t))) return res.status(403).json({ success: false, error: "Forbidden" });
+  }
   const data = await storage.listBoardForumAttachmentsByPost(postId);
   res.json({ success: true, data });
 });
@@ -1561,6 +1612,15 @@ router.post("/forums/topics/:id/posts", uploadForumFiles, async (req, res) => {
     return res.status(400).json({ success: false, error: "Content required" });
   }
   const topicId = parseInt(String(req.params.id));
+  const t = await loadTopicForAccess(topicId);
+  if (!t) {
+    cleanupUploadedFiles(req.files as Express.Multer.File[]);
+    return res.status(404).json({ success: false, error: "Topic not found" });
+  }
+  if (!(await viewerCanAccessTopic(req, t))) {
+    cleanupUploadedFiles(req.files as Express.Multer.File[]);
+    return res.status(403).json({ success: false, error: "Forbidden" });
+  }
   const inserted = await raw<any>(sql`
     INSERT INTO board_forum_posts (topic_id, author_id, content) VALUES (${topicId}, ${req.user!.userId}, ${content}) RETURNING id
   `);
@@ -1621,6 +1681,15 @@ router.get("/forums/attachments/:id/download", async (req, res) => {
   if (Number.isNaN(id)) return res.status(400).json({ success: false, error: "Invalid id" });
   const att = await storage.getBoardForumAttachment(id);
   if (!att) return res.status(404).json({ success: false, error: "Attachment not found" });
+  let parentTopicId: number | null = att.topicId ?? null;
+  if (!parentTopicId && att.postId) {
+    const [p] = await raw<any>(sql`SELECT topic_id FROM board_forum_posts WHERE id = ${att.postId}`);
+    parentTopicId = p?.topic_id ?? null;
+  }
+  if (parentTopicId) {
+    const t = await loadTopicForAccess(parentTopicId);
+    if (t && !(await viewerCanAccessTopic(req, t))) return res.status(403).json({ success: false, error: "Forbidden" });
+  }
   const filepath = path.join(BOARD_FORUM_DIR, att.filename);
   if (!fs.existsSync(filepath)) return res.status(404).json({ success: false, error: "File missing on disk" });
   res.download(path.resolve(filepath), att.originalName);

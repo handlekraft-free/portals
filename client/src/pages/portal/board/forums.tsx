@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest, getCurrentUser, type PortalUser } from "@/lib/auth";
-import { MessageSquare, Plus, Send, ChevronLeft, MessageCircle, Sparkles, Loader2, Paperclip, X, Download, FileText, Image as ImageIcon, Trash2 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { MessageSquare, Plus, Send, ChevronLeft, MessageCircle, Sparkles, Loader2, Paperclip, X, Download, FileText, Image as ImageIcon, Trash2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -178,6 +179,8 @@ function FilePicker({
 }
 
 function ForumsContent() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [topics, setTopics] = useState<any[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
   const [topicAttachments, setTopicAttachments] = useState<Attachment[]>([]);
@@ -185,7 +188,8 @@ function ForumsContent() {
   const [loading, setLoading] = useState(true);
   const [postsLoading, setPostsLoading] = useState(false);
   const [newTopic, setNewTopic] = useState(false);
-  const [topicForm, setTopicForm] = useState({ title: "", content: "" });
+  const [topicForm, setTopicForm] = useState({ title: "", content: "", committeeId: "" });
+  const [committees, setCommittees] = useState<{ id: number; name: string }[]>([]);
   const [topicFiles, setTopicFiles] = useState<File[]>([]);
   const [topicFileError, setTopicFileError] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
@@ -201,6 +205,9 @@ function ForumsContent() {
     document.title = "Board Forums | handləkraft.ai";
     loadTopics();
     getCurrentUser().then(setMe);
+    apiRequest("GET", "/api/board/committees").then(r => {
+      if (r.success) setCommittees(r.data || []);
+    });
   }, []);
 
   function canDelete(authorId: number | undefined | null) {
@@ -282,11 +289,12 @@ function ForumsContent() {
     const fd = new FormData();
     fd.append("title", topicForm.title);
     fd.append("content", topicForm.content);
+    if (isAdmin && topicForm.committeeId) fd.append("committeeId", topicForm.committeeId);
     for (const f of topicFiles) fd.append("files", f);
     const r = await apiRequest("POST", "/api/board/forums/topics", fd);
     if (r.success) {
       setNewTopic(false);
-      setTopicForm({ title: "", content: "" });
+      setTopicForm({ title: "", content: "", committeeId: "" });
       setTopicFiles([]);
       setTopicFileError(null);
       loadTopics();
@@ -337,7 +345,14 @@ function ForumsContent() {
           <ChevronLeft className="w-4 h-4" /> All topics
         </button>
         <div className="flex items-start justify-between gap-3 mb-1">
-          <h1 className="text-xl font-display text-[#1A1F2B]" data-testid="text-topic-title">{activeTopic.title}</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl font-display text-[#1A1F2B]" data-testid="text-topic-title">{activeTopic.title}</h1>
+            {activeTopic.committee_name && (
+              <Badge className="bg-violet-100 text-violet-700 text-xs gap-1" data-testid={`badge-topic-committee-${activeTopic.id}`}>
+                <Lock className="w-3 h-3" /> {activeTopic.committee_name}
+              </Badge>
+            )}
+          </div>
           {canDelete(activeTopic.author_id ?? activeTopic.authorId) && (
             <Button
               variant="ghost"
@@ -468,6 +483,27 @@ function ForumsContent() {
               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
               data-testid="input-topic-title"
             />
+            {isAdmin && (
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
+                  <Lock className="w-3 h-3" /> Restrict to committee (optional)
+                </label>
+                <select
+                  value={topicForm.committeeId}
+                  onChange={e => setTopicForm(f => ({ ...f, committeeId: e.target.value }))}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
+                  data-testid="select-topic-committee"
+                >
+                  <option value="">All board members (public)</option>
+                  {committees.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-slate-400">
+                  Only members of the selected committee (and admins) will see this topic.
+                </p>
+              </div>
+            )}
             <textarea
               value={topicForm.content}
               onChange={e => setTopicForm(f => ({ ...f, content: e.target.value }))}
@@ -488,7 +524,7 @@ function ForumsContent() {
                 {posting && <Loader2 className="w-4 h-4 animate-spin" />}
                 {posting ? "Posting…" : "Post Topic"}
               </Button>
-              <Button variant="outline" onClick={() => { setNewTopic(false); setTopicFiles([]); setTopicFileError(null); }}>Cancel</Button>
+              <Button variant="outline" onClick={() => { setNewTopic(false); setTopicFiles([]); setTopicFileError(null); setTopicForm({ title: "", content: "", committeeId: "" }); }}>Cancel</Button>
             </div>
           </CardContent>
         </Card>
@@ -512,6 +548,11 @@ function ForumsContent() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-sm text-[#1A1F2B]">{t.title}</p>
+                      {t.committee_name && (
+                        <Badge className="bg-violet-100 text-violet-700 text-xs gap-1" data-testid={`badge-topic-committee-${t.id}`}>
+                          <Lock className="w-3 h-3" /> {t.committee_name}
+                        </Badge>
+                      )}
                       {t.pinned && <Badge className="bg-amber-100 text-amber-700 text-xs">Pinned</Badge>}
                       {Number(t.attachment_count ?? 0) > 0 && (
                         <Badge variant="secondary" className="text-xs gap-1" data-testid={`badge-topic-attachments-${t.id}`}>

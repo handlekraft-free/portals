@@ -525,6 +525,7 @@ router.post("/forum-comment", async (req: any, res) => {
         title: boardForumTopics.title,
         content: boardForumTopics.content,
         authorId: boardForumTopics.authorId,
+        committeeId: boardForumTopics.committeeId,
         firstName: users.firstName,
         lastName: users.lastName,
       })
@@ -534,6 +535,18 @@ router.post("/forum-comment", async (req: any, res) => {
       .limit(1);
 
     if (!topicRow) return res.status(404).json({ success: false, error: "Topic not found" });
+
+    // Committee-scoped topics: only admins or members of that committee may invoke AI
+    if (topicRow.committeeId != null && req.user.role !== "admin") {
+      const { sql } = await import("drizzle-orm");
+      const cRows: any = await db.execute(sql`SELECT name FROM board_committees WHERE id = ${topicRow.committeeId}`);
+      const committeeName: string | undefined = (cRows.rows ?? cRows)[0]?.name;
+      const uRows: any = await db.execute(sql`SELECT committees FROM portal_users WHERE id = ${req.user.userId}`);
+      const myCommittees: string[] = (uRows.rows ?? uRows)[0]?.committees ?? [];
+      if (!committeeName || !Array.isArray(myCommittees) || !myCommittees.includes(committeeName)) {
+        return res.status(403).json({ success: false, error: "Forbidden" });
+      }
+    }
 
     // Fetch posts in chronological order with author names
     const replies = await db

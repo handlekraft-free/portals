@@ -279,6 +279,7 @@ function SaveMilestoneRow({ data, rankName }: { data: TodayPayload; rankName: st
     setSaving(false);
     if (res?.success) {
       setSaved(true);
+      window.dispatchEvent(new CustomEvent("hk:milestone-saved"));
       toast({ title: "Saved to your saga" });
     } else {
       toast({ title: "Could not save", variant: "destructive" });

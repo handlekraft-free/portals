@@ -26,6 +26,67 @@ const STAT_ICON: Record<Stat, typeof Target> = {
   craft:       Heart,
 };
 
+// Personal saga timeline. Reads `/api/xp/milestones` (private to the user)
+// and lists the most recent saved entries (rank-ups + recap saves). Refreshes
+// when a new milestone is saved anywhere in the app via `hk:milestone-saved`.
+function SagaTimeline() {
+  type Item = { id: number; kind: string; title: string; blurb: string | null; createdAt: string };
+  const [items, setItems] = useState<Item[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const refresh = () => {
+    apiRequest("GET", "/api/xp/milestones").then((res) => {
+      if (res?.success && Array.isArray(res.data?.items)) {
+        setItems(
+          (res.data.items as Array<{
+            id: number; kind: string; title: string;
+            blurb: string | null; created_at: string;
+          }>).map((r) => ({
+            id: r.id, kind: r.kind, title: r.title, blurb: r.blurb,
+            createdAt: r.created_at,
+          })),
+        );
+      }
+      setLoaded(true);
+    }).catch(() => setLoaded(true));
+  };
+  useEffect(() => {
+    refresh();
+    const onSaved = () => refresh();
+    window.addEventListener("hk:milestone-saved", onSaved);
+    return () => window.removeEventListener("hk:milestone-saved", onSaved);
+  }, []);
+  if (!loaded) return null;
+  return (
+    <div className="bg-white/5 rounded-md px-2 py-1.5" data-testid="panel-saga-timeline">
+      <div className="flex items-center gap-1 text-white/50 text-[9px] uppercase tracking-wider mb-1">
+        <ScrollText className="w-2.5 h-2.5" /> My saga
+      </div>
+      {items.length === 0 ? (
+        <p className="text-white/40 text-[11px] italic" data-testid="text-saga-empty">
+          No saved moments yet — save a rank-up or recap to start your saga.
+        </p>
+      ) : (
+        <ul className="space-y-1 max-h-40 overflow-y-auto pr-1">
+          {items.slice(0, 10).map((m) => (
+            <li
+              key={m.id}
+              className="text-white/80 text-[11px] leading-tight"
+              data-testid={`item-saga-milestone-${m.id}`}
+            >
+              <span className="text-[#D4A843]">•</span>{" "}
+              <span className="font-medium">{m.title}</span>
+              <span className="text-white/30 text-[10px]"> · {new Date(m.createdAt).toLocaleDateString()}</span>
+              {m.blurb && (
+                <div className="text-white/45 text-[10px] pl-2.5">{m.blurb}</div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 // Per-event sound opt-outs — only meaningful when the global toggle is on.
 // Persists locally + best-effort to server (PATCH /api/auth/sound-prefs).
 function PerEventSoundToggles() {
@@ -160,6 +221,7 @@ function HeroCardPopover({ onCustomizeAvatar }: { onCustomizeAvatar: () => void 
 
           {tab === "saga" && (
             <div className="p-3 space-y-3" data-testid="panel-my-saga">
+              <SagaTimeline />
               {/* Quick avatar customizer entry — duplicates the Settings tab
                   entry so it's discoverable from the saga view too. */}
               <button

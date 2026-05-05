@@ -75,6 +75,8 @@ function RankUpOverlay({ rank, onDismiss }: { rank: Rank; onDismiss: () => void 
     setSaving(false);
     if (res?.success) {
       setSaved(true);
+      // Refresh the SagaTimeline panel immediately wherever it's mounted.
+      window.dispatchEvent(new CustomEvent("hk:milestone-saved"));
       toast({ title: "Added to your saga", description: "A private milestone you can keep." });
     } else {
       toast({ title: "Could not save", variant: "destructive" });

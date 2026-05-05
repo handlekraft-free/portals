@@ -53,6 +53,14 @@ export function AvatarCustomizer({ isOpen, initials, initialConfig, onClose, onS
   async function save() {
     setSaving(true);
     const res = await apiRequest("PATCH", "/api/auth/avatar", config);
+    if (res?.success) {
+      // Broadcast so every surface that renders the avatar (sidebar, hero
+      // card, settings card) updates in-session without needing a reload.
+      const saved = (res.data?.avatarConfig ?? config) as AvatarConfig;
+      window.dispatchEvent(
+        new CustomEvent("hk:avatar-changed", { detail: { config: saved } }),
+      );
+    }
     setSaving(false);
     if (res?.success) {
       toast({ title: "Avatar saved" });

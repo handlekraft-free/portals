@@ -29,6 +29,12 @@ function AvatarCustomizationCard() {
     apiRequest("GET", "/api/auth/me").then((res) => {
       if (res?.success) setCfg((res.data?.avatarConfig as AvatarConfig) ?? null);
     }).catch(() => {});
+    const onChanged = (e: Event) => {
+      const c = (e as CustomEvent<{ config: AvatarConfig }>).detail?.config;
+      if (c) setCfg(c);
+    };
+    window.addEventListener("hk:avatar-changed", onChanged);
+    return () => window.removeEventListener("hk:avatar-changed", onChanged);
   }, []);
   const initials = `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`;
   return (

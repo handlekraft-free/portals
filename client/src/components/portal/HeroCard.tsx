@@ -288,7 +288,8 @@ export function HeroCard() {
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
-  // Avatar config — pulled once per mount from /api/auth/me.
+  // Avatar config — pulled once per mount from /api/auth/me, plus live-sync
+  // via the `hk:avatar-changed` window event so saves elsewhere reflect here.
   useEffect(() => {
     let cancelled = false;
     apiRequest("GET", "/api/auth/me").then((res) => {
@@ -296,7 +297,15 @@ export function HeroCard() {
         setAvatarConfig(res.data.avatarConfig as AvatarConfig);
       }
     }).catch(() => {});
-    return () => { cancelled = true; };
+    const onChanged = (e: Event) => {
+      const c = (e as CustomEvent<{ config: AvatarConfig }>).detail?.config;
+      if (c) setAvatarConfig(c);
+    };
+    window.addEventListener("hk:avatar-changed", onChanged);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("hk:avatar-changed", onChanged);
+    };
   }, []);
 
   // Smooth bar fill ONLY when XP actually changes — quiet on first paint.

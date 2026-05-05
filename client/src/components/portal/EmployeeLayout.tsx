@@ -35,7 +35,16 @@ function SidebarHeroAvatar({ initials, fullName }: { initials: string; fullName:
         setCfg(res.data.avatarConfig as AvatarConfig);
       }
     }).catch(() => {});
-    return () => { cancelled = true; };
+    // Live sync: any surface that saves the avatar fires `hk:avatar-changed`.
+    const onChanged = (e: Event) => {
+      const c = (e as CustomEvent<{ config: AvatarConfig }>).detail?.config;
+      if (c) setCfg(c);
+    };
+    window.addEventListener("hk:avatar-changed", onChanged);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("hk:avatar-changed", onChanged);
+    };
   }, []);
   return (
     <div title={fullName} data-testid="avatar-sidebar">

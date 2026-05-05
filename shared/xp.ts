@@ -284,13 +284,16 @@ export function advanceStreak(opts: {
     };
   }
 
-  // Not enough tokens — streak resets but we still count today.
+  // Pause-don't-reset: when we cannot fully bridge missed workdays with
+  // tokens, we hold the streak count where it was (no reset to 1, no increment
+  // for today), spend whatever tokens remain, and let lastDate advance so the
+  // next valid workday continues from the held count.
   return {
-    newStreak: 1,
-    spentTokens: tokens, // burn what we had trying to save it
+    newStreak: opts.currentStreak,
+    spentTokens: tokens,
     remainingTokens: 0,
     monthKey,
     alreadyCountedToday: false,
-    brokeStreak: true,
+    brokeStreak: false,
   };
 }

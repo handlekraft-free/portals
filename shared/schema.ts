@@ -752,6 +752,21 @@ export const boardForumPosts = pgTable("board_forum_posts", {
 });
 export type BoardForumPost = typeof boardForumPosts.$inferSelect;
 
+export const boardForumAttachments = pgTable("board_forum_attachments", {
+  id: serial("id").primaryKey(),
+  topicId: integer("topic_id").references(() => boardForumTopics.id, { onDelete: "cascade" }),
+  postId: integer("post_id").references(() => boardForumPosts.id, { onDelete: "cascade" }),
+  filename: text("filename").notNull(),
+  originalName: text("original_name").notNull(),
+  mimeType: text("mime_type").notNull(),
+  sizeBytes: integer("size_bytes").notNull(),
+  uploadedBy: integer("uploaded_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export const insertBoardForumAttachmentSchema = createInsertSchema(boardForumAttachments).omit({ id: true, createdAt: true });
+export type InsertBoardForumAttachment = z.infer<typeof insertBoardForumAttachmentSchema>;
+export type BoardForumAttachment = typeof boardForumAttachments.$inferSelect;
+
 export const boardDocumentComments = pgTable("board_document_comments", {
   id: serial("id").primaryKey(),
   documentId: integer("document_id").notNull(),

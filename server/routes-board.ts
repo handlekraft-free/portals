@@ -10,12 +10,14 @@ import {
   boardDocumentComments,
   boardWrittenConsents, boardWrittenConsentResponses, boardCoiDisclosures,
   boardNotificationPrefs, boardFinancials, boardOnboardingItems, boardOnboardingAcks,
-  boardForumTopics, boardForumPosts, boardNotifications,
+  boardForumTopics, boardForumPosts, boardForumAttachments, boardNotifications,
+  type BoardForumAttachment,
   users,
   boardMinutes, boardMinutesMotions, boardMinutesVersions, boardMeetingPacketDocs,
   boardMemberAvailability, meetingTimePolls, meetingPollSlots, meetingPollResponses,
   boardCalendarReminders,
 } from "@shared/schema";
+import { storage } from "./storage";
 import { eq, and, desc, asc, sql, or, ilike } from "drizzle-orm";
 import PDFDocument from "pdfkit";
 import multer from "multer";
@@ -50,6 +52,47 @@ const financialsStorage = multer.diskStorage({
     cb(null, `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_")}`),
 });
 const financialsUpload = multer({ storage: financialsStorage, limits: { fileSize: 50 * 1024 * 1024 } });
+
+// ── Forum Attachment Storage ──────────────────────────────────────────────────
+
+const BOARD_FORUM_DIR = process.env.UPLOAD_DIR
+  ? path.join(process.env.UPLOAD_DIR, "board-forum")
+  : "./data/uploads/board-forum";
+fs.mkdirSync(BOARD_FORUM_DIR, { recursive: true });
+
+const FORUM_ALLOWED_MIMES = new Set([
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "text/plain",
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+]);
+
+const forumAttachmentStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, BOARD_FORUM_DIR),
+  filename: (req: any, file, cb) => {
+    const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+    cb(null, `${req.user?.userId ?? "anon"}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safe}`);
+  },
+});
+const forumAttachmentUpload = multer({
+  storage: forumAttachmentStorage,
+  limits: { fileSize: 10 * 1024 * 1024, files: 5 },
+  fileFilter: (_req, file, cb) => {
+    if (!FORUM_ALLOWED_MIMES.has(file.mimetype)) {
+      (cb as any)(new Error(`File type not allowed: ${file.mimetype}`));
+      return;
+    }
+    cb(null, true);
+  },
+});
 
 // ── Profile Photo & Resume Storage ────────────────────────────────────────────
 
@@ -1418,40 +1461,125 @@ router.delete("/financials/:id", requireBoard as any, async (req, res) => {
 router.get("/forums/topics", async (_req, res) => {
   const rows = await raw(sql`
     SELECT t.*, u.first_name, u.last_name,
-      (SELECT count(*) FROM board_forum_posts p WHERE p.topic_id = t.id) AS post_count
+      (SELECT count(*) FROM board_forum_posts p WHERE p.topic_id = t.id) AS post_count,
+      (SELECT count(*) FROM board_forum_attachments a WHERE a.topic_id = t.id) AS attachment_count
     FROM board_forum_topics t LEFT JOIN portal_users u ON u.id = t.author_id
     ORDER BY t.pinned DESC, t.last_activity_at DESC
   `);
   res.json({ success: true, data: rows });
 });
 
-router.post("/forums/topics", async (req, res) => {
+async function persistForumFiles(
+  files: Express.Multer.File[] | undefined,
+  uploadedBy: number,
+  target: { topicId?: number; postId?: number },
+) {
+  if (!files || files.length === 0) return;
+  for (const f of files) {
+    await storage.createBoardForumAttachment({
+      topicId: target.topicId ?? null,
+      postId: target.postId ?? null,
+      filename: f.filename,
+      originalName: f.originalname,
+      mimeType: f.mimetype,
+      sizeBytes: f.size,
+      uploadedBy,
+    });
+  }
+}
+
+function cleanupUploadedFiles(files: Express.Multer.File[] | undefined) {
+  if (!files) return;
+  for (const f of files) {
+    fs.unlink(f.path, () => {});
+  }
+}
+
+/** Wrap multer upload to translate errors into JSON {success,error} responses. */
+function uploadForumFiles(req: any, res: any, next: any) {
+  forumAttachmentUpload.array("files", 5)(req, res, (err: any) => {
+    if (!err) return next();
+    let status = 400;
+    let message = err.message || "Upload failed";
+    if (err.code === "LIMIT_FILE_SIZE") { status = 413; message = "File too large (max 10 MB per file)."; }
+    else if (err.code === "LIMIT_FILE_COUNT" || err.code === "LIMIT_UNEXPECTED_FILE") { message = "Too many files (max 5 per topic or reply)."; }
+    res.status(status).json({ success: false, error: message });
+  });
+}
+
+router.post("/forums/topics", uploadForumFiles, async (req, res) => {
   const { title, content } = req.body;
-  if (!title || !content) return res.status(400).json({ success: false, error: "Title and content required" });
+  if (!title || !content) {
+    cleanupUploadedFiles(req.files as Express.Multer.File[]);
+    return res.status(400).json({ success: false, error: "Title and content required" });
+  }
   const rows = await raw(sql`
     INSERT INTO board_forum_topics (title, content, author_id) VALUES (${title}, ${content}, ${req.user!.userId}) RETURNING *
   `);
-  res.status(201).json({ success: true, data: rows[0] });
+  const topic = rows[0];
+  await persistForumFiles(req.files as Express.Multer.File[], req.user!.userId, { topicId: topic.id });
+  const attachments = await storage.listBoardForumAttachmentsByTopic(topic.id);
+  res.status(201).json({ success: true, data: { ...topic, attachments } });
 });
 
 router.get("/forums/topics/:id/posts", async (req, res) => {
-  const rows = await raw(sql`
+  const topicId = parseInt(req.params.id);
+  const rows = await raw<any>(sql`
     SELECT p.*, u.first_name, u.last_name FROM board_forum_posts p
-    LEFT JOIN portal_users u ON u.id = p.author_id WHERE p.topic_id = ${parseInt(req.params.id)}
+    LEFT JOIN portal_users u ON u.id = p.author_id WHERE p.topic_id = ${topicId}
     ORDER BY p.created_at ASC
   `);
-  res.json({ success: true, data: rows });
+  const postIds = rows.map(r => r.id as number);
+  const attachments = await storage.listBoardForumAttachmentsByPostIds(postIds);
+  const byPost = new Map<number, BoardForumAttachment[]>();
+  for (const a of attachments) {
+    if (a.postId == null) continue;
+    const list = byPost.get(a.postId) ?? [];
+    list.push(a);
+    byPost.set(a.postId, list);
+  }
+  const enriched = rows.map(r => ({ ...r, attachments: byPost.get(r.id) ?? [] }));
+  res.json({ success: true, data: enriched });
 });
 
-router.post("/forums/topics/:id/posts", async (req, res) => {
-  const { content } = req.body;
-  if (!content) return res.status(400).json({ success: false, error: "Content required" });
+router.get("/forums/topics/:id/attachments", async (req, res) => {
   const topicId = parseInt(req.params.id);
-  await db.execute(sql`
-    INSERT INTO board_forum_posts (topic_id, author_id, content) VALUES (${topicId}, ${req.user!.userId}, ${content})
+  const data = await storage.listBoardForumAttachmentsByTopic(topicId);
+  res.json({ success: true, data });
+});
+
+router.get("/forums/posts/:id/attachments", async (req, res) => {
+  const postId = parseInt(req.params.id);
+  const data = await storage.listBoardForumAttachmentsByPost(postId);
+  res.json({ success: true, data });
+});
+
+router.post("/forums/topics/:id/posts", uploadForumFiles, async (req, res) => {
+  const { content } = req.body;
+  if (!content) {
+    cleanupUploadedFiles(req.files as Express.Multer.File[]);
+    return res.status(400).json({ success: false, error: "Content required" });
+  }
+  const topicId = parseInt(String(req.params.id));
+  const inserted = await raw<any>(sql`
+    INSERT INTO board_forum_posts (topic_id, author_id, content) VALUES (${topicId}, ${req.user!.userId}, ${content}) RETURNING id
   `);
+  const postId = inserted[0]?.id as number | undefined;
   await db.execute(sql`UPDATE board_forum_topics SET last_activity_at = NOW() WHERE id = ${topicId}`);
-  res.status(201).json({ success: true, data: null });
+  if (postId) {
+    await persistForumFiles(req.files as Express.Multer.File[], req.user!.userId, { postId });
+  }
+  res.status(201).json({ success: true, data: { id: postId } });
+});
+
+router.get("/forums/attachments/:id/download", async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (Number.isNaN(id)) return res.status(400).json({ success: false, error: "Invalid id" });
+  const att = await storage.getBoardForumAttachment(id);
+  if (!att) return res.status(404).json({ success: false, error: "Attachment not found" });
+  const filepath = path.join(BOARD_FORUM_DIR, att.filename);
+  if (!fs.existsSync(filepath)) return res.status(404).json({ success: false, error: "File missing on disk" });
+  res.download(path.resolve(filepath), att.originalName);
 });
 
 // ── Onboarding ────────────────────────────────────────────────────────────────

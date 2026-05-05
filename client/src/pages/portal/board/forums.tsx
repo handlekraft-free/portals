@@ -1,21 +1,196 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BoardLayout } from "@/components/portal/BoardLayout";
 import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
-import { MessageSquare, Plus, Send, ChevronLeft, MessageCircle, Sparkles, Loader2 } from "lucide-react";
+import { MessageSquare, Plus, Send, ChevronLeft, MessageCircle, Sparkles, Loader2, Paperclip, X, Download, FileText, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+const MAX_FILES = 5;
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const ALLOWED_MIMES = new Set([
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "text/plain",
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+]);
+const ACCEPT_ATTR = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.png,.jpg,.jpeg,.gif,.webp";
+
+function formatBytes(n: number) {
+  if (!n && n !== 0) return "";
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function isImageMime(m: string) {
+  return typeof m === "string" && m.startsWith("image/");
+}
+
+type Attachment = {
+  id: number;
+  filename: string;
+  originalName?: string;
+  original_name?: string;
+  mimeType?: string;
+  mime_type?: string;
+  sizeBytes?: number;
+  size_bytes?: number;
+};
+
+function attName(a: Attachment) { return a.originalName || a.original_name || a.filename; }
+function attMime(a: Attachment) { return a.mimeType || a.mime_type || ""; }
+function attSize(a: Attachment) { return a.sizeBytes ?? a.size_bytes ?? 0; }
+
+function AttachmentList({ items, testIdPrefix }: { items: Attachment[]; testIdPrefix: string }) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div className="mt-3 space-y-1.5">
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Attachments</p>
+      <div className="flex flex-wrap gap-2">
+        {items.map(a => {
+          const Icon = isImageMime(attMime(a)) ? ImageIcon : FileText;
+          return (
+            <a
+              key={a.id}
+              href={`/api/board/forums/attachments/${a.id}/download`}
+              className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:border-indigo-300 text-xs text-slate-700 transition"
+              data-testid={`${testIdPrefix}-${a.id}`}
+            >
+              <Icon className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+              <span className="font-medium truncate max-w-[180px]">{attName(a)}</span>
+              <span className="text-slate-400">{formatBytes(attSize(a))}</span>
+              <Download className="w-3.5 h-3.5 text-slate-400" />
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function FilePicker({
+  files, setFiles, error, setError, idSuffix,
+}: {
+  files: File[];
+  setFiles: (f: File[]) => void;
+  error: string | null;
+  setError: (e: string | null) => void;
+  idSuffix: string;
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  function handleSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    setError(null);
+    const incoming = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    const combined = [...files];
+    for (const f of incoming) {
+      if (combined.length >= MAX_FILES) {
+        setError(`You can attach at most ${MAX_FILES} files.`);
+        break;
+      }
+      if (!ALLOWED_MIMES.has(f.type)) {
+        setError(`"${f.name}" is not an allowed file type.`);
+        continue;
+      }
+      if (f.size > MAX_FILE_SIZE) {
+        setError(`"${f.name}" is larger than 10 MB.`);
+        continue;
+      }
+      if (combined.some(c => c.name === f.name && c.size === f.size)) continue;
+      combined.push(f);
+    }
+    setFiles(combined.slice(0, MAX_FILES));
+  }
+
+  function remove(i: number) {
+    const next = files.slice();
+    next.splice(i, 1);
+    setFiles(next);
+    setError(null);
+  }
+
+  return (
+    <div className="space-y-2">
+      <input
+        ref={inputRef}
+        type="file"
+        multiple
+        accept={ACCEPT_ATTR}
+        onChange={handleSelect}
+        className="hidden"
+        data-testid={`input-files-${idSuffix}`}
+      />
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => inputRef.current?.click()}
+        className="gap-1.5"
+        data-testid={`button-attach-${idSuffix}`}
+        disabled={files.length >= MAX_FILES}
+      >
+        <Paperclip className="w-3.5 h-3.5" />
+        Attach files {files.length > 0 ? `(${files.length}/${MAX_FILES})` : ""}
+      </Button>
+      {files.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {files.map((f, i) => (
+            <span
+              key={`${f.name}-${i}`}
+              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-indigo-50 border border-indigo-200 text-xs text-indigo-800"
+              data-testid={`chip-file-${idSuffix}-${i}`}
+            >
+              <FileText className="w-3 h-3" />
+              <span className="font-medium truncate max-w-[160px]">{f.name}</span>
+              <span className="text-indigo-500">{formatBytes(f.size)}</span>
+              <button
+                type="button"
+                onClick={() => remove(i)}
+                className="text-indigo-500 hover:text-indigo-700"
+                data-testid={`button-remove-file-${idSuffix}-${i}`}
+                aria-label={`Remove ${f.name}`}
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      {error && (
+        <p className="text-xs text-rose-600" data-testid={`text-file-error-${idSuffix}`}>{error}</p>
+      )}
+      <p className="text-[11px] text-slate-400">
+        Up to {MAX_FILES} files, 10 MB each. PDF, Word, Excel, PowerPoint, text, or images.
+      </p>
+    </div>
+  );
+}
+
 function ForumsContent() {
   const [topics, setTopics] = useState<any[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
+  const [topicAttachments, setTopicAttachments] = useState<Attachment[]>([]);
   const [activeTopic, setActiveTopic] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [postsLoading, setPostsLoading] = useState(false);
   const [newTopic, setNewTopic] = useState(false);
   const [topicForm, setTopicForm] = useState({ title: "", content: "" });
+  const [topicFiles, setTopicFiles] = useState<File[]>([]);
+  const [topicFileError, setTopicFileError] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [replyFiles, setReplyFiles] = useState<File[]>([]);
+  const [replyFileError, setReplyFileError] = useState<string | null>(null);
   const [posting, setPosting] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -35,10 +210,21 @@ function ForumsContent() {
   async function openTopic(t: any) {
     setActiveTopic(t);
     setAiError(null);
+    setReplyFiles([]);
+    setReplyFileError(null);
     setPostsLoading(true);
-    const r = await apiRequest("GET", `/api/board/forums/topics/${t.id}/posts`);
-    if (r.success) setPosts(r.data || []);
+    const [postsRes, attachRes] = await Promise.all([
+      apiRequest("GET", `/api/board/forums/topics/${t.id}/posts`),
+      apiRequest("GET", `/api/board/forums/topics/${t.id}/attachments`),
+    ]);
+    if (postsRes.success) setPosts(postsRes.data || []);
+    setTopicAttachments(attachRes.success ? (attachRes.data || []) : []);
     setPostsLoading(false);
+  }
+
+  async function refreshPosts(topicId: number) {
+    const r = await apiRequest("GET", `/api/board/forums/topics/${topicId}/posts`);
+    if (r.success) setPosts(r.data || []);
   }
 
   async function askAi() {
@@ -50,8 +236,7 @@ function ForumsContent() {
       autoPost: true,
     });
     if (r.success) {
-      const r2 = await apiRequest("GET", `/api/board/forums/topics/${activeTopic.id}/posts`);
-      if (r2.success) setPosts(r2.data || []);
+      await refreshPosts(activeTopic.id);
     } else {
       setAiError(r.error || "Could not generate AI commentary.");
     }
@@ -61,11 +246,19 @@ function ForumsContent() {
   async function createTopic() {
     if (!topicForm.title.trim() || !topicForm.content.trim()) return;
     setPosting(true);
-    const r = await apiRequest("POST", "/api/board/forums/topics", topicForm);
+    const fd = new FormData();
+    fd.append("title", topicForm.title);
+    fd.append("content", topicForm.content);
+    for (const f of topicFiles) fd.append("files", f);
+    const r = await apiRequest("POST", "/api/board/forums/topics", fd);
     if (r.success) {
       setNewTopic(false);
       setTopicForm({ title: "", content: "" });
+      setTopicFiles([]);
+      setTopicFileError(null);
       loadTopics();
+    } else {
+      setTopicFileError(r.error || "Could not post topic.");
     }
     setPosting(false);
   }
@@ -73,11 +266,17 @@ function ForumsContent() {
   async function postReply() {
     if (!replyText.trim() || !activeTopic) return;
     setPosting(true);
-    const r = await apiRequest("POST", `/api/board/forums/topics/${activeTopic.id}/posts`, { content: replyText });
+    const fd = new FormData();
+    fd.append("content", replyText);
+    for (const f of replyFiles) fd.append("files", f);
+    const r = await apiRequest("POST", `/api/board/forums/topics/${activeTopic.id}/posts`, fd);
     if (r.success) {
       setReplyText("");
-      const r2 = await apiRequest("GET", `/api/board/forums/topics/${activeTopic.id}/posts`);
-      if (r2.success) setPosts(r2.data || []);
+      setReplyFiles([]);
+      setReplyFileError(null);
+      await refreshPosts(activeTopic.id);
+    } else {
+      setReplyFileError(r.error || "Could not post reply.");
     }
     setPosting(false);
   }
@@ -110,6 +309,7 @@ function ForumsContent() {
         <Card className="border-0 shadow-sm mb-3">
           <CardContent className="pt-4 pb-4">
             <p className="text-sm text-slate-700 whitespace-pre-wrap">{activeTopic.content}</p>
+            <AttachmentList items={topicAttachments} testIdPrefix="link-topic-attachment" />
           </CardContent>
         </Card>
 
@@ -135,6 +335,7 @@ function ForumsContent() {
                       <span className="text-xs text-slate-400">· {new Date(p.created_at || p.createdAt).toLocaleDateString()}</span>
                     </div>
                     <p className="text-sm text-slate-700 whitespace-pre-wrap">{displayContent}</p>
+                    <AttachmentList items={(p.attachments as Attachment[]) || []} testIdPrefix={`link-post-attachment-${p.id}`} />
                   </CardContent>
                 </Card>
               );
@@ -147,17 +348,27 @@ function ForumsContent() {
         )}
 
         <div className="mt-4 flex gap-2">
-          <textarea
-            value={replyText}
-            onChange={e => setReplyText(e.target.value)}
-            placeholder="Write a reply…"
-            rows={3}
-            className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
-            data-testid="textarea-reply"
-          />
-          <div className="flex flex-col gap-2 self-end">
+          <div className="flex-1 space-y-2">
+            <textarea
+              value={replyText}
+              onChange={e => setReplyText(e.target.value)}
+              placeholder="Write a reply…"
+              rows={3}
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
+              data-testid="textarea-reply"
+            />
+            <FilePicker
+              files={replyFiles}
+              setFiles={setReplyFiles}
+              error={replyFileError}
+              setError={setReplyFileError}
+              idSuffix="reply"
+            />
+          </div>
+          <div className="flex flex-col gap-2 self-start">
             <Button onClick={postReply} disabled={posting || !replyText.trim()} className="bg-indigo-500 text-white gap-1.5" data-testid="button-post-reply">
-              <Send className="w-4 h-4" /> Reply
+              {posting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              {posting ? "Posting…" : "Reply"}
             </Button>
             <Button onClick={askAi} disabled={aiLoading} variant="outline" className="border-violet-300 text-violet-700 hover:bg-violet-50 gap-1.5" data-testid="button-ask-ai">
               {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
@@ -202,11 +413,19 @@ function ForumsContent() {
               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
               data-testid="textarea-topic-content"
             />
+            <FilePicker
+              files={topicFiles}
+              setFiles={setTopicFiles}
+              error={topicFileError}
+              setError={setTopicFileError}
+              idSuffix="topic"
+            />
             <div className="flex gap-2">
-              <Button onClick={createTopic} disabled={posting} className="bg-indigo-500 text-white" data-testid="button-submit-topic">
-                Post Topic
+              <Button onClick={createTopic} disabled={posting} className="bg-indigo-500 text-white gap-1.5" data-testid="button-submit-topic">
+                {posting && <Loader2 className="w-4 h-4 animate-spin" />}
+                {posting ? "Posting…" : "Post Topic"}
               </Button>
-              <Button variant="outline" onClick={() => setNewTopic(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => { setNewTopic(false); setTopicFiles([]); setTopicFileError(null); }}>Cancel</Button>
             </div>
           </CardContent>
         </Card>
@@ -231,6 +450,12 @@ function ForumsContent() {
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-sm text-[#1A1F2B]">{t.title}</p>
                       {t.pinned && <Badge className="bg-amber-100 text-amber-700 text-xs">Pinned</Badge>}
+                      {Number(t.attachment_count ?? 0) > 0 && (
+                        <Badge variant="secondary" className="text-xs gap-1" data-testid={`badge-topic-attachments-${t.id}`}>
+                          <Paperclip className="w-3 h-3" />
+                          {Number(t.attachment_count)}
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-xs text-slate-400 mt-0.5">
                       {t.first_name} {t.last_name} · {new Date(t.last_activity_at || t.lastActivityAt || t.created_at).toLocaleDateString()}

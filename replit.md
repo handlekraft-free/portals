@@ -51,12 +51,12 @@ Preferred communication style: Simple, everyday language.
 
 ## Gamification (XP, Stats, Streaks)
 - **Single XP pool** in `portal_users.xp_total`; full audit in `xp_events` with idempotent `UNIQUE(source_type, source_id)`. Logic in `shared/xp.ts`.
-- **Six Norse ranks** (Thrall→Konungr) and **four stat tracks** with one canonical source each (`SUM(amount) GROUP BY stat` — no extra columns):
+- **Six Norse ranks** (Thrall→Konungr) and **four stat tracks** — each has exactly one canonical source (`SUM(amount) GROUP BY stat`, no extra columns). Other awards still credit `xp_total` but use `stat=NULL` so they never inflate a track:
   - **Focus** = Daily Raid (Plan Day finished)
-  - **Initiative** = Kanban quest completions (factory-claimed → 1.5× bonus)
-  - **Stewardship** = Honest Pulse (energy log) + Reviewer handoffs (In-Review → next)
-  - **Craft** = LMS lessons finished + 4★+ "Loved this" bonus
-- **Bonuses**: factory-claimed completions earn 1.5× Initiative XP (`kanban_cards.claimed_from_factory`); 4★+ rated completions get a +25 Craft "Loved this" bonus and set `kanban_cards.loved_this` (gold heart marker visible to admins); reviewers earn 30 Stewardship XP when an In-Review card moves to a non-review column (separate `source_type='kanban_card_review'`).
+  - **Initiative** = Factory-claimed quest completions ONLY (1.5× multiplier)
+  - **Stewardship** = Reviewer handoffs (In-Review → next column) ONLY
+  - **Craft** = LMS lessons finished ONLY
+- **Untracked-but-awarded XP** (added to `xp_total`, `stat=NULL`): non-factory quest completions, "Loved this" bonus (+25 on 4★+ ratings — also sets `kanban_cards.loved_this` gold-heart marker visible to admins), Honest Pulse daily +5.
 - **Forgiving, workday-aware streaks**: Daily Raid and Honest Pulse only count Mon-Fri; weekends are skipped automatically (no token spent). Missed *workdays* consume up to 2 monthly Rest Day tokens (`portal_users.rest_tokens` + `rest_token_month`) before resetting. Pure logic in `advanceStreak()`. Endpoints: `POST /api/xp/streak/raid`, side-effect on `POST /api/balance/me`.
 - **Per-user idempotency**: streak/lesson awards use `source_id = userId * N + dayKey-or-lessonId` so the global `UNIQUE(source_type, source_id)` dedupe still permits one row per user per event.
 - **Toasts**: server returns `xpAwards: XpAward[]`; `apiRequest` dispatches `xp:awarded` event; `XpProvider` aggregates within 250ms into one toast (e.g. "+90 XP — 2 awards"). My Saga tab in `HeroCard` popover shows stat tracks + streaks + tokens.

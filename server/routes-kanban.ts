@@ -706,11 +706,13 @@ router.patch("/cards/:id", async (req, res) => {
       const [newCol] = await db.select().from(kanbanColumns).where(eq(kanbanColumns.id, card.columnId));
       const [oldCol] = await db.select().from(kanbanColumns).where(eq(kanbanColumns.id, currentCard.columnId));
 
-      // ── Completion: award assignee Initiative XP, plus Loved-this Craft bonus ──
-      // All quest completions reward Initiative (the "doing" stat). Factory-claimed
-      // quests get the 1.5× multiplier on top. Focus is reserved for Plan Day,
-      // Stewardship for Honest Pulse + Reviewer handoffs, and Craft for LMS +
-      // Loved-this — see shared/xp.ts STAT_META.
+      // ── Completion: each stat track has ONE canonical source ──
+      //   Focus = Daily Raid (Plan Day) — handled in /api/xp/streak/raid
+      //   Initiative = factory-claimed quest completions ONLY (1.5× multiplier)
+      //   Stewardship = reviewer handoffs ONLY
+      //   Craft = LMS lessons finished ONLY (handled in routes-student.ts)
+      // Non-canonical completions and the "Loved this" bonus still award XP to
+      // the global xp_total, but with stat=null so they don't inflate any track.
       if (newCol && _isDone(newCol.title) && card.assignedTo) {
         const baseAmount = xpForPriority(card.priority);
         const isFactoryClaim = !!card.claimedFromFactory;
@@ -721,12 +723,13 @@ router.patch("/cards/:id", async (req, res) => {
         const a = await tryAward({
           userId: card.assignedTo, amount: finalAmount, reason,
           sourceType: "kanban_card_complete", sourceId: card.id,
-          stat: "initiative",
+          stat: isFactoryClaim ? "initiative" : null,
           multiplier: isFactoryClaim ? INITIATIVE_MULTIPLIER : 1.0,
         });
         if (a && req.user!.userId === card.assignedTo) xpAwards.push(a);
 
-        // Loved this — set flag (manager-visible) and award Craft bonus
+        // Loved this — set manager-visible flag and award the bonus, but to
+        // xp_total only (stat=null) so Craft remains "LMS lessons finished".
         const interest = card.interestRating ?? -1;
         if (interest >= LOVED_THIS_THRESHOLD) {
           if (!card.lovedThis) {
@@ -737,7 +740,7 @@ router.patch("/cards/:id", async (req, res) => {
           const lv = await tryAward({
             userId: card.assignedTo, amount: LOVED_THIS_BONUS, reason: lovedReason,
             sourceType: "kanban_card_loved", sourceId: card.id,
-            stat: "craft", multiplier: 1.0,
+            stat: null, multiplier: 1.0,
           });
           if (lv && req.user!.userId === card.assignedTo) xpAwards.push(lv);
         }

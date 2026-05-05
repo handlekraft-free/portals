@@ -11,6 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import TeamChat from "@/components/portal/TeamChat";
 import ClaudeChat from "@/components/portal/ClaudeChat";
+import { CrewLongship } from "@/components/portal/CrewLongship";
+import { CrewSagaCard } from "@/components/portal/CrewSagaCard";
 import {
   PlanDayWizard,
   loadTodayPlan,
@@ -830,6 +832,10 @@ function DashboardContent() {
           );
         })}
       </div>
+
+      {/* Co-op crew layer — shared longship + Saga of the Week */}
+      <CrewLongship />
+      <CrewSagaCard />
 
       {/* Timesheet Nudge */}
       <TimesheetNudge />

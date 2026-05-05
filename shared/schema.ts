@@ -114,9 +114,19 @@ export const users = pgTable("portal_users", {
   honestPulseLast: varchar("honest_pulse_last", { length: 10 }),
   restTokens: integer("rest_tokens").notNull().default(2),
   restTokenMonth: varchar("rest_token_month", { length: 7 }),
+  // Co-op crew layer — anonymous bond counter, never a leaderboard
+  crewBond: integer("crew_bond").notNull().default(0),
 });
 export type PortalUser = typeof users.$inferSelect;
 export type InsertPortalUser = typeof users.$inferInsert;
+
+// ─── App Settings (team-wide key/value flags) ─────────────────────────────────
+export const appSettings = pgTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+export type AppSetting = typeof appSettings.$inferSelect;
 
 export const xpEvents = pgTable("xp_events", {
   id: serial("id").primaryKey(),

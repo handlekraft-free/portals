@@ -32,6 +32,7 @@ import balanceRoutes from "./routes-balance";
 import chatRoutes from "./routes-chat";
 import aiRoutes from "./routes-ai";
 import xpRoutes from "./routes-xp";
+import crewRoutes from "./routes-crew";
 import googleRoutes, { startGooglePolling } from "./routes-google";
 
 declare module "express-session" {
@@ -410,6 +411,13 @@ export async function registerRoutes(
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS honest_pulse_last varchar(10);
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS rest_tokens integer NOT NULL DEFAULT 2;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS rest_token_month varchar(7);
+      -- Task #24: co-op crew layer
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS crew_bond integer NOT NULL DEFAULT 0;
+      CREATE TABLE IF NOT EXISTS app_settings (
+        key text PRIMARY KEY,
+        value text NOT NULL,
+        updated_at timestamp DEFAULT now() NOT NULL
+      );
     `);
     await migrationPool.end();
     console.log("[migrate] ✓ Schema patches applied");
@@ -730,6 +738,7 @@ export async function registerRoutes(
   app.use("/api/chat", chatRoutes);
   app.use("/api/ai", aiRoutes);
   app.use("/api/xp", xpRoutes);
+  app.use("/api/crew", crewRoutes);
   app.use("/api/google", googleRoutes);
 
   // Start Google background polling

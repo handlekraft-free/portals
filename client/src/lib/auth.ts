@@ -107,10 +107,11 @@ export function getPortalPath(role: string): string {
 }
 
 export type XpAward = { amount: number; reason: string; newTotal: number; stat?: string | null };
+export type CrewBond = { partnerFirstName: string; kind: "review"; cardTitle: string };
 
 export function apiRequest<T = any>(
   method: string, url: string, body?: any
-): Promise<{ success: boolean; data: T; error?: string; xpAwarded?: XpAward | null; xpAwards?: XpAward[] }> {
+): Promise<{ success: boolean; data: T; error?: string; xpAwarded?: XpAward | null; xpAwards?: XpAward[]; crewBonds?: CrewBond[] }> {
   return fetch(url, {
     method,
     headers: body instanceof FormData ? undefined : { "Content-Type": "application/json" },
@@ -126,6 +127,9 @@ export function apiRequest<T = any>(
           : null;
       if (awards) {
         try { window.dispatchEvent(new CustomEvent("xp:awarded", { detail: { awards } })); } catch {}
+      }
+      if (Array.isArray(json.crewBonds) && json.crewBonds.length > 0) {
+        try { window.dispatchEvent(new CustomEvent("crew:bond", { detail: { bonds: json.crewBonds } })); } catch {}
       }
     }
     return json;

@@ -772,7 +772,9 @@ router.patch("/cards/:id", async (req, res) => {
 
   type Stat = "focus" | "initiative" | "stewardship" | "craft";
   type Award = { amount: number; reason: string; newTotal: number; stat: Stat | null };
+  type CrewBond = { partnerFirstName: string; kind: "review"; cardTitle: string };
   const xpAwards: Award[] = [];
+  const crewBonds: CrewBond[] = [];
 
   async function tryAward(opts: {
     userId: number; amount: number; reason: string;
@@ -868,6 +870,58 @@ router.patch("/cards/:id", async (req, res) => {
           stat: "stewardship", multiplier: 1.0,
         });
         if (rv) xpAwards.push(rv); // actor is req.user — always surface
+
+        // ── Crew Bond: silent counter on both reviewer and assignee ──
+        // Bonded only when actor and original assignee are different humans.
+        // Idempotent via xp_events UNIQUE(source_type, source_id) using
+        // synthetic source ids derived from cardId so both rows can land.
+        if (rv && card.assignedTo && card.assignedTo !== actorId) {
+          const partnerName = await db.select({ firstName: users.firstName, lastName: users.lastName })
+            .from(users).where(eq(users.id, card.assignedTo)).then(rs => rs[0]);
+          const reviewerName = await db.select({ firstName: users.firstName, lastName: users.lastName })
+            .from(users).where(eq(users.id, actorId)).then(rs => rs[0]);
+          // Use sourceType "crew_bond_review_a" for actor and "_b" for assignee
+          // so the global UNIQUE(source_type, source_id) lets both rows land
+          // exactly once per card. The UPDATE on portal_users is folded into
+          // the same CTE as the INSERT so the counter only bumps when the
+          // dedupe insert actually lands — atomic, no drift on retries.
+          const bondTxA = await db.execute(sql`
+            WITH inserted AS (
+              INSERT INTO xp_events (user_id, amount, reason, source_type, source_id, stat, multiplier)
+              VALUES (${actorId}, 0, ${"Crew Bond — review with " + (partnerName?.firstName ?? "a teammate")}, 'crew_bond_review_a', ${card.id}, NULL, 1.0)
+              ON CONFLICT (source_type, source_id) DO NOTHING
+              RETURNING id
+            ),
+            bumped AS (
+              UPDATE portal_users SET crew_bond = crew_bond + 1
+              WHERE id = ${actorId} AND EXISTS (SELECT 1 FROM inserted)
+              RETURNING id
+            )
+            SELECT (SELECT id FROM inserted) AS landed
+          `);
+          const bondTxB = await db.execute(sql`
+            WITH inserted AS (
+              INSERT INTO xp_events (user_id, amount, reason, source_type, source_id, stat, multiplier)
+              VALUES (${card.assignedTo}, 0, ${"Crew Bond — review with " + (reviewerName?.firstName ?? "a teammate")}, 'crew_bond_review_b', ${card.id}, NULL, 1.0)
+              ON CONFLICT (source_type, source_id) DO NOTHING
+              RETURNING id
+            ),
+            bumped AS (
+              UPDATE portal_users SET crew_bond = crew_bond + 1
+              WHERE id = ${card.assignedTo} AND EXISTS (SELECT 1 FROM inserted)
+              RETURNING id
+            )
+            SELECT (SELECT id FROM inserted) AS landed
+          `);
+          const aLanded = rowsOf<{ landed: number | null }>(bondTxA)[0]?.landed != null;
+          if (aLanded) {
+            crewBonds.push({
+              partnerFirstName: partnerName?.firstName ?? "a teammate",
+              kind: "review",
+              cardTitle: card.title,
+            });
+          }
+        }
       }
     }
   } catch (e) {
@@ -876,7 +930,7 @@ router.patch("/cards/:id", async (req, res) => {
 
   // Backward-compat: legacy clients still read `xpAwarded` (singular).
   const xpAwarded = xpAwards.length > 0 ? xpAwards[0] : null;
-  res.json({ success: true, data: card, xpAwarded, xpAwards });
+  res.json({ success: true, data: card, xpAwarded, xpAwards, crewBonds });
 });
 
 router.delete("/cards/:id", async (req, res) => {

@@ -20,6 +20,7 @@ import {
 } from "@/components/portal/VikingDecor";
 import { XpProvider } from "@/components/portal/XpProvider";
 import { HeroCard } from "@/components/portal/HeroCard";
+import { CrewBondToaster } from "@/components/portal/CrewBondToaster";
 
 // ── Brain Dump ────────────────────────────────────────────────────────────────
 // Floating capture button — bottom-left. Thought → Kanban card in one shot.
@@ -423,6 +424,7 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
         <PageViking />
         <FloatingTimer />
         <BrainDump />
+        <CrewBondToaster />
       </div>
     </div>
     </XpProvider>

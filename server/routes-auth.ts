@@ -242,6 +242,7 @@ router.get("/me", requireAuth, async (req, res) => {
       canApprove: user.canApprove,
       approverId: user.approverId,
       boardRestrictedAccess: user.boardRestrictedAccess ?? false,
+      crewBond: user.crewBond ?? 0,
     },
   });
 });

@@ -3,7 +3,7 @@ import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/auth";
 import { useXp } from "./XpProvider";
 import { STAT_META, type Stat, type StatProgress } from "@shared/xp";
-import { Battery, Settings, Volume2, VolumeX, Flame, Heart, Shield, ScrollText, Target, Zap } from "lucide-react";
+import { Battery, Settings, Volume2, VolumeX, Flame, Heart, Shield, ScrollText, Target, Zap, Anchor } from "lucide-react";
 
 const ENERGY_LABELS: Record<number, { label: string; color: string }> = {
   1: { label: "Drained",   color: "bg-red-400" },
@@ -48,6 +48,24 @@ function HeroCardPopover() {
   const stats: StatProgress[] = data?.stats ?? [];
   const streaks = data?.streaks;
   const restTokens = data?.restTokens ?? 2;
+  const [crewBond, setCrewBond] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!open || tab !== "saga") return;
+    let cancelled = false;
+    function load() {
+      apiRequest("GET", "/api/auth/me").then(res => {
+        if (!cancelled && res?.success && res.data) {
+          const cb = (res.data as { crewBond?: number }).crewBond;
+          if (typeof cb === "number") setCrewBond(cb);
+        }
+      }).catch(() => {});
+    }
+    load();
+    const onBond = () => load();
+    window.addEventListener("crew:bond", onBond);
+    return () => { cancelled = true; window.removeEventListener("crew:bond", onBond); };
+  }, [open, tab]);
 
   return (
     <div className="relative">
@@ -112,6 +130,21 @@ function HeroCardPopover() {
               <div className="text-[10px] text-white/40 italic flex items-center gap-1" data-testid="text-rest-tokens">
                 <ScrollText className="w-3 h-3" />
                 {restTokens} rest day{restTokens === 1 ? "" : "s"} left this month — streaks pause, never reset.
+              </div>
+
+              {/* Crew Bond — silent counter, never compared between teammates */}
+              <div
+                className="bg-white/5 rounded-md px-2 py-1.5 flex items-center gap-2"
+                data-testid="stat-crew-bond"
+              >
+                <Anchor className="w-3 h-3 text-[#0D7377]" />
+                <div className="flex-1">
+                  <div className="text-white/50 text-[9px] uppercase tracking-wider">Crew Bond</div>
+                  <div className="text-white text-xs">
+                    {crewBond ?? "—"}
+                    <span className="text-white/40 text-[10px] font-normal"> shared review{(crewBond ?? 0) === 1 ? "" : "s"}</span>
+                  </div>
+                </div>
               </div>
 
               {/* Stat tracks */}

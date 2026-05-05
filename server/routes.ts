@@ -389,7 +389,12 @@ export async function registerRoutes(
         created_at timestamp DEFAULT now() NOT NULL
       );
       ALTER TABLE xp_events DROP CONSTRAINT IF EXISTS xp_events_user_id_source_type_source_id_reason_key;
-      CREATE UNIQUE INDEX IF NOT EXISTS xp_events_dedupe_idx ON xp_events (user_id, source_type, source_id);
+      DROP INDEX IF EXISTS xp_events_dedupe_idx;
+      -- One XP award per source card globally. Per-user audit is still
+      -- preserved via the user_id column; this index just guarantees that
+      -- moving a card out of Done and back, OR reassigning + re-completing,
+      -- never double-awards.
+      CREATE UNIQUE INDEX IF NOT EXISTS xp_events_source_dedupe_idx ON xp_events (source_type, source_id);
       CREATE INDEX IF NOT EXISTS xp_events_user_idx ON xp_events (user_id, created_at DESC);
     `);
     await migrationPool.end();

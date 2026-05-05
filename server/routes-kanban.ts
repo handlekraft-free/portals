@@ -573,7 +573,7 @@ router.patch("/cards/:id", async (req, res) => {
           WITH inserted AS (
             INSERT INTO xp_events (user_id, amount, reason, source_type, source_id)
             VALUES (${card.assignedTo}, ${amount}, ${reason}, 'kanban_card_complete', ${card.id})
-            ON CONFLICT (user_id, source_type, source_id) DO NOTHING
+            ON CONFLICT (source_type, source_id) DO NOTHING
             RETURNING amount
           ),
           bumped AS (
@@ -586,7 +586,12 @@ router.patch("/cards/:id", async (req, res) => {
         `);
         const row = rowsOf<XpAwardRow>(txResult)[0];
         if (row && row.awarded != null) {
-          xpAwarded = { amount: Number(row.awarded), reason, newTotal: Number(row.total ?? 0) };
+          // Only surface xpAwarded to the authenticated viewer if THEY are the
+          // recipient. Otherwise an admin/teammate moving someone else's card
+          // would see the other hero's XP/rank-up overlay in their own UI.
+          if (req.user!.userId === card.assignedTo) {
+            xpAwarded = { amount: Number(row.awarded), reason, newTotal: Number(row.total ?? 0) };
+          }
         }
       }
     }

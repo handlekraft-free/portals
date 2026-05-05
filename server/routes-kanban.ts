@@ -914,6 +914,16 @@ router.patch("/cards/:id", async (req, res) => {
             SELECT (SELECT id FROM inserted) AS landed
           `);
           const aLanded = rowsOf<{ landed: number | null }>(bondTxA)[0]?.landed != null;
+          const bLanded = rowsOf<{ landed: number | null }>(bondTxB)[0]?.landed != null;
+          // Queue a pending notification for the *recipient* (assignee) so they
+          // also see a Crew Bond toast on their next poll. Actor gets theirs
+          // inline via the response.
+          if (bLanded) {
+            await db.execute(sql`
+              INSERT INTO crew_bond_notifications (user_id, partner_first_name, card_title)
+              VALUES (${card.assignedTo}, ${reviewerName?.firstName ?? "a teammate"}, ${card.title})
+            `);
+          }
           if (aLanded) {
             crewBonds.push({
               partnerFirstName: partnerName?.firstName ?? "a teammate",

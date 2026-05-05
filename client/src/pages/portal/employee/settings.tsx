@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/context/AuthContext";
 import { EmployeeLayout } from "@/components/portal/EmployeeLayout";
+import { Switch } from "@/components/ui/switch";
+import { ScrollText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -99,9 +102,63 @@ function AccountRow({
   );
 }
 
+function SagaOptOutCard() {
+  const { toast } = useToast();
+  const [optOut, setOptOut] = useState<boolean | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    apiRequest("GET", "/api/crew/saga").then(res => {
+      if (res?.success) setOptOut(!!res.data?.optOut);
+    }).catch(() => {});
+  }, []);
+
+  async function toggle(next: boolean) {
+    setSaving(true);
+    const res = await apiRequest("PATCH", "/api/crew/saga/optout", { optOut: next });
+    setSaving(false);
+    if (res?.success) {
+      setOptOut(next);
+      toast({ title: next ? "Saga of the Week hidden for the team" : "Saga of the Week visible to the team" });
+    } else {
+      toast({ title: "Could not update setting", variant: "destructive" });
+    }
+  }
+
+  return (
+    <Card className="border border-slate-200 shadow-sm" data-testid="card-saga-optout">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2">
+          <ScrollText className="w-4 h-4 text-[#D4A843]" />
+          Saga of the Week
+        </CardTitle>
+        <CardDescription className="text-xs">
+          A Friday-afternoon dashboard card that recaps the crew's week in a short anonymous narrative
+          (quests shipped, reviews, crew bonds). It never names individuals and never compares teammates.
+          Toggle off to hide it from everyone.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex items-center justify-between">
+        <span className="text-sm text-slate-600">
+          {optOut === null ? "Loading…" : optOut ? "Hidden from the whole team" : "Visible to the whole team"}
+        </span>
+        <Switch
+          checked={optOut === false}
+          disabled={saving || optOut === null}
+          onCheckedChange={(checked) => toggle(!checked)}
+          data-testid="switch-saga-optout"
+          aria-label="Show Saga of the Week to the team"
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function EmployeeSettings() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isManager = user?.role === "admin" || (user as unknown as { canApprove?: boolean })?.canApprove === true;
   const [addingAccount, setAddingAccount] = useState(false);
   const [newLabel, setNewLabel] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -402,6 +459,9 @@ export default function EmployeeSettings() {
             )}
           </CardContent>
         </Card>
+
+        {/* Team Saga opt-out (admin/manager only) */}
+        {isManager && <SagaOptOutCard />}
 
         {/* Sync schedule */}
         {accounts.length > 0 && (

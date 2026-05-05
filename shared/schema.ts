@@ -128,6 +128,18 @@ export const appSettings = pgTable("app_settings", {
 });
 export type AppSetting = typeof appSettings.$inferSelect;
 
+// ─── Crew Bond pending notifications (delivers toast to the recipient) ────────
+// Inserted server-side when the *recipient* (assignee) of a review handoff
+// gets a Crew Bond; the actor sees their toast inline via the API response.
+// CrewBondToaster polls /api/crew/bonds/pending which returns + clears these.
+export const crewBondNotifications = pgTable("crew_bond_notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  partnerFirstName: text("partner_first_name").notNull(),
+  cardTitle: text("card_title").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const xpEvents = pgTable("xp_events", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),

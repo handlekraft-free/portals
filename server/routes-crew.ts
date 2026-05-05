@@ -2,7 +2,7 @@ import type { Router } from "express";
 import { Router as createRouter } from "express";
 import { db } from "./db";
 import { sql, eq, and } from "drizzle-orm";
-import { xpEvents, kanbanCards, kanbanColumns, appSettings, users } from "@shared/schema";
+import { xpEvents, kanbanCards, kanbanColumns, appSettings, users, teamBalanceScores, crewBondNotifications } from "@shared/schema";
 import { requireAuth } from "./auth-middleware";
 
 const router: Router = createRouter();
@@ -57,12 +57,25 @@ async function getWeeklyAggregates() {
   const reviewsCompleted = pluck(reviewRows);
   const crewBondsThisWeek = pluck(bondRows);
 
+  // Average energy = mean of currently-submitted team balance scores
+  // (the energy "vibe" of the crew right now). Anonymous aggregate only.
+  const energyRows = await db.execute(sql`
+    SELECT AVG(score)::float AS avg, COUNT(*)::int AS n
+    FROM team_balance_scores WHERE score IS NOT NULL
+  `);
+  const energyOut = (energyRows && typeof energyRows === "object" && "rows" in (energyRows as object)
+    ? ((energyRows as unknown) as { rows: { avg: number | null; n: number }[] }).rows
+    : ((energyRows as unknown) as { avg: number | null; n: number }[]))[0] ?? { avg: null, n: 0 };
+  const averageEnergy = energyOut.avg != null ? Math.round(Number(energyOut.avg) * 10) / 10 : null;
+
   return {
     weekKey,
     weekStart: weekStart.toISOString(),
     questsShipped,
     reviewsCompleted,
     crewBondsThisWeek,
+    averageEnergy,
+    energySubmittedCount: Number(energyOut.n) || 0,
     threshold: FULL_CREW_THRESHOLD,
     fullCrew: questsShipped >= FULL_CREW_THRESHOLD,
   };
@@ -156,6 +169,24 @@ router.patch("/saga/optout", async (req, res) => {
       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()
     `);
     res.json({ success: true, data: { optOut } });
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// GET /api/crew/bonds/pending — fetch + clear queued Crew Bond notifications
+// for the current user (delivered to assignees who didn't initiate the move).
+router.get("/bonds/pending", async (req, res) => {
+  try {
+    const userId = req.user!.userId;
+    const rows = await db.execute(sql`
+      DELETE FROM crew_bond_notifications WHERE user_id = ${userId}
+      RETURNING partner_first_name AS "partnerFirstName", card_title AS "cardTitle"
+    `);
+    const list = (rows && typeof rows === "object" && "rows" in (rows as object)
+      ? ((rows as unknown) as { rows: { partnerFirstName: string; cardTitle: string }[] }).rows
+      : ((rows as unknown) as { partnerFirstName: string; cardTitle: string }[])) ?? [];
+    res.json({ success: true, data: list.map(r => ({ ...r, kind: "review" as const })) });
   } catch (e: any) {
     res.status(500).json({ success: false, error: e.message });
   }

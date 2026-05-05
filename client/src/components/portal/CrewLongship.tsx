@@ -7,6 +7,8 @@ type Weekly = {
   questsShipped: number;
   reviewsCompleted: number;
   crewBondsThisWeek: number;
+  averageEnergy: number | null;
+  energySubmittedCount: number;
   threshold: number;
   fullCrew: boolean;
 };
@@ -94,6 +96,7 @@ export function CrewLongship() {
         <span className="text-xs text-slate-500" data-testid="text-crew-count">
           {data.questsShipped} quest{data.questsShipped === 1 ? "" : "s"} shipped
           {data.reviewsCompleted > 0 && ` · ${data.reviewsCompleted} review${data.reviewsCompleted === 1 ? "" : "s"}`}
+          {data.averageEnergy != null && ` · avg energy ${data.averageEnergy.toFixed(1)}`}
         </span>
       </div>
 

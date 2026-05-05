@@ -413,6 +413,14 @@ export async function registerRoutes(
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS rest_token_month varchar(7);
       -- Task #24: co-op crew layer
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS crew_bond integer NOT NULL DEFAULT 0;
+      CREATE TABLE IF NOT EXISTS crew_bond_notifications (
+        id serial PRIMARY KEY,
+        user_id integer NOT NULL,
+        partner_first_name text NOT NULL,
+        card_title text NOT NULL,
+        created_at timestamp NOT NULL DEFAULT now()
+      );
+      CREATE INDEX IF NOT EXISTS crew_bond_notifications_user_idx ON crew_bond_notifications(user_id);
       CREATE TABLE IF NOT EXISTS app_settings (
         key text PRIMARY KEY,
         value text NOT NULL,

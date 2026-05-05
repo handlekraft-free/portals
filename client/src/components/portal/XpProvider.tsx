@@ -2,6 +2,16 @@ import { createContext, useContext, useEffect, useRef, useState, useCallback } f
 import { apiRequest } from "@/lib/auth";
 import { getRankProgress, type RankProgress, type Rank } from "@shared/xp";
 import { useToast } from "@/hooks/use-toast";
+import { Anchor, Hammer, Crown, Swords, Scroll, Sparkles, type LucideIcon } from "lucide-react";
+
+const RANK_ICONS: Record<string, LucideIcon> = {
+  thrall: Anchor,
+  karl: Hammer,
+  jarl: Swords,
+  hersir: Crown,
+  skald: Scroll,
+  konungr: Sparkles,
+};
 
 type XpAwardDetail = { amount: number; reason: string; newTotal: number };
 
@@ -108,6 +118,17 @@ function RankUpOverlay({ rank, onDismiss }: { rank: Rank; onDismiss: () => void 
     >
       <div className="absolute inset-0 bg-black/40 pointer-events-auto" onClick={onDismiss} />
       <div className="relative pointer-events-auto bg-gradient-to-br from-[#1A1F2B] to-[#0D7377] rounded-2xl shadow-2xl border border-[#D4A843]/40 px-10 py-8 max-w-sm text-center animate-in zoom-in-95 duration-500">
+        {(() => {
+          const Icon = RANK_ICONS[rank.key] ?? Sparkles;
+          return (
+            <div
+              className="mx-auto mb-3 w-14 h-14 rounded-full bg-[#D4A843]/15 ring-2 ring-[#D4A843]/50 flex items-center justify-center"
+              data-testid="icon-new-rank"
+            >
+              <Icon className="w-7 h-7 text-[#D4A843]" />
+            </div>
+          );
+        })()}
         <div className="text-[#D4A843] text-xs uppercase tracking-[0.25em] font-semibold mb-2">A new rank</div>
         <div id="rank-up-title" className="font-display text-4xl text-white mb-2" data-testid="text-new-rank">
           You are now a {rank.name}

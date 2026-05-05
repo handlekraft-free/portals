@@ -140,7 +140,60 @@ router.get("/today", async (req, res) => {
   for (const e of events) {
     if (e.stat) byStat[e.stat] = (byStat[e.stat] ?? 0) + e.amount;
   }
-  res.json({ success: true, data: { events, total, byStat } });
+  // Quests shipped today = events tied to a card move into Done (sourceType
+  // includes "card_complete"/"completed:" reasons). We approximate from the
+  // events we already have to avoid an extra query.
+  const questsShipped = events.filter(e =>
+    e.sourceType?.startsWith("card_complete") ||
+    /^completed:/i.test(e.reason ?? "") ||
+    /^quest complete/i.test(e.reason ?? ""),
+  ).length;
+  // Pull current streak + rank progress for the recap headline.
+  const userRes = await db.execute(sql`
+    SELECT daily_raid_streak, xp_total FROM portal_users WHERE id = ${userId}
+  `);
+  const u = rowsOf<{ daily_raid_streak: number | null; xp_total: number | null }>(userRes)[0];
+  const dailyRaidStreak = Number(u?.daily_raid_streak ?? 0);
+  const xpTotal = Number(u?.xp_total ?? 0);
+  res.json({
+    success: true,
+    data: { events, total, byStat, questsShipped, dailyRaidStreak, xpTotal },
+  });
+});
+
+// POST /api/xp/milestones — opt-in personal saga entry (e.g., a rank-up the
+// user chose to keep). Private to the user — never surfaced to teammates.
+router.post("/milestones", async (req, res) => {
+  const userId = req.user!.userId;
+  const kind = typeof req.body?.kind === "string" ? req.body.kind.slice(0, 32) : "";
+  const title = typeof req.body?.title === "string" ? req.body.title.slice(0, 200) : "";
+  const blurb = typeof req.body?.blurb === "string" ? req.body.blurb.slice(0, 500) : null;
+  const meta = (req.body?.meta && typeof req.body.meta === "object") ? req.body.meta : null;
+  if (!kind || !title) {
+    return res.status(400).json({ success: false, error: "kind and title are required" });
+  }
+  const ins = await db.execute(sql`
+    INSERT INTO xp_milestones (user_id, kind, title, blurb, meta)
+    VALUES (${userId}, ${kind}, ${title}, ${blurb}, ${meta ? JSON.stringify(meta) : null}::jsonb)
+    RETURNING id, created_at
+  `);
+  const row = rowsOf<{ id: number; created_at: string }>(ins)[0];
+  res.json({ success: true, data: { id: row?.id, createdAt: row?.created_at } });
+});
+
+// GET /api/xp/milestones — list the user's saga timeline (newest first).
+router.get("/milestones", async (req, res) => {
+  const userId = req.user!.userId;
+  const r = await db.execute(sql`
+    SELECT id, kind, title, blurb, meta, created_at
+    FROM xp_milestones WHERE user_id = ${userId}
+    ORDER BY created_at DESC LIMIT 100
+  `);
+  const items = rowsOf<{
+    id: number; kind: string; title: string; blurb: string | null;
+    meta: Record<string, unknown> | null; created_at: string;
+  }>(r);
+  res.json({ success: true, data: { items } });
 });
 
 // POST /api/xp/streak/raid — called by PlanDayWizard.finish(); advances the

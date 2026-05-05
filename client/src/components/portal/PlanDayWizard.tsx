@@ -96,6 +96,13 @@ const CONTENT_STEPS: Step[] = ["calendar", "inbox", "tasks", "learning"];
 // Lower number = picked first when energy is low. Mirrors PRIORITY_PILL keys.
 const PRIORITY_RANK: Record<string, number> = { low: 0, medium: 1, high: 2, urgent: 3 };
 
+// "Light cognitive load" hint labels — surface these first on low-energy days.
+const LIGHT_LABELS = new Set(["easy", "quick", "small", "low-effort", "lowfx", "low-fx", "tiny"]);
+function isLightLabel(labels: unknown): boolean {
+  if (!Array.isArray(labels)) return false;
+  return labels.some((l) => typeof l === "string" && LIGHT_LABELS.has(l.toLowerCase()));
+}
+
 export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
   const { user } = useAuth();
 
@@ -174,8 +181,10 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
       }
       const isLow = currentEnergy !== null && currentEnergy <= 2;
 
-      // Open tasks (not done/archived). When low-energy, prefer low/medium
-      // first so the easiest wins surface to the top.
+      // Open tasks (not done/archived). When low-energy, prefer lighter
+      // cognitive load: cards explicitly tagged "easy/quick/small/low-effort"
+      // first, then by lower priority, then by fewer total labels (a rough
+      // proxy for "less context to hold in your head").
       if (tasks.success) {
         const open = (tasks.data ?? []).filter(
           (t: any) =>
@@ -185,9 +194,15 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
         );
         if (isLow) {
           open.sort((a: any, b: any) => {
+            const aLight = isLightLabel(a.labels) ? 0 : 1;
+            const bLight = isLightLabel(b.labels) ? 0 : 1;
+            if (aLight !== bLight) return aLight - bLight;
             const ra = PRIORITY_RANK[a.priority ?? "medium"] ?? 1;
             const rb = PRIORITY_RANK[b.priority ?? "medium"] ?? 1;
-            return ra - rb;
+            if (ra !== rb) return ra - rb;
+            const al = (a.labels?.length ?? 0);
+            const bl = (b.labels?.length ?? 0);
+            return al - bl;
           });
         }
         setAllTasks(open);

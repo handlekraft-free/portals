@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Scroll, Sparkles } from "lucide-react";
 import { apiRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
-import { STAT_META, type Stat } from "@shared/xp";
+// (toast import is below to keep the import order tidy.)
+import { STAT_META, getRankProgress, type Stat } from "@shared/xp";
+import { useToast } from "@/hooks/use-toast";
 
 interface XpEvent {
   id: number;
@@ -17,6 +19,9 @@ interface TodayPayload {
   events: XpEvent[];
   total: number;
   byStat: Partial<Record<Stat, number>>;
+  questsShipped: number;
+  dailyRaidStreak: number;
+  xpTotal: number;
 }
 
 interface Prefs {
@@ -126,6 +131,8 @@ function RecapDialog({
   const headline = data.total === 0
     ? "A quiet day. Rest sharpens the next raid."
     : `+${data.total} XP across ${eventCount} ${eventCount === 1 ? "deed" : "deeds"}.`;
+  const rank = useMemo(() => getRankProgress(data.xpTotal), [data.xpTotal]);
+  const xpToNext = rank.nextRank ? Math.max(0, rank.nextRank.minXp - data.xpTotal) : 0;
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4" data-testid="modal-saga-recap">
@@ -158,6 +165,27 @@ function RecapDialog({
         </div>
 
         <div className="px-6 py-5 space-y-4">
+          {/* Quick stats strip — quests shipped + daily-raid streak + next-rank line */}
+          <div className="grid grid-cols-3 gap-2" data-testid="recap-quickstats">
+            <QuickStat label="Quests shipped" value={data.questsShipped} testId="recap-quests-shipped" />
+            <QuickStat label="Raid streak" value={`${data.dailyRaidStreak}d`} testId="recap-streak" />
+            <QuickStat
+              label={rank.nextRank ? `To ${rank.nextRank.name}` : "Konungr"}
+              value={rank.nextRank ? `${xpToNext} XP` : "—"}
+              testId="recap-next-rank"
+            />
+          </div>
+          {rank.nextRank && (
+            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden" data-testid="recap-next-rank-bar">
+              <div
+                className="h-full bg-gradient-to-r from-[#0D7377] to-[#D4A843] transition-all"
+                style={{ width: `${Math.round(rank.progressPct * 100)}%` }}
+              />
+            </div>
+          )}
+
+          <SaveMilestoneRow data={data} rankName={rank.rank.name} />
+
           {stats.length > 0 && (
             <div>
               <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Stat tracks moved</p>
@@ -199,6 +227,7 @@ function RecapDialog({
           )}
         </div>
 
+
         <div className="px-6 pb-5 pt-1 flex items-center justify-between border-t border-slate-100">
           <p className="text-[11px] text-slate-400">Adjust time or turn off in Settings.</p>
           <button
@@ -210,6 +239,64 @@ function RecapDialog({
           </button>
         </div>
       </motion.div>
+    </div>
+  );
+}
+
+function QuickStat({ label, value, testId }: { label: string; value: number | string; testId: string }) {
+  return (
+    <div className="rounded-xl bg-slate-50 px-2.5 py-2 text-center" data-testid={testId}>
+      <p className="text-[9px] text-slate-400 uppercase tracking-wider">{label}</p>
+      <p className="text-lg font-display text-[#1A1F2B] leading-tight mt-0.5">{value}</p>
+    </div>
+  );
+}
+
+// "Save to my saga" — opt-in private timeline entry. Only useful for days
+// with real activity, so the row hides for empty days. Once saved, the row
+// confirms inline so the user knows it stuck.
+function SaveMilestoneRow({ data, rankName }: { data: TodayPayload; rankName: string }) {
+  const { toast } = useToast();
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  if (data.total === 0 && data.questsShipped === 0) return null;
+  async function save() {
+    setSaving(true);
+    const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    const title = data.questsShipped > 0
+      ? `${today} — shipped ${data.questsShipped} quest${data.questsShipped === 1 ? "" : "s"} (+${data.total} XP)`
+      : `${today} — +${data.total} XP earned`;
+    const res = await apiRequest("POST", "/api/xp/milestones", {
+      kind: "saga_recap",
+      title,
+      blurb: `As a ${rankName}, with a ${data.dailyRaidStreak}-day raid streak.`,
+      meta: {
+        total: data.total, questsShipped: data.questsShipped,
+        dailyRaidStreak: data.dailyRaidStreak, xpTotal: data.xpTotal,
+      },
+    });
+    setSaving(false);
+    if (res?.success) {
+      setSaved(true);
+      toast({ title: "Saved to your saga" });
+    } else {
+      toast({ title: "Could not save", variant: "destructive" });
+    }
+  }
+  return (
+    <div className="flex items-center justify-between rounded-xl border border-dashed border-slate-200 px-3 py-2" data-testid="recap-save-milestone-row">
+      <div>
+        <p className="text-xs font-semibold text-slate-700">Keep today in your saga?</p>
+        <p className="text-[10px] text-slate-400">Private to you — never shown to teammates.</p>
+      </div>
+      <button
+        onClick={save}
+        disabled={saving || saved}
+        className="text-xs font-semibold rounded-lg px-3 py-1.5 bg-[#D4A843] hover:bg-[#c49535] text-[#1A1F2B] disabled:bg-slate-100 disabled:text-slate-400"
+        data-testid="button-save-milestone"
+      >
+        {saved ? "Saved" : saving ? "Saving…" : "Save"}
+      </button>
     </div>
   );
 }

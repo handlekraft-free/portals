@@ -48,15 +48,38 @@ export function useXp() {
 }
 
 // ── Rank-up title-card overlay ─────────────────────────────────────────────
+// Polished: removed the auto-dismiss timer (rank-ups are big moments and
+// shouldn't vanish under the user); added a "Save to my saga" action that
+// records a private milestone in xp_milestones.
 function RankUpOverlay({ rank, onDismiss }: { rank: Rank; onDismiss: () => void }) {
+  const { toast } = useToast();
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
-    const t = setTimeout(onDismiss, 4000);
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape" || e.key === "Enter") { e.preventDefault(); onDismiss(); }
     }
     window.addEventListener("keydown", onKey);
-    return () => { clearTimeout(t); window.removeEventListener("keydown", onKey); };
+    return () => { window.removeEventListener("keydown", onKey); };
   }, [onDismiss]);
+
+  async function saveMilestone() {
+    setSaving(true);
+    const res = await apiRequest("POST", "/api/xp/milestones", {
+      kind: "rank_up",
+      title: `Reached ${rank.name}`,
+      blurb: rank.blurb,
+      meta: { rankKey: rank.key, minXp: rank.minXp },
+    });
+    setSaving(false);
+    if (res?.success) {
+      setSaved(true);
+      toast({ title: "Added to your saga", description: "A private milestone you can keep." });
+    } else {
+      toast({ title: "Could not save", variant: "destructive" });
+    }
+  }
 
   return (
     <div
@@ -79,11 +102,21 @@ function RankUpOverlay({ rank, onDismiss }: { rank: Rank; onDismiss: () => void 
           You are now a {rank.name}
         </div>
         <div className="text-white/70 text-sm italic">{rank.blurb}</div>
-        <button
-          onClick={onDismiss} autoFocus
-          className="mt-5 text-white/50 hover:text-white text-xs underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-[#D4A843]/50 rounded px-2 py-0.5"
-          data-testid="button-dismiss-rank-up"
-        >continue (Esc)</button>
+        <div className="mt-5 flex items-center justify-center gap-2">
+          <button
+            onClick={saveMilestone}
+            disabled={saving || saved}
+            className="bg-[#D4A843] hover:bg-[#c49535] text-[#1A1F2B] font-semibold rounded-lg px-3 py-1.5 text-xs disabled:bg-slate-200 disabled:text-slate-500"
+            data-testid="button-save-rank-up"
+          >
+            {saved ? "Saved to saga" : saving ? "Saving…" : "Save to my saga"}
+          </button>
+          <button
+            onClick={onDismiss} autoFocus
+            className="text-white/55 hover:text-white text-xs underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-[#D4A843]/50 rounded px-2 py-0.5"
+            data-testid="button-dismiss-rank-up"
+          >continue (Esc)</button>
+        </div>
       </div>
     </div>
   );

@@ -430,6 +430,17 @@ export async function registerRoutes(
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS avatar_config jsonb;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS saga_recap_enabled boolean NOT NULL DEFAULT true;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS saga_recap_time varchar(5) NOT NULL DEFAULT '17:00';
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS sound_muted text[] NOT NULL DEFAULT ARRAY[]::text[];
+      CREATE TABLE IF NOT EXISTS xp_milestones (
+        id          serial PRIMARY KEY,
+        user_id     integer NOT NULL,
+        kind        varchar(32) NOT NULL,
+        title       text NOT NULL,
+        blurb       text,
+        meta        jsonb,
+        created_at  timestamp NOT NULL DEFAULT now()
+      );
+      CREATE INDEX IF NOT EXISTS xp_milestones_user_idx ON xp_milestones(user_id, created_at DESC);
     `);
     await migrationPool.end();
     console.log("[migrate] ✓ Schema patches applied");

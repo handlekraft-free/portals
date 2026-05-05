@@ -6,6 +6,10 @@ import { STAT_META, type Stat, type StatProgress } from "@shared/xp";
 import { Battery, Settings, Volume2, VolumeX, Flame, Heart, Shield, ScrollText, Target, Zap, Anchor, Wand2 } from "lucide-react";
 import { AvatarRenderer, type AvatarConfig } from "./AvatarRenderer";
 import { AvatarCustomizer } from "./AvatarCustomizer";
+import {
+  SOUND_LABELS, getSoundMuted, setSoundMuted as setSoundMutedLib,
+  type SoundName,
+} from "@/lib/sounds";
 
 const ENERGY_LABELS: Record<number, { label: string; color: string }> = {
   1: { label: "Drained",   color: "bg-red-400" },
@@ -21,6 +25,43 @@ const STAT_ICON: Record<Stat, typeof Target> = {
   stewardship: Shield,
   craft:       Heart,
 };
+
+// Per-event sound opt-outs — only meaningful when the global toggle is on.
+// Persists locally + best-effort to server (PATCH /api/auth/sound-prefs).
+function PerEventSoundToggles() {
+  const [muted, setMuted] = useState<Set<SoundName>>(() => new Set(getSoundMuted()));
+  function toggle(name: SoundName) {
+    const next = new Set(muted);
+    if (next.has(name)) next.delete(name); else next.add(name);
+    setMuted(next);
+    setSoundMutedLib(name, next.has(name));
+    void apiRequest("PATCH", "/api/auth/sound-prefs", { muted: Array.from(next) });
+  }
+  return (
+    <div className="px-2 pb-1" data-testid="panel-sound-event-prefs">
+      <p className="text-white/30 text-[9px] uppercase tracking-wider mb-1">Per-event</p>
+      {(Object.keys(SOUND_LABELS) as SoundName[]).map((s) => {
+        const on = !muted.has(s);
+        return (
+          <label
+            key={s}
+            className="flex items-center justify-between py-0.5 cursor-pointer hover:bg-white/5 rounded px-1"
+            data-testid={`row-sound-${s}`}
+          >
+            <span className="text-white/70 text-[11px]">{SOUND_LABELS[s]}</span>
+            <input
+              type="checkbox"
+              checked={on}
+              onChange={() => toggle(s)}
+              className="accent-[#D4A843] w-3 h-3"
+              data-testid={`toggle-sound-${s}`}
+            />
+          </label>
+        );
+      })}
+    </div>
+  );
+}
 
 // ── Hero popover (Settings + My Saga tabs) ───────────────────────────────
 function HeroCardPopover({ onCustomizeAvatar }: { onCustomizeAvatar: () => void }) {
@@ -192,9 +233,10 @@ function HeroCardPopover({ onCustomizeAvatar }: { onCustomizeAvatar: () => void 
               <p className="text-white/30 text-[10px] px-2 pt-1.5 pb-2 leading-snug">
                 A soft drum on completion, a horn on rank-up. Off by default.
               </p>
+              {soundEnabled && <PerEventSoundToggles />}
               <button
                 onClick={() => { setOpen(false); onCustomizeAvatar(); }}
-                className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/5 text-white/80 text-xs transition-colors"
+                className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/5 text-white/80 text-xs transition-colors mt-1"
                 data-testid="button-open-avatar-customizer"
               >
                 <Wand2 className="w-3.5 h-3.5" />

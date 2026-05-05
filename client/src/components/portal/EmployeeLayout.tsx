@@ -22,6 +22,27 @@ import { XpProvider } from "@/components/portal/XpProvider";
 import { HeroCard } from "@/components/portal/HeroCard";
 import { CrewBondToaster } from "@/components/portal/CrewBondToaster";
 import { SagaRecapModal } from "@/components/portal/SagaRecapModal";
+import { AvatarRenderer, type AvatarConfig } from "@/components/portal/AvatarRenderer";
+
+// Top-bar avatar that reuses the same SVG renderer as the HeroCard so the
+// avatar is consistent across the portal (sidebar header, hero card, modal).
+function SidebarHeroAvatar({ initials, fullName }: { initials: string; fullName: string }) {
+  const [cfg, setCfg] = useState<AvatarConfig | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    apiRequest("GET", "/api/auth/me").then((res) => {
+      if (!cancelled && res?.success && res.data?.avatarConfig) {
+        setCfg(res.data.avatarConfig as AvatarConfig);
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+  return (
+    <div title={fullName} data-testid="avatar-sidebar">
+      <AvatarRenderer initials={initials} config={cfg} size={28} />
+    </div>
+  );
+}
 
 // ── Brain Dump ────────────────────────────────────────────────────────────────
 // Floating capture button — bottom-left. Thought → Kanban card in one shot.
@@ -409,12 +430,10 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2 ml-auto">
             <PortalSwitcher variant="light" />
             <GoogleNotificationBell />
-            <div
-              className="w-7 h-7 rounded-full bg-[#0D7377] flex items-center justify-center text-white text-xs font-bold"
-              title={`${user?.firstName} ${user?.lastName}`}
-            >
-              {user?.firstName?.[0]}{user?.lastName?.[0]}
-            </div>
+            <SidebarHeroAvatar
+              initials={`${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`}
+              fullName={`${user?.firstName ?? ""} ${user?.lastName ?? ""}`}
+            />
           </div>
         </header>
 

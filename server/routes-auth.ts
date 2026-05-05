@@ -246,26 +246,38 @@ router.get("/me", requireAuth, async (req, res) => {
       avatarConfig: user.avatarConfig ?? null,
       sagaRecapEnabled: user.sagaRecapEnabled ?? true,
       sagaRecapTime: user.sagaRecapTime ?? "17:00",
+      soundMuted: user.soundMuted ?? [],
     },
   });
 });
+
+// Avatar config shape — mirrors shared/schema.ts users.avatarConfig.
+type AvatarConfigShape = {
+  helm?: string | null;
+  cloak?: string | null;
+  beard?: string | null;
+  emblem?: string | null;
+};
+function pickStrOrNull(v: unknown): string | null {
+  return typeof v === "string" ? v : null;
+}
 
 // PATCH /api/auth/avatar — save cosmetic avatar layers (helm/cloak/beard/emblem).
 // Server enforces rank thresholds: a layer set above the user's rank is silently
 // stripped (no error), so the client never has to reconcile divergent state.
 router.patch("/avatar", requireAuth, async (req, res) => {
   const userId = req.user!.userId;
-  const body = req.body ?? {};
-  const config: Record<string, string | null> = {
-    helm:   typeof body.helm   === "string" ? body.helm   : null,
-    cloak:  typeof body.cloak  === "string" ? body.cloak  : null,
-    beard:  typeof body.beard  === "string" ? body.beard  : null,
-    emblem: typeof body.emblem === "string" ? body.emblem : null,
+  const body = (req.body ?? {}) as Partial<AvatarConfigShape>;
+  const config: AvatarConfigShape = {
+    helm:   pickStrOrNull(body.helm),
+    cloak:  pickStrOrNull(body.cloak),
+    beard:  pickStrOrNull(body.beard),
+    emblem: pickStrOrNull(body.emblem),
   };
   // Compute current rank for unlock gating
   const [u] = await db.select().from(users).where(eq(users.id, userId));
   if (!u) return res.status(404).json({ success: false, error: "User not found" });
-  const xp = (u as unknown as { xpTotal?: number | null }).xpTotal ?? 0;
+  const xp = (u as { xpTotal?: number | null }).xpTotal ?? 0;
   // Mirror shared/xp.ts thresholds (Thrall=0, Karl=200, Jarl=600, Hersir=1500, Skald=3000, Konungr=6000)
   const unlock = {
     helm:   xp >= 200,
@@ -277,8 +289,19 @@ router.patch("/avatar", requireAuth, async (req, res) => {
   if (!unlock.cloak)  config.cloak  = null;
   if (!unlock.beard)  config.beard  = null;
   if (!unlock.emblem) config.emblem = null;
-  await db.update(users).set({ avatarConfig: config as any }).where(eq(users.id, userId));
+  await db.update(users).set({ avatarConfig: config }).where(eq(users.id, userId));
   res.json({ success: true, data: { avatarConfig: config, unlock } });
+});
+
+// PATCH /api/auth/sound-prefs — per-event sound opt-out list. Body shape:
+// { muted: string[] } — empty list means everything is on (subject to global mute).
+router.patch("/sound-prefs", requireAuth, async (req, res) => {
+  const userId = req.user!.userId;
+  const raw = Array.isArray(req.body?.muted) ? req.body.muted : [];
+  const allowed = new Set(["drum", "horn", "parchment", "lute"]);
+  const muted = (raw as unknown[]).filter((s): s is string => typeof s === "string" && allowed.has(s));
+  await db.update(users).set({ soundMuted: muted }).where(eq(users.id, userId));
+  res.json({ success: true, data: { muted } });
 });
 
 // PATCH /api/auth/saga-recap-prefs — saga recap toggle + scheduled time

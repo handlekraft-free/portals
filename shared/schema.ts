@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, timestamp, varchar, boolean, numeric, pgEnum, uniqueIndex, real, jsonb } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -125,7 +126,22 @@ export const users = pgTable("portal_users", {
   }>(),
   sagaRecapEnabled: boolean("saga_recap_enabled").notNull().default(true),
   sagaRecapTime: varchar("saga_recap_time", { length: 5 }).notNull().default("17:00"),
+  // Per-event sound opt-outs (additive to the global mute). Empty array = all on.
+  soundMuted: text("sound_muted").array().notNull().default(sql`ARRAY[]::text[]`),
 });
+
+// Personal saga timeline — opt-in milestones the user chooses to keep
+// (rank-ups, etc). Private to the user; never surfaced to teammates.
+export const xpMilestones = pgTable("xp_milestones", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  kind: varchar("kind", { length: 32 }).notNull(),    // 'rank_up' | future: 'streak_pr', etc
+  title: text("title").notNull(),
+  blurb: text("blurb"),
+  meta: jsonb("meta").$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type XpMilestone = typeof xpMilestones.$inferSelect;
 export type PortalUser = typeof users.$inferSelect;
 export type InsertPortalUser = typeof users.$inferInsert;
 

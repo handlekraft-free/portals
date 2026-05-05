@@ -60,9 +60,10 @@ function parseCsvLine(line: string): string[] {
 // Compute a 1-5 "interest fit" score for a viewer against a quest's labels,
 // using the viewer's prior interest ratings (0-5) on cards with overlapping
 // labels. Pure JS, cheap — caller passes in the viewer's history once.
+type FitHistoryRow = { labels: string[] | null; interestRating: number | null };
 function computeInterestFit(
   questLabels: string[] | null,
-  history: Array<{ labels: string[] | null; interestRating: number | null }>,
+  history: FitHistoryRow[],
 ): { score: number; matchedTags: string[] } {
   const tags = (questLabels || []).map(l => l.toLowerCase()).filter(Boolean);
   if (tags.length === 0) return { score: 3, matchedTags: [] };
@@ -84,7 +85,8 @@ function computeInterestFit(
   return { score, matchedTags: Array.from(matched) };
 }
 
-function bountyActive(card: { bountyMultiplier?: number | null; bountyExpiresAt?: Date | null }): boolean {
+type BountyShape = { bountyMultiplier?: number | null; bountyExpiresAt?: Date | null };
+function bountyActive(card: BountyShape): boolean {
   const mult = Number(card.bountyMultiplier ?? 1);
   if (!(mult > 1)) return false;
   if (!card.bountyExpiresAt) return true;
@@ -119,8 +121,8 @@ router.get("/factory", async (req, res) => {
       columns: columns.map(col => ({
         ...col,
         cards: cards.filter(c => c.columnId === col.id).map(card => {
-          const fit = computeInterestFit(card.labels as any, history as any);
-          const active = bountyActive(card as any);
+          const fit = computeInterestFit(card.labels, history);
+          const active = bountyActive(card);
           return {
             ...card,
             assignee: card.assignedTo ? userLookup[card.assignedTo] : null,
@@ -140,7 +142,16 @@ router.get("/factory", async (req, res) => {
 // or null). Setting multiplier=1 clears the bounty.
 router.patch("/factory/cards/:id/bounty", async (req, res) => {
   const role = req.user!.role;
-  if (role !== "admin") return res.status(403).json({ success: false, error: "Admins only" });
+  const userId = req.user!.userId;
+  // Bounty management is a manager-level capability: admins always, plus any
+  // employee with the canApprove flag (the same gate used for time approvals).
+  let isManager = role === "admin";
+  if (!isManager) {
+    const [me] = await db.select({ canApprove: users.canApprove })
+      .from(users).where(eq(users.id, userId));
+    isManager = !!me?.canApprove;
+  }
+  if (!isManager) return res.status(403).json({ success: false, error: "Manager access required" });
   const cardId = parseInt(req.params.id);
   const rawMult = Number(req.body?.multiplier);
   if (!Number.isFinite(rawMult) || rawMult < 1 || rawMult > 5) {

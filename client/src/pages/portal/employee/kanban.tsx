@@ -1249,7 +1249,7 @@ function AddTaskModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
 
 function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard, currentUser }: {
   factoryData: any; boards: any[]; onRefresh: () => void; onOpenInBoard: () => void;
-  currentUser?: { role?: string; firstName?: string };
+  currentUser?: { role?: string; firstName?: string; canApprove?: boolean };
 }) {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
@@ -1263,7 +1263,9 @@ function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard, cu
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ inserted: number; skipped: number } | null>(null);
   const csvInputRef = useRef<HTMLInputElement>(null);
-  const isAdmin = currentUser?.role === "admin";
+  // "Manager" capability mirrors the server: admins always, plus any portal
+  // user with canApprove (the same gate used elsewhere for approver actions).
+  const isManager = currentUser?.role === "admin" || !!currentUser?.canApprove;
 
   const columns = factoryData?.columns || [];
   const allCards = columns.flatMap((col: any) =>
@@ -1446,7 +1448,14 @@ function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard, cu
                       <div className="flex items-center gap-2 mt-1">
                         <InterestFitStars score={fitScore} />
                         {card.assignee && (
-                          <span className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">claimed</span>
+                          <span
+                            className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded inline-flex items-center gap-1"
+                            title={`Claimed by ${card.assignee.firstName ?? ""} ${card.assignee.lastName ?? ""}`.trim()}
+                            data-testid={`claimer-${card.id}`}
+                          >
+                            <Anchor className="w-2.5 h-2.5" />
+                            {`${card.assignee.firstName ?? ""}${card.assignee.lastName ? " " + card.assignee.lastName.charAt(0) + "." : ""}`.trim() || "claimed"}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -1488,12 +1497,12 @@ function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard, cu
                       )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      {isAdmin && (
+                      {isManager && (
                         <button
                           onClick={() => setBountyCard(card)}
                           className={`p-1 rounded ${card.bountyActive ? "text-[#D4A843]" : "text-slate-400 hover:text-[#D4A843]"} hover:bg-white/70`}
                           aria-label="Set bounty"
-                          title={card.bountyActive ? `Bounty ×${Number(card.bountyMultiplier).toFixed(1)}` : "Set bounty (admin)"}
+                          title={card.bountyActive ? `Bounty ×${Number(card.bountyMultiplier).toFixed(1)}` : "Set bounty (manager)"}
                           data-testid={`button-bounty-${card.id}`}
                         >
                           <Crown className="w-3.5 h-3.5" />
@@ -1963,7 +1972,7 @@ function KanbanContent() {
             factoryData={factoryData}
             boards={boards}
             onRefresh={loadFactory}
-            currentUser={user ? { role: user.role, firstName: user.firstName } : undefined}
+            currentUser={user ? { role: user.role, firstName: user.firstName, canApprove: user.canApprove } : undefined}
             onOpenInBoard={() => {
               const factoryBoard = boards.find((b: any) => b.isLongshipFactory);
               if (factoryBoard) loadBoard(factoryBoard.id);

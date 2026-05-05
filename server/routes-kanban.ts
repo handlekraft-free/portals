@@ -3,8 +3,9 @@ import { Router as createRouter } from "express";
 import path from "path";
 import fs from "fs";
 import multer from "multer";
+import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db";
-import { kanbanBoards, kanbanColumns, kanbanCards, kanbanCardComments, kanbanCardAttachments, teams, teamMembers, users } from "@shared/schema";
+import { kanbanBoards, kanbanColumns, kanbanCards, kanbanCardComments, kanbanCardAttachments, teams, teamMembers, users, type KanbanCard } from "@shared/schema";
 import { eq, and, asc, desc, or, inArray, isNull, sql } from "drizzle-orm";
 import { requireAuth } from "./auth-middleware";
 
@@ -149,6 +150,115 @@ router.post("/factory/import", csvUpload.single("csv"), async (req, res) => {
     inserted++;
   }
   res.json({ success: true, data: { inserted, skipped: skipped.length, skippedRows: skipped } });
+});
+
+// AI quest generation into the factory
+const MAX_GENERATE_COUNT = 50;
+const MAX_PROMPT_CHARS = 4000;
+const FACTORY_PRIORITIES = ["low", "medium", "high", "urgent"] as const;
+type FactoryPriority = typeof FACTORY_PRIORITIES[number];
+const FACTORY_PRIORITY_SET: ReadonlySet<string> = new Set(FACTORY_PRIORITIES);
+
+interface GeneratedQuest {
+  title?: unknown;
+  description?: unknown;
+  priority?: unknown;
+  labels?: unknown;
+}
+
+function toStringSafe(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (value == null) return "";
+  return String(value);
+}
+
+router.post("/factory/generate", async (req, res) => {
+  const userId = req.user!.userId;
+  const rawPrompt = toStringSafe(req.body?.prompt);
+  const rawCount = Number(req.body?.count);
+  const prompt = rawPrompt.trim();
+  if (!prompt) return res.status(400).json({ success: false, error: "Prompt is required" });
+  if (prompt.length > MAX_PROMPT_CHARS) {
+    return res.status(400).json({ success: false, error: `Prompt is too long (max ${MAX_PROMPT_CHARS} characters)` });
+  }
+  if (!Number.isFinite(rawCount) || rawCount < 1) {
+    return res.status(400).json({ success: false, error: "Count must be at least 1" });
+  }
+  const count = Math.min(Math.floor(rawCount), MAX_GENERATE_COUNT);
+
+  const factory = await getOrCreateFactory(userId);
+  const [firstCol] = await db.select().from(kanbanColumns)
+    .where(eq(kanbanColumns.boardId, factory.id)).orderBy(asc(kanbanColumns.position)).limit(1);
+  if (!firstCol) return res.status(500).json({ success: false, error: "Factory has no columns" });
+
+  const systemPrompt = `You generate concrete, well-scoped quest cards for a nonprofit's shared backlog ("Longship Factory"). Each quest is a single, actionable piece of work a small product team could pick up. Respond with ONLY a JSON object of the form {"quests":[{"title":"...","description":"...","priority":"low|medium|high|urgent","labels":["..."]}]} — no prose, no markdown, no code fences. Titles must be short (under 80 chars) and action-oriented. Descriptions are 1-3 sentences explaining the desired outcome. Priority must be one of low, medium, high, urgent. Labels are 0-4 lowercase short tags.`;
+
+  const userPrompt = `Generate exactly ${count} quest cards based on this concern/desire/outcome from a manager:\n\n"""${prompt}"""\n\nReturn only the JSON object described above with a "quests" array of length ${count}.`;
+
+  let raw = "";
+  try {
+    const client = new Anthropic({
+      apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY || "placeholder",
+      baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
+    });
+    const response = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 8192,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
+    });
+    raw = response.content[0]?.type === "text" ? response.content[0].text : "";
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[Factory Generate] AI error:", message);
+    return res.status(502).json({ success: false, error: "AI service temporarily unavailable. Please try again." });
+  }
+
+  // Defensive JSON extraction
+  let parsed: unknown = null;
+  try { parsed = JSON.parse(raw); } catch {
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (match) { try { parsed = JSON.parse(match[0]); } catch { /* ignore */ } }
+  }
+  let questsArr: GeneratedQuest[] = [];
+  if (parsed && typeof parsed === "object") {
+    const maybeQuests = (parsed as { quests?: unknown }).quests;
+    if (Array.isArray(maybeQuests)) questsArr = maybeQuests as GeneratedQuest[];
+    else if (Array.isArray(parsed)) questsArr = parsed as GeneratedQuest[];
+  }
+  if (questsArr.length === 0) {
+    return res.status(502).json({ success: false, error: "AI returned no usable quests. Try rephrasing your prompt." });
+  }
+
+  const existing = await db.select({ id: kanbanCards.id }).from(kanbanCards)
+    .where(and(eq(kanbanCards.columnId, firstCol.id), eq(kanbanCards.archived, false)));
+  let position = existing.length;
+
+  const insertedCards: KanbanCard[] = [];
+  for (const q of questsArr.slice(0, count)) {
+    const title = toStringSafe(q?.title).trim().slice(0, 200);
+    if (!title) continue;
+    const descRaw = toStringSafe(q?.description).trim();
+    const description = descRaw ? descRaw.slice(0, 2000) : null;
+    const rawPri = toStringSafe(q?.priority).toLowerCase();
+    const priority: FactoryPriority = FACTORY_PRIORITY_SET.has(rawPri)
+      ? (rawPri as FactoryPriority)
+      : "medium";
+    const labels = Array.isArray(q?.labels)
+      ? (q.labels as unknown[])
+          .map(l => toStringSafe(l).trim())
+          .filter(l => l.length > 0)
+          .slice(0, 6)
+      : [];
+    const [card] = await db.insert(kanbanCards).values({
+      columnId: firstCol.id, boardId: factory.id, title,
+      description, priority, labels,
+      position: position++, createdBy: userId,
+    }).returning();
+    insertedCards.push(card);
+  }
+
+  res.json({ success: true, data: { inserted: insertedCards.length, requested: count, cards: insertedCards } });
 });
 
 // Download sample CSV

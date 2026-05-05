@@ -1079,6 +1079,7 @@ function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard }: 
   const [showCsvGuide, setShowCsvGuide] = useState(false);
   const [claimingCard, setClaimingCard] = useState<any>(null);
   const [showAddTask, setShowAddTask] = useState(false);
+  const [showGenerate, setShowGenerate] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ inserted: number; skipped: number } | null>(null);
   const csvInputRef = useRef<HTMLInputElement>(null);
@@ -1144,6 +1145,10 @@ function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard }: 
             {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileUp className="w-3.5 h-3.5" />} Import CSV
           </Button>
           <input ref={csvInputRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleCsvImport} data-testid="input-csv-file" />
+          <Button variant="outline" size="sm" onClick={() => setShowGenerate(true)}
+            className="gap-1.5 text-xs border-[#D4A843] text-[#8a6a14] hover:bg-amber-50" data-testid="button-generate-with-ai">
+            <Sparkles className="w-3.5 h-3.5" /> Generate with AI
+          </Button>
           <Button size="sm" onClick={() => setShowAddTask(true)} className="bg-[#0D7377] text-white gap-1.5 text-xs" data-testid="button-add-factory-quest">
             <Plus className="w-3.5 h-3.5" /> Add Quest
           </Button>
@@ -1269,6 +1274,113 @@ function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard }: 
       {showAddTask && (
         <AddTaskModal onClose={() => setShowAddTask(false)} onAdded={() => { setShowAddTask(false); onRefresh(); }} />
       )}
+      {showGenerate && (
+        <GenerateQuestsModal onClose={() => setShowGenerate(false)} onGenerated={() => { setShowGenerate(false); onRefresh(); }} />
+      )}
+    </div>
+  );
+}
+
+function GenerateQuestsModal({ onClose, onGenerated }: { onClose: () => void; onGenerated: () => void }) {
+  const { toast } = useToast();
+  const [prompt, setPrompt] = useState("");
+  const [count, setCount] = useState(10);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const MAX_COUNT = 50;
+  const MAX_PROMPT = 4000;
+
+  async function doGenerate() {
+    setError(null);
+    const trimmed = prompt.trim();
+    if (!trimmed) { setError("Please describe what kind of quests you want."); return; }
+    if (trimmed.length > MAX_PROMPT) { setError(`Prompt is too long (max ${MAX_PROMPT} characters).`); return; }
+    const n = Math.min(Math.max(Math.floor(count || 0), 1), MAX_COUNT);
+    setGenerating(true);
+    try {
+      const res = await apiRequest("POST", "/api/kanban/factory/generate", { prompt: trimmed, count: n });
+      if (res.success) {
+        const inserted = res.data?.inserted ?? 0;
+        toast({ title: `${inserted} quest${inserted === 1 ? "" : "s"} added to the Longship Factory ⚓` });
+        onGenerated();
+      } else {
+        setError(res.error || "Failed to generate quests.");
+      }
+    } catch (e: any) {
+      setError(e?.message || "Network error while generating quests.");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={generating ? undefined : onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl mx-4 p-6" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-[#D4A843]" />
+            <h2 className="text-lg font-display text-[#1A1F2B]">Generate Quests with AI</h2>
+          </div>
+          <button onClick={onClose} disabled={generating} className="p-1 rounded hover:bg-slate-100 text-slate-400 disabled:opacity-50" data-testid="button-close-generate">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <p className="text-xs text-slate-500 mb-4">
+          Describe a concern, desire, or outcome and let AI draft a batch of quest cards directly into the Longship Factory.
+        </p>
+        <div className="space-y-3">
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">
+              What do you want to address? <span className="text-red-400">*</span>
+            </label>
+            <textarea
+              autoFocus
+              value={prompt}
+              onChange={e => setPrompt(e.target.value)}
+              rows={6}
+              maxLength={MAX_PROMPT}
+              placeholder='e.g., "We need to become more trauma informed across all client intake and training materials."'
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40 resize-none"
+              data-testid="input-generate-prompt"
+            />
+            <div className="flex justify-between mt-1">
+              <span className="text-[10px] text-slate-400">Be specific about the outcome you want.</span>
+              <span className="text-[10px] text-slate-400">{prompt.length}/{MAX_PROMPT}</span>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">
+              How many quests? <span className="text-slate-400 font-normal">(1–{MAX_COUNT})</span>
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={MAX_COUNT}
+              value={count}
+              onChange={e => setCount(Number(e.target.value))}
+              className="w-32 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40"
+              data-testid="input-generate-count"
+            />
+          </div>
+          {error && (
+            <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2" data-testid="text-generate-error">
+              {error}
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2 mt-5">
+          <Button
+            onClick={doGenerate}
+            disabled={generating || !prompt.trim()}
+            className="bg-[#D4A843] hover:bg-[#bf962e] text-white flex-1 gap-2"
+            data-testid="button-do-generate"
+          >
+            {generating ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</> : <><Sparkles className="w-4 h-4" /> Generate {Math.min(Math.max(Math.floor(count || 0), 1), MAX_COUNT)} quest{count === 1 ? "" : "s"}</>}
+          </Button>
+          <Button variant="outline" onClick={onClose} disabled={generating}>Cancel</Button>
+        </div>
+      </div>
     </div>
   );
 }

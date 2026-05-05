@@ -132,14 +132,19 @@ router.post("/streak/raid", async (req, res) => {
     tokenMonth: u.rest_token_month,
     today,
   });
-  await db.execute(sql`
-    UPDATE portal_users
-    SET daily_raid_streak = ${update.newStreak},
-        daily_raid_last   = ${today},
-        rest_tokens       = ${update.remainingTokens},
-        rest_token_month  = ${update.monthKey}
-    WHERE id = ${userId}
-  `);
+  // Never touch streak fields when today doesn't count (weekend or dup same-day).
+  // This preserves Friday's lastDate so a missed Friday is still detected on
+  // the following Monday and the rest token bookkeeping stays accurate.
+  if (!update.alreadyCountedToday) {
+    await db.execute(sql`
+      UPDATE portal_users
+      SET daily_raid_streak = ${update.newStreak},
+          daily_raid_last   = ${today},
+          rest_tokens       = ${update.remainingTokens},
+          rest_token_month  = ${update.monthKey}
+      WHERE id = ${userId}
+    `);
+  }
 
   let xpAwarded: { amount: number; reason: string; newTotal: number; stat: string | null } | null = null;
   if (!update.alreadyCountedToday) {
@@ -177,7 +182,11 @@ router.post("/streak/raid", async (req, res) => {
   res.json({
     success: true,
     data: {
-      streak: { count: update.newStreak, lastDate: today },
+      streak: {
+        count: update.newStreak,
+        // Preserve original lastDate when today didn't count (weekend/dup).
+        lastDate: update.alreadyCountedToday ? u.daily_raid_last : today,
+      },
       restTokens: update.remainingTokens,
       spentTokens: update.spentTokens,
       brokeStreak: update.brokeStreak,

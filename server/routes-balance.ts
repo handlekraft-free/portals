@@ -65,17 +65,21 @@ router.post("/me", async (req, res) => {
         tokenMonth: u.rest_token_month,
         today,
       });
-      await db.execute(sql`
-        UPDATE portal_users
-        SET honest_pulse_streak = ${update.newStreak},
-            honest_pulse_last   = ${today},
-            rest_tokens         = ${update.remainingTokens},
-            rest_token_month    = ${update.monthKey}
-        WHERE id = ${userId}
-      `);
+      // Skip the write entirely on weekends / dup same-day so a missed Friday
+      // is still visible on Monday and rest tokens are not silently bypassed.
+      if (!update.alreadyCountedToday) {
+        await db.execute(sql`
+          UPDATE portal_users
+          SET honest_pulse_streak = ${update.newStreak},
+              honest_pulse_last   = ${today},
+              rest_tokens         = ${update.remainingTokens},
+              rest_token_month    = ${update.monthKey}
+          WHERE id = ${userId}
+        `);
+      }
       streak = {
         count: update.newStreak,
-        lastDate: today,
+        lastDate: update.alreadyCountedToday ? u.honest_pulse_last : today,
         restTokens: update.remainingTokens,
         spentTokens: update.spentTokens,
       };

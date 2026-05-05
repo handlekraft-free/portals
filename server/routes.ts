@@ -402,6 +402,8 @@ export async function registerRoutes(
       CREATE INDEX IF NOT EXISTS xp_events_user_stat_idx ON xp_events (user_id, stat);
       ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS claimed_from_factory boolean NOT NULL DEFAULT false;
       ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS loved_this boolean NOT NULL DEFAULT false;
+      ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS bounty_multiplier real NOT NULL DEFAULT 1.0;
+      ALTER TABLE kanban_cards ADD COLUMN IF NOT EXISTS bounty_expires_at timestamp;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS daily_raid_streak integer NOT NULL DEFAULT 0;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS daily_raid_last varchar(10);
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS honest_pulse_streak integer NOT NULL DEFAULT 0;

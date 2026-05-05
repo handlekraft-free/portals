@@ -9,14 +9,68 @@ import {
   Plus, ArrowLeft, Kanban, X, Check, ChevronRight, Calendar, Flag,
   MessageSquare, Paperclip, Upload, Trash2, Pencil, Download, Image,
   FileText, Search, User, ClipboardList, Eye, ArrowRightLeft, ChevronDown,
-  Sparkles, Loader2, Ship, Anchor, FileUp, FileDown, Info, Heart,
+  Sparkles, Loader2, Ship, Anchor, FileUp, FileDown, Info, Heart, Star, Crown, Coins,
 } from "lucide-react";
-import { VikingCrossedSwords, VikingHelmSvg, VikingAxeSvg, RuneDivider } from "@/components/portal/VikingDecor";
+import { VikingCrossedSwords, VikingHelmSvg, VikingAxeSvg, VikingSwordSvg, RuneDivider } from "@/components/portal/VikingDecor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { isCompletionColumn } from "@shared/xp";
+import { isCompletionColumn, xpForPriority, INITIATIVE_MULTIPLIER } from "@shared/xp";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Tiny hook that respects the OS reduced-motion preference.
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false,
+  );
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener?.("change", handler);
+    return () => mq.removeEventListener?.("change", handler);
+  }, []);
+  return reduced;
+}
+
+// Wax-seal-styled priority indicator. Calm dot + initial.
+const WAX_SEAL_BG: Record<string, string> = {
+  urgent: "bg-red-600",
+  high: "bg-orange-500",
+  medium: "bg-amber-500",
+  low: "bg-sky-500",
+};
+function WaxSeal({ priority }: { priority: string }) {
+  const letter = (priority?.[0] || "?").toUpperCase();
+  return (
+    <div
+      title={`Priority: ${priority}`}
+      className={`relative w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-sm ring-2 ring-white/70 ${WAX_SEAL_BG[priority] || "bg-slate-400"}`}
+      data-testid={`wax-seal-${priority}`}
+    >
+      {letter}
+    </div>
+  );
+}
+
+function InterestFitStars({ score }: { score: number }) {
+  const s = Math.max(1, Math.min(5, Math.round(score)));
+  return (
+    <div className="flex items-center gap-0.5" title={`Interest fit ${s}/5`}>
+      {[1, 2, 3, 4, 5].map(i => (
+        <Star
+          key={i}
+          className={`w-3 h-3 ${i <= s ? "text-[#D4A843] fill-[#D4A843]" : "text-slate-300"}`}
+          aria-hidden="true"
+        />
+      ))}
+    </div>
+  );
+}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -904,8 +958,8 @@ function TaskRow({ task, onOpen, onOpenBoard }: { task: any; onOpen: () => void;
 
 // ── Longship Factory ──────────────────────────────────────────────────────────
 
-function ClaimModal({ card, boards, onClose, onClaimed }: {
-  card: any; boards: any[]; onClose: () => void; onClaimed: () => void;
+function ClaimModal({ card, boards, onClose, onClaimed, claimerName }: {
+  card: any; boards: any[]; onClose: () => void; onClaimed: () => void; claimerName?: string;
 }) {
   const { toast } = useToast();
   const [targetBoardId, setTargetBoardId] = useState("");
@@ -913,6 +967,8 @@ function ClaimModal({ card, boards, onClose, onClaimed }: {
   const [boardColumns, setBoardColumns] = useState<any[]>([]);
   const [loadingCols, setLoadingCols] = useState(false);
   const [claiming, setClaiming] = useState(false);
+  const [stamped, setStamped] = useState(false);
+  const reduced = usePrefersReducedMotion();
   const nonFactoryBoards = boards.filter((b: any) => !b.isLongshipFactory);
 
   useEffect(() => {
@@ -934,8 +990,15 @@ function ClaimModal({ card, boards, onClose, onClaimed }: {
     const res = await apiRequest("POST", `/api/kanban/cards/${card.id}/claim`, body);
     setClaiming(false);
     if (res.success) {
+      // Brief sword-stamp; reduced-motion users get an instant close.
+      if (reduced) {
+        toast({ title: "Quest claimed", description: targetBoardId ? "Moved to your board." : "Assigned to you in the Factory." });
+        onClaimed();
+        return;
+      }
+      setStamped(true);
       toast({ title: "Quest claimed! ⚔️", description: targetBoardId ? "Moved to your board." : "Assigned to you in the Factory." });
-      onClaimed();
+      setTimeout(() => onClaimed(), 600);
     } else {
       toast({ title: "Failed to claim", description: res.error, variant: "destructive" });
     }
@@ -943,7 +1006,7 @@ function ClaimModal({ card, boards, onClose, onClaimed }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
+      <div className="relative overflow-hidden bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Ship className="w-5 h-5 text-[#0D7377]" />
@@ -992,6 +1055,121 @@ function ClaimModal({ card, boards, onClose, onClaimed }: {
             {claiming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Anchor className="w-4 h-4" />}
             Claim Quest
           </Button>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+        </div>
+
+        {/* Sword-stamp confirmation overlay (~500ms). Suppressed for reduced-motion. */}
+        <AnimatePresence>
+          {stamped && (
+            <motion.div
+              key="sword-stamp"
+              className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              data-testid="sword-stamp-overlay"
+            >
+              <motion.div
+                initial={{ scale: 2.4, rotate: -25, opacity: 0 }}
+                animate={{ scale: 1, rotate: -12, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 380, damping: 18 }}
+                className="flex flex-col items-center gap-1"
+              >
+                <VikingCrossedSwords className="w-24 h-24 text-[#0D7377] drop-shadow-md" />
+                <span className="text-xs font-display tracking-wide text-[#0D7377] bg-white/90 rounded px-2 py-0.5 border border-[#0D7377]/30">
+                  Claimed{claimerName ? ` by ${claimerName}` : ""}
+                </span>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+// Admin-only modal to set a Bounty multiplier + optional expiry on a quest.
+function BountyModal({ card, onClose, onSaved }: {
+  card: any; onClose: () => void; onSaved: () => void;
+}) {
+  const { toast } = useToast();
+  const [multiplier, setMultiplier] = useState<number>(Number(card.bountyMultiplier) > 1 ? Number(card.bountyMultiplier) : 2);
+  const [hasExpiry, setHasExpiry] = useState<boolean>(!!card.bountyExpiresAt);
+  const [expiresAt, setExpiresAt] = useState<string>(() => {
+    if (!card.bountyExpiresAt) {
+      const d = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      return d.toISOString().slice(0, 10);
+    }
+    return new Date(card.bountyExpiresAt).toISOString().slice(0, 10);
+  });
+  const [saving, setSaving] = useState(false);
+
+  async function save(clear = false) {
+    let isoExpiry: string | null = null;
+    if (!clear && hasExpiry) {
+      const d = new Date(expiresAt + "T23:59:59");
+      if (Number.isNaN(d.getTime())) {
+        toast({ title: "Pick a valid expiry date", variant: "destructive" });
+        return;
+      }
+      isoExpiry = d.toISOString();
+    }
+    setSaving(true);
+    const body = { multiplier: clear ? 1 : multiplier, expiresAt: isoExpiry };
+    const res = await apiRequest("PATCH", `/api/kanban/factory/cards/${card.id}/bounty`, body);
+    setSaving(false);
+    if (res.success) {
+      toast({ title: clear ? "Bounty cleared" : `Bounty set ×${multiplier}` });
+      onSaved();
+    } else {
+      toast({ title: "Failed", description: res.error, variant: "destructive" });
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Crown className="w-5 h-5 text-[#D4A843]" />
+            <h2 className="text-lg font-display text-[#1A1F2B]">Bounty Settings</h2>
+          </div>
+          <button onClick={onClose} className="p-1 rounded hover:bg-slate-100 text-slate-400"><X className="w-4 h-4" /></button>
+        </div>
+        <p className="text-xs text-slate-500 mb-4">Multiplies the XP reward when this quest is completed. Stacks with the Initiative bonus for factory-claimed quests.</p>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Multiplier (×{multiplier.toFixed(1)})</label>
+            <input
+              type="range" min={1} max={5} step={0.5}
+              value={multiplier} onChange={e => setMultiplier(parseFloat(e.target.value))}
+              className="w-full" data-testid="input-bounty-multiplier"
+            />
+            <div className="flex justify-between text-[10px] text-slate-400 mt-0.5">
+              <span>×1</span><span>×2</span><span>×3</span><span>×4</span><span>×5</span>
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <input type="checkbox" checked={hasExpiry} onChange={e => setHasExpiry(e.target.checked)} data-testid="checkbox-bounty-expiry" />
+            Expires on
+          </label>
+          {hasExpiry && (
+            <input
+              type="date" value={expiresAt} onChange={e => setExpiresAt(e.target.value)}
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40"
+              data-testid="input-bounty-expires-at"
+            />
+          )}
+        </div>
+        <div className="flex gap-2 mt-5">
+          <Button onClick={() => save(false)} disabled={saving} className="bg-[#D4A843] text-white flex-1 gap-2" data-testid="button-save-bounty">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />}
+            Save Bounty
+          </Button>
+          {Number(card.bountyMultiplier) > 1 && (
+            <Button variant="outline" onClick={() => save(true)} disabled={saving} data-testid="button-clear-bounty">Clear</Button>
+          )}
           <Button variant="outline" onClick={onClose}>Cancel</Button>
         </div>
       </div>
@@ -1069,8 +1247,9 @@ function AddTaskModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
   );
 }
 
-function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard }: {
+function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard, currentUser }: {
   factoryData: any; boards: any[]; onRefresh: () => void; onOpenInBoard: () => void;
+  currentUser?: { role?: string; firstName?: string };
 }) {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
@@ -1078,11 +1257,13 @@ function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard }: 
   const [filterColumn, setFilterColumn] = useState("all");
   const [showCsvGuide, setShowCsvGuide] = useState(false);
   const [claimingCard, setClaimingCard] = useState<any>(null);
+  const [bountyCard, setBountyCard] = useState<any>(null);
   const [showAddTask, setShowAddTask] = useState(false);
   const [showGenerate, setShowGenerate] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ inserted: number; skipped: number } | null>(null);
   const csvInputRef = useRef<HTMLInputElement>(null);
+  const isAdmin = currentUser?.role === "admin";
 
   const columns = factoryData?.columns || [];
   const allCards = columns.flatMap((col: any) =>
@@ -1228,48 +1409,165 @@ function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard }: 
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((card: any) => (
-            <div key={card.id}
-              className={`bg-white rounded-xl p-4 shadow-sm border-l-4 ${PRIORITY_BORDER[card.priority] || "border-l-slate-200"} hover:shadow-md transition-shadow flex flex-col`}
-              data-testid={`factory-card-${card.id}`}>
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className={`text-xs px-1.5 py-0.5 rounded border ${PRIORITY_COLORS[card.priority] || ""}`}>{card.priority}</span>
-                  {(card.labels || []).map((l: string) => (
-                    <span key={l} className="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{l}</span>
-                  ))}
-                </div>
-                {card.assignee && (
-                  <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded shrink-0">claimed</span>
-                )}
-              </div>
-              <p className="text-sm font-semibold text-[#1A1F2B] mb-1 line-clamp-2">{card.title}</p>
-              {card.description && <p className="text-xs text-slate-500 line-clamp-3 mb-3">{card.description}</p>}
-              <div className="flex items-center justify-between gap-2 mt-auto pt-3 border-t border-slate-100">
-                <div className="flex items-center gap-2 text-xs text-slate-400">
-                  <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full inline-block" style={{ background: card.columnColor || "#64748b" }} />
-                    {card.columnTitle}
-                  </span>
-                  {card.dueDate && (
-                    <span className={`flex items-center gap-1 ${new Date(card.dueDate) < new Date() ? "text-red-500" : ""}`}>
-                      <Calendar className="w-3 h-3" />{new Date(card.dueDate).toLocaleDateString()}
-                    </span>
+          {filtered.map((card: any) => {
+            const baseXp = xpForPriority(card.priority);
+            const bountyMult = card.bountyActive ? Number(card.bountyMultiplier || 1) : 1;
+            // Show full potential reward including the Initiative bonus claimers earn.
+            const totalXp = Math.round(baseXp * INITIATIVE_MULTIPLIER * bountyMult);
+            const fitScore = Number(card.interestFit ?? 3);
+            const fitTags: string[] = card.interestFitTags || [];
+            const expiryStr = card.bountyExpiresAt
+              ? new Date(card.bountyExpiresAt).toLocaleDateString()
+              : null;
+            return (
+              <Popover key={card.id}>
+                <div
+                  className={`group relative flex flex-col rounded-xl p-4 shadow-sm border-l-4 ${PRIORITY_BORDER[card.priority] || "border-l-slate-200"} bg-gradient-to-br from-[#fbf6e8] via-[#fdfaf0] to-[#f5ecd3] hover:shadow-md hover:-translate-y-0.5 transition-all`}
+                  style={{ backgroundImage: "linear-gradient(135deg,#fbf6e8 0%,#fdfaf0 60%,#f5ecd3 100%)" }}
+                  data-testid={`factory-card-${card.id}`}
+                >
+                  {/* Bounty ribbon */}
+                  {card.bountyActive && (
+                    <div
+                      className="absolute -top-2 -right-2 z-10 flex items-center gap-1 px-2 py-1 rounded-md bg-gradient-to-r from-[#D4A843] to-[#b48424] text-white text-[10px] font-bold uppercase tracking-wider shadow-md"
+                      title={expiryStr ? `Bounty expires ${expiryStr}` : "Open bounty"}
+                      data-testid={`bounty-ribbon-${card.id}`}
+                    >
+                      <Crown className="w-3 h-3" /> Bounty ×{Number(card.bountyMultiplier).toFixed(1)}
+                    </div>
                   )}
+
+                  <div className="flex items-start gap-3 mb-2">
+                    <WaxSeal priority={card.priority} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-[#1A1F2B] line-clamp-2 leading-snug">{card.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <InterestFitStars score={fitScore} />
+                        {card.assignee && (
+                          <span className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">claimed</span>
+                        )}
+                      </div>
+                    </div>
+                    {/* XP reward stamp */}
+                    <div
+                      className="flex flex-col items-center justify-center w-14 h-14 rounded-full bg-[#0D7377] text-white shadow-md ring-2 ring-[#D4A843]/40 shrink-0"
+                      title={`Reward: ${totalXp} XP`}
+                      data-testid={`xp-stamp-${card.id}`}
+                    >
+                      <Coins className="w-3.5 h-3.5 -mb-0.5 text-[#D4A843]" />
+                      <span className="text-sm font-bold leading-none">{totalXp}</span>
+                      <span className="text-[8px] uppercase tracking-wider opacity-80 mt-0.5">XP</span>
+                    </div>
+                  </div>
+
+                  {card.description && (
+                    <p className="text-xs text-slate-600/90 line-clamp-2 mb-3 italic">{card.description}</p>
+                  )}
+
+                  {(card.labels || []).length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {(card.labels as string[]).slice(0, 4).map(l => (
+                        <span key={l} className="text-[10px] bg-white/70 text-slate-600 border border-[#D4A843]/30 px-1.5 py-0.5 rounded">{l}</span>
+                      ))}
+                      {card.labels.length > 4 && <span className="text-[10px] text-slate-500">+{card.labels.length - 4}</span>}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between gap-2 mt-auto pt-3 border-t border-[#D4A843]/30">
+                    <div className="flex items-center gap-2 text-xs text-slate-500 min-w-0">
+                      <span className="flex items-center gap-1 truncate">
+                        <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ background: card.columnColor || "#64748b" }} />
+                        <span className="truncate">{card.columnTitle}</span>
+                      </span>
+                      {card.dueDate && (
+                        <span className={`flex items-center gap-1 ${new Date(card.dueDate) < new Date() ? "text-red-500" : ""}`}>
+                          <Calendar className="w-3 h-3" />{new Date(card.dueDate).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <PopoverTrigger asChild>
+                        <button
+                          className="p-1 rounded text-slate-400 hover:text-[#0D7377] hover:bg-white/70"
+                          aria-label="Preview quest details"
+                          data-testid={`button-preview-${card.id}`}
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                      </PopoverTrigger>
+                      {isAdmin && (
+                        <button
+                          onClick={() => setBountyCard(card)}
+                          className={`p-1 rounded ${card.bountyActive ? "text-[#D4A843]" : "text-slate-400 hover:text-[#D4A843]"} hover:bg-white/70`}
+                          aria-label="Set bounty"
+                          title={card.bountyActive ? `Bounty ×${Number(card.bountyMultiplier).toFixed(1)}` : "Set bounty (admin)"}
+                          data-testid={`button-bounty-${card.id}`}
+                        >
+                          <Crown className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <Button
+                        size="sm" onClick={() => setClaimingCard(card)}
+                        className="bg-[#0D7377] hover:bg-[#0a5e62] text-white text-xs gap-1 h-7 px-2"
+                        data-testid={`button-claim-${card.id}`}
+                      >
+                        <Anchor className="w-3 h-3" /> Claim
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <Button size="sm" onClick={() => setClaimingCard(card)}
-                  className="bg-[#0D7377] text-white text-xs gap-1 h-7 px-2 shrink-0" data-testid={`button-claim-${card.id}`}>
-                  <Anchor className="w-3 h-3" /> Claim
-                </Button>
-              </div>
-            </div>
-          ))}
+                <PopoverContent side="top" align="end" className="w-72 p-3 bg-[#fdfaf0] border-[#D4A843]/40">
+                  <p className="text-sm font-semibold text-[#1A1F2B] mb-1">{card.title}</p>
+                  {card.description && (
+                    <p className="text-xs text-slate-600 mb-2 whitespace-pre-wrap">{card.description}</p>
+                  )}
+                  <div className="text-[11px] text-slate-600 space-y-1">
+                    <div className="flex justify-between">
+                      <span>Base XP</span><span className="font-mono">{baseXp}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Initiative bonus</span><span className="font-mono">×{INITIATIVE_MULTIPLIER}</span>
+                    </div>
+                    {card.bountyActive && (
+                      <div className="flex justify-between text-[#8a6a14]">
+                        <span>Bounty {expiryStr ? `(until ${expiryStr})` : ""}</span>
+                        <span className="font-mono">×{Number(card.bountyMultiplier).toFixed(1)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between border-t border-[#D4A843]/30 pt-1 mt-1 font-semibold text-[#0D7377]">
+                      <span>Reward if you claim &amp; finish</span><span className="font-mono">{totalXp} XP</span>
+                    </div>
+                  </div>
+                  {(card.labels || []).length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {(card.labels as string[]).map(l => {
+                        const matched = fitTags.includes(l.toLowerCase());
+                        return (
+                          <span key={l} className={`text-[10px] px-1.5 py-0.5 rounded border ${matched ? "bg-[#D4A843]/20 text-[#8a6a14] border-[#D4A843]/50" : "bg-white text-slate-600 border-slate-200"}`}>
+                            {l}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <p className="text-[10px] text-slate-500 mt-2 leading-snug">
+                    Interest fit {Math.round(fitScore)}/5{fitTags.length > 0 ? ` — based on your past ratings of "${fitTags.slice(0, 3).join(", ")}"` : " — no overlap with your history yet"}.
+                  </p>
+                </PopoverContent>
+              </Popover>
+            );
+          })}
         </div>
       )}
 
       {claimingCard && (
         <ClaimModal card={claimingCard} boards={boards} onClose={() => setClaimingCard(null)}
+          claimerName={currentUser?.firstName}
           onClaimed={() => { setClaimingCard(null); onRefresh(); }} />
+      )}
+      {bountyCard && (
+        <BountyModal card={bountyCard} onClose={() => setBountyCard(null)}
+          onSaved={() => { setBountyCard(null); onRefresh(); }} />
       )}
       {showAddTask && (
         <AddTaskModal onClose={() => setShowAddTask(false)} onAdded={() => { setShowAddTask(false); onRefresh(); }} />
@@ -1671,6 +1969,7 @@ function KanbanContent() {
             factoryData={factoryData}
             boards={boards}
             onRefresh={loadFactory}
+            currentUser={user ? { role: user.role, firstName: user.firstName } : undefined}
             onOpenInBoard={() => {
               const factoryBoard = boards.find((b: any) => b.isLongshipFactory);
               if (factoryBoard) loadBoard(factoryBoard.id);

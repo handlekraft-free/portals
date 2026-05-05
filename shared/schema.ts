@@ -300,6 +300,8 @@ export const kanbanCards = pgTable("kanban_cards", {
   // Gamification — used to scope Initiative bonus + manager-visible "Loved this"
   claimedFromFactory: boolean("claimed_from_factory").notNull().default(false),
   lovedThis: boolean("loved_this").notNull().default(false),
+  bountyMultiplier: real("bounty_multiplier").notNull().default(1.0),
+  bountyExpiresAt: timestamp("bounty_expires_at"),
 });
 export type KanbanCard = typeof kanbanCards.$inferSelect;
 

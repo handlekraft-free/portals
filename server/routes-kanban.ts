@@ -57,6 +57,40 @@ function parseCsvLine(line: string): string[] {
 
 // ── Longship Factory routes ───────────────────────────────────────────────────
 
+// Compute a 1-5 "interest fit" score for a viewer against a quest's labels,
+// using the viewer's prior interest ratings (0-5) on cards with overlapping
+// labels. Pure JS, cheap — caller passes in the viewer's history once.
+function computeInterestFit(
+  questLabels: string[] | null,
+  history: Array<{ labels: string[] | null; interestRating: number | null }>,
+): { score: number; matchedTags: string[] } {
+  const tags = (questLabels || []).map(l => l.toLowerCase()).filter(Boolean);
+  if (tags.length === 0) return { score: 3, matchedTags: [] };
+  const tagSet = new Set(tags);
+  const matched = new Set<string>();
+  let sum = 0;
+  let count = 0;
+  for (const h of history) {
+    if (h.interestRating == null) continue;
+    const overlap = (h.labels || []).filter(l => tagSet.has((l || "").toLowerCase()));
+    if (overlap.length === 0) continue;
+    overlap.forEach(t => matched.add(t.toLowerCase()));
+    sum += h.interestRating;
+    count++;
+  }
+  if (count === 0) return { score: 3, matchedTags: [] };
+  const avg = sum / count; // 0..5
+  const score = Math.max(1, Math.min(5, Math.round(avg)));
+  return { score, matchedTags: Array.from(matched) };
+}
+
+function bountyActive(card: { bountyMultiplier?: number | null; bountyExpiresAt?: Date | null }): boolean {
+  const mult = Number(card.bountyMultiplier ?? 1);
+  if (!(mult > 1)) return false;
+  if (!card.bountyExpiresAt) return true;
+  return new Date(card.bountyExpiresAt).getTime() > Date.now();
+}
+
 // GET factory board with all cards (visible to all employees)
 router.get("/factory", async (req, res) => {
   const userId = req.user!.userId;
@@ -73,18 +107,67 @@ router.get("/factory", async (req, res) => {
       .from(users).where(inArray(users.id, userIds));
     for (const u of us) userLookup[u.id] = u;
   }
+
+  // Viewer history (cheap, request-scoped) for interest-fit hints.
+  const history = await db.select({ labels: kanbanCards.labels, interestRating: kanbanCards.interestRating })
+    .from(kanbanCards)
+    .where(and(eq(kanbanCards.assignedTo, userId), eq(kanbanCards.archived, false)));
+
   res.json({
     success: true, data: {
       ...factory,
       columns: columns.map(col => ({
         ...col,
-        cards: cards.filter(c => c.columnId === col.id).map(card => ({
-          ...card, assignee: card.assignedTo ? userLookup[card.assignedTo] : null,
-          creator: card.createdBy ? userLookup[card.createdBy] : null,
-        })),
+        cards: cards.filter(c => c.columnId === col.id).map(card => {
+          const fit = computeInterestFit(card.labels as any, history as any);
+          const active = bountyActive(card as any);
+          return {
+            ...card,
+            assignee: card.assignedTo ? userLookup[card.assignedTo] : null,
+            creator: card.createdBy ? userLookup[card.createdBy] : null,
+            interestFit: fit.score,
+            interestFitTags: fit.matchedTags,
+            bountyActive: active,
+          };
+        }),
       })),
     },
   });
+});
+
+// Manager-only: toggle / set the bounty multiplier and optional expiry on a
+// factory card. Pass `multiplier` (>= 1) and optional `expiresAt` (ISO string
+// or null). Setting multiplier=1 clears the bounty.
+router.patch("/factory/cards/:id/bounty", async (req, res) => {
+  const role = req.user!.role;
+  if (role !== "admin") return res.status(403).json({ success: false, error: "Admins only" });
+  const cardId = parseInt(req.params.id);
+  const rawMult = Number(req.body?.multiplier);
+  if (!Number.isFinite(rawMult) || rawMult < 1 || rawMult > 5) {
+    return res.status(400).json({ success: false, error: "multiplier must be a number between 1 and 5" });
+  }
+  const multiplier = rawMult;
+  const rawExp = req.body?.expiresAt;
+  let expiresAt: Date | null = null;
+  if (rawExp != null && rawExp !== "") {
+    const d = new Date(rawExp);
+    if (Number.isNaN(d.getTime())) {
+      return res.status(400).json({ success: false, error: "expiresAt must be a valid ISO date" });
+    }
+    expiresAt = d;
+  }
+  const [card] = await db.select().from(kanbanCards).where(eq(kanbanCards.id, cardId));
+  if (!card) return res.status(404).json({ success: false, error: "Card not found" });
+  const [board] = await db.select().from(kanbanBoards).where(eq(kanbanBoards.id, card.boardId));
+  if (!board?.isLongshipFactory) {
+    return res.status(400).json({ success: false, error: "Bounties only apply to Longship Factory quests" });
+  }
+  const [updated] = await db.update(kanbanCards).set({
+    bountyMultiplier: multiplier,
+    bountyExpiresAt: multiplier > 1 ? expiresAt : null,
+    updatedAt: new Date(),
+  }).where(eq(kanbanCards.id, cardId)).returning();
+  res.json({ success: true, data: updated });
 });
 
 // Add a card to the factory (placed in first/Available column, no assignee)
@@ -721,15 +804,25 @@ router.patch("/cards/:id", async (req, res) => {
       if (newCol && _isDone(newCol.title) && card.assignedTo) {
         const baseAmount = xpForPriority(card.priority);
         const isFactoryClaim = !!card.claimedFromFactory;
-        const finalAmount = isFactoryClaim ? Math.round(baseAmount * INITIATIVE_MULTIPLIER) : baseAmount;
-        const reason = isFactoryClaim
-          ? `Initiative bonus: ${card.title}`.slice(0, 200)
-          : `Quest complete: ${card.title}`.slice(0, 200);
+        const initMult = isFactoryClaim ? INITIATIVE_MULTIPLIER : 1.0;
+        const bountyMult = (() => {
+          const m = Number(card.bountyMultiplier ?? 1);
+          if (!(m > 1)) return 1.0;
+          if (card.bountyExpiresAt && new Date(card.bountyExpiresAt).getTime() <= Date.now()) return 1.0;
+          return m;
+        })();
+        const totalMult = initMult * bountyMult;
+        const finalAmount = Math.round(baseAmount * totalMult);
+        const reasonParts: string[] = [];
+        if (bountyMult > 1) reasonParts.push(`Bounty ×${bountyMult}`);
+        if (isFactoryClaim) reasonParts.push("Initiative bonus");
+        const prefix = reasonParts.length ? reasonParts.join(" + ") : "Quest complete";
+        const reason = `${prefix}: ${card.title}`.slice(0, 200);
         const a = await tryAward({
           userId: card.assignedTo, amount: finalAmount, reason,
           sourceType: "kanban_card_complete", sourceId: card.id,
           stat: isFactoryClaim ? "initiative" : null,
-          multiplier: isFactoryClaim ? INITIATIVE_MULTIPLIER : 1.0,
+          multiplier: totalMult,
         });
         if (a && req.user!.userId === card.assignedTo) xpAwards.push(a);
 

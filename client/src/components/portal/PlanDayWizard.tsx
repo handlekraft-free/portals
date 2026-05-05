@@ -193,6 +193,14 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
             t.column?.title?.toLowerCase() !== "valhalla",
         );
         if (isLow) {
+          // Smaller `estimate` (story points / hours) is treated as lighter
+          // when present. Cards without an estimate fall to the back of the
+          // estimate tier so we don't punish them — but a tagged-light or
+          // low-priority card can still beat a heavy estimate.
+          const est = (t: any): number => {
+            const v = Number(t.estimate ?? t.estimateHours ?? t.points);
+            return Number.isFinite(v) && v > 0 ? v : Number.POSITIVE_INFINITY;
+          };
           open.sort((a: any, b: any) => {
             const aLight = isLightLabel(a.labels) ? 0 : 1;
             const bLight = isLightLabel(b.labels) ? 0 : 1;
@@ -200,6 +208,8 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
             const ra = PRIORITY_RANK[a.priority ?? "medium"] ?? 1;
             const rb = PRIORITY_RANK[b.priority ?? "medium"] ?? 1;
             if (ra !== rb) return ra - rb;
+            const ea = est(a), eb = est(b);
+            if (ea !== eb) return ea - eb;
             const al = (a.labels?.length ?? 0);
             const bl = (b.labels?.length ?? 0);
             return al - bl;

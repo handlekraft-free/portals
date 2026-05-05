@@ -7,7 +7,7 @@ import { useXp } from "./XpProvider";
 import {
   AvatarRenderer, unlocksForXp,
   HELM_OPTIONS, CLOAK_OPTIONS, BEARD_OPTIONS, EMBLEM_OPTIONS,
-  type AvatarConfig,
+  type AvatarConfig, type HelmOpt, type CloakOpt, type BeardOpt, type EmblemOpt,
 } from "./AvatarRenderer";
 
 interface Props {
@@ -113,31 +113,35 @@ export function AvatarCustomizer({ isOpen, initials, initialConfig, onClose, onS
 
             {/* Layer pickers */}
             <div className="space-y-3">
+              {/* Type parameter is inferred from `options` (a `readonly T[]`),
+                  so `value` and `onChange` stay aligned per layer without
+                  the inline JSX generic syntax that conflicts with the
+                  replit-metadata babel plugin. */}
               <LayerRow
                 label="Helm"
-                options={HELM_OPTIONS as unknown as string[]}
-                value={config.helm ?? "none"}
+                options={HELM_OPTIONS}
+                value={(config.helm ?? "none") as HelmOpt}
                 locked={!unlock.helm}
                 onChange={(v) => setConfig((c) => ({ ...c, helm: v }))}
               />
               <LayerRow
                 label="Beard"
-                options={BEARD_OPTIONS as unknown as string[]}
-                value={config.beard ?? "none"}
+                options={BEARD_OPTIONS}
+                value={(config.beard ?? "none") as BeardOpt}
                 locked={!unlock.beard}
                 onChange={(v) => setConfig((c) => ({ ...c, beard: v }))}
               />
               <LayerRow
                 label="Cloak"
-                options={CLOAK_OPTIONS as unknown as string[]}
-                value={config.cloak ?? "none"}
+                options={CLOAK_OPTIONS}
+                value={(config.cloak ?? "none") as CloakOpt}
                 locked={!unlock.cloak}
                 onChange={(v) => setConfig((c) => ({ ...c, cloak: v }))}
               />
               <LayerRow
                 label="Emblem"
-                options={EMBLEM_OPTIONS as unknown as string[]}
-                value={config.emblem ?? "none"}
+                options={EMBLEM_OPTIONS}
+                value={(config.emblem ?? "none") as EmblemOpt}
                 locked={!unlock.emblem}
                 onChange={(v) => setConfig((c) => ({ ...c, emblem: v }))}
               />
@@ -163,14 +167,17 @@ export function AvatarCustomizer({ isOpen, initials, initialConfig, onClose, onS
   );
 }
 
-function LayerRow({
+// Generic over the option string-literal union for whichever layer is being
+// rendered (helm/beard/cloak/emblem). Avoids `as unknown as string[]` casts
+// at call sites and keeps `value` / `onChange` aligned with each layer.
+function LayerRow<T extends string>({
   label, options, value, locked, onChange,
 }: {
   label: string;
-  options: string[];
-  value: string;
+  options: readonly T[];
+  value: T;
   locked: boolean;
-  onChange: (v: string) => void;
+  onChange: (v: T) => void;
 }) {
   const hint = UNLOCK_HINT[label.toLowerCase()];
   return (

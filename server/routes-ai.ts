@@ -2,6 +2,8 @@ import type { Router } from "express";
 import { Router as createRouter } from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import multer from "multer";
+import { readFileSync } from "fs";
+import path from "path";
 import { db } from "./db";
 import {
   aiChatMessages,
@@ -30,6 +32,20 @@ function getClient() {
 // ── Context-aware system prompt builder ───────────────────────────────────────
 
 const ORG_BASE = `handləkraft (pronounced "handle-kraft", meaning "the power to act" in Norwegian) is a 501(c)(3) nonprofit that provides free custom software and websites to community organizations while concurrently training product-focused problem solvers proficient in AI tools. The organization runs on a fellowship model where team members learn by building real products for real clients.`;
+
+// Load the foundational briefing document once at module init.
+// This is the standing context every AI advisor reads before every response.
+let BRIEFING = "";
+try {
+  BRIEFING = readFileSync(path.join(process.cwd(), "server", "ai-briefing.md"), "utf8").trim();
+  console.log(`[AI] Loaded foundational briefing (${BRIEFING.length.toLocaleString()} chars)`);
+} catch (err) {
+  console.warn("[AI] Could not load server/ai-briefing.md — falling back to short org base");
+}
+
+const FOUNDATION = BRIEFING
+  ? `# Foundational Briefing\n\n${BRIEFING}`
+  : `# About the Organization\n\n${ORG_BASE}`;
 
 async function buildBoardSystemPrompt(): Promise<string> {
   // Fetch board documents
@@ -126,10 +142,13 @@ async function buildBoardSystemPrompt(): Promise<string> {
     ? members.map(m => `- ${m.firstName} ${m.lastName}`).join("\n")
     : "No board members listed.";
 
-  return `You are an AI advisory board member for handləkraft. You have been fully briefed on the organization's governance documents, board discussions, and current strategic context. Speak as a knowledgeable, candid colleague who knows this organization well — not as a generic assistant.
+  return `You are the AI advisor for handləkraft's board portal. You speak as a knowledgeable thinking partner who has read every document in the governance file and followed every forum discussion. You inform conversations; you do not vote, decide, or speak for the organization. Apply the foundational briefing below to interpret everything that follows.
 
-## About the Organization
-${ORG_BASE}
+${FOUNDATION}
+
+---
+
+# Live Context (Board Portal)
 
 ## Board Members (${members.length})
 ${memberList}
@@ -238,10 +257,13 @@ async function buildEmployeeSystemPrompt(): Promise<string> {
 
   const activeCardCount = cards.filter(c => !factoryBoard || c.boardId !== factoryBoard.id).length;
 
-  return `You are a senior project advisor and operations strategist embedded in the handləkraft team portal. You have live visibility into all active Kanban work across every board and the shared Longship Factory task queue. Use this knowledge to give specific, grounded advice — reference actual task names, assignees, and patterns you observe.
+  return `You are the AI advisor for handləkraft's employee portal. You are a senior project advisor and operations strategist with live visibility into every active Kanban board and the shared Longship Factory queue. Apply the foundational briefing below — especially the operating posture (30-hour week, self-managed work, AI-first escalation, accessibility) — when giving advice. Reference actual task names, assignees, and patterns you observe.
 
-## About the Organization
-${ORG_BASE}
+${FOUNDATION}
+
+---
+
+# Live Context (Employee Portal)
 
 ## Longship Factory — Shared Unassigned Task Queue (${factoryCards.length} tasks)
 These are available tasks that any team member can claim and work on:
@@ -267,10 +289,14 @@ async function buildSystemPrompt(role: string): Promise<string> {
   } catch (err) {
     console.error("[AI] Failed to build contextual prompt:", err);
   }
-  // Fallback generic prompt
-  return `You are a helpful AI assistant embedded in the handləkraft internal team portal. ${ORG_BASE}
+  // Fallback generic prompt — still includes the foundational briefing
+  return `You are the AI advisor embedded in the handləkraft internal team portal. Apply the foundational briefing below to everything you say.
 
-You help team members with drafting content, emails, proposals, and documentation; thinking through product and project problems; explaining technical concepts; brainstorming ideas; reviewing and improving text; and analyzing images and documents. Keep responses concise and practical. Use a friendly, professional tone.`;
+${FOUNDATION}
+
+---
+
+You help team members with drafting content, emails, proposals, and documentation; thinking through product and project problems; explaining technical concepts; brainstorming ideas; reviewing and improving text; and analyzing images and documents. Match handləkraft's communication norms (direct, warm, plain language, no corporate jargon). Be honest about uncertainty.`;
 }
 
 const IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);

@@ -134,7 +134,7 @@ export const users = pgTable("portal_users", {
 // (rank-ups, etc). Private to the user; never surfaced to teammates.
 export const xpMilestones = pgTable("xp_milestones", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   kind: varchar("kind", { length: 32 }).notNull(),    // 'rank_up' | future: 'streak_pr', etc
   title: text("title").notNull(),
   blurb: text("blurb"),

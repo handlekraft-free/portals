@@ -441,6 +441,21 @@ export async function registerRoutes(
         created_at  timestamp NOT NULL DEFAULT now()
       );
       CREATE INDEX IF NOT EXISTS xp_milestones_user_idx ON xp_milestones(user_id, created_at DESC);
+      -- Add FK on xp_milestones.user_id → portal_users(id) once. Wrapped in a
+      -- DO block so re-runs are no-ops; cascade keeps milestones private and
+      -- automatically removed if a portal_user is ever deleted.
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'xp_milestones_user_id_fkey'
+            AND table_name = 'xp_milestones'
+        ) THEN
+          ALTER TABLE xp_milestones
+            ADD CONSTRAINT xp_milestones_user_id_fkey
+            FOREIGN KEY (user_id) REFERENCES portal_users(id) ON DELETE CASCADE;
+        END IF;
+      END$$;
     `);
     await migrationPool.end();
     console.log("[migrate] ✓ Schema patches applied");

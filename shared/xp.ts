@@ -170,6 +170,28 @@ export function currentMonth(d: Date = new Date()): string {
   return d.toISOString().slice(0, 7); // "YYYY-MM"
 }
 
+/** True if the YYYY-MM-DD key falls on a Mon-Fri (UTC). Saturday/Sunday are
+ *  treated as non-workdays — streaks skip them automatically without spending
+ *  rest tokens. */
+export function isWorkday(dateKey: string): boolean {
+  const dow = new Date(dateKey + "T00:00:00Z").getUTCDay();
+  return dow >= 1 && dow <= 5;
+}
+
+/** Count workdays strictly between `after` (exclusive) and `before` (exclusive).
+ *  Used to compute "missed workdays" between the previous streak hit and today. */
+export function workdaysBetweenExclusive(after: string, before: string): number {
+  const start = Date.parse(after + "T00:00:00Z");
+  const end   = Date.parse(before + "T00:00:00Z");
+  if (end <= start + 86_400_000) return 0;
+  let count = 0;
+  for (let t = start + 86_400_000; t < end; t += 86_400_000) {
+    const dow = new Date(t).getUTCDay();
+    if (dow >= 1 && dow <= 5) count++;
+  }
+  return count;
+}
+
 export interface StreakUpdate {
   newStreak: number;
   spentTokens: number;
@@ -182,8 +204,10 @@ export interface StreakUpdate {
 /**
  * Pure logic for advancing a "pause-don't-reset" streak.
  *  - If today already counted, no-op.
- *  - If yesterday was the last hit, +1.
- *  - If gap > 1 day, auto-spend 1 rest token per missed day; if not enough, reset to 1.
+ *  - Weekends (Sat/Sun UTC) are skipped automatically: a hit on Friday and
+ *    the next hit on Monday counts as consecutive — no token spent.
+ *  - For each *missed workday* between the previous hit and today, we spend
+ *    one Rest Day token. If not enough tokens remain, the streak resets to 1.
  *  - Tokens reset to REST_TOKENS_PER_MONTH at the start of each calendar month.
  */
 export function advanceStreak(opts: {
@@ -197,7 +221,7 @@ export function advanceStreak(opts: {
   const monthKey = currentMonth(new Date(today + "T00:00:00Z"));
 
   // Refresh tokens if we've crossed a month boundary
-  let tokens = opts.tokenMonth === monthKey ? opts.remainingTokens : REST_TOKENS_PER_MONTH;
+  const tokens = opts.tokenMonth === monthKey ? opts.remainingTokens : REST_TOKENS_PER_MONTH;
 
   if (opts.lastDate === today) {
     return {
@@ -221,8 +245,11 @@ export function advanceStreak(opts: {
     };
   }
 
-  const gap = daysBetween(opts.lastDate, today); // days since last hit
-  if (gap <= 1) {
+  // Workdays missed strictly between the last hit and today (exclusive of both).
+  // Weekends never count as missed days, so they consume no tokens.
+  const missedWorkdays = workdaysBetweenExclusive(opts.lastDate, today);
+
+  if (missedWorkdays === 0) {
     return {
       newStreak: opts.currentStreak + 1,
       spentTokens: 0,
@@ -233,12 +260,11 @@ export function advanceStreak(opts: {
     };
   }
 
-  const missed = gap - 1; // missed weekdays between
-  if (missed <= tokens) {
+  if (missedWorkdays <= tokens) {
     return {
       newStreak: opts.currentStreak + 1,
-      spentTokens: missed,
-      remainingTokens: tokens - missed,
+      spentTokens: missedWorkdays,
+      remainingTokens: tokens - missedWorkdays,
       monthKey,
       alreadyCountedToday: false,
       brokeStreak: false,

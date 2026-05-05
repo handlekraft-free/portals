@@ -47,7 +47,8 @@ router.post("/courses/:courseId/lessons/:lessonId/complete", requireStudent as a
   const lessonId = parseInt(req.params.lessonId);
   const courseId = parseInt(req.params.courseId);
   const existing = await db.select().from(lessonCompletions).where(and(eq(lessonCompletions.lessonId, lessonId), eq(lessonCompletions.studentId, studentId)));
-  if (existing.length === 0) {
+  const isFirstCompletion = existing.length === 0;
+  if (isFirstCompletion) {
     await db.insert(lessonCompletions).values({ lessonId, studentId });
   }
   // Recalculate progress
@@ -56,7 +57,40 @@ router.post("/courses/:courseId/lessons/:lessonId/complete", requireStudent as a
   const pct = allLessons.length > 0 ? ((completions.length / allLessons.length) * 100).toFixed(2) : "0";
   const completedAt = pct === "100.00" ? new Date() : null;
   await db.update(courseEnrollments).set({ progressPct: pct, ...(completedAt && { completedAt }) }).where(and(eq(courseEnrollments.courseId, courseId), eq(courseEnrollments.studentId, studentId)));
-  res.json({ success: true, data: { progressPct: pct } });
+
+  // ── Craft XP on first completion ────────────────────────────────────────
+  // Lesson completion is the canonical source of Craft progression. Idempotent
+  // via UNIQUE(source_type, source_id) on xp_events using lesson_id.
+  let xpAwarded: { amount: number; reason: string; newTotal: number; stat: string } | null = null;
+  if (isFirstCompletion) {
+    try {
+      const [lesson] = await db.select().from(courseLessons).where(eq(courseLessons.id, lessonId));
+      const title = (lesson?.title ?? "Lesson").slice(0, 180);
+      const tx = await db.execute(sql`
+        WITH inserted AS (
+          INSERT INTO xp_events (user_id, amount, reason, source_type, source_id, stat, multiplier)
+          VALUES (${studentId}, 25, ${"Lesson finished: " + title}, 'lesson_complete', ${lessonId}, 'craft', 1.0)
+          ON CONFLICT (source_type, source_id) DO NOTHING
+          RETURNING amount
+        ),
+        bumped AS (
+          UPDATE portal_users SET xp_total = xp_total + (SELECT amount FROM inserted)
+          WHERE id = ${studentId} AND EXISTS (SELECT 1 FROM inserted)
+          RETURNING xp_total
+        )
+        SELECT (SELECT amount FROM inserted) AS awarded, (SELECT xp_total FROM bumped) AS total
+      `);
+      const rows = (tx as any).rows ?? (Array.isArray(tx) ? tx : []);
+      const r = rows[0];
+      if (r && r.awarded != null) {
+        xpAwarded = { amount: Number(r.awarded), reason: `Lesson finished: ${title}`, newTotal: Number(r.total ?? 0), stat: "craft" };
+      }
+    } catch (e) {
+      console.error("[xp] lesson craft award failed:", e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  res.json({ success: true, data: { progressPct: pct }, xpAwarded, xpAwards: xpAwarded ? [xpAwarded] : [] });
 });
 
 // ── Student Dashboard ─────────────────────────────────────────────────────────

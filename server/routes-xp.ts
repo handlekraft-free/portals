@@ -144,10 +144,14 @@ router.post("/streak/raid", async (req, res) => {
   let xpAwarded: { amount: number; reason: string; newTotal: number; stat: string | null } | null = null;
   if (!update.alreadyCountedToday) {
     const dayKeyInt = Math.round(Date.parse(today + "T00:00:00Z") / 86_400_000);
+    // Encode user into source_id so the global UNIQUE(source_type, source_id)
+    // dedupe key still gives one row PER USER per day. dayKeyInt ≈ 20000,
+    // userId * 100000 keeps both sides comfortably inside int4.
+    const dedupeId = userId * 100000 + dayKeyInt;
     const tx = await db.execute(sql`
       WITH inserted AS (
         INSERT INTO xp_events (user_id, amount, reason, source_type, source_id, stat, multiplier)
-        VALUES (${userId}, ${RAID_STREAK_DAILY_XP}, 'Daily Raid streak', 'raid_streak_day', ${dayKeyInt}, 'focus', 1.0)
+        VALUES (${userId}, ${RAID_STREAK_DAILY_XP}, 'Daily Raid streak', 'raid_streak_day', ${dedupeId}, 'focus', 1.0)
         ON CONFLICT (source_type, source_id) DO NOTHING
         RETURNING amount
       ),

@@ -80,13 +80,16 @@ router.post("/me", async (req, res) => {
         spentTokens: update.spentTokens,
       };
 
-      // Award a small Focus XP only the first time today (idempotent via source_id = day-of-year-ish key)
+      // Award a small Focus XP only the first time today (idempotent via
+      // source_id encoding userId so the global UNIQUE(source_type,source_id)
+      // dedupe still allows one row per user per day).
       if (!update.alreadyCountedToday) {
         const dayKeyInt = Math.round(Date.parse(today + "T00:00:00Z") / 86_400_000);
+        const dedupeId = userId * 100000 + dayKeyInt;
         const tx = await db.execute(sql`
           WITH inserted AS (
             INSERT INTO xp_events (user_id, amount, reason, source_type, source_id, stat, multiplier)
-            VALUES (${userId}, ${PULSE_STREAK_DAILY_XP}, 'Honest Pulse streak', 'pulse_streak_day', ${dayKeyInt}, 'focus', 1.0)
+            VALUES (${userId}, ${PULSE_STREAK_DAILY_XP}, 'Honest Pulse streak', 'pulse_streak_day', ${dedupeId}, 'focus', 1.0)
             ON CONFLICT (source_type, source_id) DO NOTHING
             RETURNING amount
           ),

@@ -65,6 +65,23 @@ export function setGlobalSoundEnabled(on: boolean): void {
   window.dispatchEvent(new CustomEvent("hk:sound-changed", { detail: { enabled: on } }));
 }
 
+// Hydrate per-event mute prefs from a server response (e.g. /api/auth/me).
+// Used at app boot so server-stored prefs win over device-local defaults.
+export function hydrateSoundMutedFromServer(serverMuted: unknown): void {
+  if (!Array.isArray(serverMuted)) return;
+  const valid = serverMuted.filter(
+    (s): s is SoundName => typeof s === "string" && s in SOUND_LABELS,
+  );
+  try {
+    localStorage.setItem(MUTED_KEY, JSON.stringify(valid));
+  } catch {
+    /* ignore */
+  }
+  window.dispatchEvent(
+    new CustomEvent("hk:sound-muted-changed", { detail: { muted: valid } }),
+  );
+}
+
 export function setSoundMuted(name: SoundName, muted: boolean): void {
   const set = readMuted();
   if (muted) set.add(name); else set.delete(name);

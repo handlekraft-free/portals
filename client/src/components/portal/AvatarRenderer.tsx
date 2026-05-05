@@ -39,7 +39,7 @@ export function unlocksForRank(rank: Rank | null | undefined) {
   // Rank thresholds mirror unlocksForXp but accept a Rank for callers that
   // already have it. Falls back to all locked when rank is unknown.
   if (!rank) return { helm: false, cloak: false, beard: false, emblem: false };
-  return unlocksForXp(rank.minXp);
+  return unlocksForXp(rank.threshold);
 }
 
 // SVG-based renderer — no asset files. Layered: base disc → cloak → face →

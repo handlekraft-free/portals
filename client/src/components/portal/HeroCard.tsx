@@ -150,6 +150,17 @@ function HeroCardPopover({ onCustomizeAvatar }: { onCustomizeAvatar: () => void 
 
           {tab === "saga" && (
             <div className="p-3 space-y-3" data-testid="panel-my-saga">
+              {/* Quick avatar customizer entry — duplicates the Settings tab
+                  entry so it's discoverable from the saga view too. */}
+              <button
+                onClick={() => { setOpen(false); onCustomizeAvatar(); }}
+                className="w-full flex items-center gap-2 px-2 py-1.5 rounded bg-white/5 hover:bg-white/10 text-white/80 text-xs transition-colors"
+                data-testid="button-open-avatar-customizer-saga"
+              >
+                <Wand2 className="w-3.5 h-3.5 text-[#D4A843]" />
+                <span className="flex-1 text-left">Customize avatar</span>
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-[#D4A843]">Edit</span>
+              </button>
               {/* Streaks row */}
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-white/5 rounded-md px-2 py-1.5" data-testid="stat-daily-raid">

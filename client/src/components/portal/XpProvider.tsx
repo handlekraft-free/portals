@@ -5,7 +5,7 @@ import {
   type Stat, type StatProgress,
 } from "@shared/xp";
 import { useToast } from "@/hooks/use-toast";
-import { playSound, isGlobalSoundEnabled, setGlobalSoundEnabled } from "@/lib/sounds";
+import { playSound, isGlobalSoundEnabled, setGlobalSoundEnabled, hydrateSoundMutedFromServer } from "@/lib/sounds";
 import { Anchor, Hammer, Crown, Swords, Scroll, Sparkles, type LucideIcon } from "lucide-react";
 
 const RANK_ICONS: Record<string, LucideIcon> = {
@@ -140,6 +140,13 @@ function RankUpOverlay({ rank, onDismiss }: { rank: Rank; onDismiss: () => void 
   );
 }
 
+// Precomputed crown-ray endpoints for the Konungr backdrop. Declared before
+// RANK_THEMES so the const initializer can reference it (TDZ-safe).
+const KONUNGR_RAYS: Array<[number, number]> = Array.from({ length: 12 }, (_, i) => {
+  const a = (i * Math.PI * 2) / 12;
+  return [100 + Math.cos(a) * 90, 100 + Math.sin(a) * 90];
+});
+
 // Deterministic per-rank visual theme. Six ranks, six distinct treatments.
 // Backdrop motifs are tiny inline SVGs (no asset files), each meant to evoke
 // the rank: rough oar strokes for Thrall → crown rays for Konungr.
@@ -204,14 +211,6 @@ const RANK_THEMES: Record<string, { gradient: string; backdrop: React.ReactNode 
   },
 };
 
-// Precomputed crown-ray endpoints for the Konungr backdrop. Kept outside the
-// JSX literal so the babel/jsx parser doesn't choke on a block-bodied arrow
-// nested inside a JSX expression container.
-const KONUNGR_RAYS: Array<[number, number]> = Array.from({ length: 12 }, (_, i) => {
-  const a = (i * Math.PI * 2) / 12;
-  return [100 + Math.cos(a) * 90, 100 + Math.sin(a) * 90];
-});
-
 // Plain-language reason for a single award. Keeps copy short, friendly,
 // and stat-aware ("Initiative bonus", "Loved this", "Review handoff", …).
 function shortReason(a: XpAward): string {
@@ -240,6 +239,16 @@ export function XpProvider({ children }: { children: React.ReactNode }) {
   // Aggregation buffer: collect awards arriving within ~250ms into one toast.
   const bufferRef = useRef<XpAward[]>([]);
   const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // On boot: hydrate per-event sound mute prefs from the server so a user's
+  // choices follow them across devices (server pref wins over device-local).
+  useEffect(() => {
+    apiRequest("GET", "/api/auth/me").then((res) => {
+      if (res?.success && res.data?.soundMuted) {
+        hydrateSoundMutedFromServer(res.data.soundMuted);
+      }
+    }).catch(() => {});
+  }, []);
 
   const refresh = useCallback(async () => {
     const res = await apiRequest("GET", "/api/xp/me");

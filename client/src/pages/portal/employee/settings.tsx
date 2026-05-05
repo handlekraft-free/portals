@@ -102,6 +102,79 @@ function AccountRow({
   );
 }
 
+function SagaRecapCard() {
+  const { toast } = useToast();
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [time, setTime] = useState<string>("17:00");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    apiRequest("GET", "/api/auth/me").then((res) => {
+      if (res?.success && res.data) {
+        setEnabled(res.data.sagaRecapEnabled !== false);
+        setTime(typeof res.data.sagaRecapTime === "string" ? res.data.sagaRecapTime : "17:00");
+      }
+    }).catch(() => {});
+  }, []);
+
+  async function save(patch: { enabled?: boolean; time?: string }) {
+    setSaving(true);
+    const res = await apiRequest("PATCH", "/api/auth/saga-recap-prefs", patch);
+    setSaving(false);
+    if (res?.success) {
+      if (typeof patch.enabled === "boolean") setEnabled(patch.enabled);
+      if (typeof patch.time === "string") setTime(patch.time);
+      // Notify SagaRecapModal so its in-memory prefs refresh immediately,
+      // without waiting for a full page reload.
+      window.dispatchEvent(new CustomEvent("hk:saga-recap-prefs-changed"));
+      toast({ title: "Saga Recap settings saved" });
+    } else {
+      toast({ title: "Could not save settings", variant: "destructive" });
+    }
+  }
+
+  return (
+    <Card className="border border-slate-200 shadow-sm" data-testid="card-saga-recap">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2">
+          <ScrollText className="w-4 h-4 text-[#0D7377]" />
+          Today's Saga (end-of-day recap)
+        </CardTitle>
+        <CardDescription className="text-xs">
+          A short scroll at the end of your workday: the deeds you completed, XP earned, and stats moved.
+          Just for you — never seen by teammates.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-slate-600">
+            {enabled === null ? "Loading…" : enabled ? "Enabled" : "Off"}
+          </span>
+          <Switch
+            checked={enabled === true}
+            disabled={saving || enabled === null}
+            onCheckedChange={(v) => save({ enabled: v })}
+            data-testid="switch-saga-recap-enabled"
+          />
+        </div>
+        <div className="flex items-center justify-between">
+          <label className="text-sm text-slate-600" htmlFor="saga-recap-time">Show me at</label>
+          <input
+            id="saga-recap-time"
+            type="time"
+            value={time}
+            disabled={saving || enabled === false}
+            onChange={(e) => setTime(e.target.value)}
+            onBlur={(e) => save({ time: e.target.value })}
+            className="border border-slate-200 rounded-lg px-2 py-1 text-sm w-28 disabled:opacity-50"
+            data-testid="input-saga-recap-time"
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function SagaOptOutCard() {
   const { toast } = useToast();
   const [optOut, setOptOut] = useState<boolean | null>(null);
@@ -461,6 +534,7 @@ export default function EmployeeSettings() {
         </Card>
 
         {/* Team Saga opt-out (admin/manager only) */}
+        <SagaRecapCard />
         {isManager && <SagaOptOutCard />}
 
         {/* Sync schedule */}

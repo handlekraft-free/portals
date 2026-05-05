@@ -112,6 +112,37 @@ router.post("/sound", async (req, res) => {
   res.json({ success: true, data: { soundEnabled: enabled } });
 });
 
+// GET /api/xp/today — XP events created since local midnight (server time).
+// Used by SagaRecapModal for end-of-day summary.
+router.get("/today", async (req, res) => {
+  const userId = req.user!.userId;
+  // Local midnight on the server. Good enough — recap fires on the user's clock too.
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const eventsRes = await db.execute(sql`
+    SELECT id, amount, reason, source_type, source_id, stat, multiplier, created_at
+    FROM xp_events
+    WHERE user_id = ${userId} AND created_at >= ${start.toISOString()}
+    ORDER BY created_at ASC
+  `);
+  const events = rowsOf<XpEventRow>(eventsRes).map(r => ({
+    id: r.id,
+    amount: Number(r.amount),
+    reason: r.reason,
+    sourceType: r.source_type,
+    sourceId: r.source_id,
+    stat: r.stat,
+    multiplier: Number(r.multiplier ?? 1),
+    createdAt: r.created_at,
+  }));
+  const total = events.reduce((s, e) => s + e.amount, 0);
+  const byStat: Record<string, number> = {};
+  for (const e of events) {
+    if (e.stat) byStat[e.stat] = (byStat[e.stat] ?? 0) + e.amount;
+  }
+  res.json({ success: true, data: { events, total, byStat } });
+});
+
 // POST /api/xp/streak/raid — called by PlanDayWizard.finish(); advances the
 // Daily Raid streak (pause-don't-reset, 2 monthly rest tokens). Idempotent
 // per UTC day via source_type='raid_streak_day' + day-key as source_id.
@@ -194,6 +225,54 @@ router.post("/streak/raid", async (req, res) => {
     },
     xpAwarded,
     xpAwards,
+  });
+});
+
+// POST /api/xp/streak/raid/skip — energy-aware Plan Day exit. Marks today
+// as a "rest day": consumes one rest token (if available + workday + not
+// already counted) so the streak stays alive WITHOUT awarding XP. No-op
+// on weekends, when the user already raided today, or when no tokens remain.
+router.post("/streak/raid/skip", async (req, res) => {
+  const userId = req.user!.userId;
+  const userRes = await db.execute(sql`
+    SELECT daily_raid_streak, daily_raid_last, rest_tokens, rest_token_month
+    FROM portal_users WHERE id = ${userId}
+  `);
+  const u = rowsOf<UserXpRow>(userRes)[0];
+  if (!u) return res.status(404).json({ success: false, error: "User not found" });
+
+  const today = todayKey();
+  // Skip on weekends — Mon..Fri only. (Saturday=6, Sunday=0.)
+  const dow = new Date(today + "T00:00:00").getDay();
+  if (dow === 0 || dow === 6) {
+    return res.json({ success: true, data: { skipped: true, reason: "weekend" } });
+  }
+  if (u.daily_raid_last === today) {
+    return res.json({ success: true, data: { skipped: true, reason: "already-counted" } });
+  }
+  // Refresh tokens if month rolled over.
+  const monthKey = currentMonth();
+  const tokens = u.rest_token_month === monthKey
+    ? Number(u.rest_tokens ?? REST_TOKENS_PER_MONTH)
+    : REST_TOKENS_PER_MONTH;
+  if (tokens <= 0) {
+    return res.json({ success: true, data: { skipped: true, reason: "no-tokens" } });
+  }
+  const remaining = tokens - 1;
+  await db.execute(sql`
+    UPDATE portal_users
+    SET daily_raid_last  = ${today},
+        rest_tokens      = ${remaining},
+        rest_token_month = ${monthKey}
+    WHERE id = ${userId}
+  `);
+  res.json({
+    success: true,
+    data: {
+      skipped: false,
+      restTokens: remaining,
+      streak: { count: Number(u.daily_raid_streak ?? 0), lastDate: today },
+    },
   });
 });
 

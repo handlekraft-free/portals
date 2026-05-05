@@ -426,6 +426,10 @@ export async function registerRoutes(
         value text NOT NULL,
         updated_at timestamp DEFAULT now() NOT NULL
       );
+      -- Task #25: polish (avatar customization + Saga Recap prefs)
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS avatar_config jsonb;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS saga_recap_enabled boolean NOT NULL DEFAULT true;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS saga_recap_time varchar(5) NOT NULL DEFAULT '17:00';
     `);
     await migrationPool.end();
     console.log("[migrate] ✓ Schema patches applied");

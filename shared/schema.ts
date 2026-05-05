@@ -116,6 +116,15 @@ export const users = pgTable("portal_users", {
   restTokenMonth: varchar("rest_token_month", { length: 7 }),
   // Co-op crew layer — anonymous bond counter, never a leaderboard
   crewBond: integer("crew_bond").notNull().default(0),
+  // Polish (Task #25): cosmetic avatar layers + per-user prefs
+  avatarConfig: jsonb("avatar_config").$type<{
+    helm?: string | null;
+    cloak?: string | null;
+    beard?: string | null;
+    emblem?: string | null;
+  }>(),
+  sagaRecapEnabled: boolean("saga_recap_enabled").notNull().default(true),
+  sagaRecapTime: varchar("saga_recap_time", { length: 5 }).notNull().default("17:00"),
 });
 export type PortalUser = typeof users.$inferSelect;
 export type InsertPortalUser = typeof users.$inferInsert;

@@ -1247,7 +1247,16 @@ function AddTaskModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
   );
 }
 
-function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard, currentUser }: {
+// Parchment sound chime once per mount when the Factory view appears.
+function LongshipFactoryView(props: {
+  factoryData: any; boards: any[]; onRefresh: () => void; onOpenInBoard: () => void;
+  currentUser?: { role?: string; firstName?: string; canApprove?: boolean };
+}) {
+  useEffect(() => { void import("@/lib/sounds").then(m => m.playSound("parchment")); }, []);
+  return <LongshipFactoryViewInner {...props} />;
+}
+
+function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoard, currentUser }: {
   factoryData: any; boards: any[]; onRefresh: () => void; onOpenInBoard: () => void;
   currentUser?: { role?: string; firstName?: string; canApprove?: boolean };
 }) {

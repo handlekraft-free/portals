@@ -21,6 +21,7 @@ import {
 import { XpProvider } from "@/components/portal/XpProvider";
 import { HeroCard } from "@/components/portal/HeroCard";
 import { CrewBondToaster } from "@/components/portal/CrewBondToaster";
+import { SagaRecapModal } from "@/components/portal/SagaRecapModal";
 
 // ── Brain Dump ────────────────────────────────────────────────────────────────
 // Floating capture button — bottom-left. Thought → Kanban card in one shot.
@@ -425,6 +426,7 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
         <FloatingTimer />
         <BrainDump />
         <CrewBondToaster />
+        <SagaRecapModal />
       </div>
     </div>
     </XpProvider>

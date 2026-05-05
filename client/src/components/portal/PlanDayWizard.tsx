@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { apiRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
@@ -93,6 +93,9 @@ const PRIORITY_PILL: Record<string, string> = {
 
 const CONTENT_STEPS: Step[] = ["calendar", "inbox", "tasks", "learning"];
 
+// Lower number = picked first when energy is low. Mirrors PRIORITY_PILL keys.
+const PRIORITY_RANK: Record<string, number> = { low: 0, medium: 1, high: 2, urgent: 3 };
+
 export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
   const { user } = useAuth();
 
@@ -106,10 +109,18 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
   const [navCounts, setNavCounts]         = useState<{ dmUnread: number; clientMsgUnread: number } | null>(null);
   const [allTasks, setAllTasks]           = useState<any[]>([]);
   const [availLessons, setAvailLessons]   = useState<DayPlanLearning[]>([]);
+  const [energy, setEnergy]               = useState<number | null>(null);
 
   // selections
   const [selectedTaskIds, setSelectedTaskIds]   = useState<Set<number>>(new Set());
   const [selectedLesson, setSelectedLesson]     = useState<DayPlanLearning | null>(null);
+
+  // Track whether finish() ran so onClose can spend a rest token if low-energy
+  // user backed out without committing. Ref (not state) avoids stale closures.
+  const committedRef = useRef(false);
+
+  const lowEnergy = energy !== null && energy <= 2;
+  const taskTarget = lowEnergy ? 1 : 3;
 
   // reset + fetch on open
   useEffect(() => {
@@ -119,6 +130,10 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
     setSelectedTaskIds(new Set());
     setSelectedLesson(null);
     setLoading(true);
+    committedRef.current = false;
+    // Reset energy so a fast close before /api/balance/me resolves doesn't
+    // act on stale "low energy" state from a previous open cycle.
+    setEnergy(null);
 
     const today = new Date().toDateString();
 
@@ -127,7 +142,8 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
       apiRequest("GET", "/api/auth/nav-counts"),
       apiRequest("GET", "/api/kanban/my-tasks"),
       apiRequest("GET", "/api/student/courses"),
-    ]).then(([google, counts, tasks, learn]) => {
+      apiRequest("GET", "/api/balance/me"),
+    ]).then(([google, counts, tasks, learn, balance]) => {
       // Calendar / Gmail
       if (google.success && google.data?.accounts) {
         const evs: any[] = [];
@@ -147,7 +163,19 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
       // Nav counts
       if (counts.success) setNavCounts(counts.data);
 
-      // Open tasks (not done/archived)
+      // Energy reading — drives task target + sort order + copy.
+      let currentEnergy: number | null = null;
+      if (balance?.success && balance.data) {
+        const s = balance.data.score ?? balance.data.value;
+        if (typeof s === "number") {
+          currentEnergy = Math.round(s);
+          setEnergy(currentEnergy);
+        }
+      }
+      const isLow = currentEnergy !== null && currentEnergy <= 2;
+
+      // Open tasks (not done/archived). When low-energy, prefer low/medium
+      // first so the easiest wins surface to the top.
       if (tasks.success) {
         const open = (tasks.data ?? []).filter(
           (t: any) =>
@@ -155,6 +183,13 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
             t.column?.title?.toLowerCase() !== "done" &&
             t.column?.title?.toLowerCase() !== "valhalla",
         );
+        if (isLow) {
+          open.sort((a: any, b: any) => {
+            const ra = PRIORITY_RANK[a.priority ?? "medium"] ?? 1;
+            const rb = PRIORITY_RANK[b.priority ?? "medium"] ?? 1;
+            return ra - rb;
+          });
+        }
         setAllTasks(open);
       }
 
@@ -214,13 +249,26 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
     setSelectedTaskIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) { next.delete(id); }
-      else if (next.size < 3) { next.add(id); }
+      else if (next.size < taskTarget) { next.add(id); }
       return next;
     });
   }
 
+  // Wrapped close: when a low-energy user backs out without committing, spend
+  // one rest token (server-side, idempotent) so today's Daily Raid streak is
+  // preserved instead of broken. Server no-ops on weekends or no-tokens.
+  // Guard: only fire when energy actually loaded (not null) — this prevents a
+  // stale-state spend if the user closes before /api/balance/me resolves.
+  function handleClose() {
+    if (energy !== null && lowEnergy && !committedRef.current) {
+      void apiRequest("POST", "/api/xp/streak/raid/skip");
+    }
+    onClose();
+  }
+
   function finish() {
     if (!user) return;
+    committedRef.current = true;
     const chosen = allTasks
       .filter(t => selectedTaskIds.has(t.id))
       .map(t => ({
@@ -262,7 +310,7 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={handleClose}
       />
 
       {/* Card */}
@@ -277,7 +325,7 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
         {/* ── Header ── */}
         <div className="bg-gradient-to-r from-[#1A1F2B] to-[#0D7377] px-6 pt-5 pb-4 relative overflow-hidden">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10 z-10"
             data-testid="button-wizard-close"
           >
@@ -342,7 +390,7 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
                 </div>
               ) : (
                 <>
-                  {step === "welcome"  && <WelcomeStep  name={user?.firstName ?? "Viking"} />}
+                  {step === "welcome"  && <WelcomeStep  name={user?.firstName ?? "Viking"} lowEnergy={lowEnergy} />}
                   {step === "calendar" && <CalendarStep events={todayEvents} />}
                   {step === "inbox"    && <InboxStep    navCounts={navCounts} gmail={gmailItems} />}
                   {step === "tasks"    && (
@@ -350,6 +398,8 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
                       tasks={allTasks}
                       selectedIds={selectedTaskIds}
                       onToggle={toggleTask}
+                      target={taskTarget}
+                      lowEnergy={lowEnergy}
                     />
                   )}
                   {step === "learning" && (
@@ -406,7 +456,7 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
                 {allTasks.length === 0
                   ? "Continue"
                   : selectedTaskIds.size === 0
-                    ? "Pick at least one"
+                    ? (lowEnergy ? "Pick one gentle quest" : "Pick at least one")
                     : `Lock in my ${selectedTaskIds.size}`}
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -450,7 +500,7 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
 
 // ── Step sub-components ────────────────────────────────────────────────────────
 
-function WelcomeStep({ name }: { name: string }) {
+function WelcomeStep({ name, lowEnergy }: { name: string; lowEnergy: boolean }) {
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long", month: "long", day: "numeric",
   });
@@ -458,11 +508,13 @@ function WelcomeStep({ name }: { name: string }) {
     <div className="text-center py-3">
       <p className="text-slate-400 text-sm mb-2">{today}</p>
       <p className="text-[#1A1F2B] text-xl font-semibold mb-2">
-        Ready to raid, <span className="text-[#0D7377]">{name}</span>?
+        {lowEnergy ? <>Easy does it, <span className="text-[#0D7377]">{name}</span>.</>
+                   : <>Ready to raid, <span className="text-[#0D7377]">{name}</span>?</>}
       </p>
       <p className="text-slate-500 text-sm leading-relaxed max-w-sm mx-auto mb-6">
-        In about 2 minutes we'll look at your calendar, check your inbox, pick
-        3 tasks to focus on, and lock in one thing to learn.
+        {lowEnergy
+          ? "Your energy is low today. Let's pick just one gentle quest — protecting the streak matters more than chasing XP."
+          : "In about 2 minutes we'll look at your calendar, check your inbox, pick 3 tasks to focus on, and lock in one thing to learn."}
       </p>
       <div className="flex justify-center gap-5">
         {[
@@ -585,11 +637,13 @@ function InboxStep({ navCounts, gmail }: { navCounts: any; gmail: any[] }) {
 }
 
 function TasksStep({
-  tasks, selectedIds, onToggle,
+  tasks, selectedIds, onToggle, target, lowEnergy,
 }: {
   tasks: any[];
   selectedIds: Set<number>;
   onToggle: (id: number) => void;
+  target: number;
+  lowEnergy: boolean;
 }) {
   if (tasks.length === 0) {
     return (
@@ -606,19 +660,23 @@ function TasksStep({
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs text-slate-400">Select up to 3 — these become your focus</p>
+        <p className="text-xs text-slate-400">
+          {lowEnergy
+            ? "Pick one gentle quest — low priority shows first"
+            : `Select up to ${target} — these become your focus`}
+        </p>
         <span
           className={`text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors ${
-            selectedIds.size === 3 ? "bg-[#0D7377] text-white" : "bg-slate-100 text-slate-500"
+            selectedIds.size === target ? "bg-[#0D7377] text-white" : "bg-slate-100 text-slate-500"
           }`}
         >
-          {selectedIds.size}/3
+          {selectedIds.size}/{target}
         </span>
       </div>
-      <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+      <div className={`space-y-2 ${lowEnergy ? "max-h-44" : "max-h-52"} overflow-y-auto pr-1`}>
         {tasks.map(task => {
           const selected  = selectedIds.has(task.id);
-          const disabled  = !selected && selectedIds.size >= 3;
+          const disabled  = !selected && selectedIds.size >= target;
           const priClass  = PRIORITY_PILL[task.priority ?? "medium"] ?? PRIORITY_PILL.medium;
           return (
             <button

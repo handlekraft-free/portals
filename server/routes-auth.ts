@@ -243,8 +243,57 @@ router.get("/me", requireAuth, async (req, res) => {
       approverId: user.approverId,
       boardRestrictedAccess: user.boardRestrictedAccess ?? false,
       crewBond: user.crewBond ?? 0,
+      avatarConfig: user.avatarConfig ?? null,
+      sagaRecapEnabled: user.sagaRecapEnabled ?? true,
+      sagaRecapTime: user.sagaRecapTime ?? "17:00",
     },
   });
+});
+
+// PATCH /api/auth/avatar — save cosmetic avatar layers (helm/cloak/beard/emblem).
+// Server enforces rank thresholds: a layer set above the user's rank is silently
+// stripped (no error), so the client never has to reconcile divergent state.
+router.patch("/avatar", requireAuth, async (req, res) => {
+  const userId = req.user!.userId;
+  const body = req.body ?? {};
+  const config: Record<string, string | null> = {
+    helm:   typeof body.helm   === "string" ? body.helm   : null,
+    cloak:  typeof body.cloak  === "string" ? body.cloak  : null,
+    beard:  typeof body.beard  === "string" ? body.beard  : null,
+    emblem: typeof body.emblem === "string" ? body.emblem : null,
+  };
+  // Compute current rank for unlock gating
+  const [u] = await db.select().from(users).where(eq(users.id, userId));
+  if (!u) return res.status(404).json({ success: false, error: "User not found" });
+  const xp = (u as unknown as { xpTotal?: number | null }).xpTotal ?? 0;
+  // Mirror shared/xp.ts thresholds (Thrall=0, Karl=200, Jarl=600, Hersir=1500, Skald=3000, Konungr=6000)
+  const unlock = {
+    helm:   xp >= 200,
+    cloak:  xp >= 1500,   // Hersir
+    beard:  xp >= 600,    // Jarl
+    emblem: xp >= 6000,   // Konungr
+  };
+  if (!unlock.helm)   config.helm   = null;
+  if (!unlock.cloak)  config.cloak  = null;
+  if (!unlock.beard)  config.beard  = null;
+  if (!unlock.emblem) config.emblem = null;
+  await db.update(users).set({ avatarConfig: config as any }).where(eq(users.id, userId));
+  res.json({ success: true, data: { avatarConfig: config, unlock } });
+});
+
+// PATCH /api/auth/saga-recap-prefs — saga recap toggle + scheduled time
+router.patch("/saga-recap-prefs", requireAuth, async (req, res) => {
+  const userId = req.user!.userId;
+  const enabled = typeof req.body?.enabled === "boolean" ? req.body.enabled : undefined;
+  const time = typeof req.body?.time === "string" ? req.body.time : undefined;
+  const patch: Record<string, unknown> = {};
+  if (enabled !== undefined) patch.sagaRecapEnabled = enabled;
+  if (time !== undefined && /^([01]\d|2[0-3]):[0-5]\d$/.test(time)) patch.sagaRecapTime = time;
+  if (Object.keys(patch).length === 0) {
+    return res.status(400).json({ success: false, error: "Nothing to update" });
+  }
+  await db.update(users).set(patch).where(eq(users.id, userId));
+  res.json({ success: true, data: patch });
 });
 
 // GET /api/auth/nav-counts — single lightweight call for all sidebar badge counts

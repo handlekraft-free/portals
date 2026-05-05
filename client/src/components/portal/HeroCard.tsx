@@ -3,7 +3,9 @@ import { useAuth } from "@/context/AuthContext";
 import { apiRequest } from "@/lib/auth";
 import { useXp } from "./XpProvider";
 import { STAT_META, type Stat, type StatProgress } from "@shared/xp";
-import { Battery, Settings, Volume2, VolumeX, Flame, Heart, Shield, ScrollText, Target, Zap, Anchor } from "lucide-react";
+import { Battery, Settings, Volume2, VolumeX, Flame, Heart, Shield, ScrollText, Target, Zap, Anchor, Wand2 } from "lucide-react";
+import { AvatarRenderer, type AvatarConfig } from "./AvatarRenderer";
+import { AvatarCustomizer } from "./AvatarCustomizer";
 
 const ENERGY_LABELS: Record<number, { label: string; color: string }> = {
   1: { label: "Drained",   color: "bg-red-400" },
@@ -21,7 +23,7 @@ const STAT_ICON: Record<Stat, typeof Target> = {
 };
 
 // ── Hero popover (Settings + My Saga tabs) ───────────────────────────────
-function HeroCardPopover() {
+function HeroCardPopover({ onCustomizeAvatar }: { onCustomizeAvatar: () => void }) {
   const { soundEnabled, setSoundEnabled, data } = useXp();
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<"saga" | "settings">("saga");
@@ -187,9 +189,18 @@ function HeroCardPopover() {
                   {soundEnabled ? "On" : "Off"}
                 </span>
               </button>
-              <p className="text-white/30 text-[10px] px-2 pt-1.5 pb-0.5 leading-snug">
+              <p className="text-white/30 text-[10px] px-2 pt-1.5 pb-2 leading-snug">
                 A soft drum on completion, a horn on rank-up. Off by default.
               </p>
+              <button
+                onClick={() => { setOpen(false); onCustomizeAvatar(); }}
+                className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/5 text-white/80 text-xs transition-colors"
+                data-testid="button-open-avatar-customizer"
+              >
+                <Wand2 className="w-3.5 h-3.5" />
+                <span className="flex-1 text-left">Customize avatar</span>
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-[#D4A843]">Edit</span>
+              </button>
             </div>
           )}
         </div>
@@ -203,6 +214,8 @@ export function HeroCard() {
   const { progress, loading, hasGainedThisSession } = useXp();
   const [energy, setEnergy] = useState<number | null>(null);
   const [animatedPct, setAnimatedPct] = useState<number | null>(null);
+  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig | null>(null);
+  const [customizerOpen, setCustomizerOpen] = useState(false);
   const lastXpRef = useRef<number | null>(null);
 
   // Pull today's energy reading
@@ -220,6 +233,17 @@ export function HeroCard() {
     fetchEnergy();
     const id = setInterval(fetchEnergy, 5 * 60_000);
     return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  // Avatar config — pulled once per mount from /api/auth/me.
+  useEffect(() => {
+    let cancelled = false;
+    apiRequest("GET", "/api/auth/me").then((res) => {
+      if (!cancelled && res?.success && res.data?.avatarConfig) {
+        setAvatarConfig(res.data.avatarConfig as AvatarConfig);
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   // Smooth bar fill ONLY when XP actually changes — quiet on first paint.
@@ -268,9 +292,15 @@ export function HeroCard() {
   return (
     <div className="px-3 py-3 rounded-xl bg-white/5 border border-white/10 relative overflow-hidden" data-testid="card-hero">
       <div className="flex items-center gap-2.5 mb-2.5">
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0D7377] to-[#0a5f62] ring-2 ring-[#D4A843]/40 flex items-center justify-center text-white text-xs font-bold shrink-0">
-          {initials}
-        </div>
+        <button
+          type="button"
+          onClick={() => setCustomizerOpen(true)}
+          title="Customize avatar"
+          className="rounded-full focus:outline-none focus:ring-2 focus:ring-[#D4A843]/50"
+          data-testid="button-hero-avatar"
+        >
+          <AvatarRenderer initials={initials} config={avatarConfig} size={36} />
+        </button>
         <div className="flex-1 min-w-0">
           <p className="text-white text-sm font-medium truncate leading-tight" data-testid="text-hero-name">
             {user?.firstName} {user?.lastName}
@@ -279,7 +309,7 @@ export function HeroCard() {
             {progress.rank.name} · L{progress.level}
           </p>
         </div>
-        <HeroCardPopover />
+        <HeroCardPopover onCustomizeAvatar={() => setCustomizerOpen(true)} />
       </div>
 
       <div className="space-y-1">
@@ -310,6 +340,14 @@ export function HeroCard() {
           <span className="text-white/75">{energyMeta.label}</span>
         </div>
       )}
+
+      <AvatarCustomizer
+        isOpen={customizerOpen}
+        initials={initials}
+        initialConfig={avatarConfig}
+        onClose={() => setCustomizerOpen(false)}
+        onSaved={(c) => setAvatarConfig(c)}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import {
   type Stat, type StatProgress,
 } from "@shared/xp";
 import { useToast } from "@/hooks/use-toast";
+import { playSound, isGlobalSoundEnabled, setGlobalSoundEnabled } from "@/lib/sounds";
 import { Anchor, Hammer, Crown, Swords, Scroll, Sparkles, type LucideIcon } from "lucide-react";
 
 const RANK_ICONS: Record<string, LucideIcon> = {
@@ -44,59 +45,6 @@ export function useXp() {
   const ctx = useContext(XpContext);
   if (!ctx) throw new Error("useXp must be inside XpProvider");
   return ctx;
-}
-
-// ── Typed Web Audio access (no `any` casts) ───────────────────────────────
-type AudioCtor = typeof AudioContext;
-interface AudioWindow extends Window {
-  AudioContext?: AudioCtor;
-  webkitAudioContext?: AudioCtor;
-}
-function getAudioCtor(): AudioCtor | null {
-  const w: AudioWindow = window;
-  return w.AudioContext ?? w.webkitAudioContext ?? null;
-}
-
-function playCompletionSound() {
-  try {
-    const Ctor = getAudioCtor();
-    if (!Ctor) return;
-    const ctx = new Ctor();
-    const drum = ctx.createOscillator();
-    const drumGain = ctx.createGain();
-    drum.type = "sine";
-    drum.frequency.setValueAtTime(110, ctx.currentTime);
-    drum.frequency.exponentialRampToValueAtTime(55, ctx.currentTime + 0.18);
-    drumGain.gain.setValueAtTime(0.001, ctx.currentTime);
-    drumGain.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + 0.01);
-    drumGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
-    drum.connect(drumGain).connect(ctx.destination);
-    drum.start();
-    drum.stop(ctx.currentTime + 0.3);
-    setTimeout(() => { void ctx.close(); }, 400);
-  } catch { /* user gesture / audio policy can block; silently no-op */ }
-}
-
-function playRankUpSound() {
-  try {
-    const Ctor = getAudioCtor();
-    if (!Ctor) return;
-    const ctx = new Ctor();
-    const t0 = ctx.currentTime;
-    [196, 294].forEach((freq, i) => {
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.type = "triangle";
-      o.frequency.setValueAtTime(freq, t0);
-      g.gain.setValueAtTime(0.001, t0);
-      g.gain.exponentialRampToValueAtTime(0.18, t0 + 0.08 + i * 0.02);
-      g.gain.exponentialRampToValueAtTime(0.001, t0 + 1.2);
-      o.connect(g).connect(ctx.destination);
-      o.start(t0);
-      o.stop(t0 + 1.3);
-    });
-    setTimeout(() => { void ctx.close(); }, 1400);
-  } catch { /* see playCompletionSound */ }
 }
 
 // ── Rank-up title-card overlay ─────────────────────────────────────────────
@@ -159,7 +107,7 @@ export function XpProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
   const [data, setData] = useState<XpMeData | null>(null);
   const [progress, setProgress] = useState<RankProgress | null>(null);
-  const [soundEnabled, setSoundEnabledState] = useState(false);
+  const [soundEnabled, setSoundEnabledState] = useState(() => isGlobalSoundEnabled());
   const [loading, setLoading] = useState(true);
   const [hasGainedThisSession, setHasGainedThisSession] = useState(false);
   const [rankUp, setRankUp] = useState<Rank | null>(null);
@@ -176,7 +124,9 @@ export function XpProvider({ children }: { children: React.ReactNode }) {
       const d = res.data as XpMeData;
       setData(d);
       setProgress(d);
-      setSoundEnabledState(!!d.soundEnabled);
+      // Server pref is a soft default; the global lib state (localStorage) wins
+      // so the user's per-device choice persists across reloads instantly.
+      setSoundEnabledState(isGlobalSoundEnabled());
       if (!hasLoadedRef.current) {
         lastRankKeyRef.current = d.rank?.key ?? null;
         hasLoadedRef.current = true;
@@ -215,9 +165,8 @@ export function XpProvider({ children }: { children: React.ReactNode }) {
       toast({ title, description });
 
       const isRankUp = lastRankKeyRef.current && next.rank.key !== lastRankKeyRef.current;
-      if (soundEnabled) {
-        if (isRankUp) playRankUpSound(); else playCompletionSound();
-      }
+      // Audio service honors the global mute itself — no need to gate here.
+      if (isRankUp) playSound("horn"); else playSound("drum");
       if (isRankUp) setRankUp(next.rank);
       lastRankKeyRef.current = next.rank.key;
     }
@@ -237,11 +186,31 @@ export function XpProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener("xp:awarded", handler as EventListener);
       if (flushTimerRef.current) clearTimeout(flushTimerRef.current);
     };
-  }, [toast, soundEnabled, refresh]);
+  }, [toast, refresh]);
+
+  // Crew bond toast → soft lute pluck. Reduced-motion + global mute are
+  // honored inside playSound; no extra guard needed.
+  useEffect(() => {
+    function onBond() { playSound("lute"); }
+    window.addEventListener("crew:bond", onBond);
+    return () => window.removeEventListener("crew:bond", onBond);
+  }, []);
+
+  // Cross-tab sync: if the user toggles sound elsewhere, mirror it here.
+  useEffect(() => {
+    function onChange(e: Event) {
+      const enabled = (e as CustomEvent<{ enabled: boolean }>).detail?.enabled;
+      if (typeof enabled === "boolean") setSoundEnabledState(enabled);
+    }
+    window.addEventListener("hk:sound-changed", onChange as EventListener);
+    return () => window.removeEventListener("hk:sound-changed", onChange as EventListener);
+  }, []);
 
   const setSoundEnabled = useCallback(async (v: boolean) => {
+    setGlobalSoundEnabled(v);
     setSoundEnabledState(v);
-    await apiRequest("POST", "/api/xp/sound", { enabled: v });
+    // Mirror to server preference (advisory — local state is canonical).
+    void apiRequest("POST", "/api/xp/sound", { enabled: v });
   }, []);
 
   return (

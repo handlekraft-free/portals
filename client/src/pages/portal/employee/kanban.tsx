@@ -1591,15 +1591,28 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
   );
 }
 
+type DraftPriority = "low" | "medium" | "high" | "urgent";
+interface DraftQuest {
+  id: string;
+  title: string;
+  description: string;
+  priority: DraftPriority;
+  labels: string;
+  keep: boolean;
+}
+
 function GenerateQuestsModal({ onClose, onGenerated }: { onClose: () => void; onGenerated: () => void }) {
   const { toast } = useToast();
   const [prompt, setPrompt] = useState("");
   const [count, setCount] = useState(10);
   const [generating, setGenerating] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [drafts, setDrafts] = useState<DraftQuest[] | null>(null);
 
   const MAX_COUNT = 50;
   const MAX_PROMPT = 4000;
+  const busy = generating || publishing;
 
   async function doGenerate() {
     setError(null);
@@ -1609,11 +1622,17 @@ function GenerateQuestsModal({ onClose, onGenerated }: { onClose: () => void; on
     const n = Math.min(Math.max(Math.floor(count || 0), 1), MAX_COUNT);
     setGenerating(true);
     try {
-      const res = await apiRequest("POST", "/api/kanban/factory/generate", { prompt: trimmed, count: n });
+      const res = await apiRequest("POST", "/api/kanban/factory/generate/preview", { prompt: trimmed, count: n });
       if (res.success) {
-        const inserted = res.data?.inserted ?? 0;
-        toast({ title: `${inserted} quest${inserted === 1 ? "" : "s"} added to the Longship Factory ⚓` });
-        onGenerated();
+        const list: any[] = Array.isArray(res.data?.drafts) ? res.data.drafts : [];
+        setDrafts(list.map((d, i) => ({
+          id: `${Date.now()}-${i}`,
+          title: String(d.title ?? ""),
+          description: String(d.description ?? ""),
+          priority: (["low","medium","high","urgent"].includes(d.priority) ? d.priority : "medium") as DraftPriority,
+          labels: Array.isArray(d.labels) ? d.labels.join(", ") : "",
+          keep: true,
+        })));
       } else {
         setError(res.error || "Failed to generate quests.");
       }
@@ -1624,72 +1643,233 @@ function GenerateQuestsModal({ onClose, onGenerated }: { onClose: () => void; on
     }
   }
 
+  function updateDraft(id: string, patch: Partial<DraftQuest>) {
+    setDrafts(ds => ds ? ds.map(d => d.id === id ? { ...d, ...patch } : d) : ds);
+  }
+  function removeDraft(id: string) {
+    setDrafts(ds => ds ? ds.filter(d => d.id !== id) : ds);
+  }
+
+  const kept = drafts?.filter(d => d.keep && d.title.trim()) ?? [];
+
+  async function doPublish() {
+    if (kept.length === 0) return;
+    setError(null);
+    setPublishing(true);
+    try {
+      const payload = {
+        drafts: kept.map(d => ({
+          title: d.title.trim(),
+          description: d.description.trim() || null,
+          priority: d.priority,
+          labels: d.labels ? d.labels.split(",").map(l => l.trim()).filter(Boolean) : [],
+        })),
+      };
+      const res = await apiRequest("POST", "/api/kanban/factory/cards/bulk", payload);
+      if (res.success) {
+        const inserted = res.data?.inserted ?? 0;
+        toast({ title: `${inserted} quest${inserted === 1 ? "" : "s"} added to the Longship Factory ⚓` });
+        onGenerated();
+      } else {
+        setError(res.error || "Failed to publish quests.");
+      }
+    } catch (e: any) {
+      setError(e?.message || "Network error while publishing quests.");
+    } finally {
+      setPublishing(false);
+    }
+  }
+
+  const inPreview = drafts !== null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={generating ? undefined : onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl mx-4 p-6" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={busy ? undefined : onClose}>
+      <div className={`bg-white rounded-2xl shadow-2xl w-full ${inPreview ? "max-w-3xl" : "max-w-xl"} mx-4 p-6 max-h-[90vh] flex flex-col`} onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-[#D4A843]" />
-            <h2 className="text-lg font-display text-[#1A1F2B]">Generate Quests with AI</h2>
+            <h2 className="text-lg font-display text-[#1A1F2B]">
+              {inPreview ? "Review Generated Quests" : "Generate Quests with AI"}
+            </h2>
           </div>
-          <button onClick={onClose} disabled={generating} className="p-1 rounded hover:bg-slate-100 text-slate-400 disabled:opacity-50" data-testid="button-close-generate">
+          <button onClick={onClose} disabled={busy} className="p-1 rounded hover:bg-slate-100 text-slate-400 disabled:opacity-50" data-testid="button-close-generate">
             <X className="w-4 h-4" />
           </button>
         </div>
-        <p className="text-xs text-slate-500 mb-4">
-          Describe a concern, desire, or outcome and let AI draft a batch of quest cards directly into the Longship Factory.
-        </p>
-        <div className="space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
-              What do you want to address? <span className="text-red-400">*</span>
-            </label>
-            <textarea
-              autoFocus
-              value={prompt}
-              onChange={e => setPrompt(e.target.value)}
-              rows={6}
-              maxLength={MAX_PROMPT}
-              placeholder='e.g., "We need to become more trauma informed across all client intake and training materials."'
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40 resize-none"
-              data-testid="input-generate-prompt"
-            />
-            <div className="flex justify-between mt-1">
-              <span className="text-[10px] text-slate-400">Be specific about the outcome you want.</span>
-              <span className="text-[10px] text-slate-400">{prompt.length}/{MAX_PROMPT}</span>
+
+        {!inPreview && (
+          <>
+            <p className="text-xs text-slate-500 mb-4">
+              Describe a concern, desire, or outcome and AI will draft a batch of quest cards. You'll review and edit them before they go to the Longship Factory.
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">
+                  What do you want to address? <span className="text-red-400">*</span>
+                </label>
+                <textarea
+                  autoFocus
+                  value={prompt}
+                  onChange={e => setPrompt(e.target.value)}
+                  rows={6}
+                  maxLength={MAX_PROMPT}
+                  placeholder='e.g., "We need to become more trauma informed across all client intake and training materials."'
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40 resize-none"
+                  data-testid="input-generate-prompt"
+                />
+                <div className="flex justify-between mt-1">
+                  <span className="text-[10px] text-slate-400">Be specific about the outcome you want.</span>
+                  <span className="text-[10px] text-slate-400">{prompt.length}/{MAX_PROMPT}</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">
+                  How many quests? <span className="text-slate-400 font-normal">(1–{MAX_COUNT})</span>
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={MAX_COUNT}
+                  value={count}
+                  onChange={e => setCount(Number(e.target.value))}
+                  className="w-32 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40"
+                  data-testid="input-generate-count"
+                />
+              </div>
+              {error && (
+                <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2" data-testid="text-generate-error">
+                  {error}
+                </div>
+              )}
             </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
-              How many quests? <span className="text-slate-400 font-normal">(1–{MAX_COUNT})</span>
-            </label>
-            <input
-              type="number"
-              min={1}
-              max={MAX_COUNT}
-              value={count}
-              onChange={e => setCount(Number(e.target.value))}
-              className="w-32 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40"
-              data-testid="input-generate-count"
-            />
-          </div>
-          {error && (
-            <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2" data-testid="text-generate-error">
-              {error}
+            <div className="flex gap-2 mt-5">
+              <Button
+                onClick={doGenerate}
+                disabled={generating || !prompt.trim()}
+                className="bg-[#D4A843] hover:bg-[#bf962e] text-white flex-1 gap-2"
+                data-testid="button-do-generate"
+              >
+                {generating ? <><Loader2 className="w-4 h-4 animate-spin" /> Drafting…</> : <><Sparkles className="w-4 h-4" /> Draft {Math.min(Math.max(Math.floor(count || 0), 1), MAX_COUNT)} quest{count === 1 ? "" : "s"}</>}
+              </Button>
+              <Button variant="outline" onClick={onClose} disabled={generating}>Cancel</Button>
             </div>
-          )}
-        </div>
-        <div className="flex gap-2 mt-5">
-          <Button
-            onClick={doGenerate}
-            disabled={generating || !prompt.trim()}
-            className="bg-[#D4A843] hover:bg-[#bf962e] text-white flex-1 gap-2"
-            data-testid="button-do-generate"
-          >
-            {generating ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</> : <><Sparkles className="w-4 h-4" /> Generate {Math.min(Math.max(Math.floor(count || 0), 1), MAX_COUNT)} quest{count === 1 ? "" : "s"}</>}
-          </Button>
-          <Button variant="outline" onClick={onClose} disabled={generating}>Cancel</Button>
-        </div>
+          </>
+        )}
+
+        {inPreview && (
+          <>
+            <p className="text-xs text-slate-500 mb-3">
+              Edit titles, descriptions, priorities, and labels. Toggle the keep switch to drop a quest. Nothing is saved until you publish.
+            </p>
+            <div className="overflow-y-auto flex-1 -mx-1 px-1 space-y-3" data-testid="list-quest-drafts">
+              {drafts && drafts.length === 0 && (
+                <div className="text-xs text-slate-500 italic text-center py-8">All drafts removed. Cancel or generate again.</div>
+              )}
+              {drafts?.map((d, idx) => (
+                <div
+                  key={d.id}
+                  className={`border rounded-lg p-3 transition ${d.keep ? "border-slate-200 bg-white" : "border-slate-200 bg-slate-50 opacity-60"}`}
+                  data-testid={`row-draft-${idx}`}
+                >
+                  <div className="flex items-start gap-2 mb-2">
+                    <label className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-slate-500 font-medium pt-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={d.keep}
+                        onChange={e => updateDraft(d.id, { keep: e.target.checked })}
+                        className="rounded border-slate-300 text-[#0D7377] focus:ring-[#0D7377]/30"
+                        data-testid={`toggle-keep-${idx}`}
+                      />
+                      Keep
+                    </label>
+                    <input
+                      value={d.title}
+                      onChange={e => updateDraft(d.id, { title: e.target.value })}
+                      disabled={!d.keep}
+                      maxLength={200}
+                      placeholder="Title"
+                      className="flex-1 border border-slate-200 rounded px-2 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40 disabled:bg-transparent"
+                      data-testid={`input-draft-title-${idx}`}
+                    />
+                    <button
+                      onClick={() => removeDraft(d.id)}
+                      className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-600"
+                      title="Remove draft"
+                      data-testid={`button-remove-draft-${idx}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <textarea
+                    value={d.description}
+                    onChange={e => updateDraft(d.id, { description: e.target.value })}
+                    disabled={!d.keep}
+                    rows={2}
+                    maxLength={2000}
+                    placeholder="Description"
+                    className="w-full border border-slate-200 rounded px-2 py-1.5 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40 disabled:bg-transparent mb-2"
+                    data-testid={`input-draft-desc-${idx}`}
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-wide text-slate-500 font-medium mb-0.5">Priority</label>
+                      <select
+                        value={d.priority}
+                        onChange={e => updateDraft(d.id, { priority: e.target.value as DraftPriority })}
+                        disabled={!d.keep}
+                        className="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40 disabled:bg-transparent"
+                        data-testid={`select-draft-priority-${idx}`}
+                      >
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-wide text-slate-500 font-medium mb-0.5">Labels (comma-sep)</label>
+                      <input
+                        value={d.labels}
+                        onChange={e => updateDraft(d.id, { labels: e.target.value })}
+                        disabled={!d.keep}
+                        placeholder="ai, automation"
+                        className="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40 disabled:bg-transparent"
+                        data-testid={`input-draft-labels-${idx}`}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {error && (
+              <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mt-3" data-testid="text-publish-error">
+                {error}
+              </div>
+            )}
+            <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100">
+              <Button
+                variant="outline"
+                onClick={() => { setDrafts(null); setError(null); }}
+                disabled={busy}
+                data-testid="button-back-to-prompt"
+              >
+                ← Back
+              </Button>
+              <div className="flex-1" />
+              <Button variant="outline" onClick={onClose} disabled={busy} data-testid="button-cancel-drafts">
+                Cancel
+              </Button>
+              <Button
+                onClick={doPublish}
+                disabled={busy || kept.length === 0}
+                className="bg-[#0D7377] hover:bg-[#0a5a5e] text-white gap-2"
+                data-testid="button-publish-drafts"
+              >
+                {publishing ? <><Loader2 className="w-4 h-4 animate-spin" /> Publishing…</> : <><Check className="w-4 h-4" /> Publish {kept.length} quest{kept.length === 1 ? "" : "s"}</>}
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

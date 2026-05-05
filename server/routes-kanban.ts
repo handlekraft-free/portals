@@ -266,8 +266,35 @@ function toStringSafe(value: unknown): string {
   return String(value);
 }
 
-router.post("/factory/generate", async (req, res) => {
-  const userId = req.user!.userId;
+interface QuestDraft {
+  title: string;
+  description: string | null;
+  priority: FactoryPriority;
+  labels: string[];
+}
+
+function normalizeDraft(q: GeneratedQuest | unknown): QuestDraft | null {
+  const obj = (q ?? {}) as GeneratedQuest;
+  const title = toStringSafe(obj?.title).trim().slice(0, 200);
+  if (!title) return null;
+  const descRaw = toStringSafe(obj?.description).trim();
+  const description = descRaw ? descRaw.slice(0, 2000) : null;
+  const rawPri = toStringSafe(obj?.priority).toLowerCase();
+  const priority: FactoryPriority = FACTORY_PRIORITY_SET.has(rawPri)
+    ? (rawPri as FactoryPriority)
+    : "medium";
+  const labels = Array.isArray(obj?.labels)
+    ? (obj.labels as unknown[])
+        .map(l => toStringSafe(l).trim())
+        .filter(l => l.length > 0)
+        .slice(0, 6)
+    : [];
+  return { title, description, priority, labels };
+}
+
+// Preview-only: ask the AI to draft quests but DO NOT insert them.
+// The client renders an editable list and then publishes via /factory/cards/bulk.
+router.post("/factory/generate/preview", async (req, res) => {
   const rawPrompt = toStringSafe(req.body?.prompt);
   const rawCount = Number(req.body?.count);
   const prompt = rawPrompt.trim();
@@ -279,11 +306,6 @@ router.post("/factory/generate", async (req, res) => {
     return res.status(400).json({ success: false, error: "Count must be at least 1" });
   }
   const count = Math.min(Math.floor(rawCount), MAX_GENERATE_COUNT);
-
-  const factory = await getOrCreateFactory(userId);
-  const [firstCol] = await db.select().from(kanbanColumns)
-    .where(eq(kanbanColumns.boardId, factory.id)).orderBy(asc(kanbanColumns.position)).limit(1);
-  if (!firstCol) return res.status(500).json({ success: false, error: "Factory has no columns" });
 
   const systemPrompt = `You generate concrete, well-scoped quest cards for a nonprofit's shared backlog ("Longship Factory"). Each quest is a single, actionable piece of work a small product team could pick up. Respond with ONLY a JSON object of the form {"quests":[{"title":"...","description":"...","priority":"low|medium|high|urgent","labels":["..."]}]} — no prose, no markdown, no code fences. Titles must be short (under 80 chars) and action-oriented. Descriptions are 1-3 sentences explaining the desired outcome. Priority must be one of low, medium, high, urgent. Labels are 0-4 lowercase short tags.`;
 
@@ -308,7 +330,6 @@ router.post("/factory/generate", async (req, res) => {
     return res.status(502).json({ success: false, error: "AI service temporarily unavailable. Please try again." });
   }
 
-  // Defensive JSON extraction
   let parsed: unknown = null;
   try { parsed = JSON.parse(raw); } catch {
     const match = raw.match(/\{[\s\S]*\}/);
@@ -324,35 +345,57 @@ router.post("/factory/generate", async (req, res) => {
     return res.status(502).json({ success: false, error: "AI returned no usable quests. Try rephrasing your prompt." });
   }
 
+  const drafts: QuestDraft[] = [];
+  for (const q of questsArr.slice(0, count)) {
+    const d = normalizeDraft(q);
+    if (d) drafts.push(d);
+  }
+  if (drafts.length === 0) {
+    return res.status(502).json({ success: false, error: "AI returned no usable quests. Try rephrasing your prompt." });
+  }
+  res.json({ success: true, data: { drafts, requested: count } });
+});
+
+// Bulk-insert pre-approved quest drafts into the Longship Factory.
+router.post("/factory/cards/bulk", async (req, res) => {
+  const userId = req.user!.userId;
+  const rawDrafts = req.body?.drafts;
+  if (!Array.isArray(rawDrafts) || rawDrafts.length === 0) {
+    return res.status(400).json({ success: false, error: "drafts must be a non-empty array" });
+  }
+  if (rawDrafts.length > MAX_GENERATE_COUNT) {
+    return res.status(400).json({ success: false, error: `Too many drafts (max ${MAX_GENERATE_COUNT})` });
+  }
+
+  const drafts: QuestDraft[] = [];
+  for (const d of rawDrafts) {
+    const norm = normalizeDraft(d);
+    if (norm) drafts.push(norm);
+  }
+  if (drafts.length === 0) {
+    return res.status(400).json({ success: false, error: "No valid drafts (each needs a title)" });
+  }
+
+  const factory = await getOrCreateFactory(userId);
+  const [firstCol] = await db.select().from(kanbanColumns)
+    .where(eq(kanbanColumns.boardId, factory.id)).orderBy(asc(kanbanColumns.position)).limit(1);
+  if (!firstCol) return res.status(500).json({ success: false, error: "Factory has no columns" });
+
   const existing = await db.select({ id: kanbanCards.id }).from(kanbanCards)
     .where(and(eq(kanbanCards.columnId, firstCol.id), eq(kanbanCards.archived, false)));
   let position = existing.length;
 
   const insertedCards: KanbanCard[] = [];
-  for (const q of questsArr.slice(0, count)) {
-    const title = toStringSafe(q?.title).trim().slice(0, 200);
-    if (!title) continue;
-    const descRaw = toStringSafe(q?.description).trim();
-    const description = descRaw ? descRaw.slice(0, 2000) : null;
-    const rawPri = toStringSafe(q?.priority).toLowerCase();
-    const priority: FactoryPriority = FACTORY_PRIORITY_SET.has(rawPri)
-      ? (rawPri as FactoryPriority)
-      : "medium";
-    const labels = Array.isArray(q?.labels)
-      ? (q.labels as unknown[])
-          .map(l => toStringSafe(l).trim())
-          .filter(l => l.length > 0)
-          .slice(0, 6)
-      : [];
+  for (const d of drafts) {
     const [card] = await db.insert(kanbanCards).values({
-      columnId: firstCol.id, boardId: factory.id, title,
-      description, priority, labels,
+      columnId: firstCol.id, boardId: factory.id, title: d.title,
+      description: d.description, priority: d.priority, labels: d.labels,
       position: position++, createdBy: userId,
     }).returning();
     insertedCards.push(card);
   }
 
-  res.json({ success: true, data: { inserted: insertedCards.length, requested: count, cards: insertedCards } });
+  res.json({ success: true, data: { inserted: insertedCards.length, cards: insertedCards } });
 });
 
 // Download sample CSV

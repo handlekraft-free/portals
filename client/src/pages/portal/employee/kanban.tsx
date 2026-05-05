@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { isCompletionColumn } from "@shared/xp";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -1367,9 +1368,9 @@ function KanbanContent() {
     const newColumnId = parseInt(destination.droppableId);
     const newPosition = destination.index;
 
-    // Block move to "Valhalla" (Done) if peer review is not approved
+    // Block move to a completion column (Done/Valhalla) if peer review is not approved
     const targetCol = activeBoard.columns.find((c: any) => c.id === newColumnId);
-    if (targetCol && targetCol.title.toLowerCase().includes("valhalla")) {
+    if (targetCol && isCompletionColumn(targetCol.title)) {
       const card = activeBoard.columns.flatMap((c: any) => c.cards).find((c: any) => c.id === cardId);
       if (card && !card.review_approved) {
         toast({

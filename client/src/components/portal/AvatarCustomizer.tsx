@@ -71,10 +71,12 @@ export function AvatarCustomizer({ isOpen, initials, initialConfig, onClose, onS
     }
   }
 
+  // Honor `prefers-reduced-motion`: render instantly with no transforms/fades.
+  // Must be called before any early return so hook order stays stable.
+  const reduce = useReducedMotion();
+
   if (!isOpen) return null;
 
-  // Honor `prefers-reduced-motion`: render instantly with no transforms/fades.
-  const reduce = useReducedMotion();
   const fade = reduce
     ? { initial: false as const, animate: { opacity: 1 }, exit: { opacity: 1 } }
     : { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };

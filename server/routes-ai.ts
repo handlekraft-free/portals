@@ -3,8 +3,13 @@ import { Router as createRouter } from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import multer from "multer";
 import { db } from "./db";
-import { aiChatMessages } from "@shared/schema";
-import { eq, asc, desc } from "drizzle-orm";
+import {
+  aiChatMessages,
+  kanbanBoards, kanbanColumns, kanbanCards,
+  boardDocuments, boardForumTopics, boardForumPosts,
+  users,
+} from "@shared/schema";
+import { eq, asc, desc, inArray } from "drizzle-orm";
 import { requireAuth } from "./auth-middleware";
 
 const router: Router = createRouter();
@@ -22,29 +27,256 @@ function getClient() {
   });
 }
 
-const SYSTEM_PROMPT = `You are a helpful AI assistant embedded in the handləkraft internal team portal. handləkraft is a 501(c)(3) nonprofit that offers free custom software and websites to community organizations while training product-focused problem solvers proficient in AI tools.
+// ── Context-aware system prompt builder ───────────────────────────────────────
 
-You help team members with:
-- Drafting content, emails, proposals, and documentation
-- Thinking through product and project problems
-- Explaining technical concepts
-- Brainstorming ideas
-- Reviewing and improving text
-- Analyzing images and documents shared by the user
-- General knowledge questions
+const ORG_BASE = `handləkraft (pronounced "handle-kraft", meaning "the power to act" in Norwegian) is a 501(c)(3) nonprofit that provides free custom software and websites to community organizations while concurrently training product-focused problem solvers proficient in AI tools. The organization runs on a fellowship model where team members learn by building real products for real clients.`;
 
-Keep responses concise and practical. Use a friendly, professional tone. If you're unsure about something specific to handləkraft's internal processes, say so honestly.`;
+async function buildBoardSystemPrompt(): Promise<string> {
+  // Fetch board documents
+  const docs = await db
+    .select({
+      title: boardDocuments.title,
+      description: boardDocuments.description,
+      category: boardDocuments.category,
+      linkUrl: boardDocuments.linkUrl,
+      confidentiality: boardDocuments.confidentiality,
+    })
+    .from(boardDocuments)
+    .orderBy(desc(boardDocuments.createdAt))
+    .limit(150);
+
+  // Fetch forum topics
+  const topics = await db
+    .select({
+      id: boardForumTopics.id,
+      title: boardForumTopics.title,
+      content: boardForumTopics.content,
+      authorId: boardForumTopics.authorId,
+      createdAt: boardForumTopics.createdAt,
+    })
+    .from(boardForumTopics)
+    .orderBy(desc(boardForumTopics.lastActivityAt))
+    .limit(60);
+
+  // Fetch replies for those topics
+  const topicIds = topics.map(t => t.id);
+  const posts = topicIds.length > 0
+    ? await db
+        .select({
+          topicId: boardForumPosts.topicId,
+          content: boardForumPosts.content,
+          authorId: boardForumPosts.authorId,
+        })
+        .from(boardForumPosts)
+        .where(inArray(boardForumPosts.topicId, topicIds))
+        .orderBy(asc(boardForumPosts.createdAt))
+        .limit(300)
+    : [];
+
+  // Board members
+  const members = await db
+    .select({ id: users.id, firstName: users.firstName, lastName: users.lastName, role: users.role })
+    .from(users)
+    .where(eq(users.role, "board"))
+    .orderBy(asc(users.firstName));
+
+  const memberMap = new Map(members.map(m => [m.id, `${m.firstName} ${m.lastName}`]));
+
+  // Build documents section
+  const byCategory = new Map<string, typeof docs>();
+  for (const doc of docs) {
+    if (!byCategory.has(doc.category)) byCategory.set(doc.category, []);
+    byCategory.get(doc.category)!.push(doc);
+  }
+  let docsSection = docs.length === 0
+    ? "No documents on file yet."
+    : [...byCategory.entries()].map(([cat, catDocs]) =>
+        `**${cat}** (${catDocs.length})\n` +
+        catDocs.map(d =>
+          `  - ${d.title}${d.description ? `: ${d.description.slice(0, 120)}` : ""}${d.linkUrl ? ` → ${d.linkUrl}` : ""}`
+        ).join("\n")
+      ).join("\n\n");
+
+  if (docsSection.length > 6000) docsSection = docsSection.slice(0, 6000) + "\n…[additional documents omitted for brevity]";
+
+  // Build forum section
+  const postsByTopic = new Map<number, typeof posts>();
+  for (const p of posts) {
+    if (!postsByTopic.has(p.topicId)) postsByTopic.set(p.topicId, []);
+    postsByTopic.get(p.topicId)!.push(p);
+  }
+
+  let forumSection = topics.length === 0
+    ? "No forum discussions yet."
+    : topics.map(t => {
+        const author = memberMap.get(t.authorId) || "Board Member";
+        const topicPosts = postsByTopic.get(t.id) || [];
+        let s = `**${t.title}** — started by ${author}\n${t.content.slice(0, 400)}`;
+        if (topicPosts.length > 0) {
+          s += "\n  Replies:\n" + topicPosts.map(p =>
+            `    › ${memberMap.get(p.authorId) || "Board Member"}: ${p.content.slice(0, 180)}`
+          ).join("\n");
+        }
+        return s;
+      }).join("\n\n");
+
+  if (forumSection.length > 12000) forumSection = forumSection.slice(0, 12000) + "\n…[additional discussions omitted]";
+
+  const memberList = members.length > 0
+    ? members.map(m => `- ${m.firstName} ${m.lastName}`).join("\n")
+    : "No board members listed.";
+
+  return `You are an AI advisory board member for handləkraft. You have been fully briefed on the organization's governance documents, board discussions, and current strategic context. Speak as a knowledgeable, candid colleague who knows this organization well — not as a generic assistant.
+
+## About the Organization
+${ORG_BASE}
+
+## Board Members (${members.length})
+${memberList}
+
+## Board Document Library (${docs.length} documents across ${byCategory.size} categories)
+${docsSection}
+
+## Board Forum Discussions (${topics.length} topics)
+${forumSection}
+
+## Your Advisory Role
+- Draw directly on the documents and discussions above when answering questions — cite them by name
+- Give governance advice appropriate for a 501(c)(3) nonprofit board
+- Be candid and direct; board members need honest, informed counsel
+- Flag governance risks, fiduciary duties, or strategic opportunities you notice in the context
+- When you don't have information about something specific, say so clearly rather than speculating
+- Help interpret bylaws, policies, and prior decisions based on what's in the document library
+- Offer perspective on how discussions or decisions align with the organization's mission`;
+}
+
+async function buildEmployeeSystemPrompt(): Promise<string> {
+  // All active boards
+  const boards = await db
+    .select()
+    .from(kanbanBoards)
+    .where(eq(kanbanBoards.archived, false))
+    .orderBy(asc(kanbanBoards.name));
+
+  // All columns
+  const columns = await db.select().from(kanbanColumns);
+  const colMap = new Map(columns.map(c => [c.id, c.title]));
+
+  // All active cards
+  const cards = await db
+    .select({
+      id: kanbanCards.id,
+      boardId: kanbanCards.boardId,
+      columnId: kanbanCards.columnId,
+      title: kanbanCards.title,
+      description: kanbanCards.description,
+      priority: kanbanCards.priority,
+      labels: kanbanCards.labels,
+      dueDate: kanbanCards.dueDate,
+      assignedTo: kanbanCards.assignedTo,
+    })
+    .from(kanbanCards)
+    .where(eq(kanbanCards.archived, false))
+    .orderBy(asc(kanbanCards.priority));
+
+  // Resolve assignee names
+  const assigneeIds = [...new Set(cards.filter(c => c.assignedTo).map(c => c.assignedTo!))];
+  const assignees = assigneeIds.length > 0
+    ? await db
+        .select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
+        .from(users)
+        .where(inArray(users.id, assigneeIds))
+    : [];
+  const userMap = new Map(assignees.map(u => [u.id, `${u.firstName} ${u.lastName}`]));
+
+  const factoryBoard = boards.find(b => b.isLongshipFactory);
+  const regularBoards = boards.filter(b => !b.isLongshipFactory);
+
+  // Longship Factory section
+  const factoryCards = factoryBoard ? cards.filter(c => c.boardId === factoryBoard.id) : [];
+  let factorySection = factoryCards.length === 0
+    ? "  (no tasks in queue)"
+    : factoryCards.map(c => {
+        let s = `  - [${c.priority?.toUpperCase()}] ${c.title}`;
+        if (c.description) s += `: ${c.description.slice(0, 100)}`;
+        if (c.labels?.length) s += ` [tags: ${c.labels.join(", ")}]`;
+        return s;
+      }).join("\n");
+
+  if (factorySection.length > 5000) factorySection = factorySection.slice(0, 5000) + "\n  …[additional factory tasks omitted]";
+
+  // Regular boards section
+  let boardsSection = "";
+  for (const board of regularBoards) {
+    const boardCards = cards.filter(c => c.boardId === board.id);
+    if (boardCards.length === 0) continue;
+
+    boardsSection += `\n### ${board.name}${board.description ? ` — ${board.description}` : ""} (${boardCards.length} cards)\n`;
+
+    const cardsByCol = new Map<number, typeof cards>();
+    for (const card of boardCards) {
+      if (!cardsByCol.has(card.columnId)) cardsByCol.set(card.columnId, []);
+      cardsByCol.get(card.columnId)!.push(card);
+    }
+
+    for (const [colId, colCards] of cardsByCol.entries()) {
+      const colTitle = colMap.get(colId) || "Unknown Column";
+      boardsSection += `**${colTitle}** (${colCards.length})\n`;
+      boardsSection += colCards.slice(0, 25).map(c => {
+        let s = `  - [${c.priority?.toUpperCase()}] ${c.title}`;
+        if (c.assignedTo && userMap.has(c.assignedTo)) s += ` → ${userMap.get(c.assignedTo)}`;
+        if (c.description) s += `: ${c.description.slice(0, 90)}`;
+        if (c.labels?.length) s += ` [${c.labels.join(", ")}]`;
+        if (c.dueDate) s += ` due ${new Date(c.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+        return s;
+      }).join("\n");
+      boardsSection += "\n";
+    }
+  }
+
+  if (boardsSection.length > 14000) boardsSection = boardsSection.slice(0, 14000) + "\n…[additional boards/cards omitted]";
+
+  const activeCardCount = cards.filter(c => !factoryBoard || c.boardId !== factoryBoard.id).length;
+
+  return `You are a senior project advisor and operations strategist embedded in the handləkraft team portal. You have live visibility into all active Kanban work across every board and the shared Longship Factory task queue. Use this knowledge to give specific, grounded advice — reference actual task names, assignees, and patterns you observe.
+
+## About the Organization
+${ORG_BASE}
+
+## Longship Factory — Shared Unassigned Task Queue (${factoryCards.length} tasks)
+These are available tasks that any team member can claim and work on:
+${factorySection}
+
+## Active Board Backlogs (${activeCardCount} cards across ${regularBoards.length} boards)
+${boardsSection || "No active cards found across boards."}
+
+## Your Advisory Role
+- **Identify redundancies**: Flag tasks across boards or the factory that appear to solve the same problem
+- **Surface synergies**: Point out tasks that could share work, be batched, or benefit from the same solution
+- **Prioritization**: Help the team decide what to pick up next from the factory based on active board needs
+- **Workload insight**: Notice when a person is over-allocated or when a board is blocked
+- **Strategic alignment**: Connect individual tasks back to handləkraft's mission of serving community orgs while training fellows
+- Always reference tasks by their actual names when giving advice
+- Be direct and specific — vague advice isn't useful for a busy team`;
+}
+
+async function buildSystemPrompt(role: string): Promise<string> {
+  try {
+    if (role === "board") return await buildBoardSystemPrompt();
+    if (role === "employee" || role === "admin") return await buildEmployeeSystemPrompt();
+  } catch (err) {
+    console.error("[AI] Failed to build contextual prompt:", err);
+  }
+  // Fallback generic prompt
+  return `You are a helpful AI assistant embedded in the handləkraft internal team portal. ${ORG_BASE}
+
+You help team members with drafting content, emails, proposals, and documentation; thinking through product and project problems; explaining technical concepts; brainstorming ideas; reviewing and improving text; and analyzing images and documents. Keep responses concise and practical. Use a friendly, professional tone.`;
+}
 
 const IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
-const TEXT_MIMES = new Set([
-  "text/plain", "text/csv", "text/markdown", "text/html", "text/css",
-  "application/json", "application/xml", "text/xml",
-  "application/javascript", "text/javascript",
-]);
 
 function buildContentBlocks(message: string, files: Express.Multer.File[]): any[] {
   const blocks: any[] = [];
-
   for (const file of files) {
     if (IMAGE_MIMES.has(file.mimetype)) {
       blocks.push({
@@ -56,24 +288,15 @@ function buildContentBlocks(message: string, files: Express.Multer.File[]): any[
         },
       });
     } else {
-      // Text, CSV, JSON, code files, etc. — inject as readable text
       const raw = file.buffer.toString("utf-8");
       const truncated = raw.length > 60_000 ? raw.slice(0, 60_000) + "\n…[truncated]" : raw;
-      blocks.push({
-        type: "text",
-        text: `📎 File: ${file.originalname}\n\`\`\`\n${truncated}\n\`\`\``,
-      });
+      blocks.push({ type: "text", text: `📎 File: ${file.originalname}\n\`\`\`\n${truncated}\n\`\`\`` });
     }
   }
-
-  if (message.trim()) {
-    blocks.push({ type: "text", text: message.trim() });
-  }
-
+  if (message.trim()) blocks.push({ type: "text", text: message.trim() });
   return blocks;
 }
 
-// Encode attachment names into stored content so the frontend can display chips
 function encodeStoredContent(message: string, files: Express.Multer.File[]): string {
   if (files.length === 0) return message.trim();
   const names = files.map(f => f.originalname).join(",");
@@ -99,13 +322,15 @@ router.delete("/history", async (req: any, res) => {
   res.json({ success: true, data: null });
 });
 
-// ── Send message — non-streaming (kept for compatibility) ─────────────────────
+// ── Send message — non-streaming ──────────────────────────────────────────────
 
 router.post("/chat", async (req: any, res) => {
   const { message } = req.body;
   if (!message?.trim()) return res.status(400).json({ success: false, error: "Message required" });
 
   const userId = req.user.userId;
+  const role = req.user.role;
+
   const history = await db
     .select()
     .from(aiChatMessages)
@@ -117,17 +342,17 @@ router.post("/chat", async (req: any, res) => {
   const [userMsg] = await db.insert(aiChatMessages).values({ userId, role: "user", content: message.trim() }).returning();
 
   try {
+    const systemPrompt = await buildSystemPrompt(role);
     const client = getClient();
     const response = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 8192,
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: [
         ...history.map(h => ({ role: h.role as "user" | "assistant", content: h.content })),
         { role: "user", content: message.trim() },
       ],
     });
-
     const assistantContent = response.content[0].type === "text" ? response.content[0].text : "";
     const [assistantMsg] = await db.insert(aiChatMessages).values({ userId, role: "assistant", content: assistantContent }).returning();
     res.json({ success: true, data: { userMessage: userMsg, assistantMessage: assistantMsg } });
@@ -149,6 +374,7 @@ router.post("/chat/stream", upload.array("files", 5), async (req: any, res) => {
   }
 
   const userId = req.user.userId;
+  const role = req.user.role;
 
   const history = await db
     .select()
@@ -168,19 +394,21 @@ router.post("/chat/stream", upload.array("files", 5), async (req: any, res) => {
   let fullContent = "";
 
   try {
-    const client = getClient();
-    const contentBlocks = buildContentBlocks(message, files);
+    const [systemPrompt, contentBlocks] = await Promise.all([
+      buildSystemPrompt(role),
+      Promise.resolve(buildContentBlocks(message, files)),
+    ]);
 
-    // Build history messages — past messages are plain text (no files in history)
     const historyMessages = history.map(h => ({
       role: h.role as "user" | "assistant",
       content: h.content.replace(/^\[\[ATTACHMENTS:[^\]]*\]\]\n?/, ""),
     }));
 
+    const client = getClient();
     const stream = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 8192,
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       stream: true,
       messages: [
         ...historyMessages,
@@ -208,7 +436,7 @@ router.post("/chat/stream", upload.array("files", 5), async (req: any, res) => {
   }
 });
 
-// ── One-shot task advice (stateless — not saved to chat history) ──────────────
+// ── One-shot task advice (stateless) ─────────────────────────────────────────
 
 const TASK_ADVICE_SYSTEM = `You are a friendly, encouraging mentor helping an early-career team member understand a task they have been assigned. Imagine you are a patient coach explaining things to a bright 14-15 year old — clear sentences, everyday words, no jargon. If you must use a technical term, explain it in one sentence right away.
 

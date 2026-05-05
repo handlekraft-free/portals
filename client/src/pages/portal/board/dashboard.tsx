@@ -373,7 +373,7 @@ function BoardDashboardContent() {
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <Bot className="w-3 h-3 text-slate-400" /> AI Assistant
             </p>
-            <ClaudeChat />
+            <ClaudeChat variant="board" />
           </div>
         </div>
       </div>

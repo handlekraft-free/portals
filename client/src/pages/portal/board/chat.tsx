@@ -25,7 +25,7 @@ function BoardChatContent() {
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#1A1F2B] inline-block" /> AI Assistant
           </p>
-          <ClaudeChat />
+          <ClaudeChat variant="board" />
         </div>
       </div>
     </div>

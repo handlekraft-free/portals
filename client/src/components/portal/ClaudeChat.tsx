@@ -126,16 +126,57 @@ const ACCEPT = [
   ".ts", ".tsx", ".js", ".jsx", ".md", ".py", ".rb", ".go", ".rs", ".java",
 ].join(",");
 
-const SUGGESTED_PROMPTS = [
-  "Help me write a project proposal",
-  "Review this email draft…",
-  "How should I approach this problem?",
-  "Summarize the key points of…",
-];
+type ChatVariant = "employee" | "board" | "general";
+
+const VARIANT_CONFIG: Record<ChatVariant, {
+  label: string;
+  subtitle: string;
+  greeting: string;
+  subgreeting: string;
+  prompts: string[];
+}> = {
+  board: {
+    label: "Board Advisory AI",
+    subtitle: "Briefed on your documents & forum discussions",
+    greeting: "Hello, Board Member.",
+    subgreeting: "I've reviewed your governance documents and forum discussions. Ask me anything about strategy, policy, financials, or how a prior decision might apply here.",
+    prompts: [
+      "Summarize our key governance documents",
+      "What are our most active forum discussions?",
+      "Are there any governance risks I should know about?",
+      "Help me draft a motion or resolution",
+    ],
+  },
+  employee: {
+    label: "Strategy & Ops AI",
+    subtitle: "Aware of your backlog & Longship Factory tasks",
+    greeting: "Ready to help you work smarter.",
+    subgreeting: "I can see all active board cards and the Longship Factory queue. Ask me about redundant tasks, synergies, what to pick up next, or anything else.",
+    prompts: [
+      "Are there any redundant tasks across boards?",
+      "Which factory tasks align with active work?",
+      "Who looks most overloaded right now?",
+      "Help me write a task description",
+    ],
+  },
+  general: {
+    label: "Claude AI",
+    subtitle: "Powered by Anthropic · Supports images & files",
+    greeting: "Hi! I'm your AI assistant.",
+    subgreeting: "Ask me anything — or drop a file to analyze it.",
+    prompts: [
+      "Help me write a project proposal",
+      "Review this email draft…",
+      "How should I approach this problem?",
+      "Summarize the key points of…",
+    ],
+  },
+};
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 
-export default function ClaudeChat() {
+export default function ClaudeChat({ variant = "general" }: { variant?: ChatVariant }) {
+  const config = VARIANT_CONFIG[variant];
   const { toast } = useToast();
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
@@ -307,8 +348,8 @@ export default function ClaudeChat() {
           <Sparkles className="w-4 h-4 text-white" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-white">Claude AI</p>
-          <p className="text-[10px] text-white/60">Powered by Anthropic · Supports images & files</p>
+          <p className="text-sm font-semibold text-white">{config.label}</p>
+          <p className="text-[10px] text-white/60">{config.subtitle}</p>
         </div>
         {messages.length > 0 && (
           <button onClick={clearHistory} className="ml-auto flex items-center gap-1 text-xs text-white/50 hover:text-white/80 transition-colors" data-testid="button-clear-ai-history">
@@ -329,11 +370,11 @@ export default function ClaudeChat() {
               <Bot className="w-7 h-7 text-white" />
             </div>
             <div>
-              <p className="font-semibold text-slate-700">Hi! I'm your AI assistant.</p>
-              <p className="text-sm text-slate-400 mt-1">Ask me anything — or drop a file to analyze it.</p>
+              <p className="font-semibold text-slate-700">{config.greeting}</p>
+              <p className="text-sm text-slate-400 mt-1 max-w-xs leading-snug">{config.subgreeting}</p>
             </div>
             <div className="grid grid-cols-2 gap-2 w-full max-w-xs mt-2">
-              {SUGGESTED_PROMPTS.map((p, i) => (
+              {config.prompts.map((p, i) => (
                 <button key={i} onClick={() => { setInput(p); textareaRef.current?.focus(); }} className="text-xs text-left bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-slate-600 transition-colors leading-snug" data-testid={`suggested-prompt-${i}`}>
                   {p}
                 </button>

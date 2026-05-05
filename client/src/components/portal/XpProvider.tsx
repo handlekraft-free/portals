@@ -116,7 +116,7 @@ function RankUpOverlay({ rank, onDismiss }: { rank: Rank; onDismiss: () => void 
       className="fixed inset-0 z-[80] flex items-center justify-center pointer-events-none animate-in fade-in duration-300"
       data-testid="overlay-rank-up"
     >
-      <div className="absolute inset-0 bg-black/40 pointer-events-auto" onClick={onDismiss} />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-auto" onClick={onDismiss} />
       <div className="relative pointer-events-auto bg-gradient-to-br from-[#1A1F2B] to-[#0D7377] rounded-2xl shadow-2xl border border-[#D4A843]/40 px-10 py-8 max-w-sm text-center animate-in zoom-in-95 duration-500">
         {(() => {
           const Icon = RANK_ICONS[rank.key] ?? Sparkles;
@@ -182,9 +182,12 @@ export function XpProvider({ children }: { children: React.ReactNode }) {
       setProgress(next);
       setHasGainedThisSession(true);
 
+      // Compact quest-style copy: "+70 XP — quest complete"; strip the
+      // "Completed: " prefix the server adds to keep the toast tight.
+      const trimmed = detail.reason.replace(/^Completed:\s*/i, "");
       toast({
-        title: `+${detail.amount} XP`,
-        description: detail.reason,
+        title: `+${detail.amount} XP — quest complete`,
+        description: trimmed,
       });
 
       const isRankUp = lastRankKeyRef.current && next.rank.key !== lastRankKeyRef.current;

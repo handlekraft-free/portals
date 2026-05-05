@@ -44,7 +44,10 @@ function lsKey(userId: number): string {
 // recap hasn't been shown. Once shown, a localStorage flag suppresses re-fire.
 export function SagaRecapModal() {
   const { user } = useAuth();
-  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
+  // `prefs === null` means "we have not yet heard back from the server".
+  // Scheduling stays paused in that state so a recap never fires with stale
+  // defaults (e.g. opening at 17:00 for a user who has disabled the recap).
+  const [prefs, setPrefs] = useState<Prefs | null>(null);
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<TodayPayload | null>(null);
 
@@ -61,17 +64,23 @@ export function SagaRecapModal() {
             enabled: res.data.sagaRecapEnabled !== false,
             time:    typeof res.data.sagaRecapTime === "string" ? res.data.sagaRecapTime : "17:00",
           });
+        } else {
+          // Treat an unsuccessful response as "use defaults" so the recap
+          // can still fire for users on a healthy session — but only after
+          // we've actually heard back, never speculatively.
+          setPrefs(DEFAULT_PREFS);
         }
-      }).catch(() => {});
+      }).catch(() => { setPrefs(DEFAULT_PREFS); });
     }
     loadPrefs();
     window.addEventListener("hk:saga-recap-prefs-changed", loadPrefs);
     return () => window.removeEventListener("hk:saga-recap-prefs-changed", loadPrefs);
   }, [user?.id]);
 
-  // Schedule check
+  // Schedule check — gated on `prefs !== null` so we never fire before the
+  // server has confirmed the user's enabled/time settings.
   useEffect(() => {
-    if (!user || !prefs.enabled || open) return;
+    if (!user || !prefs || !prefs.enabled || open) return;
     function check() {
       try {
         if (localStorage.getItem(lsKey(user!.id)) === "1") return;

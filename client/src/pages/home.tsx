@@ -80,8 +80,8 @@ export default function Home() {
                 <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Forever, For Anyone</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-display text-[#D4A843] mb-1" data-testid="text-stat-license">Apache 2.0</div>
-                <div className="text-sm text-white/60 uppercase tracking-widest font-medium">Open Source by Default</div>
+                <div className="text-4xl font-display text-[#D4A843] mb-1" data-testid="text-stat-license">Yours</div>
+                <div className="text-sm text-white/60 uppercase tracking-widest font-medium">The Tools Belong to You</div>
               </div>
               <div className="text-center">
                 <div className="text-4xl font-display text-[#D4A843] mb-1">30h</div>
@@ -142,9 +142,9 @@ export default function Home() {
             <ul className="space-y-6 relative z-10">
               {[
                 "We build tools we ourselves need to run handləkraft &mdash; board governance, neurodivergent-friendly task management, lightweight CRMs &mdash; and release them as free open-source projects under our stewardship.",
-                "Any community organization can download, install, and use these tools without paying us anything, ever. The license is Apache 2.0; the code is public.",
+                "Any community organization we work with can use these tools without paying us anything, ever &mdash; and the tools we build belong to you. We work with each partner to find the right approach for their project, including how the work is licensed and shared.",
                 "When an organization wants help deploying, customizing, integrating, training staff, or hosting one of our tools, we offer paid implementation services delivered by our team.",
-                "Fellows learn by contributing to those same public projects &mdash; building real portfolios with real users, on code anyone can read."
+                "Fellows learn by contributing to those same public open-source projects &mdash; never to client engagements, which our paid staff handle. They graduate with real, public open-source contributions on code anyone can read."
               ].map((step, i) => (
                 <li key={i} className="flex gap-4 items-start">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#D4A843] text-[#1A1F2B] font-bold flex items-center justify-center text-sm">
@@ -170,7 +170,7 @@ export default function Home() {
             {
               icon: Code2,
               title: "Open-Source Tools",
-              desc: "We build free AI-powered tools for community organizations &mdash; board governance, ADHD-friendly task management, lightweight CRMs &mdash; and release them under Apache 2.0. Any nonprofit can download and run them, forever, at no cost."
+              desc: "We build free AI-powered tools for community organizations &mdash; board governance, ADHD-friendly task management, lightweight CRMs. Our technology services are always free to the community organizations we work with, and the tools we build belong to you."
             },
             {
               icon: HeartHandshake,
@@ -185,7 +185,7 @@ export default function Home() {
             {
               icon: Users,
               title: "Accessibility by Default",
-              desc: "Every tool ships with WCAG fundamentals, plain-language principles, and trauma-informed design baked in. Every fellow learns it. The people our clients serve deserve better than afterthought design."
+              desc: "Every tool ships with WCAG fundamentals, plain-language principles, and trauma-informed design baked in. Every fellow learns it. The people these tools serve deserve better than afterthought design."
             }
           ].map((card, i) => (
             <motion.div
@@ -212,6 +212,11 @@ export default function Home() {
           subtitle="From first conversation to lasting capability — here's the journey."
           centered
         />
+        <div className="max-w-3xl mx-auto mb-12">
+          <p className="text-lg text-muted-foreground leading-relaxed text-center" data-testid="text-how-it-works-intro">
+            Our technology services are always free to the community organizations we work with. The tools we build belong to you. We work with each partner to find the right approach for their project &mdash; including how the work is licensed and shared.
+          </p>
+        </div>
         <div className="relative max-w-3xl mx-auto">
           <div className="absolute left-6 md:left-1/2 top-0 w-0.5 bg-gradient-to-b from-[#0D7377] via-[#D4A843] to-[#D4A843] md:-translate-x-px" style={{ height: 'calc(100% - 7rem)' }} />
           {[
@@ -235,8 +240,8 @@ export default function Home() {
             },
             {
               step: "4",
-              title: "Fellows Work the Engagement",
-              desc: "Our fellows are part of real engagements as part of their training. They work alongside our staff, see how real organizations use what they help configure, and own real outcomes.",
+              title: "Fellows Build the Open-Source Tools",
+              desc: "Client engagements are delivered by our paid staff. Fellows learn by contributing to the public, open-source projects those services are built on &mdash; shipping real features, writing real documentation, and graduating with a portfolio of public open-source contributions.",
               icon: UserPlus,
             },
             {
@@ -342,7 +347,7 @@ export default function Home() {
             More tools are on the roadmap &mdash; a lightweight donor/volunteer CRM, an accessibility-audit assistant, and the small operational tools we're building for our own client engagements. Each is released publicly as it stabilizes.
           </p>
           <p className="text-sm text-slate-500">
-            All projects are licensed under <span className="font-semibold text-[#1A1F2B]">Apache 2.0</span>. Free to use, fork, modify, and self-host. We sell professional services around them &mdash; never the software itself.
+            Our technology services are <span className="font-semibold text-[#1A1F2B]">always free</span> to the community organizations we work with, and the tools we build <span className="font-semibold text-[#1A1F2B]">belong to you</span>. We work with each partner to find the right approach for their project &mdash; including how the work is licensed and shared. We sell professional services around these tools &mdash; never the tools themselves.
           </p>
         </div>
       </Section>
@@ -407,7 +412,7 @@ export default function Home() {
           <div>
             <SectionHeader 
               title="Learn by doing real work." 
-              subtitle="Small cohorts. Real client engagements. No tuition. Accessibility woven into everything."
+              subtitle="Small cohorts. Real open-source contributions. No tuition. Accessibility woven into everything."
             />
             <div className="space-y-12">
               {[
@@ -416,8 +421,8 @@ export default function Home() {
                   desc: "Learn how technology serves organizations — tools, configuration, workflows, and documentation — with AI tools handling the heavy lifting while you focus on understanding the problem."
                 },
                 {
-                  title: "Real Clients, Real Stakes",
-                  desc: "Fellows work on actual client engagements from the start. You'll configure systems real nonprofits depend on, write documentation real staff will read, and own real outcomes."
+                  title: "Real Open-Source Work, Real Stakes",
+                  desc: "Client engagements are run by our paid staff. Fellows contribute to the public open-source projects underneath &mdash; shipping features real organizations rely on, writing documentation real staff will read, and owning real outcomes on code anyone can see."
                 },
                 {
                   title: "Accessibility as Curriculum",
@@ -524,7 +529,7 @@ export default function Home() {
             {[
               {
                 q: "Wait — are your tools free, or do you charge?",
-                a: "The tools themselves are always free. Every project we build is released as open source under Apache 2.0; any organization can download, install, customize, and run them forever at no cost. What we charge for is professional implementation: hands-on help deploying a tool, customizing it for your workflow, training your staff, integrating it with your other systems, or hosting it for you. Self-serve organizations pay nothing. Organizations that want a partner pay fair-market rates for that service work — and that revenue is what sustains continued tool development."
+                a: "Our technology services are always free to the community organizations we work with, and the tools we build belong to you. We work with each partner to find the right approach for their project — including how the work is licensed and shared. What we charge for is professional implementation: hands-on help deploying a tool, customizing it for your workflow, training your staff, integrating it with your other systems, or hosting it for you. Organizations that want a partner pay fair-market rates for that service work — and that revenue is what sustains continued tool development."
               },
               {
                 q: "Why open source? Couldn't you make more money keeping it proprietary?",
@@ -540,7 +545,7 @@ export default function Home() {
               },
               {
                 q: "Do I need coding experience to apply for the fellowship?",
-                a: "No. We're looking for people who want to solve problems and own outcomes — not people who already know how to code. If you have a high school diploma or GED and the drive to learn, that's enough. AI tools handle the deep technical work; fellows focus on understanding the problem, directing the work, and transferring capability to real organizations."
+                a: "No. We're looking for people who want to solve problems and own outcomes — not people who already know how to code. If you have a high school diploma or GED and the drive to learn, that's enough. AI tools handle the deep technical work; fellows focus on understanding the problem, directing the work, and shipping real contributions to our public open-source projects. Client engagements themselves are run by our paid staff — fellows graduate with a portfolio of public open-source work, ready to step into that paid track or anywhere else in the sector."
               },
               {
                 q: "Who can apply for the fellowship?",
@@ -548,7 +553,7 @@ export default function Home() {
               },
               {
                 q: "How is this different from a coding bootcamp?",
-                a: "Bootcamps train you to code. We train you to be a product builder — to configure, advise, and deliver outcomes for real organizations — using AI tools to handle technical complexity while you own the product thinking, communication, and results. Fellows contribute to real public open-source projects with real users. Small cohorts, close mentorship, no tuition, accessibility woven into everything."
+                a: "Bootcamps train you to code. We train you to be a product builder — to think clearly about problems, direct AI tools, and ship real, public software — while our paid staff handle client engagements. Fellows contribute to real public open-source projects with real users and graduate with public open-source contributions to their name. Small cohorts, close mentorship, no tuition, accessibility woven into everything."
               },
               {
                 q: "Which tools have you built so far?",

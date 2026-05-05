@@ -11,11 +11,11 @@ import {
   FileText, Search, User, ClipboardList, Eye, ArrowRightLeft, ChevronDown,
   Sparkles, Loader2, Ship, Anchor, FileUp, FileDown, Info, Heart, Star, Crown, Coins,
 } from "lucide-react";
-import { VikingCrossedSwords, VikingHelmSvg, VikingAxeSvg, VikingSwordSvg, RuneDivider } from "@/components/portal/VikingDecor";
+import { VikingCrossedSwords } from "@/components/portal/VikingDecor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { useToast } from "@/hooks/use-toast";
 import { isCompletionColumn, xpForPriority, INITIATIVE_MULTIPLIER } from "@shared/xp";
 import { motion, AnimatePresence } from "framer-motion";
@@ -1420,9 +1420,11 @@ function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard, cu
               ? new Date(card.bountyExpiresAt).toLocaleDateString()
               : null;
             return (
-              <Popover key={card.id}>
+              <HoverCard key={card.id} openDelay={150} closeDelay={80}>
+                <HoverCardTrigger asChild>
                 <div
-                  className={`group relative flex flex-col rounded-xl p-4 shadow-sm border-l-4 ${PRIORITY_BORDER[card.priority] || "border-l-slate-200"} bg-gradient-to-br from-[#fbf6e8] via-[#fdfaf0] to-[#f5ecd3] hover:shadow-md hover:-translate-y-0.5 transition-all`}
+                  tabIndex={0}
+                  className={`group relative flex flex-col rounded-xl p-4 shadow-sm border-l-4 ${PRIORITY_BORDER[card.priority] || "border-l-slate-200"} bg-gradient-to-br from-[#fbf6e8] via-[#fdfaf0] to-[#f5ecd3] hover:shadow-md hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D7377]/40 transition-all`}
                   style={{ backgroundImage: "linear-gradient(135deg,#fbf6e8 0%,#fdfaf0 60%,#f5ecd3 100%)" }}
                   data-testid={`factory-card-${card.id}`}
                 >
@@ -1486,15 +1488,6 @@ function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard, cu
                       )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <PopoverTrigger asChild>
-                        <button
-                          className="p-1 rounded text-slate-400 hover:text-[#0D7377] hover:bg-white/70"
-                          aria-label="Preview quest details"
-                          data-testid={`button-preview-${card.id}`}
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
-                      </PopoverTrigger>
                       {isAdmin && (
                         <button
                           onClick={() => setBountyCard(card)}
@@ -1516,7 +1509,8 @@ function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard, cu
                     </div>
                   </div>
                 </div>
-                <PopoverContent side="top" align="end" className="w-72 p-3 bg-[#fdfaf0] border-[#D4A843]/40">
+                </HoverCardTrigger>
+                <HoverCardContent side="top" align="end" className="w-72 p-3 bg-[#fdfaf0] border-[#D4A843]/40">
                   <p className="text-sm font-semibold text-[#1A1F2B] mb-1">{card.title}</p>
                   {card.description && (
                     <p className="text-xs text-slate-600 mb-2 whitespace-pre-wrap">{card.description}</p>
@@ -1553,8 +1547,8 @@ function LongshipFactoryView({ factoryData, boards, onRefresh, onOpenInBoard, cu
                   <p className="text-[10px] text-slate-500 mt-2 leading-snug">
                     Interest fit {Math.round(fitScore)}/5{fitTags.length > 0 ? ` — based on your past ratings of "${fitTags.slice(0, 3).join(", ")}"` : " — no overlap with your history yet"}.
                   </p>
-                </PopoverContent>
-              </Popover>
+                </HoverCardContent>
+              </HoverCard>
             );
           })}
         </div>

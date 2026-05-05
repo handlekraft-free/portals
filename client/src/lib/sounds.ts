@@ -95,6 +95,23 @@ export function setSoundMuted(name: SoundName, muted: boolean): void {
   );
 }
 
+// Cross-tab sync: when the user changes sound prefs in another tab, the
+// `storage` event fires here. Re-broadcast as our normal CustomEvents so
+// in-tab subscribers (HeroCard toggles, XP provider) update without a reload.
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key === STORAGE_KEY) {
+      window.dispatchEvent(
+        new CustomEvent("hk:sound-changed", { detail: { enabled: readEnabled() } }),
+      );
+    } else if (e.key === MUTED_KEY) {
+      window.dispatchEvent(
+        new CustomEvent("hk:sound-muted-changed", { detail: { muted: Array.from(readMuted()) } }),
+      );
+    }
+  });
+}
+
 function reducedMotion(): boolean {
   try {
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;

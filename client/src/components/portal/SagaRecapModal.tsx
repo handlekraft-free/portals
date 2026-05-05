@@ -65,12 +65,12 @@ export function SagaRecapModal() {
             time:    typeof res.data.sagaRecapTime === "string" ? res.data.sagaRecapTime : "17:00",
           });
         } else {
-          // Treat an unsuccessful response as "use defaults" so the recap
-          // can still fire for users on a healthy session — but only after
-          // we've actually heard back, never speculatively.
-          setPrefs(DEFAULT_PREFS);
+          // Fail closed: if we cannot read the user's prefs we keep the
+          // recap suppressed rather than firing a default 17:00 popup at
+          // someone who may have explicitly disabled it.
+          setPrefs({ enabled: false, time: DEFAULT_PREFS.time });
         }
-      }).catch(() => { setPrefs(DEFAULT_PREFS); });
+      }).catch(() => { setPrefs({ enabled: false, time: DEFAULT_PREFS.time }); });
     }
     loadPrefs();
     window.addEventListener("hk:saga-recap-prefs-changed", loadPrefs);

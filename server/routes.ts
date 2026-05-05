@@ -31,6 +31,7 @@ import boardRoutes from "./routes-board";
 import balanceRoutes from "./routes-balance";
 import chatRoutes from "./routes-chat";
 import aiRoutes from "./routes-ai";
+import xpRoutes from "./routes-xp";
 import googleRoutes, { startGooglePolling } from "./routes-google";
 
 declare module "express-session" {
@@ -376,6 +377,20 @@ export async function registerRoutes(
         user_id integer NOT NULL, acked_at timestamp DEFAULT now() NOT NULL,
         UNIQUE(item_id, user_id)
       );
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS xp_total integer NOT NULL DEFAULT 0;
+      ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS sound_enabled boolean NOT NULL DEFAULT false;
+      CREATE TABLE IF NOT EXISTS xp_events (
+        id serial PRIMARY KEY,
+        user_id integer NOT NULL,
+        amount integer NOT NULL,
+        reason text NOT NULL,
+        source_type varchar(40) NOT NULL,
+        source_id integer,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
+      ALTER TABLE xp_events DROP CONSTRAINT IF EXISTS xp_events_user_id_source_type_source_id_reason_key;
+      CREATE UNIQUE INDEX IF NOT EXISTS xp_events_dedupe_idx ON xp_events (user_id, source_type, source_id);
+      CREATE INDEX IF NOT EXISTS xp_events_user_idx ON xp_events (user_id, created_at DESC);
     `);
     await migrationPool.end();
     console.log("[migrate] ✓ Schema patches applied");
@@ -695,6 +710,7 @@ export async function registerRoutes(
   app.use("/api/balance", balanceRoutes);
   app.use("/api/chat", chatRoutes);
   app.use("/api/ai", aiRoutes);
+  app.use("/api/xp", xpRoutes);
   app.use("/api/google", googleRoutes);
 
   // Start Google background polling

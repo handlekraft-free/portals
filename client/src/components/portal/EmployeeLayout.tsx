@@ -18,6 +18,8 @@ import {
   VikingCrossedSwords, VikingShieldSvg, RuneDivider,
   LongshipWatermark, VikingMotto, LongshipBackground, PageViking,
 } from "@/components/portal/VikingDecor";
+import { XpProvider } from "@/components/portal/XpProvider";
+import { HeroCard } from "@/components/portal/HeroCard";
 
 // ── Brain Dump ────────────────────────────────────────────────────────────────
 // Floating capture button — bottom-left. Thought → Kanban card in one shot.
@@ -356,20 +358,12 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
         )}
       </nav>
 
-      <div className="p-3 border-t border-white/10 relative z-10">
+      <div className="p-3 border-t border-white/10 relative z-10 space-y-2">
         <VikingMotto type="employee" />
-        <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-8 h-8 rounded-full bg-[#0D7377] flex items-center justify-center text-white text-xs font-bold shrink-0">
-            {user?.firstName?.[0]}{user?.lastName?.[0]}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-white text-sm font-medium truncate">{user?.firstName} {user?.lastName}</p>
-            <p className="text-white/40 text-xs truncate capitalize">{user?.role}</p>
-          </div>
-        </div>
+        <HeroCard />
         <Button
           variant="ghost"
-          className="w-full justify-start text-white/60 hover:text-white mt-1 text-sm"
+          className="w-full justify-start text-white/60 hover:text-white text-sm"
           onClick={handleLogout}
           data-testid="button-portal-logout"
         >
@@ -380,6 +374,7 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
   );
 
   return (
+    <XpProvider>
     <div className="min-h-screen bg-[#f5f3ef] flex font-body">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-56 bg-[#1A1F2B] flex-col fixed inset-y-0 left-0 z-30">
@@ -430,5 +425,6 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
         <BrainDump />
       </div>
     </div>
+    </XpProvider>
   );
 }

@@ -104,9 +104,23 @@ export const users = pgTable("portal_users", {
   googleRefreshToken: text("google_refresh_token"),
   googleTokenExpiry: timestamp("google_token_expiry"),
   googleEmail: text("google_email"),
+  // Gamification
+  xpTotal: integer("xp_total").notNull().default(0),
+  soundEnabled: boolean("sound_enabled").notNull().default(false),
 });
 export type PortalUser = typeof users.$inferSelect;
 export type InsertPortalUser = typeof users.$inferInsert;
+
+export const xpEvents = pgTable("xp_events", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  amount: integer("amount").notNull(),
+  reason: text("reason").notNull(),
+  sourceType: varchar("source_type", { length: 40 }).notNull(),
+  sourceId: integer("source_id"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type XpEvent = typeof xpEvents.$inferSelect;
 
 // ─── Google Notifications ──────────────────────────────────────────────────────
 export const googleNotifications = pgTable("google_notifications", {

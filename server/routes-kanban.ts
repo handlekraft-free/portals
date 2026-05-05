@@ -5,7 +5,7 @@ import fs from "fs";
 import multer from "multer";
 import { db } from "./db";
 import { kanbanBoards, kanbanColumns, kanbanCards, kanbanCardComments, kanbanCardAttachments, teams, teamMembers, users } from "@shared/schema";
-import { eq, and, asc, desc, or, inArray, isNull } from "drizzle-orm";
+import { eq, and, asc, desc, or, inArray, isNull, sql } from "drizzle-orm";
 import { requireAuth } from "./auth-middleware";
 
 const router: Router = createRouter();
@@ -499,10 +499,11 @@ router.patch("/cards/:id", async (req, res) => {
   const [currentCard] = await db.select().from(kanbanCards).where(eq(kanbanCards.id, cardId));
   if (!currentCard) return res.status(404).json({ success: false, error: "Card not found" });
 
-  // Block moving to a "Valhalla" column unless peer review is approved
+  // Block moving to a completion column unless peer review is approved
+  const { isCompletionColumn: _isDone } = await import("@shared/xp");
   if (columnId !== undefined && parseInt(columnId) !== currentCard.columnId) {
     const [targetCol] = await db.select().from(kanbanColumns).where(eq(kanbanColumns.id, parseInt(columnId)));
-    if (targetCol && targetCol.title.toLowerCase().includes("valhalla")) {
+    if (targetCol && _isDone(targetCol.title)) {
       const willBeApproved = reviewApproved !== undefined ? reviewApproved : currentCard.reviewApproved;
       if (!willBeApproved) {
         return res.status(422).json({
@@ -544,7 +545,49 @@ router.patch("/cards/:id", async (req, res) => {
     updatedAt: new Date(),
   }).where(eq(kanbanCards.id, cardId)).returning();
   if (!card) return res.status(404).json({ success: false, error: "Card not found" });
-  res.json({ success: true, data: card });
+
+  // ── XP award on completion (idempotent) ──────────────────────────────────
+  let xpAwarded: { amount: number; reason: string; newTotal: number } | null = null;
+  try {
+    if (
+      columnId !== undefined &&
+      parseInt(columnId) !== currentCard.columnId &&
+      card.assignedTo
+    ) {
+      const [newCol] = await db.select().from(kanbanColumns).where(eq(kanbanColumns.id, card.columnId));
+      const { xpForPriority } = await import("@shared/xp");
+      if (newCol && _isDone(newCol.title)) {
+        const amount = xpForPriority(card.priority);
+        const reason = `Completed: ${card.title}`.slice(0, 200);
+        // Idempotent: unique index on (user_id, source_type, source_id) — title rename
+        // does NOT re-award. Wrapped in a transaction so xp_events insert and
+        // xp_total increment stay consistent.
+        const txResult: any = await db.execute(sql`
+          WITH inserted AS (
+            INSERT INTO xp_events (user_id, amount, reason, source_type, source_id)
+            VALUES (${card.assignedTo}, ${amount}, ${reason}, 'kanban_card_complete', ${card.id})
+            ON CONFLICT (user_id, source_type, source_id) DO NOTHING
+            RETURNING amount
+          ),
+          bumped AS (
+            UPDATE portal_users
+            SET xp_total = xp_total + COALESCE((SELECT amount FROM inserted), 0)
+            WHERE id = ${card.assignedTo}
+            RETURNING xp_total
+          )
+          SELECT (SELECT amount FROM inserted) AS awarded, (SELECT xp_total FROM bumped) AS total
+        `);
+        const row = (txResult.rows ?? txResult)[0] ?? {};
+        if (row.awarded != null) {
+          xpAwarded = { amount: Number(row.awarded), reason, newTotal: Number(row.total) };
+        }
+      }
+    }
+  } catch (e: any) {
+    console.error("[xp] award failed:", e.message);
+  }
+
+  res.json({ success: true, data: card, xpAwarded });
 });
 
 router.delete("/cards/:id", async (req, res) => {

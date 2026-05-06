@@ -58,19 +58,10 @@ export default function Home() {
               <Button 
                 size="lg" 
                 className="bg-[#D4A843] hover:bg-[#D4A843]/90 text-[#1A1F2B] text-lg font-bold rounded-full px-8 h-14 shadow-xl shadow-[#D4A843]/20 hover:-translate-y-1 transition-all"
-                onClick={() => window.open('/proposal.pdf', '_blank')}
-                data-testid="button-read-proposal"
-              >
-                Read Our Proposal <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="border-white/20 bg-white/5 hover:bg-white/10 text-white text-lg font-medium rounded-full px-8 h-14 backdrop-blur-sm hover:-translate-y-1 transition-all"
                 onClick={() => document.getElementById('mission')?.scrollIntoView({ behavior: 'smooth' })}
                 data-testid="button-see-how"
               >
-                See How It Works
+                See How It Works <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </div>
 
@@ -495,26 +486,6 @@ export default function Home() {
               transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
             />
           </div>
-        </div>
-      </Section>
-
-      <Section background="white">
-        <div className="bg-[#F5F3EF] rounded-3xl p-8 md:p-16 text-center border border-slate-200">
-          <Code2 className="w-12 h-12 text-[#1A1F2B] mx-auto mb-6" />
-          <h2 className="text-3xl md:text-4xl font-display text-[#1A1F2B] mb-4" data-testid="text-proposal-heading">
-            Read the full strategic proposal.
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            Our board proposal lays out the open-source-plus-services operating model in full — the four program elements, the four-phase rollout, governance and funding implications, financial projections, and the open questions we're still working through. We welcome your thoughts, questions, and support.
-          </p>
-          <Button 
-            className="bg-[#1A1F2B] hover:bg-[#1A1F2B]/90 text-white font-bold rounded-full px-8 py-6 h-auto"
-            onClick={() => window.open('/proposal.pdf', '_blank')}
-            data-testid="button-download-proposal"
-          >
-            Download Our Proposal (PDF) <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
-          <p className="text-sm text-muted-foreground mt-4">This is a living document — we expect it to evolve as we learn. That's by design.</p>
         </div>
       </Section>
 

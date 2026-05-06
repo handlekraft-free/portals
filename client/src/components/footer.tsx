@@ -39,7 +39,6 @@ export function Footer() {
             <li><a href="#what-we-do" className="hover:text-[#D4A843] transition-colors">What We Do</a></li>
             <li><a href="#open-source" className="hover:text-[#D4A843] transition-colors">Open-Source Tools</a></li>
             <li><a href="#training" className="hover:text-[#D4A843] transition-colors">Fellowship</a></li>
-            <li><a href="/proposal.pdf" className="hover:text-[#D4A843] transition-colors">Strategic Proposal (PDF)</a></li>
           </ul>
         </div>
 

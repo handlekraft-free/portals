@@ -9,7 +9,7 @@ Executive Summary
 This proposal asks the board to consider whether handlekraft should adopt an explicit operating model centered on building open-source tools for community organizations and underserved learners, sustained by paid implementation services.
 Today, handlekraft has three program elements: a fellowship that trains non-traditional learners, direct technology services to client organizations, and a small set of internal tools we have built to run our own operations. This proposal suggests we name a fourth element — public open-source tool development — and use it to integrate the other three into a more coherent whole.
 The Proposal in One Paragraph
-handlekraft adopts open-source tool development as a central operating activity. Tools we build for our own use, for client engagements, and through fellowship learning are released as free open-source projects under handlekraft's stewardship. We offer paid implementation, customization, training, and support services to organizations that adopt these tools and want professional help deploying them. Fellowship participants contribute to tool development as part of their learning. Paid staff deliver paid services. The fellowship produces future paid staff. The tools become both our public contribution to the nonprofit sector and a sustainable revenue stream that diversifies our funding.
+handlekraft adopts open-source tool development as a central operating activity. Tools we build for our own use, for client engagements, and through fellowship learning are released as free public projects under handlekraft's stewardship. Our technology services are always free to the community organizations we work with, and the tools we build belong to those partners. We work with each partner to find the right approach for their project — including how the work is licensed and shared — rather than applying a single blanket license across everything we ship. We offer paid implementation, customization, training, and support services to organizations that adopt these tools and want professional help deploying them. Fellowship participants contribute to tool development as part of their learning. Paid staff deliver paid services. The fellowship produces future paid staff. The tools become both our public contribution to the nonprofit sector and a sustainable revenue stream that diversifies our funding.
 What This Changes
 Our public identity gains a clear, distinctive frame: handlekraft is the organization that builds free tools for community organizations and trains people through that building.
 Our funding diversifies meaningfully. Implementation services revenue is mission-aligned earned income that strengthens our public charity classification under §509(a)(2) considerations and reduces dependence on founder donations.
@@ -43,7 +43,7 @@ Stepping back, this pattern is bigger than the three tools we already have. It's
 2.1 The Core Pattern
 Open-source-plus-services is a recognized operating model with established players in both for-profit and nonprofit sectors. The pattern works as follows:
 The organization builds software that solves a real problem for a defined community.
-The software is released under an open-source license. Anyone can use it, modify it, and deploy it without payment.
+The software is released publicly. The specific license is selected per project rather than as a single blanket default — for some projects an open-source license is right; for others a partner-specific arrangement that still preserves "always free for the community organization" and "the tool belongs to you" is the better fit. Anyone permitted under the project's license can use it, modify it, and deploy it without payment.
 The organization earns revenue by offering services that help adopters use the software well: implementation, configuration, integration, training, customization, hosting, and ongoing support.
 Free use serves the mission. Paid services sustain the organization.
 2.2 Why It Works
@@ -146,7 +146,7 @@ The Marketing and Social Media Lead role gains importance under this model. Open
 Several pieces of infrastructure are needed to operationalize this model cleanly:
 IP assignment paperwork from current and future contributors to handlekraft
 Standard services agreement template, drafted by counsel
-Open-source license selection and consistent application across projects
+A per-project licensing approach (decided with each partner) rather than a single blanket license across all projects, with documentation of the rationale for each project's choice
 Contributor License Agreement or Developer Certificate of Origin for outside contributions
 Volunteer agreement for fellows contributing beyond curriculum
 Code of conduct for project communities
@@ -210,7 +210,7 @@ Phase 1: Foundation (Months 1-6)
 Counsel review and execution of IP assignments for existing software
 Counsel-drafted templates: services agreement, contributor agreement, volunteer agreement
 Project selection framework drafted, board-approved, and adopted in policy
-License selection (recommend Apache 2.0 as default)
+Per-project licensing framework: licensing decisions are made with each partner rather than defaulting to a single license across every project, while preserving the commitments that the work is always free to the community organizations we serve and that the tools belong to those partners
 Update strategic plan and operating budget to reflect the model
 Phase 2: First Public Release (Months 6-12)
 Pilot with one tool — recommend the gamified ADHD task management tool, given its strongest mission alignment

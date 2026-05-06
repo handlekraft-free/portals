@@ -47,7 +47,7 @@ export default function Home() {
             </div>
 
             <p className="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto mb-4 font-light leading-relaxed" data-testid="text-hero-subtitle">
-              We build <span className="text-[#D4A843] font-medium">free, open-source AI tools</span> for community organizations &mdash; and train <span className="text-[#D4A843] font-medium">non-traditional product builders</span> to put them to work for the causes they care about.
+              We build <span className="text-[#D4A843] font-medium">free, open-source AI tools</span> for community organizations — and train <span className="text-[#D4A843] font-medium">non-traditional product builders</span> to put them to work for the causes they care about.
             </p>
 
             <p className="text-base md:text-lg text-white/55 max-w-2xl mx-auto mb-10 font-light">
@@ -110,13 +110,13 @@ export default function Home() {
             />
             <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
               <p>
-                Thousands of community organizations &mdash; shelters, clinics, food banks, mutual aid groups, small foundations &mdash; run critical operations on patchwork spreadsheets and institutional memory. The software they need exists; what they lack is access to tools designed for their reality and people who can help them deploy those tools well.
+                Thousands of community organizations — shelters, clinics, food banks, mutual aid groups, small foundations — run critical operations on patchwork spreadsheets and institutional memory. The software they need exists; what they lack is access to tools designed for their reality and people who can help them deploy those tools well.
               </p>
               <p>
-                We build <span className="font-semibold text-[#1A1F2B]">free, open-source AI tools</span> for that reality &mdash; tools we use to run our own operations and that any organization can adopt without paying us a cent. When an organization wants professional help deploying or customizing one of our tools, we offer paid implementation services. That earned, mission-aligned revenue sustains the work.
+                We build <span className="font-semibold text-[#1A1F2B]">free, open-source AI tools</span> for that reality — tools we use to run our own operations and that any organization can adopt without paying us a cent. When an organization wants professional help deploying or customizing one of our tools, we offer paid implementation services. That earned, mission-aligned revenue sustains the work.
               </p>
               <p>
-                In parallel, we train <span className="font-semibold text-[#1A1F2B]">non-traditional product builders</span> &mdash; veterans, caregivers, neurodivergent thinkers, career changers, people locked out of conventional pathways &mdash; by having them contribute to those same public projects. They graduate with real portfolios, real references, and real users.
+                In parallel, we train <span className="font-semibold text-[#1A1F2B]">non-traditional product builders</span> — veterans, caregivers, neurodivergent thinkers, career changers, people locked out of conventional pathways — by having them contribute to those same public projects. They graduate with real portfolios, real references, and real users.
               </p>
               <p className="font-semibold text-[#1A1F2B]">
                 Free tools serve the mission. Paid services sustain the organization. The fellowship produces both our trainees and the people who can deliver those services. Each piece reinforces the others.
@@ -138,13 +138,13 @@ export default function Home() {
               className="absolute top-4 right-4 w-[100px] h-[100px] z-20 opacity-90 pointer-events-none"
             />
             <h3 className="text-2xl font-display mb-4 relative z-10">Open Source + Services</h3>
-            <p className="text-white/60 text-sm mb-8 relative z-10 italic">A recognized model used by Sahana, DHIS2, CiviCRM, Kobo Toolbox &mdash; mission-driven nonprofits sustained by services on freely available software.</p>
+            <p className="text-white/60 text-sm mb-8 relative z-10 italic">A recognized model used by Sahana, DHIS2, CiviCRM, Kobo Toolbox — mission-driven nonprofits sustained by services on freely available software.</p>
             <ul className="space-y-6 relative z-10">
               {[
-                "We build tools we ourselves need to run handləkraft &mdash; board governance, neurodivergent-friendly task management, lightweight CRMs &mdash; and release them as free open-source projects under our stewardship.",
-                "Any community organization we work with can use these tools without paying us anything, ever &mdash; and the tools we build belong to you. We work with each partner to find the right approach for their project, including how the work is licensed and shared.",
+                "We build tools we ourselves need to run handləkraft — board governance, neurodivergent-friendly task management, lightweight CRMs — and release them as free open-source projects under our stewardship.",
+                "Any community organization we work with can use these tools without paying us anything, ever — and the tools we build belong to you. We work with each partner to find the right approach for their project, including how the work is licensed and shared.",
                 "When an organization wants help deploying, customizing, integrating, training staff, or hosting one of our tools, we offer paid implementation services delivered by our team.",
-                "Fellows learn by contributing to those same public open-source projects &mdash; never to client engagements, which our paid staff handle. They graduate with real, public open-source contributions on code anyone can read."
+                "Fellows learn by contributing to those same public open-source projects — never to client engagements, which our paid staff handle. They graduate with real, public open-source contributions on code anyone can read."
               ].map((step, i) => (
                 <li key={i} className="flex gap-4 items-start">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#D4A843] text-[#1A1F2B] font-bold flex items-center justify-center text-sm">
@@ -170,7 +170,7 @@ export default function Home() {
             {
               icon: Code2,
               title: "Open-Source Tools",
-              desc: "We build free AI-powered tools for community organizations &mdash; board governance, ADHD-friendly task management, lightweight CRMs. Our technology services are always free to the community organizations we work with, and the tools we build belong to you."
+              desc: "We build free AI-powered tools for community organizations — board governance, ADHD-friendly task management, lightweight CRMs. Our technology services are always free to the community organizations we work with, and the tools we build belong to you."
             },
             {
               icon: HeartHandshake,
@@ -214,7 +214,7 @@ export default function Home() {
         />
         <div className="max-w-3xl mx-auto mb-12">
           <p className="text-lg text-muted-foreground leading-relaxed text-center" data-testid="text-how-it-works-intro">
-            Our technology services are always free to the community organizations we work with. The tools we build belong to you. We work with each partner to find the right approach for their project &mdash; including how the work is licensed and shared.
+            Our technology services are always free to the community organizations we work with. The tools we build belong to you. We work with each partner to find the right approach for their project — including how the work is licensed and shared.
           </p>
         </div>
         <div className="relative max-w-3xl mx-auto">
@@ -241,7 +241,7 @@ export default function Home() {
             {
               step: "4",
               title: "Fellows Build the Open-Source Tools",
-              desc: "Client engagements are delivered by our paid staff. Fellows learn by contributing to the public, open-source projects those services are built on &mdash; shipping real features, writing real documentation, and graduating with a portfolio of public open-source contributions.",
+              desc: "Client engagements are delivered by our paid staff. Fellows learn by contributing to the public, open-source projects those services are built on — shipping real features, writing real documentation, and graduating with a portfolio of public open-source contributions.",
               icon: UserPlus,
             },
             {
@@ -314,7 +314,7 @@ export default function Home() {
               statusColor: "bg-[#D4A843]",
               title: "Longship Factory",
               tagline: "A gamified shared task board built for the brains that struggle with traditional ones.",
-              desc: "A communal quest board with energy-aware planning, low-friction claim workflows, forgiving streaks (weekends and rest days don't punish you), and gentle gamification grounded in research on neurodivergent motivation. Designed first for ADHD &mdash; useful for anyone who finds standard project tools exhausting.",
+              desc: "A communal quest board with energy-aware planning, low-friction claim workflows, forgiving streaks (weekends and rest days don't punish you), and gentle gamification grounded in research on neurodivergent motivation. Designed first for ADHD — useful for anyone who finds standard project tools exhausting.",
               audience: "Mutual-aid groups, recovery communities, neurodivergent teams, families coordinating care.",
             },
           ].map((tool, i) => (
@@ -344,10 +344,10 @@ export default function Home() {
 
         <div className="max-w-3xl mx-auto mt-12 bg-[#F5F3EF] rounded-2xl p-8 border border-slate-200 text-center">
           <p className="text-muted-foreground leading-relaxed mb-4">
-            More tools are on the roadmap &mdash; a lightweight donor/volunteer CRM, an accessibility-audit assistant, and the small operational tools we're building for our own client engagements. Each is released publicly as it stabilizes.
+            More tools are on the roadmap — a lightweight donor/volunteer CRM, an accessibility-audit assistant, and the small operational tools we're building for our own client engagements. Each is released publicly as it stabilizes.
           </p>
           <p className="text-sm text-slate-500">
-            Our technology services are <span className="font-semibold text-[#1A1F2B]">always free</span> to the community organizations we work with, and the tools we build <span className="font-semibold text-[#1A1F2B]">belong to you</span>. We work with each partner to find the right approach for their project &mdash; including how the work is licensed and shared. We sell professional services around these tools &mdash; never the tools themselves.
+            Our technology services are <span className="font-semibold text-[#1A1F2B]">always free</span> to the community organizations we work with, and the tools we build <span className="font-semibold text-[#1A1F2B]">belong to you</span>. We work with each partner to find the right approach for their project — including <Link href="/licensing" className="text-[#0D7377] underline hover:text-[#0D7377]/80" data-testid="link-licensing-footer-note">how the work is licensed and shared</Link>. We sell professional services around these tools — never the tools themselves.
           </p>
         </div>
       </Section>
@@ -422,7 +422,7 @@ export default function Home() {
                 },
                 {
                   title: "Real Open-Source Work, Real Stakes",
-                  desc: "Client engagements are run by our paid staff. Fellows contribute to the public open-source projects underneath &mdash; shipping features real organizations rely on, writing documentation real staff will read, and owning real outcomes on code anyone can see."
+                  desc: "Client engagements are run by our paid staff. Fellows contribute to the public open-source projects underneath — shipping features real organizations rely on, writing documentation real staff will read, and owning real outcomes on code anyone can see."
                 },
                 {
                   title: "Accessibility as Curriculum",
@@ -505,7 +505,7 @@ export default function Home() {
             Read the full strategic proposal.
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            Our board proposal lays out the open-source-plus-services operating model in full &mdash; the four program elements, the four-phase rollout, governance and funding implications, financial projections, and the open questions we're still working through. We welcome your thoughts, questions, and support.
+            Our board proposal lays out the open-source-plus-services operating model in full — the four program elements, the four-phase rollout, governance and funding implications, financial projections, and the open questions we're still working through. We welcome your thoughts, questions, and support.
           </p>
           <Button 
             className="bg-[#1A1F2B] hover:bg-[#1A1F2B]/90 text-white font-bold rounded-full px-8 py-6 h-auto"
@@ -529,7 +529,10 @@ export default function Home() {
             {[
               {
                 q: "Wait — are your tools free, or do you charge?",
-                a: "Our technology services are always free to the community organizations we work with, and the tools we build belong to you. We work with each partner to find the right approach for their project — including how the work is licensed and shared. What we charge for is professional implementation: hands-on help deploying a tool, customizing it for your workflow, training your staff, integrating it with your other systems, or hosting it for you. Organizations that want a partner pay fair-market rates for that service work — and that revenue is what sustains continued tool development."
+                a: "Our technology services are always free to the community organizations we work with, and the tools we build belong to you. We work with each partner to find the right approach for their project — including how the work is licensed and shared. What we charge for is professional implementation: hands-on help deploying a tool, customizing it for your workflow, training your staff, integrating it with your other systems, or hosting it for you. Organizations that want a partner pay fair-market rates for that service work — and that revenue is what sustains continued tool development.",
+                linkHref: "/licensing",
+                linkLabel: "Read our full licensing policy →",
+                linkTestId: "link-licensing-faq"
               },
               {
                 q: "Why open source? Couldn't you make more money keeping it proprietary?",
@@ -574,6 +577,17 @@ export default function Home() {
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground leading-relaxed">
                   {item.a}
+                  {"linkHref" in item && item.linkHref && (
+                    <div className="mt-3">
+                      <Link
+                        href={item.linkHref}
+                        className="text-[#0D7377] font-medium underline hover:text-[#0D7377]/80"
+                        data-testid={item.linkTestId}
+                      >
+                        {item.linkLabel}
+                      </Link>
+                    </div>
+                  )}
                 </AccordionContent>
               </AccordionItem>
             ))}

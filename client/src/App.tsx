@@ -7,6 +7,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import Home from "@/pages/home";
 import ApplyFellowship from "@/pages/apply-fellowship";
 import ApplyClient from "@/pages/apply-client";
+import Licensing from "@/pages/licensing";
 import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/portal/login";
@@ -68,6 +69,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/apply/fellowship" component={ApplyFellowship} />
       <Route path="/apply/client" component={ApplyClient} />
+      <Route path="/licensing" component={Licensing} />
       <Route path="/admin" component={Admin} />
 
       {/* Portal Login */}

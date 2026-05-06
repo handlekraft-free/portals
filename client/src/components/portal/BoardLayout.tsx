@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { PortalSwitcher } from "@/components/portal/PortalSwitcher";
 import logoImg from "@/assets/images/logo.png";
+import { BRAND } from "@shared/branding";
 import BoardOnboardingWizard from "@/components/portal/BoardOnboardingWizard";
 import {
   VikingHelmSvg, VikingShieldSvg, RuneDivider,
@@ -210,9 +211,9 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
 
       <div className="p-4 border-b border-white/10">
         <Link href="/" className="flex items-center gap-2 no-underline">
-          <img src={logoImg} alt="handləkraft.ai" className="w-8 h-8 rounded-lg" />
+          <img src={logoImg} alt={BRAND.fullName} className="w-8 h-8 rounded-lg" />
           <div>
-            <p className="text-white font-semibold text-sm leading-none">handləkraft</p>
+            <p className="text-white font-semibold text-sm leading-none">{BRAND.name}</p>
             <p className="text-xs mt-0.5" style={{ color: ACCENT }}>Board Portal</p>
           </div>
         </Link>

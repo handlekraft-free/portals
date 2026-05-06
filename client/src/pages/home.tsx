@@ -9,13 +9,14 @@ import { Link } from "wouter";
 import { Wordmark } from "@/components/wordmark";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import logoImg from "@/assets/images/logo.png";
+import { BRAND } from "@shared/branding";
 import vikingProud from "@/assets/images/viking-proud.png";
 import vikingCoding from "@/assets/images/viking-coding.png";
 import vikingShield from "@/assets/images/viking-shield.png";
 import vikingTriumph from "@/assets/images/viking-triumph.png";
 
 export default function Home() {
-  useEffect(() => { document.title = "handləkraft.ai — Free Open-Source AI Tools for Community Organizations"; }, []);
+  useEffect(() => { document.title = `${BRAND.fullName} — Free Open-Source AI Tools for Community Organizations`; }, []);
   return (
     <div className="min-h-screen font-body selection:bg-[#0D7377] selection:text-white">
       <Navbar />
@@ -34,7 +35,7 @@ export default function Home() {
             transition={{ duration: 0.8 }}
           >
             <div className="flex justify-center mb-8">
-              <img src={logoImg} alt="handlekraft.ai" className="w-36 h-36 rounded-3xl shadow-2xl" data-testid="img-hero-logo" />
+              <img src={logoImg} alt={BRAND.fullName} className="w-36 h-36 rounded-3xl shadow-2xl" data-testid="img-hero-logo" />
             </div>
 
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-sm font-medium mb-8 backdrop-blur-sm" data-testid="text-badge">
@@ -593,7 +594,7 @@ export default function Home() {
             <Button 
               size="lg" 
               className="bg-[#D4A843] hover:bg-[#D4A843]/90 text-[#1A1F2B] font-bold text-lg px-8 py-8 h-auto rounded-xl shadow-lg hover:shadow-[#D4A843]/30 transition-all w-full sm:w-auto"
-              onClick={() => window.location.href = "mailto:robert@retired.email?subject=Founding%20Sponsor%20Inquiry"}
+              onClick={() => window.location.href = `mailto:${BRAND.contactEmail}?subject=Founding%20Sponsor%20Inquiry`}
               data-testid="button-founding-sponsor"
             >
               <HeartHandshake className="mr-2 w-6 h-6" />
@@ -603,7 +604,7 @@ export default function Home() {
               variant="outline"
               size="lg" 
               className="bg-transparent border-white/30 hover:bg-white/10 text-white font-bold text-lg px-8 py-8 h-auto rounded-xl transition-all w-full sm:w-auto"
-              onClick={() => window.location.href = "mailto:robert@retired.email?subject=Board%20Member%20Interest"}
+              onClick={() => window.location.href = `mailto:${BRAND.contactEmail}?subject=Board%20Member%20Interest`}
               data-testid="button-join-board"
             >
               <Building2 className="mr-2 w-6 h-6" />
@@ -639,7 +640,7 @@ export default function Home() {
               variant="outline"
               size="lg" 
               className="bg-transparent border-white/30 text-white font-bold text-lg px-8 py-8 h-auto rounded-xl w-full sm:w-auto"
-              onClick={() => window.location.href = "mailto:robert@retired.email"}
+              onClick={() => window.location.href = `mailto:${BRAND.contactEmail}`}
               data-testid="button-conversation"
             >
               <Mail className="mr-2 w-6 h-6" />

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Briefcase, Building2, GraduationCap, Eye, EyeOff, ArrowLeft, Shield, Scale, KeyRound, CheckCircle2, Users } from "lucide-react";
 import logoImg from "@/assets/images/logo.png";
+import { BRAND } from "@shared/branding";
 
 type Role = "employee" | "client" | "student" | "board" | "admin";
 
@@ -57,7 +58,7 @@ export default function LoginPage() {
   const [changingPw, setChangingPw] = useState(false);
 
   useEffect(() => {
-    document.title = "Login | handləkraft.ai";
+    document.title = `Login | ${BRAND.fullName}`;
     if (!loading && user && !user.mustChangePassword) setLocation(getPortalPath(user.role));
   }, [user, loading, setLocation]);
 
@@ -136,9 +137,9 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <a href="/" className="flex items-center gap-3 mb-2">
-            <img src={logoImg} alt="handləkraft.ai" className="w-14 h-14 rounded-2xl shadow-lg" />
+            <img src={logoImg} alt={BRAND.fullName} className="w-14 h-14 rounded-2xl shadow-lg" />
           </a>
-          <h1 className="text-2xl font-display text-white mt-2">handləkraft.ai</h1>
+          <h1 className="text-2xl font-display text-white mt-2">{BRAND.fullName}</h1>
           <p className="text-white/50 text-sm mt-1">Portal Access</p>
         </div>
 
@@ -290,7 +291,7 @@ export default function LoginPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <Label htmlFor="email" className="text-white/70 text-sm">Email</Label>
-                  <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@handlekraft.ai" required className="mt-1 bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#0D7377]" data-testid="input-email" />
+                  <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={`you@${BRAND.domain}`} required className="mt-1 bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#0D7377]" data-testid="input-email" />
                 </div>
                 <div>
                   <Label htmlFor="password" className="text-white/70 text-sm">Password</Label>
@@ -316,7 +317,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-white/20 text-xs mt-6">
-          © {new Date().getFullYear()} handləkraft.ai — A 501(c)(3) nonprofit initiative
+          © {new Date().getFullYear()} {BRAND.fullName}{BRAND.is501c3 ? ` — ${BRAND.nonprofitNotice}` : ""}
         </p>
       </div>
     </div>

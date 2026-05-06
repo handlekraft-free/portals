@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard, BookOpen, FolderOpen, Megaphone, LogOut, Menu, X } from "lucide-react";
 import logoImg from "@/assets/images/logo.png";
+import { BRAND } from "@shared/branding";
 import { PortalSwitcher } from "@/components/portal/PortalSwitcher";
 
 // ── Brand tokens ──────────────────────────────────────────────────────────────
@@ -48,9 +49,9 @@ export function StudentLayout({ children }: { children: React.ReactNode }) {
       <header className="text-white shadow-lg sticky top-0 z-30" style={{ background: HEADER_BG }}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 no-underline">
-            <img src={logoImg} alt="handləkraft.ai" className="w-8 h-8 rounded-lg" />
+            <img src={logoImg} alt={BRAND.fullName} className="w-8 h-8 rounded-lg" />
             <div className="hidden sm:block">
-              <p className="text-white font-display text-sm leading-none">handləkraft.ai</p>
+              <p className="text-white font-display text-sm leading-none">{BRAND.fullName}</p>
               <p className="text-xs mt-0.5" style={{ color: ACCENT_LIGHT }}>Fellow Portal</p>
             </div>
           </Link>

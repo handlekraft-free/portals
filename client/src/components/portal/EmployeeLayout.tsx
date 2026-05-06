@@ -13,6 +13,7 @@ import { GoogleNotificationBell } from "@/components/portal/GoogleNotificationBe
 import { FloatingTimer } from "@/components/portal/FloatingTimer";
 import { PortalSwitcher } from "@/components/portal/PortalSwitcher";
 import { apiRequest } from "@/lib/auth";
+import { BRAND } from "@shared/branding";
 import logoImg from "@/assets/images/logo.png";
 import {
   VikingCrossedSwords, VikingShieldSvg, RuneDivider,
@@ -340,8 +341,8 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
 
       <div className="p-4 border-b border-white/10">
         <Link href="/" className="flex items-center gap-2 no-underline">
-          <img src={logoImg} alt="handləkraft.ai" className="w-8 h-8 rounded-lg" />
-          <span className="text-white font-display text-sm">handləkraft.ai</span>
+          <img src={logoImg} alt={BRAND.fullName} className="w-8 h-8 rounded-lg" />
+          <span className="text-white font-display text-sm">{BRAND.fullName}</span>
         </Link>
       </div>
 
@@ -435,7 +436,7 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
           <button className="md:hidden text-slate-600 hover:text-slate-800" onClick={() => setSidebarOpen(true)}>
             <Menu className="w-5 h-5" />
           </button>
-          <div className="md:hidden font-display text-[#1A1F2B] text-sm">handləkraft.ai</div>
+          <div className="md:hidden font-display text-[#1A1F2B] text-sm">{BRAND.fullName}</div>
           <div className="flex items-center gap-2 ml-auto">
             <PortalSwitcher variant="light" />
             <GoogleNotificationBell />

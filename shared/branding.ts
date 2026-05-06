@@ -30,7 +30,7 @@ export const BRAND = {
   /** One-line tagline. */
   tagline: "The Power to Act",
   /** Public contact email used in marketing CTAs and footer. */
-  contactEmail: "robert@retired.email",
+  contactEmail: "robert@handlekraft.ai",
   /** Whether this deployment is a 501(c)(3) U.S. nonprofit. */
   is501c3: true,
   /** Footer notice rendered when is501c3 is true. */

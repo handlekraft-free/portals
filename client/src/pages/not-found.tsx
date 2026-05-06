@@ -3,9 +3,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import vikingLost from "@/assets/images/viking-lost.png";
+import { BRAND } from "@shared/branding";
 
 export default function NotFound() {
-  useEffect(() => { document.title = "Page Not Found | handləkraft.ai"; }, []);
+  useEffect(() => { document.title = `Page Not Found | ${BRAND.fullName}`; }, []);
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md mx-4 shadow-xl border-border/50">

@@ -6,6 +6,7 @@ import { Users, Scale, Mail, Clock, BarChart3, ChevronDown, ChevronUp } from "lu
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BOARD_KNOWLEDGE_AREAS } from "@/components/portal/BoardExpertiseRater";
+import { BRAND } from "@shared/branding";
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -214,7 +215,7 @@ function MembersContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = "Board Members | handləkraft.ai";
+    document.title = `Board Members | ${BRAND.fullName}`;
     apiRequest("GET", "/api/board/members").then(r => {
       if (r.success) setMembers(r.data);
       setLoading(false);
@@ -234,7 +235,7 @@ function MembersContent() {
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-display text-[#1A1F2B]">Board Members</h1>
-        <p className="text-slate-500 text-sm mt-0.5">handləkraft Digital Board of Directors</p>
+        <p className="text-slate-500 text-sm mt-0.5">{BRAND.name} Digital Board of Directors</p>
       </div>
 
       {members.length === 0 ? (

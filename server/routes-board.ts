@@ -2,6 +2,7 @@ import type { Router } from "express";
 import { Router as createRouter } from "express";
 import type { SQL } from "drizzle-orm";
 import { requireBoard } from "./auth-middleware";
+import { BRAND } from "@shared/branding";
 import { db } from "./db";
 import {
   boardMeetings, boardMeetingRsvps, boardMeetingAttendees, boardAgendaItems,
@@ -2188,7 +2189,7 @@ router.all("/meetings/:id/packet", async (req, res) => {
     doc.fontSize(12).fillColor("#FFFFFF").opacity(0.7).text(meeting.location || meeting.platform || "", L, 210, { align: "center" });
     doc.opacity(1);
   }
-  doc.fontSize(11).fillColor("#FFFFFF").opacity(0.5).text("handlekraft — Board of Directors", L, 720, { align: "center" });
+  doc.fontSize(11).fillColor("#FFFFFF").opacity(0.5).text(`${BRAND.nameAscii} — Board of Directors`, L, 720, { align: "center" });
   doc.opacity(1);
 
   // Page helper
@@ -2381,7 +2382,7 @@ router.all("/meetings/:id/packet", async (req, res) => {
   for (let i = 0; i < range.count; i++) {
     doc.switchToPage(i);
     doc.fontSize(8).fillColor(lightGray).font("Helvetica")
-      .text(`handləkraft Board of Directors  •  Confidential  •  Page ${i + 1} of ${range.count}`, L, 745, { width: W, align: "center" });
+      .text(`${BRAND.name} Board of Directors  •  Confidential  •  Page ${i + 1} of ${range.count}`, L, 745, { width: W, align: "center" });
   }
 
   doc.end();

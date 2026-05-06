@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "wouter";
 import { FileText, Download, Lock, ChevronRight, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BRAND } from "@shared/branding";
 
 function formatBytes(b: number | null) {
   if (!b) return "";
@@ -17,13 +18,13 @@ export default function SharedDocument() {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    document.title = "Shared Document | handləkraft";
+    document.title = `Shared Document | ${BRAND.name}`;
     fetch(`/api/public/board/document/${token}`)
       .then(r => r.json())
       .then(r => {
         if (r.success) {
           setDoc(r.data);
-          document.title = `${r.data.title} | handləkraft`;
+          document.title = `${r.data.title} | ${BRAND.name}`;
         } else {
           setNotFound(true);
         }
@@ -147,8 +148,8 @@ export default function SharedDocument() {
       {/* Footer */}
       <footer className="py-6 text-center text-xs text-slate-400">
         © {new Date().getFullYear()}{" "}
-        <span className="font-medium text-slate-500">handl<span style={{ fontFamily: "Georgia, serif" }}>ə</span>kraft</span>
-        {" "}· handlekraft.ai
+        <span className="font-medium text-slate-500">{BRAND.name}</span>
+        {" "}· {BRAND.fullName}
       </footer>
     </div>
   );

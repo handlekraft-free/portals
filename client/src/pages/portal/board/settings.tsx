@@ -7,6 +7,7 @@ import { Settings, Save, Users, Calendar, Bell, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { BRAND } from "@shared/branding";
 
 function BoardSettingsContent() {
   const [settings, setSettings] = useState<any>({ quorumDefault: 3 });
@@ -29,7 +30,7 @@ function BoardSettingsContent() {
   const isAdmin = user?.role === "admin" || user?.role === "board";
 
   useEffect(() => {
-    document.title = "Board Settings | handləkraft.ai";
+    document.title = `Board Settings | ${BRAND.fullName}`;
     Promise.all([
       apiRequest("GET", "/api/board/settings"),
       apiRequest("GET", "/api/board/notification-prefs"),
@@ -173,7 +174,7 @@ function BoardSettingsContent() {
 
       <Card className="border-0 shadow-sm bg-indigo-50/50">
         <CardContent className="pt-4 pb-4">
-          <p className="text-xs font-semibold text-indigo-700 mb-1">About handləkraft Board Portal</p>
+          <p className="text-xs font-semibold text-indigo-700 mb-1">About {BRAND.name} Board Portal</p>
           <p className="text-xs text-indigo-600">This portal supports 501(c)(3) governance best practices including quorum tracking, meeting notice compliance, COI disclosures, and written consent procedures.</p>
         </CardContent>
       </Card>

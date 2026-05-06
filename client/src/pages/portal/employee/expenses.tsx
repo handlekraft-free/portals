@@ -7,6 +7,7 @@ import { Receipt, Plus, Download, Send, Check, X, ArrowLeft, Trash2 } from "luci
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BRAND } from "@shared/branding";
 
 const STATUS_COLORS: Record<string, string> = { draft: "bg-slate-100 text-slate-600", submitted: "bg-blue-100 text-blue-700", approved: "bg-green-100 text-green-700", rejected: "bg-red-100 text-red-700", exported: "bg-purple-100 text-purple-700" };
 
@@ -21,7 +22,7 @@ function ExpensesContent() {
   const [reportForm, setReportForm] = useState({ title: "", notes: "" });
   const [itemForm, setItemForm] = useState({ date: new Date().toISOString().split("T")[0], vendor: "", description: "", categoryId: "", amount: "", billable: false });
 
-  useEffect(() => { document.title = "Expenses | handləkraft.ai"; load(); }, []);
+  useEffect(() => { document.title = `Expenses | ${BRAND.fullName}`; load(); }, []);
 
   async function load() {
     setLoading(true);

@@ -14,6 +14,7 @@ import ClaudeChat from "@/components/portal/ClaudeChat";
 import { CrewLongship } from "@/components/portal/CrewLongship";
 import { CrewSagaCard } from "@/components/portal/CrewSagaCard";
 import {
+import { BRAND } from "@shared/branding";
   PlanDayWizard,
   loadTodayPlan,
   saveTodayPlan,
@@ -670,7 +671,7 @@ function DashboardContent() {
   }
 
   useEffect(() => {
-    document.title = "Dashboard | handləkraft.ai";
+    document.title = `Dashboard | ${BRAND.fullName}`;
     syncGoogle();
     if (user) setTodayPlan(loadTodayPlan(user.id));
   }, []);

@@ -7,6 +7,7 @@ import { ScrollText, ArrowLeft, Gavel, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { BRAND } from "@shared/branding";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-slate-100 text-slate-600",
@@ -21,7 +22,7 @@ function MinutesDetailContent({ meetingId }: { meetingId: string }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = "Meeting Minutes | handləkraft.ai";
+    document.title = `Meeting Minutes | ${BRAND.fullName}`;
     Promise.all([
       apiRequest("GET", `/api/board/meetings/${meetingId}`),
       apiRequest("GET", `/api/board/meetings/${meetingId}/minutes`),

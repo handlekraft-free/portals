@@ -7,6 +7,7 @@ import { Ticket, ArrowLeft, MessageSquare, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BRAND } from "@shared/branding";
 
 const STATUS_COLORS: Record<string, string> = { open: "bg-green-100 text-green-700", in_progress: "bg-blue-100 text-blue-700", waiting: "bg-yellow-100 text-yellow-700", resolved: "bg-slate-100 text-slate-600", closed: "bg-slate-100 text-slate-500" };
 const PRIORITY_COLORS: Record<string, string> = { urgent: "bg-red-100 text-red-700", high: "bg-orange-100 text-orange-700", medium: "bg-yellow-100 text-yellow-700", low: "bg-blue-100 text-blue-700" };
@@ -20,7 +21,7 @@ function TicketsContent() {
   const [internal, setInternal] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
 
-  useEffect(() => { document.title = "Client Tickets | handləkraft.ai"; load(); }, []);
+  useEffect(() => { document.title = `Client Tickets | ${BRAND.fullName}`; load(); }, []);
 
   async function load() {
     setLoading(true);

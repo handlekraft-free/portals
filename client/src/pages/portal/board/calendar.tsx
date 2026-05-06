@@ -8,6 +8,7 @@ import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { BRAND } from "@shared/branding";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -85,7 +86,7 @@ function CalendarContent() {
   const [editReminder, setEditReminder] = useState<any>(null);
 
   useEffect(() => {
-    document.title = "Board Calendar | handləkraft.ai";
+    document.title = `Board Calendar | ${BRAND.fullName}`;
     loadAll();
   }, []);
 

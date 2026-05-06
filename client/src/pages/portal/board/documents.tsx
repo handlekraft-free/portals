@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { BRAND } from "@shared/branding";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -944,7 +945,7 @@ function DocumentsContent() {
   }, [activeCategory]);
 
   useEffect(() => {
-    document.title = "Board Documents | handləkraft";
+    document.title = `Board Documents | ${BRAND.name}`;
     loadDocs();
     setSearchQ("");
     setSearchAllResults(null);

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Wordmark } from "@/components/wordmark";
 import logoImg from "@/assets/images/logo.png";
+import { BRAND } from "@shared/branding";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -48,7 +49,7 @@ export function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-            <img src={logoImg} alt="handlekraft.ai logo" className="w-12 h-12 rounded-lg shadow-lg" />
+            <img src={logoImg} alt={`${BRAND.fullName} logo`} className="w-12 h-12 rounded-lg shadow-lg" />
             <Wordmark size="md" className="text-white" data-testid="text-brand-name" />
           </Link>
 

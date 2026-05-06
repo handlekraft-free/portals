@@ -5,6 +5,7 @@ import { apiRequest } from "@/lib/auth";
 import { MessageSquare, Send, Plus, ArrowLeft, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { BRAND } from "@shared/branding";
 
 function MessagesContent() {
   const [messages, setMessages] = useState<any[]>([]);
@@ -14,7 +15,7 @@ function MessagesContent() {
   const [reply, setReply] = useState("");
   const [compose, setCompose] = useState({ subject: "", body: "" });
 
-  useEffect(() => { document.title = "Messages | handləkraft.ai"; load(); }, []);
+  useEffect(() => { document.title = `Messages | ${BRAND.fullName}`; load(); }, []);
 
   async function load() {
     setLoading(true);
@@ -53,7 +54,7 @@ function MessagesContent() {
       <div className="space-y-3 mb-4 max-h-[55vh] overflow-y-auto">
         {activeThread.replies?.map((r: any, i: number) => (
           <div key={i} className={`p-3 rounded-xl text-sm ${r.senderRole !== "client" ? "bg-white shadow-sm border border-slate-100 ml-0 mr-12" : "bg-[#0D7377]/10 border border-[#0D7377]/20 ml-12 mr-0"}`} data-testid={`msg-bubble-${i}`}>
-            <p className="font-medium text-slate-700 mb-1">{r.senderRole === "client" ? "You" : "handləkraft Team"}</p>
+            <p className="font-medium text-slate-700 mb-1">{r.senderRole === "client" ? "You" : `${BRAND.name} Team`}</p>
             <p className="text-slate-600">{r.body}</p>
             <p className="text-xs text-slate-400 mt-1">{new Date(r.sentAt).toLocaleString()}</p>
           </div>
@@ -69,7 +70,7 @@ function MessagesContent() {
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <div><h1 className="text-2xl font-display text-[#1A1F2B]">Messages</h1><p className="text-slate-500 text-sm">Communicate with the handləkraft team.</p></div>
+        <div><h1 className="text-2xl font-display text-[#1A1F2B]">Messages</h1><p className="text-slate-500 text-sm">Communicate with the {BRAND.name} team.</p></div>
         <Button onClick={() => setShowCompose(true)} className="bg-[#0D7377] text-white gap-2" data-testid="button-compose"><Plus className="w-4 h-4" /> New Message</Button>
       </div>
       {showCompose && (

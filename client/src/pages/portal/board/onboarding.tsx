@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BRAND } from "@shared/branding";
 
 // ── Section metadata ───────────────────────────────────────────────────────────
 
@@ -49,7 +50,7 @@ const SECTION_META = {
     bg: "bg-sky-50",
     badge: "bg-sky-100 text-sky-700 border-sky-200",
     week: "Week 4",
-    blurb: "The workforce-development landscape and the funding environment handləkraft is navigating.",
+    blurb: `The workforce-development landscape and the funding environment ${BRAND.name} is navigating.`,
   },
 };
 
@@ -354,7 +355,7 @@ function OnboardingContent() {
   const isAdmin = user?.role === "admin" || user?.role === "board";
 
   useEffect(() => {
-    document.title = "Board Onboarding | handləkraft";
+    document.title = `Board Onboarding | ${BRAND.name}`;
     load();
   }, []);
 

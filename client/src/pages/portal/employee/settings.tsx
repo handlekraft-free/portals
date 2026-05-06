@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { AvatarRenderer, type AvatarConfig } from "@/components/portal/AvatarRenderer";
 import { AvatarCustomizer } from "@/components/portal/AvatarCustomizer";
+import { BRAND } from "@shared/branding";
 
 // Profile-surface avatar customization card. Mirrors the HeroCard popover
 // entry-point so users can find avatar customization on the Settings page
@@ -510,7 +511,7 @@ export default function EmployeeSettings() {
                         Cancel
                       </Button>
                     </div>
-                    <p className="text-xs text-slate-400">Read-only access — handləkraft cannot send emails or modify your calendar.</p>
+                    <p className="text-xs text-slate-400">Read-only access — {BRAND.name} cannot send emails or modify your calendar.</p>
                   </div>
                 )}
               </>
@@ -580,7 +581,7 @@ export default function EmployeeSettings() {
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => setAddingAccount(false)}>Cancel</Button>
                     </div>
-                    <p className="text-xs text-slate-400">Read-only access — handləkraft cannot send emails or modify your calendar.</p>
+                    <p className="text-xs text-slate-400">Read-only access — {BRAND.name} cannot send emails or modify your calendar.</p>
                   </div>
                 )}
               </>

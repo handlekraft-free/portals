@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
+import { BRAND } from "@shared/branding";
   CalendarClock, Plus, Check, X, ChevronRight, Users, Clock, CheckCircle2,
   AlertCircle, MinusCircle, Pencil, Trash2, RefreshCw, ChevronDown, ChevronUp,
   CalendarDays, Lock,
@@ -102,7 +103,7 @@ function AvailabilityTab({ currentUserId, isAdmin }: { currentUserId: number; is
     setLoading(false);
   }, []);
 
-  useEffect(() => { document.title = "Scheduling | handləkraft Board"; load(); }, [load]);
+  useEffect(() => { document.title = `Scheduling | ${BRAND.name} Board`; load(); }, [load]);
 
   function toggleSlot(day: number, time: TimeOfDay) {
     setMySlots(prev => {

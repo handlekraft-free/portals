@@ -12,6 +12,7 @@ import { UserCircle, Pencil, Check, X, Linkedin, Phone, Mail, Clock, ShieldCheck
 import BoardOnboardingWizard from "@/components/portal/BoardOnboardingWizard";
 import AvailabilityGrid from "@/components/portal/AvailabilityGrid";
 import BoardExpertiseRater from "@/components/portal/BoardExpertiseRater";
+import { BRAND } from "@shared/branding";
 
 interface BoardProfile {
   id: number;
@@ -99,7 +100,7 @@ function BoardProfileContent() {
     e.target.value = "";
   }
 
-  useEffect(() => { document.title = "My Profile | handləkraft Board"; }, []);
+  useEffect(() => { document.title = `My Profile | ${BRAND.name} Board`; }, []);
 
   useEffect(() => {
     async function load() {

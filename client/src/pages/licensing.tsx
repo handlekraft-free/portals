@@ -4,10 +4,11 @@ import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { ArrowLeft, Gift, ShieldCheck, Globe2, Lock, Scale } from "lucide-react";
+import { BRAND } from "@shared/branding";
 
 export default function Licensing() {
   useEffect(() => {
-    document.title = "Licensing Policy | handləkraft.ai";
+    document.title = `Licensing Policy | ${BRAND.fullName}`;
   }, []);
 
   return (

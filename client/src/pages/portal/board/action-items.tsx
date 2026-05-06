@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { BRAND } from "@shared/branding";
 
 function fmtDate(d: string | null | undefined) {
   if (!d) return "";
@@ -326,7 +327,7 @@ function ActionItemsContent() {
     setLoading(false);
   }, [statusFilter, assigneeFilter]);
 
-  useEffect(() => { document.title = "Action Items | handləkraft.ai"; }, []);
+  useEffect(() => { document.title = `Action Items | ${BRAND.fullName}`; }, []);
   useEffect(() => { load(); }, [load]);
 
   async function updateStatus(id: number, status: string) {

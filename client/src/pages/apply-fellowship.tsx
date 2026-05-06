@@ -11,9 +11,10 @@ import { apiRequest } from "@/lib/queryClient";
 import { useState } from "react";
 import { ArrowLeft, CheckCircle2, Send } from "lucide-react";
 import { Link } from "wouter";
+import { BRAND } from "@shared/branding";
 
 export default function ApplyFellowship() {
-  useEffect(() => { document.title = "Apply for the Fellowship | handləkraft.ai"; }, []);
+  useEffect(() => { document.title = `Apply for the Fellowship | ${BRAND.fullName}`; }, []);
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
 

@@ -6,6 +6,7 @@ import { Ticket, Plus, ArrowLeft, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BRAND } from "@shared/branding";
 
 const STATUS_COLORS: Record<string, string> = { open: "bg-green-100 text-green-700", in_progress: "bg-blue-100 text-blue-700", waiting: "bg-yellow-100 text-yellow-700", resolved: "bg-slate-100 text-slate-600", closed: "bg-slate-100 text-slate-400" };
 const PRIORITY_COLORS: Record<string, string> = { low: "bg-blue-50 text-blue-600", medium: "bg-yellow-50 text-yellow-700", high: "bg-orange-50 text-orange-700", urgent: "bg-red-50 text-red-700" };
@@ -18,7 +19,7 @@ function ClientTicketsContent() {
   const [form, setForm] = useState({ title: "", description: "", category: "general", priority: "medium" });
   const [comment, setComment] = useState("");
 
-  useEffect(() => { document.title = "Support Tickets | handləkraft.ai"; load(); }, []);
+  useEffect(() => { document.title = `Support Tickets | ${BRAND.fullName}`; load(); }, []);
 
   async function load() {
     setLoading(true);
@@ -60,7 +61,7 @@ function ClientTicketsContent() {
           <div className="space-y-3 max-h-[45vh] overflow-y-auto">
             {activeTicket.comments?.filter((c: any) => !c.internal).map((c: any) => (
               <div key={c.id} className={`p-3 rounded-xl text-sm ${c.authorRole !== "client" ? "bg-white shadow-sm border ml-0 mr-12" : "bg-[#0D7377]/10 border border-[#0D7377]/20 ml-12 mr-0"}`} data-testid={`comment-${c.id}`}>
-                <p className="font-medium text-slate-700 mb-1">{c.authorRole === "client" ? "You" : "handləkraft Team"}</p>
+                <p className="font-medium text-slate-700 mb-1">{c.authorRole === "client" ? "You" : `${BRAND.name} Team`}</p>
                 <p className="text-slate-600">{c.content}</p>
                 <p className="text-xs text-slate-400 mt-1">{new Date(c.createdAt).toLocaleString()}</p>
               </div>
@@ -80,7 +81,7 @@ function ClientTicketsContent() {
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <div><h1 className="text-2xl font-display text-[#1A1F2B]">Support Tickets</h1><p className="text-slate-500 text-sm">Get help from the handləkraft team.</p></div>
+        <div><h1 className="text-2xl font-display text-[#1A1F2B]">Support Tickets</h1><p className="text-slate-500 text-sm">Get help from the {BRAND.name} team.</p></div>
         <Button onClick={() => setShowCreate(true)} className="bg-[#0D7377] text-white gap-2" data-testid="button-new-ticket"><Plus className="w-4 h-4" /> New Ticket</Button>
       </div>
       {showCreate && (

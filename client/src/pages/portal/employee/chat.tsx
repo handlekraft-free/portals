@@ -4,9 +4,10 @@ import TeamChat from "@/components/portal/TeamChat";
 import ClaudeChat from "@/components/portal/ClaudeChat";
 import { MessageSquare } from "lucide-react";
 import { useEffect } from "react";
+import { BRAND } from "@shared/branding";
 
 function ChatContent() {
-  useEffect(() => { document.title = "Communication | handləkraft.ai"; }, []);
+  useEffect(() => { document.title = `Communication | ${BRAND.fullName}`; }, []);
 
   return (
     <div>

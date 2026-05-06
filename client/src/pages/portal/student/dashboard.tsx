@@ -5,6 +5,7 @@ import { apiRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { BookOpen, Megaphone, FolderOpen, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { BRAND } from "@shared/branding";
 
 function StudentDashboardContent() {
   const { user } = useAuth();
@@ -13,7 +14,7 @@ function StudentDashboardContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = "Student Portal | handləkraft.ai";
+    document.title = `Student Portal | ${BRAND.fullName}`;
     load();
   }, []);
 

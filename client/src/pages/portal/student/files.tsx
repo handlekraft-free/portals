@@ -4,6 +4,7 @@ import { PortalGuard } from "@/components/portal/PortalGuard";
 import { apiRequest } from "@/lib/auth";
 import { FolderOpen, Upload, Download, File } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { BRAND } from "@shared/branding";
 
 function formatSize(bytes: number) { if (!bytes) return "—"; const kb = bytes / 1024; if (kb < 1024) return `${Math.round(kb)} KB`; return `${Math.round(kb / 1024 * 10) / 10} MB`; }
 
@@ -14,7 +15,7 @@ function StudentFilesContent() {
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { document.title = "Files | handləkraft.ai"; load(); }, []);
+  useEffect(() => { document.title = `Files | ${BRAND.fullName}`; load(); }, []);
 
   async function load() {
     setLoading(true);

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { BRAND } from "@shared/branding";
 
 function fmtDate(d: string | null | undefined) {
   if (!d) return "";
@@ -163,7 +164,7 @@ function FinancialsContent() {
     });
   }, []);
 
-  useEffect(() => { document.title = "Financials | handləkraft.ai"; load(); }, [load]);
+  useEffect(() => { document.title = `Financials | ${BRAND.fullName}`; load(); }, [load]);
 
   async function deleteRecord(record: any) {
     if (!confirm(`Delete "${record.title}"? This cannot be undone.`)) return;

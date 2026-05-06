@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BRAND } from "@shared/branding";
 
 // ── Section metadata ───────────────────────────────────────────────────────────
 
@@ -60,7 +61,7 @@ const SECTION_META = {
     week: "Weeks 4–6",
     blurb: "Role-specific deep dives: nonprofit messaging frameworks, donor storytelling, writing craft, email strategy.",
   },
-  "Part 5: handləkraft-Specific": {
+  [`Part 5: ${BRAND.name}-Specific`]: {
     icon: <Building2 className="w-5 h-5" />,
     color: "text-slate-600",
     ring: "ring-slate-300",
@@ -91,7 +92,7 @@ const ROLE_BADGE: Record<string, { label: string; cls: string }> = {
 const WEEKLY_PLAN = [
   { week: "Week 1", focus: "NVC + Reinventing Organizations + Deep Work", est: "~1 hr" },
   { week: "Week 2", focus: "Anthropic tutorial + best practices + Mollick", est: "~4 hrs" },
-  { week: "Week 3", focus: "Zhuo + Victor + handləkraft proposal", est: "~2 hrs" },
+  { week: "Week 3", focus: `Zhuo + Victor + ${BRAND.name} proposal`, est: "~2 hrs" },
   { week: "Week 4", focus: "Role-specific reading begins", est: "2–3 hrs" },
   { week: "Week 5", focus: "Role-specific reading continues", est: "2–3 hrs" },
   { week: "Week 6", focus: "Tier 1/Tier 2 plans + role-specific wrap-up", est: "2–3 hrs" },
@@ -353,7 +354,7 @@ function OnboardingContent() {
   const isAdmin = user?.role === "admin";
 
   useEffect(() => {
-    document.title = "Onboarding | handləkraft";
+    document.title = `Onboarding | ${BRAND.name}`;
     load();
   }, []);
 

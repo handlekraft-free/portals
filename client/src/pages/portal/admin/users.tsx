@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { BRAND } from "@shared/branding";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -158,7 +159,7 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
           </div>
           <div>
             <label className="text-xs font-medium text-slate-500 mb-1 block">Email Address *</label>
-            <input required type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="jordan@handlekraft.ai" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-user-email" />
+            <input required type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder={`jordan@${BRAND.domain}`} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-user-email" />
           </div>
           <div>
             <label className="text-xs font-medium text-slate-500 mb-1 block">Primary Role *</label>
@@ -631,7 +632,7 @@ function AdminUsersContent() {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [activeTab, setActiveTab] = useState<"users" | "managers" | "charge-codes">("users");
 
-  useEffect(() => { document.title = "Portal Users | handləkraft.ai"; load(); }, []);
+  useEffect(() => { document.title = `Portal Users | ${BRAND.fullName}`; load(); }, []);
 
   async function load() {
     setLoading(true);

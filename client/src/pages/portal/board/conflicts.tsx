@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { BRAND } from "@shared/branding";
 
 function fmtDate(d: string | null | undefined) {
   if (!d) return "";
@@ -71,7 +72,7 @@ function NewDisclosureModal({ onClose, onSaved }: { onClose: () => void; onSaved
             <textarea
               value={form.disclosures}
               onChange={e => setForm(f => ({ ...f, disclosures: e.target.value }))}
-              placeholder="List any relationships, financial interests, board positions at other organizations, or business dealings that may create an actual or apparent conflict of interest with handləkraft…"
+              placeholder={`List any relationships, financial interests, board positions at other organizations, or business dealings that may create an actual or apparent conflict of interest with ${BRAND.name}…`}
               rows={5}
               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
               data-testid="textarea-coi-disclosures"
@@ -149,7 +150,7 @@ function ConflictsContent() {
     setLoading(false);
   }, [isAdmin, user]);
 
-  useEffect(() => { document.title = "Conflicts of Interest | handləkraft.ai"; load(); }, [load]);
+  useEffect(() => { document.title = `Conflicts of Interest | ${BRAND.fullName}`; load(); }, [load]);
 
   // Current-year disclosure filed by this user?
   const myCurrentYearCoi = disclosures.find((d: any) =>

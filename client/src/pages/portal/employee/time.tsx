@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BRAND } from "@shared/branding";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -954,7 +955,7 @@ function TimeContent() {
 
   const canApprove = user?.role === "admin" || user?.canApprove === true;
 
-  useEffect(() => { document.title = "Timesheets | handləkraft.ai"; }, []);
+  useEffect(() => { document.title = `Timesheets | ${BRAND.fullName}`; }, []);
 
   // Current two-week period Monday
   const currentPeriodStart = getMondayOfWeek();

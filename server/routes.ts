@@ -6,6 +6,7 @@ import pg from "pg";
 import bcrypt from "bcryptjs";
 import { storage } from "./storage";
 import { insertFellowshipApplicationSchema, insertClientApplicationSchema } from "@shared/schema";
+import { BRAND } from "@shared/branding";
 import {
   users, expenseCategories, chargeCodes,
   boardMeetings, boardAgendaItems, boardMeetingAttendees, boardMeetingNotices, boardActionItems,
@@ -466,7 +467,7 @@ export async function registerRoutes(
   // Seed default legacy admin if none exists
   const existingAdmin = await storage.getAdminByUsername("admin");
   if (!existingAdmin) {
-    await storage.createAdmin("admin", "handlekraft2026");
+    await storage.createAdmin("admin", `${BRAND.nameAscii}2026`);
   }
 
   // Seed default portal users if table is empty
@@ -476,19 +477,20 @@ export async function registerRoutes(
       console.log("[seed] Portal users table is empty — seeding default accounts…");
       const hash = async (pw: string) => bcrypt.hash(pw, 12);
       await db.insert(users).values([
-        { email: "admin@handlekraft.ai", passwordHash: await hash("Admin1234!"), role: "admin", firstName: "Admin", lastName: "User", status: "active", canApprove: true },
-        { email: "employee1@handlekraft.ai", passwordHash: await hash("Employee1!"), role: "employee", firstName: "Jordan", lastName: "Lee", status: "active" },
-        { email: "employee2@handlekraft.ai", passwordHash: await hash("Employee1!"), role: "employee", firstName: "Sam", lastName: "Torres", status: "active" },
-        { email: "client1@handlekraft.ai", passwordHash: await hash("Client123!"), role: "client", firstName: "River", lastName: "Park", status: "active" },
-        { email: "student1@handlekraft.ai", passwordHash: await hash("Student1!"), role: "student", firstName: "Alex", lastName: "Rivera", status: "active" },
+        { email: `admin@${BRAND.domain}`, passwordHash: await hash("Admin1234!"), role: "admin", firstName: "Admin", lastName: "User", status: "active", canApprove: true },
+        { email: `employee1@${BRAND.domain}`, passwordHash: await hash("Employee1!"), role: "employee", firstName: "Jordan", lastName: "Lee", status: "active" },
+        { email: `employee2@${BRAND.domain}`, passwordHash: await hash("Employee1!"), role: "employee", firstName: "Sam", lastName: "Torres", status: "active" },
+        { email: `client1@${BRAND.domain}`, passwordHash: await hash("Client123!"), role: "client", firstName: "River", lastName: "Park", status: "active" },
+        { email: `student1@${BRAND.domain}`, passwordHash: await hash("Student1!"), role: "student", firstName: "Alex", lastName: "Rivera", status: "active" },
       ]);
       console.log("[seed] ✓ Portal users seeded");
     }
     // Seed board user if missing (added after initial seeding)
-    const existing = await db.select({ id: users.id }).from(users).where(sql`email = 'board1@handlekraft.ai'`);
+    const board1Email = `board1@${BRAND.domain}`;
+    const existing = await db.select({ id: users.id }).from(users).where(sql`email = ${board1Email}`);
     if (existing.length === 0) {
       await db.insert(users).values({
-        email: "board1@handlekraft.ai",
+        email: board1Email,
         passwordHash: await bcrypt.hash("Board1234!", 12),
         role: "board",
         firstName: "Dana",
@@ -588,10 +590,10 @@ export async function registerRoutes(
         { title: "Ann Handley — Everybody Writes (Selected Chapters)", description: "The standard reference for clear, useful business writing. Especially valuable because much of your work will be writing — social posts, email campaigns, donor communications, grant narratives. Read the sections on writing rules and content type how-tos.", linkUrl: "https://annhandley.com/everybodywrites/", section: "Part 4B: Marketing & Social Media Lead", estimatedTime: "~2 hours (priority chapters)", roleFilter: "marketing_lead", position: 16 },
         { title: "Mailchimp Email Marketing Field Guide", description: "We'll use Mailchimp's free tier in year one. This is their official guide — practical, not promotional. Covers list building, segmentation, deliverability, and what actually moves open rates.", linkUrl: "https://mailchimp.com/resources/email-marketing-field-guide/", section: "Part 4B: Marketing & Social Media Lead", estimatedTime: "~1 hour", roleFilter: "marketing_lead", position: 17 },
         { title: "Beth Kanter — Networked Nonprofit (Selected Posts)", description: "Beth Kanter has written about nonprofit social media for 20 years. Her work is grounded in actual practice and real outcomes, not vanity metrics. Pick recent posts on AI for nonprofits, content strategy, or community building.", linkUrl: "https://bethkanter.org", section: "Part 4B: Marketing & Social Media Lead", estimatedTime: "Browse 1–2 hours", roleFilter: "marketing_lead", position: 18 },
-        // Part 5: handləkraft-Specific (all, ongoing)
-        { title: "The handləkraft Proposal", description: "Read it carefully. Re-read in 90 days. The proposal is our shared map. If we drift from it, we should know we're drifting.", linkUrl: "https://handlekraft.ai/proposal.pdf", section: "Part 5: handləkraft-Specific", estimatedTime: "Read carefully", roleFilter: "all", position: 19 },
-        { title: "The Tier 1 Training Plan", description: "The fellowship curriculum is the heart of our program. Both roles support fellows; both roles will eventually help shape future cohorts. Know what we're teaching and why.", linkUrl: "https://handlekraft.ai/docs/handlekraft-tier1-training-plan.docx", section: "Part 5: handləkraft-Specific", estimatedTime: "Read carefully", roleFilter: "all", position: 20 },
-        { title: "The Tier 2 Training Plan (Early Draft)", description: "Read for awareness. This is where the program is going, not where it is. Your input on the final design will be welcomed once we've run a Tier 1 cohort.", linkUrl: "https://handlekraft.ai/docs/handlekraft-tier2-training-plan.docx", section: "Part 5: handləkraft-Specific", estimatedTime: "Read for awareness", roleFilter: "all", position: 21 },
+        // Part 5: Org-Specific (all, ongoing)
+        { title: `The ${BRAND.name} Proposal`, description: "Read it carefully. Re-read in 90 days. The proposal is our shared map. If we drift from it, we should know we're drifting.", linkUrl: BRAND.proposalUrl, section: `Part 5: ${BRAND.name}-Specific`, estimatedTime: "Read carefully", roleFilter: "all", position: 19 },
+        { title: "The Tier 1 Training Plan", description: "The fellowship curriculum is the heart of our program. Both roles support fellows; both roles will eventually help shape future cohorts. Know what we're teaching and why.", linkUrl: BRAND.tier1TrainingUrl, section: `Part 5: ${BRAND.name}-Specific`, estimatedTime: "Read carefully", roleFilter: "all", position: 20 },
+        { title: "The Tier 2 Training Plan (Early Draft)", description: "Read for awareness. This is where the program is going, not where it is. Your input on the final design will be welcomed once we've run a Tier 1 cohort.", linkUrl: BRAND.tier2TrainingUrl, section: `Part 5: ${BRAND.name}-Specific`, estimatedTime: "Read for awareness", roleFilter: "all", position: 21 },
       ]);
       console.log("[seed] ✓ Employee onboarding items seeded");
     }
@@ -609,7 +611,7 @@ export async function registerRoutes(
         const adminId = adminRows[0].id;
         const [board] = await db.insert(kanbanBoards).values({
           name: "Internal Team",
-          description: "Handlekraft internal task board — auto-populated from client support tickets",
+          description: `${BRAND.name} internal task board — auto-populated from client support tickets`,
           createdBy: adminId,
         }).returning();
         await db.insert(kanbanColumns).values([
@@ -704,7 +706,7 @@ export async function registerRoutes(
 
         const [m2] = await db.insert(boardMeetings).values({
           title: "Annual Board Meeting 2026", meetingType: "annual", status: "scheduled",
-          scheduledAt: annual, location: "handlekraft HQ \u2014 Conference Room A",
+          scheduledAt: annual, location: `${BRAND.name} HQ \u2014 Conference Room A`,
           quorumNumber: 3, createdBy: adminId,
         }).returning({ id: boardMeetings.id });
 

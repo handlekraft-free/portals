@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { BRAND } from "@shared/branding";
 
 const STATUS_COLORS: Record<string, string> = { draft: "bg-slate-100 text-slate-600", published: "bg-green-100 text-green-700", archived: "bg-slate-100 text-slate-400" };
 
@@ -24,7 +25,7 @@ function LMSContent() {
   const [showAnnouncement, setShowAnnouncement] = useState(false);
   const [newLesson, setNewLesson] = useState<{ moduleId: number | null; title: string; contentType: string; content: string }>({ moduleId: null, title: "", contentType: "text", content: "" });
 
-  useEffect(() => { document.title = "LMS Management | handləkraft.ai"; load(); }, []);
+  useEffect(() => { document.title = `LMS Management | ${BRAND.fullName}`; load(); }, []);
 
   async function load() {
     setLoading(true);

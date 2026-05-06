@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { BRAND } from "@shared/branding";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -1150,7 +1151,7 @@ function MinutesContent() {
   const [statusFilter, setStatusFilter] = useState<string>("");
 
   useEffect(() => {
-    document.title = "Board Minutes | handləkraft.ai";
+    document.title = `Board Minutes | ${BRAND.fullName}`;
     Promise.all([
       apiRequest("GET", "/api/board/meetings"),
       apiRequest("GET", "/api/board/minutes"),

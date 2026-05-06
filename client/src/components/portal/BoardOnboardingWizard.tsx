@@ -14,6 +14,7 @@ import {
 import BoardExpertiseRater from "@/components/portal/BoardExpertiseRater";
 import logoImg from "@/assets/images/logo.png";
 import AvailabilityGrid from "@/components/portal/AvailabilityGrid";
+import { BRAND } from "@shared/branding";
 
 const STEPS = [
   { id: "welcome",      label: "Welcome",      icon: <Sparkles className="w-4 h-4" /> },
@@ -35,7 +36,7 @@ function WelcomeStep({ firstName, onNext }: { firstName: string; onNext: () => v
       <div>
         <h2 className="text-2xl font-display text-[#1A1F2B] mb-2">Welcome, {firstName}!</h2>
         <p className="text-slate-500 max-w-md mx-auto leading-relaxed">
-          You've been added to the <strong className="text-[#0D7377]">handləkraft</strong> Board of Directors portal.
+          You've been added to the <strong className="text-[#0D7377]">{BRAND.name}</strong> Board of Directors portal.
           This quick setup takes about 3 minutes and will get you ready to participate fully.
         </p>
       </div>
@@ -530,7 +531,7 @@ export default function BoardOnboardingWizard({ onComplete }: { onComplete: () =
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white shadow-sm shrink-0">
         <div className="flex items-center gap-3">
-          <img src={logoImg} alt="handləkraft" className="h-7 w-auto" />
+          <img src={logoImg} alt={BRAND.name} className="h-7 w-auto" />
           <span className="font-display text-[#1A1F2B] text-lg hidden sm:inline">Board Portal Setup</span>
         </div>
         {/* Step pills */}

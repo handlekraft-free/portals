@@ -6,6 +6,7 @@ import { Shield, Edit, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BRAND } from "@shared/branding";
 
 function RosterContent() {
   const [members, setMembers] = useState<any[]>([]);
@@ -20,7 +21,7 @@ function RosterContent() {
     });
   };
 
-  useEffect(() => { document.title = "Board Roster | handləkraft.ai"; loadMembers(); }, []);
+  useEffect(() => { document.title = `Board Roster | ${BRAND.fullName}`; loadMembers(); }, []);
 
   async function saveEdit(id: number) {
     await apiRequest("PATCH", `/api/admin/portal-users/${id}`, {

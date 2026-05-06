@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import TeamChat from "@/components/portal/TeamChat";
 import ClaudeChat from "@/components/portal/ClaudeChat";
+import { BRAND } from "@shared/branding";
 
 const TYPE_LABELS: Record<string, string> = {
   regular: "Regular",
@@ -41,7 +42,7 @@ function BoardDashboardContent() {
   };
 
   useEffect(() => {
-    document.title = "Board Dashboard | handləkraft.ai";
+    document.title = `Board Dashboard | ${BRAND.fullName}`;
     loadDashboard();
   }, []);
 
@@ -97,7 +98,7 @@ function BoardDashboardContent() {
 
         <div className="relative z-10">
           <p className="text-indigo-300/70 text-[11px] uppercase tracking-widest mb-1.5">
-            Board of Directors · handləkraft Digital
+            Board of Directors · {BRAND.name} Digital
           </p>
           <h1 className="text-2xl font-display flex items-center gap-2 flex-wrap">
             Heil, {user?.firstName}!

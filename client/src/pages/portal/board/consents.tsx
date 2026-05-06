@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { BRAND } from "@shared/branding";
 
 function fmtDate(d: string | null | undefined) {
   if (!d) return "";
@@ -381,7 +382,7 @@ function ConsentsContent() {
     });
   }, []);
 
-  useEffect(() => { document.title = "Written Consents | handləkraft.ai"; load(); }, [load]);
+  useEffect(() => { document.title = `Written Consents | ${BRAND.fullName}`; load(); }, [load]);
 
   async function respond(consentId: number, response: "consent" | "decline", reason?: string) {
     const r = await apiRequest("POST", `/api/board/consents/${consentId}/respond`, { response, reason });

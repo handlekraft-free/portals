@@ -7,6 +7,7 @@ import { FolderOpen, MessageSquare, Ticket, Upload, Plus, ArrowRight } from "luc
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { BRAND } from "@shared/branding";
 
 function ClientDashboardContent() {
   const { user } = useAuth();
@@ -15,7 +16,7 @@ function ClientDashboardContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = "Client Portal | handləkraft.ai";
+    document.title = `Client Portal | ${BRAND.fullName}`;
     load();
   }, []);
 

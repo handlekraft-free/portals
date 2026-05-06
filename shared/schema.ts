@@ -3,7 +3,14 @@ import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// ─── Existing Public Application Tables ───────────────────────────────────────
+// ─── MARKETING_ONLY: BEGIN ────────────────────────────────────────────────────
+// Everything between the BEGIN and END markers backs the public-facing
+// marketing pages on the handləkraft.ai site (fellowship + client application
+// forms) and is NOT used by any portal feature. The fork-strip script removes:
+//   - both tables and their insert schemas (this block)
+//   - the matching `/api/applications/*` routes in server/routes.ts
+//   - the marketing pages in client/src/pages (home, apply-*, licensing, admin)
+// Do not add portal-aligned tables inside this block.
 
 export const fellowshipApplications = pgTable("fellowship_applications", {
   id: serial("id").primaryKey(),
@@ -51,6 +58,9 @@ export const insertClientApplicationSchema = createInsertSchema(clientApplicatio
 });
 export type InsertClientApplication = z.infer<typeof insertClientApplicationSchema>;
 export type ClientApplication = typeof clientApplications.$inferSelect;
+
+// ─── MARKETING_ONLY: END ──────────────────────────────────────────────────────
+// Everything below this line is portal-aligned and SHOULD remain in the OSS fork.
 
 export const adminUsers = pgTable("admin_users", {
   id: serial("id").primaryKey(),

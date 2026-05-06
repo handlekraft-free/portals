@@ -19,6 +19,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { useToast } from "@/hooks/use-toast";
 import { isCompletionColumn, xpForPriority, INITIATIVE_MULTIPLIER } from "@shared/xp";
 import { motion, AnimatePresence } from "framer-motion";
+import { BRAND } from "@shared/branding";
 
 // Tiny hook that respects the OS reduced-motion preference.
 function usePrefersReducedMotion(): boolean {
@@ -1897,7 +1898,7 @@ function KanbanContent() {
   const [factoryLoading, setFactoryLoading] = useState(false);
 
   useEffect(() => {
-    document.title = "Kanban | handləkraft.ai";
+    document.title = `Kanban | ${BRAND.fullName}`;
     loadBoards();
     apiRequest("GET", "/api/kanban/users").then(r => { if (r.success) setPortalUsers(r.data); });
   }, []);

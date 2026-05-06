@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import BoardExpertiseRater from "@/components/portal/BoardExpertiseRater";
+import { BRAND } from "@shared/branding";
 
 function fmtYear(d: string | null | undefined) {
   if (!d) return null;
@@ -431,7 +432,7 @@ function DirectoryContent() {
     });
   }, []);
 
-  useEffect(() => { document.title = "Board Directory | handləkraft.ai"; load(); }, [load]);
+  useEffect(() => { document.title = `Board Directory | ${BRAND.fullName}`; load(); }, [load]);
 
   const filtered = search.trim()
     ? members.filter(m => {

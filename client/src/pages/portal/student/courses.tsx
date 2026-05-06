@@ -6,6 +6,7 @@ import { BookOpen, ChevronRight, Check, ArrowLeft, Play, FileText, File, HelpCir
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BRAND } from "@shared/branding";
 
 function CoursesContent() {
   const [courses, setCourses] = useState<any[]>([]);
@@ -13,7 +14,7 @@ function CoursesContent() {
   const [activeLesson, setActiveLesson] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { document.title = "My Courses | handləkraft.ai"; load(); }, []);
+  useEffect(() => { document.title = `My Courses | ${BRAND.fullName}`; load(); }, []);
 
   async function load() {
     setLoading(true);

@@ -5,12 +5,13 @@ import { apiRequest } from "@/lib/auth";
 import { Megaphone } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BRAND } from "@shared/branding";
 
 function AnnouncementsContent() {
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { document.title = "Announcements | handləkraft.ai"; load(); }, []);
+  useEffect(() => { document.title = `Announcements | ${BRAND.fullName}`; load(); }, []);
 
   async function load() {
     setLoading(true);
@@ -22,7 +23,7 @@ function AnnouncementsContent() {
   return (
     <div>
       <h1 className="text-2xl font-display text-[#1A1F2B] mb-1">Announcements</h1>
-      <p className="text-slate-500 text-sm mb-5">Messages from your instructors and the handləkraft team.</p>
+      <p className="text-slate-500 text-sm mb-5">Messages from your instructors and the {BRAND.name} team.</p>
       {loading ? <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-24 bg-white rounded-xl animate-pulse" />)}</div> : (
         <div className="space-y-3">
           {announcements.length === 0 ? (

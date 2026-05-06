@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BRAND } from "@shared/branding";
 
 const STATUS_COLORS: Record<string, string> = {
   scheduled: "bg-blue-100 text-blue-700 border-blue-200",
@@ -499,7 +500,7 @@ function MeetingsContent() {
   };
 
   useEffect(() => {
-    document.title = "Board Meetings | handləkraft.ai";
+    document.title = `Board Meetings | ${BRAND.fullName}`;
     loadMeetings();
   }, []);
 

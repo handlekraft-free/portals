@@ -7,6 +7,7 @@ import { MessageSquare, Plus, Send, ChevronLeft, MessageCircle, Sparkles, Loader
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BRAND } from "@shared/branding";
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -202,7 +203,7 @@ function ForumsContent() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = "Board Forums | handləkraft.ai";
+    document.title = `Board Forums | ${BRAND.fullName}`;
     loadTopics();
     getCurrentUser().then(setMe);
     apiRequest("GET", "/api/board/committees").then(r => {

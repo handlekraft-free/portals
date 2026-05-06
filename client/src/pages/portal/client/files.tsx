@@ -5,6 +5,7 @@ import { apiRequest } from "@/lib/auth";
 import { FolderOpen, Upload, Download, Trash2, File, Image, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { BRAND } from "@shared/branding";
 
 function formatSize(bytes: number) { if (!bytes) return "—"; const kb = bytes / 1024; if (kb < 1024) return `${Math.round(kb)} KB`; return `${Math.round(kb / 1024 * 10) / 10} MB`; }
 function getIcon(mime: string) { if (mime?.startsWith("image/")) return <Image className="w-5 h-5 text-purple-500" />; if (mime?.includes("pdf") || mime?.includes("text")) return <FileText className="w-5 h-5 text-red-500" />; return <File className="w-5 h-5 text-slate-400" />; }
@@ -17,7 +18,7 @@ function FilesContent() {
   const [tab, setTab] = useState<"all" | "mine">("all");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { document.title = "Files | handləkraft.ai"; load(); }, []);
+  useEffect(() => { document.title = `Files | ${BRAND.fullName}`; load(); }, []);
 
   async function load() {
     setLoading(true);
@@ -53,7 +54,7 @@ function FilesContent() {
   return (
     <div>
       <h1 className="text-2xl font-display text-[#1A1F2B] mb-1">Files</h1>
-      <p className="text-slate-500 text-sm mb-5">Shared files between you and the handləkraft team.</p>
+      <p className="text-slate-500 text-sm mb-5">Shared files between you and the {BRAND.name} team.</p>
 
       {/* Upload Zone */}
       <div

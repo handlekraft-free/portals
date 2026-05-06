@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import {
 import { BRAND } from "@shared/branding";
+import {
   CalendarClock, Plus, Check, X, ChevronRight, Users, Clock, CheckCircle2,
   AlertCircle, MinusCircle, Pencil, Trash2, RefreshCw, ChevronDown, ChevronUp,
   CalendarDays, Lock,

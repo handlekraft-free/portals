@@ -13,8 +13,8 @@ import TeamChat from "@/components/portal/TeamChat";
 import ClaudeChat from "@/components/portal/ClaudeChat";
 import { CrewLongship } from "@/components/portal/CrewLongship";
 import { CrewSagaCard } from "@/components/portal/CrewSagaCard";
-import {
 import { BRAND } from "@shared/branding";
+import {
   PlanDayWizard,
   loadTodayPlan,
   saveTodayPlan,

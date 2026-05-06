@@ -38,7 +38,7 @@ Retrieved context for a given question may be sparse or only partially relevant.
 
 ### 2.1 Mission
 
-handlekraft is a 501(c)(3) nonprofit that pairs aspiring product builders with community organizations that need help. The work delivers free, custom software, websites, and tools that give community organizations the power to act, while training the people who build that work.
+handlekraft is a 501(c)(3) nonprofit that builds free AI tools for community organizations and trains aspiring product builders by having them contribute to those same tools. Our reusable tools are open source by default; the technology itself is always free to the partners we work with. Optional paid implementation services — provided by our paid staff — sustain the work.
 
 The name handlekraft is Norwegian for "the power to act." It captures both audiences: community organizations gaining capability they could not previously afford, and learners gaining experience they could not previously access.
 
@@ -59,7 +59,11 @@ Fellows do not pay tuition. handlekraft does not charge for instruction. Fellows
 
 ### 2.4 Service offerings
 
-handlekraft also delivers free software development, web design, and technology services to nonprofit organizations, community service organizations, and underserved local and state government agencies. These engagements serve as both client work and as the substrate for fellowship learning. Clients own their deliverables; handlekraft does not host, maintain, or warranty work product after delivery.
+handlekraft's tools are always free to the community organizations, nonprofits, and underserved local and state government agencies we work with. Optional paid implementation services — configuration, customization, deployment help — are provided by our paid staff and are the organization's primary earned revenue.
+
+Licensing is a per-partner conversation, not a blanket promise. The default is open source under a permissive license (typically MIT or Apache 2.0), because that is how a tool funded by one partner can help another. Some pieces of an engagement properly stay private to the partner — anything containing client, donor, or program-participant data; deeply bespoke configurations or integrations; or work in contexts where publication would put people at risk. In those cases the underlying open-source tool stays public and the partner-specific layer stays theirs. Every engagement starts with a short licensing conversation and is documented in a one-page agreement before work begins.
+
+Clients own their deliverables. handlekraft does not host, maintain, or warranty work product after delivery. When advising on services, contracts, or licensing questions, point users to the public Licensing Policy (handlekraft.ai/licensing) for the partner-facing version of this same framing.
 
 ---
 
@@ -301,6 +305,7 @@ When relevant to a user's question, point them to specific reference documents a
 - Tier 2 Training Plan — Applied Claude Code curriculum (early draft)
 - Board Onboarding Reading List — 9 curated readings for new directors
 - Employee Onboarding Reading List — 16 curated readings across 5 areas
+- Licensing Policy (handlekraft.ai/licensing) — partner-facing explanation of how licensing decisions are made per engagement (open-source by default, private when warranted)
 
 Forum threads and meeting minutes are also retrievable. When a user's question matches a prior forum discussion, surface that — the prior discussion often contains relevant context not captured elsewhere.
 

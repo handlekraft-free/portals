@@ -98,6 +98,30 @@ Disabled portals are hidden from the login screen, their API routes are not moun
 
 The frontend reads the list from `GET /api/public/portals`, so toggling only requires a server restart, not a rebuild.
 
+### Demo data
+
+The server **does not** auto-seed demo content on startup. A first start against a fresh database produces an empty schema and no login accounts. To get a working demo (and to log in for the first time), run the seed script. **Local only — do not run against production.**
+
+```bash
+# Wipe all user/runtime data, then seed a small generic demo set
+tsx scripts/seed.ts --reset
+
+# Or, idempotently insert any missing demo rows without wiping
+tsx scripts/seed.ts
+```
+
+The script preserves the schema and `app_settings`, then seeds:
+
+- 1 admin + 1 user per portal (employee, client, student, board) on the `BRAND.domain` email domain
+- 1 sample project, 3 charge codes, 3 expense categories, 1 sample time entry
+- 1 kanban board ("Team Board") with **To Do / In Progress / Done** columns and 3 sample cards
+- 1 client support ticket and 1 client message
+- 1 short course ("Getting Started") with 1 module, 2 lessons, the demo student enrolled, and 1 announcement
+- 1 upcoming board meeting (with agenda), 1 placeholder document, 1 action item, 3 generic onboarding items
+- 2 chat channels (`general`, `announcements`) each with a welcome message
+
+Demo passwords are printed at the end of the run. Change them (or re-seed with edited values) before exposing the deployment.
+
 ### File uploads
 
 Uploads land in `./data/uploads/` by default (configurable via `UPLOAD_DIR`). The directory is created automatically.

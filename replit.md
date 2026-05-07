@@ -6,11 +6,12 @@ Open-source extraction of the handləkraft.ai portal system: Employee, Client, S
 
 ## Run & Operate
 
-- **Run Dev Server:** `tsx server/index.ts`
+- **Run Dev Server:** `tsx server/index.ts` (or `npm run dev`)
 - **Build Production:** `script/build.ts` (orchestrates Vite for client, esbuild for server)
-- **Typecheck:** _Populate as you build_
+- **Typecheck:** `npm run check`
 - **Codegen:** _Populate as you build_
-- **DB Push:** _Populate as you build_
+- **DB Push:** `npm run db:push` (drizzle-kit push)
+- **Wipe + reseed local demo data:** `tsx scripts/seed.ts --reset` (idempotent re-seed without wipe: omit `--reset`). Local development only; prints demo credentials. See README "Demo data".
 
 **Required Environment Variables:** see `.env.example`
 - Required: `DATABASE_URL`, `JWT_SECRET`

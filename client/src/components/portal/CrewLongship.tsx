@@ -19,10 +19,10 @@ function Rower({ filled, idx }: { filled: boolean; idx: number }) {
   // Anonymous silhouette — no faces, no names. Slight x-offset per slot.
   return (
     <g transform={`translate(${idx * 26}, 0)`} opacity={filled ? 1 : 0.18}>
-      <circle cx="13" cy="10" r="4" fill={filled ? "#1A1F2B" : "#94a3b8"} />
+      <circle cx="13" cy="10" r="4" fill={filled ? "#0F172A" : "#94a3b8"} />
       <path
         d={`M5 30 C5 20, 21 20, 21 30 L21 34 L5 34 Z`}
-        fill={filled ? "#1A1F2B" : "#94a3b8"}
+        fill={filled ? "#0F172A" : "#94a3b8"}
       />
       {/* oar */}
       <line
@@ -30,7 +30,7 @@ function Rower({ filled, idx }: { filled: boolean; idx: number }) {
         y1="22"
         x2="34"
         y2={filled ? 36 : 32}
-        stroke={filled ? "#0D7377" : "#cbd5e1"}
+        stroke={filled ? "#2563EB" : "#cbd5e1"}
         strokeWidth="2"
         strokeLinecap="round"
       />
@@ -83,13 +83,13 @@ export function CrewLongship() {
 
   return (
     <div
-      className="rounded-2xl bg-gradient-to-br from-[#f5f3ef] to-[#ece8df] border border-[#D4A843]/20 mb-6 overflow-hidden"
+      className="rounded-2xl bg-gradient-to-br from-[#f8fafc] to-[#ece8df] border border-[#10B981]/20 mb-6 overflow-hidden"
       data-testid="card-crew-longship"
     >
       <div className="px-5 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Anchor className="w-4 h-4 text-[#0D7377]" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#0D7377]">
+          <Anchor className="w-4 h-4 text-[#2563EB]" />
+          <span className="text-xs font-semibold uppercase tracking-wider text-[#2563EB]">
             The Crew this week
           </span>
         </div>
@@ -123,7 +123,7 @@ export function CrewLongship() {
             strokeWidth="1.5"
           />
           {/* Shield strake */}
-          <rect x="10" y="44" width={ROWER_SLOTS * 26 + 40} height="6" fill="#D4A843" opacity="0.35" />
+          <rect x="10" y="44" width={ROWER_SLOTS * 26 + 40} height="6" fill="#10B981" opacity="0.35" />
           {/* Rowers */}
           <g transform="translate(20, 8)">
             {Array.from({ length: ROWER_SLOTS }).map((_, i) => (
@@ -136,7 +136,7 @@ export function CrewLongship() {
             y1="68"
             x2={ROWER_SLOTS * 26 + 60}
             y2="68"
-            stroke="#0D7377"
+            stroke="#2563EB"
             strokeWidth="1"
             strokeDasharray="4 6"
             opacity="0.4"
@@ -157,11 +157,11 @@ export function CrewLongship() {
       {/* Full crew banner */}
       {data.fullCrew && !bannerDismissed && (
         <div
-          className="mx-3 mb-3 rounded-xl bg-gradient-to-r from-[#0D7377]/10 to-[#D4A843]/15 border border-[#D4A843]/30 px-4 py-2.5 flex items-center gap-2.5"
+          className="mx-3 mb-3 rounded-xl bg-gradient-to-r from-[#2563EB]/10 to-[#10B981]/15 border border-[#10B981]/30 px-4 py-2.5 flex items-center gap-2.5"
           data-testid="banner-full-crew"
         >
-          <Sparkles className="w-4 h-4 text-[#D4A843] shrink-0" />
-          <p className="text-xs text-[#1A1F2B] flex-1 leading-snug">
+          <Sparkles className="w-4 h-4 text-[#10B981] shrink-0" />
+          <p className="text-xs text-[#0F172A] flex-1 leading-snug">
             <span className="font-semibold">Full crew this week.</span>{" "}
             <span className="text-slate-600">Every oar in the water — the longship sails.</span>
           </p>

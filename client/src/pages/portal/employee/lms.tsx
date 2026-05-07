@@ -88,18 +88,18 @@ function LMSContent() {
   if (!activeCourse) return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <div><h1 className="text-2xl font-display text-[#1A1F2B]">Course Management</h1><p className="text-slate-500 text-sm">Create and manage courses for your fellows.</p></div>
-        <Button onClick={() => setShowNewCourse(true)} className="bg-[#0D7377] text-white gap-2" data-testid="button-new-course"><Plus className="w-4 h-4" /> New Course</Button>
+        <div><h1 className="text-2xl font-display text-[#0F172A]">Course Management</h1><p className="text-slate-500 text-sm">Create and manage courses for your fellows.</p></div>
+        <Button onClick={() => setShowNewCourse(true)} className="bg-[#2563EB] text-white gap-2" data-testid="button-new-course"><Plus className="w-4 h-4" /> New Course</Button>
       </div>
       {showNewCourse && (
-        <Card className="mb-4 border-[#0D7377]/20 shadow-sm">
+        <Card className="mb-4 border-[#2563EB]/20 shadow-sm">
           <CardHeader className="pb-2"><CardTitle className="text-sm">New Course</CardTitle></CardHeader>
           <CardContent>
             <form onSubmit={createCourse} className="space-y-3">
-              <input required value={courseForm.title} onChange={e => setCourseForm(f => ({ ...f, title: e.target.value }))} placeholder="Course title *" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-course-title" />
-              <textarea value={courseForm.description} onChange={e => setCourseForm(f => ({ ...f, description: e.target.value }))} placeholder="Description" rows={2} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" />
+              <input required value={courseForm.title} onChange={e => setCourseForm(f => ({ ...f, title: e.target.value }))} placeholder="Course title *" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-course-title" />
+              <textarea value={courseForm.description} onChange={e => setCourseForm(f => ({ ...f, description: e.target.value }))} placeholder="Description" rows={2} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" />
               <div className="flex gap-2">
-                <Button type="submit" className="bg-[#0D7377] text-white gap-1" data-testid="button-create-course"><Check className="w-4 h-4" /> Create</Button>
+                <Button type="submit" className="bg-[#2563EB] text-white gap-1" data-testid="button-create-course"><Check className="w-4 h-4" /> Create</Button>
                 <Button type="button" variant="outline" onClick={() => setShowNewCourse(false)}><X className="w-4 h-4" /> Cancel</Button>
               </div>
             </form>
@@ -113,7 +113,7 @@ function LMSContent() {
               <Card key={c.id} className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => loadCourse(c.id)} data-testid={`card-course-${c.id}`}>
                 <CardContent className="py-3 px-4 flex items-center gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#1A1F2B]">{c.title}</p>
+                    <p className="text-sm font-medium text-[#0F172A]">{c.title}</p>
                     <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{c.description}</p>
                   </div>
                   <Badge className={`text-xs shrink-0 ${STATUS_COLORS[c.status] || ""}`}>{c.status}</Badge>
@@ -130,7 +130,7 @@ function LMSContent() {
     <div>
       <div className="flex items-center gap-3 mb-4">
         <button onClick={() => setActiveCourse(null)} className="flex items-center gap-1 text-slate-500 hover:text-slate-700 text-sm" data-testid="button-back-courses"><ArrowLeft className="w-4 h-4" /> Courses</button>
-        <h1 className="text-lg font-display text-[#1A1F2B] flex-1">{activeCourse.title}</h1>
+        <h1 className="text-lg font-display text-[#0F172A] flex-1">{activeCourse.title}</h1>
         <div className="flex gap-2">
           {activeCourse.status === "draft" && <Button size="sm" onClick={() => updateCourseStatus(activeCourse.id, "published")} className="bg-green-600 text-white" data-testid="button-publish">Publish</Button>}
           <Button size="sm" variant="outline" onClick={() => setShowAnnouncement(!showAnnouncement)} className="gap-1" data-testid="button-new-announcement"><Megaphone className="w-4 h-4" /> Announce</Button>
@@ -161,12 +161,12 @@ function LMSContent() {
               {showNewModule && (
                 <form onSubmit={addModule} className="mb-4 space-y-2 p-3 bg-slate-50 rounded-lg">
                   <input required value={newModule.title} onChange={e => setNewModule(f => ({ ...f, title: e.target.value }))} placeholder="Module title" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" data-testid="input-module-title" />
-                  <div className="flex gap-2"><Button type="submit" size="sm" className="bg-[#0D7377] text-white" data-testid="button-save-module">Add</Button><Button type="button" variant="outline" size="sm" onClick={() => setShowNewModule(false)}>Cancel</Button></div>
+                  <div className="flex gap-2"><Button type="submit" size="sm" className="bg-[#2563EB] text-white" data-testid="button-save-module">Add</Button><Button type="button" variant="outline" size="sm" onClick={() => setShowNewModule(false)}>Cancel</Button></div>
                 </form>
               )}
               {activeCourse.modules?.map((mod: any) => (
                 <div key={mod.id} className="mb-4">
-                  <h3 className="text-sm font-semibold text-[#1A1F2B] mb-2">{mod.title}</h3>
+                  <h3 className="text-sm font-semibold text-[#0F172A] mb-2">{mod.title}</h3>
                   {mod.lessons?.map((l: any) => (
                     <div key={l.id} className="flex items-center gap-2 py-1.5 px-3 bg-slate-50 rounded-lg mb-1 text-sm" data-testid={`lesson-row-${l.id}`}>
                       <span className="flex-1 text-slate-600">{l.title}</span>
@@ -180,10 +180,10 @@ function LMSContent() {
                         {["text", "video", "file", "quiz"].map(t => <option key={t} value={t}>{t}</option>)}
                       </select>
                       <textarea value={newLesson.content} onChange={e => setNewLesson(f => ({ ...f, content: e.target.value }))} placeholder="Content (HTML/URL/quiz JSON)" rows={3} className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm" data-testid="input-lesson-content" />
-                      <div className="flex gap-2"><Button type="submit" size="sm" className="bg-[#0D7377] text-white" data-testid="button-save-lesson">Add Lesson</Button><Button type="button" variant="outline" size="sm" onClick={() => setNewLesson({ moduleId: null, title: "", contentType: "text", content: "" })}>Cancel</Button></div>
+                      <div className="flex gap-2"><Button type="submit" size="sm" className="bg-[#2563EB] text-white" data-testid="button-save-lesson">Add Lesson</Button><Button type="button" variant="outline" size="sm" onClick={() => setNewLesson({ moduleId: null, title: "", contentType: "text", content: "" })}>Cancel</Button></div>
                     </form>
                   ) : (
-                    <button onClick={() => setNewLesson(f => ({ ...f, moduleId: mod.id }))} className="flex items-center gap-1 text-xs text-slate-400 hover:text-[#0D7377] mt-1 px-3 py-1" data-testid={`button-add-lesson-${mod.id}`}><Plus className="w-3 h-3" /> Add Lesson</button>
+                    <button onClick={() => setNewLesson(f => ({ ...f, moduleId: mod.id }))} className="flex items-center gap-1 text-xs text-slate-400 hover:text-[#2563EB] mt-1 px-3 py-1" data-testid={`button-add-lesson-${mod.id}`}><Plus className="w-3 h-3" /> Add Lesson</button>
                   )}
                 </div>
               ))}
@@ -197,7 +197,7 @@ function LMSContent() {
             <CardContent>
               <form onSubmit={enrollStudent} className="flex gap-2 mb-3">
                 <input type="email" value={enrollEmail} onChange={e => setEnrollEmail(e.target.value)} placeholder="student@email.com" className="flex-1 border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none" data-testid="input-enroll-email" />
-                <Button type="submit" size="sm" className="bg-[#0D7377] text-white shrink-0" data-testid="button-enroll">Enroll</Button>
+                <Button type="submit" size="sm" className="bg-[#2563EB] text-white shrink-0" data-testid="button-enroll">Enroll</Button>
               </form>
               <div className="space-y-2">
                 {activeCourse.students?.map((s: any) => (

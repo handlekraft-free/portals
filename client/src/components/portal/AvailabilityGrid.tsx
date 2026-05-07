@@ -142,7 +142,7 @@ export default function AvailabilityGrid({
                         onClick={() => toggle(d, t)}
                         className={`w-full h-10 rounded-xl border-2 transition-all flex items-center justify-center ${
                           checked
-                            ? "border-[#0D7377] bg-[#0D7377]/15 text-[#0D7377]"
+                            ? "border-[#2563EB] bg-[#2563EB]/15 text-[#2563EB]"
                             : "border-slate-200 hover:border-slate-300 bg-white"
                         }`}
                         data-testid={`${testIdPrefix}-${d}-${t}`}
@@ -168,7 +168,7 @@ export default function AvailabilityGrid({
           value={notes}
           onChange={e => setNotes(e.target.value)}
           placeholder="e.g. I'm in EST (UTC−5) — add 3 hours. Unavailable school holidays."
-          className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+          className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
           data-testid={`${testIdPrefix}-notes`}
         />
       </div>
@@ -182,7 +182,7 @@ export default function AvailabilityGrid({
           <Button
             onClick={save}
             disabled={saving}
-            className="flex-1 bg-[#0D7377] hover:bg-[#0a5c60] text-white gap-2"
+            className="flex-1 bg-[#2563EB] hover:bg-[#0a5c60] text-white gap-2"
             data-testid={`${testIdPrefix}-save`}
           >
             {saving ? "Saving…" : <><Check className="w-4 h-4" /> Save Availability</>}
@@ -192,7 +192,7 @@ export default function AvailabilityGrid({
         <Button
           onClick={save}
           disabled={saving}
-          className="bg-[#0D7377] hover:bg-[#0a5c60] text-white gap-2"
+          className="bg-[#2563EB] hover:bg-[#0a5c60] text-white gap-2"
           data-testid={`${testIdPrefix}-save`}
         >
           {saving ? "Saving…" : <><Check className="w-4 h-4" /> Save Availability</>}

@@ -41,7 +41,7 @@ function MinutesDetailContent({ meetingId }: { meetingId: string }) {
       <button onClick={() => navigate("/portal/board/minutes")} className="flex items-center gap-1 text-slate-500 hover:text-slate-700 text-sm mb-4" data-testid="button-back-to-minutes">
         <ArrowLeft className="w-4 h-4" /> All Minutes
       </button>
-      <h1 className="text-2xl font-display text-[#1A1F2B] mb-0.5">{meeting.title}</h1>
+      <h1 className="text-2xl font-display text-[#0F172A] mb-0.5">{meeting.title}</h1>
       <p className="text-sm text-slate-400 mb-6">{new Date(meeting.scheduledAt).toLocaleDateString()} — Minutes</p>
 
       {!minutes ? (
@@ -70,7 +70,7 @@ function MinutesDetailContent({ meetingId }: { meetingId: string }) {
                   {minutes.motions.map((m: any) => (
                     <div key={m.id} className="p-3 bg-slate-50 rounded-lg" data-testid={`motion-${m.id}`}>
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-medium text-[#1A1F2B]">{m.motionText}</p>
+                        <p className="text-sm font-medium text-[#0F172A]">{m.motionText}</p>
                         <Badge className={m.passed ? "bg-green-100 text-green-700 text-xs" : "bg-red-100 text-red-700 text-xs"}>{m.passed ? "Passed" : "Not Passed"}</Badge>
                       </div>
                       {(m.votesFor > 0 || m.votesAgainst > 0) && (
@@ -92,7 +92,7 @@ function MinutesDetailContent({ meetingId }: { meetingId: string }) {
                     <div key={a.id} className="flex items-start gap-2 py-2 border-b border-slate-100 last:border-0" data-testid={`action-${a.id}`}>
                       <Check className="w-4 h-4 text-teal-400 mt-0.5 shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-[#1A1F2B]">{a.title}</p>
+                        <p className="text-sm font-medium text-[#0F172A]">{a.title}</p>
                         {a.description && <p className="text-xs text-slate-500">{a.description}</p>}
                         {a.dueDate && <p className="text-xs text-slate-400">Due: {new Date(a.dueDate).toLocaleDateString()}</p>}
                       </div>

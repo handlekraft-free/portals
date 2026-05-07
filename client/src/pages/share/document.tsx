@@ -34,17 +34,15 @@ export default function SharedDocument() {
   }, [token]);
 
   return (
-    <div className="min-h-screen bg-[#F5F3EF] flex flex-col">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
       {/* Top bar */}
-      <header className="bg-[#1A1F2B] px-6 py-4">
+      <header className="bg-[#0F172A] px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#0D7377] flex items-center justify-center">
-            <span className="text-white font-bold text-sm font-display">HK</span>
+          <div className="w-8 h-8 rounded-lg bg-[#2563EB] flex items-center justify-center">
+            <span className="text-white font-bold text-sm">{BRAND.fullName.charAt(0)}</span>
           </div>
           <div className="flex items-center gap-1.5 text-slate-300 text-sm">
-            <span className="text-white font-semibold" style={{ fontFamily: "var(--font-display)" }}>
-              handl<span style={{ fontFamily: "Georgia, serif" }}>ə</span>kraft
-            </span>
+            <span className="text-white font-semibold">{BRAND.fullName}</span>
             <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
             <span>Shared Document</span>
           </div>
@@ -70,7 +68,7 @@ export default function SharedDocument() {
               <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
                 <AlertCircle className="w-7 h-7 text-red-400" />
               </div>
-              <h1 className="text-xl font-semibold text-[#1A1F2B] mb-2">Link not found</h1>
+              <h1 className="text-xl font-semibold text-[#0F172A] mb-2">Link not found</h1>
               <p className="text-slate-500 text-sm max-w-sm mx-auto">
                 This document link is either invalid or has been revoked. Please contact the person who shared it with you.
               </p>
@@ -106,7 +104,7 @@ export default function SharedDocument() {
                       {doc.fileName && (
                         <div className="flex-1 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
                           <p className="text-xs text-slate-400 mb-0.5">File</p>
-                          <p className="text-sm font-medium text-[#1A1F2B] truncate">{doc.fileName}</p>
+                          <p className="text-sm font-medium text-[#0F172A] truncate">{doc.fileName}</p>
                           {doc.fileSize && (
                             <p className="text-xs text-slate-400 mt-0.5">{formatBytes(doc.fileSize)}</p>
                           )}
@@ -119,7 +117,7 @@ export default function SharedDocument() {
                       download
                       data-testid="button-download-shared"
                     >
-                      <Button className="bg-[#0D7377] hover:bg-[#0a5f63] text-white px-6 py-2.5 rounded-xl flex items-center gap-2 w-full sm:w-auto justify-center">
+                      <Button className="bg-[#2563EB] hover:bg-[#0a5f63] text-white px-6 py-2.5 rounded-xl flex items-center gap-2 w-full sm:w-auto justify-center">
                         <Download className="w-4 h-4" />
                         Download Document
                       </Button>

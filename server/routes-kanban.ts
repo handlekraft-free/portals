@@ -31,8 +31,8 @@ async function getOrCreateFactory(userId: number) {
     }).returning();
     factory = result[0];
     await db.insert(kanbanColumns).values([
-      { boardId: factory.id, title: "Available Quests ⚓", position: 0, color: "#0D7377" },
-      { boardId: factory.id, title: "In Progress 🪓",     position: 1, color: "#D4A843" },
+      { boardId: factory.id, title: "Available Quests ⚓", position: 0, color: "#2563EB" },
+      { boardId: factory.id, title: "In Progress 🪓",     position: 1, color: "#10B981" },
       { boardId: factory.id, title: "Valhalla ⚔️",        position: 2, color: "#16a34a" },
     ]);
   }
@@ -624,8 +624,8 @@ router.post("/boards", async (req, res) => {
   const [board] = await db.insert(kanbanBoards).values({ name, description, teamId: teamId || null, createdBy: userId }).returning();
   await db.insert(kanbanColumns).values([
     { boardId: board.id, title: "Backlog", position: 0, color: "#64748b" },
-    { boardId: board.id, title: "In Progress 🪓", position: 1, color: "#0D7377" },
-    { boardId: board.id, title: "In Review", position: 2, color: "#D4A843" },
+    { boardId: board.id, title: "In Progress 🪓", position: 1, color: "#2563EB" },
+    { boardId: board.id, title: "In Review", position: 2, color: "#10B981" },
     { boardId: board.id, title: "Valhalla ⚔️", position: 3, color: "#16a34a" },
   ]);
   res.status(201).json({ success: true, data: board });

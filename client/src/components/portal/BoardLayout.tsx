@@ -19,9 +19,9 @@ import {
 
 // ── Brand tokens ──────────────────────────────────────────────────────────────
 // Board portal: espresso sidebar + gold accents + parchment background
-const SIDEBAR_BG   = "#1C1810";
-const ACCENT       = "#D4A843";
-const ACCENT_DARK  = "#b8922e";
+const SIDEBAR_BG   = "#0F172A";
+const ACCENT       = "#10B981";
+const ACCENT_DARK  = "#059669";
 
 const navItems = [
   { href: "/portal/board/dashboard",   icon: <LayoutDashboard className="w-4 h-4" />, label: "Dashboard" },
@@ -128,7 +128,7 @@ function NotificationBell() {
       {open && (
         <div className="absolute right-0 top-8 w-80 bg-white rounded-xl shadow-xl border border-amber-100 z-50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-amber-50">
-            <p className="text-sm font-semibold text-[#1C1810]">Notifications</p>
+            <p className="text-sm font-semibold text-[#0F172A]">Notifications</p>
             <div className="flex items-center gap-1">
               {count > 0 && (
                 <button
@@ -161,7 +161,7 @@ function NotificationBell() {
                   className={`px-4 py-3 border-b border-slate-50 last:border-0 ${!n.read ? "bg-amber-50/60" : ""}`}
                   data-testid={`notification-${n.id}`}
                 >
-                  <p className={`text-xs ${!n.read ? "font-medium text-[#1C1810]" : "text-slate-600"}`}>{n.message}</p>
+                  <p className={`text-xs ${!n.read ? "font-medium text-[#0F172A]" : "text-slate-600"}`}>{n.message}</p>
                   <p className="text-[10px] text-slate-400 mt-0.5">{fmtTime(n.created_at)}</p>
                 </div>
               ))
@@ -192,7 +192,7 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
   const navLinkClass = (href: string) =>
     `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors no-underline ${
       isActive(href)
-        ? "text-[#1C1810] font-semibold"
+        ? "text-[#0F172A] font-semibold"
         : "text-white/60 hover:bg-white/10 hover:text-white"
     }`;
 

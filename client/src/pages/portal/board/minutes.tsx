@@ -178,7 +178,7 @@ function HistoryDrawer({ minutesId, onClose }: { minutesId: number; onClose: () 
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
           <div className="flex items-center gap-2">
             <History className="w-4 h-4 text-indigo-500" />
-            <h2 className="font-semibold text-[#1A1F2B]">Version History</h2>
+            <h2 className="font-semibold text-[#0F172A]">Version History</h2>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600" data-testid="button-close-history">
             <X className="w-5 h-5" />
@@ -203,7 +203,7 @@ function HistoryDrawer({ minutesId, onClose }: { minutesId: number; onClose: () 
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-[#1A1F2B]">Version {v.version_number}</p>
+                      <p className="text-sm font-semibold text-[#0F172A]">Version {v.version_number}</p>
                       {idx === 0 && <span className="text-[10px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-semibold">Latest</span>}
                       {prev === null && <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">Initial</span>}
                     </div>
@@ -614,7 +614,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
           <button onClick={onBack} className="flex items-center gap-1 text-slate-400 hover:text-slate-600 text-sm mb-2" data-testid="button-back-minutes">
             <ArrowLeft className="w-4 h-4" /> All Meetings
           </button>
-          <h1 className="text-2xl font-display text-[#1A1F2B] leading-tight">{meeting.title}</h1>
+          <h1 className="text-2xl font-display text-[#0F172A] leading-tight">{meeting.title}</h1>
           <p className="text-slate-400 text-sm mt-0.5">{meetingDate}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end mt-1">
@@ -686,7 +686,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                   return (
                     <div key={m.id} className="grid grid-cols-[1fr_110px_120px_90px] gap-2 items-center p-2 bg-slate-50 rounded-lg" data-testid={`attendee-${m.id}`}>
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-[#1A1F2B] truncate">{m.firstName} {m.lastName}</p>
+                        <p className="text-sm font-medium text-[#0F172A] truncate">{m.firstName} {m.lastName}</p>
                         {m.boardPosition && <p className="text-xs text-slate-400 truncate">{m.boardPosition}</p>}
                       </div>
                       <select
@@ -922,7 +922,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-start gap-2 flex-1 min-w-0">
                         <span className="text-xs font-bold text-slate-400 mt-0.5 shrink-0">#{i + 1}</span>
-                        <p className="text-sm font-medium text-[#1A1F2B]">{m.motionText}</p>
+                        <p className="text-sm font-medium text-[#0F172A]">{m.motionText}</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <Badge className={`text-xs border ${m.passed ? "bg-green-100 text-green-700 border-green-200" : "bg-red-100 text-red-700 border-red-200"}`}>
@@ -978,7 +978,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
                   <div className="flex items-start gap-2 py-2.5 border-b border-slate-100 last:border-0 group">
                     <Check className="w-4 h-4 text-teal-400 mt-0.5 shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#1A1F2B]">{a.title}</p>
+                      <p className="text-sm font-medium text-[#0F172A]">{a.title}</p>
                       {a.description && <p className="text-xs text-slate-500">{a.description}</p>}
                       <div className="flex gap-3 mt-0.5 text-xs text-slate-400 flex-wrap">
                         {(a.first_name || a.last_name) && <span>Assigned: {a.first_name} {a.last_name}</span>}
@@ -1078,7 +1078,7 @@ function MinutesEditor({ meeting, onBack }: { meeting: any; onBack: () => void }
               <div key={d.id} className="flex items-start gap-2 py-2 border-b border-slate-100 last:border-0 group" data-testid={`packet-doc-${d.id}`}>
                 <FileText className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#1A1F2B] truncate">{d.title}</p>
+                  <p className="text-sm font-medium text-[#0F172A] truncate">{d.title}</p>
                   <p className="text-xs text-slate-400">{d.category} · {d.confidentiality === "board_only" ? "Board Only" : "Confidential"}</p>
                   {d.note && <p className="text-xs text-indigo-600 italic">{d.note}</p>}
                 </div>
@@ -1198,7 +1198,7 @@ function MinutesContent() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B]">Meeting Minutes</h1>
+          <h1 className="text-2xl font-display text-[#0F172A]">Meeting Minutes</h1>
           <p className="text-slate-500 text-sm mt-0.5">Select a meeting to view or record minutes.</p>
         </div>
       </div>
@@ -1259,7 +1259,7 @@ function MinutesContent() {
                       }`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm text-[#1A1F2B] truncate">{m.title}</p>
+                      <p className="font-semibold text-sm text-[#0F172A] truncate">{m.title}</p>
                       <p className="text-xs text-slate-400">{new Date(m.scheduledAt).toLocaleDateString("en-US", {
                         weekday: "short", year: "numeric", month: "short", day: "numeric",
                       })}</p>

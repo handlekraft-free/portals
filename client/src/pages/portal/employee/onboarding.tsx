@@ -123,7 +123,7 @@ function AddItemModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl">
-          <p className="font-semibold text-[#1A1F2B]">Add Onboarding Item</p>
+          <p className="font-semibold text-[#0F172A]">Add Onboarding Item</p>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" data-testid="button-close-add-item"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-5 space-y-3">
@@ -143,7 +143,7 @@ function AddItemModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
             <option value="marketing_lead">Marketing &amp; Social Media Lead only</option>
           </select>
           <div className="flex gap-2 pt-1">
-            <Button onClick={save} disabled={saving || !form.title.trim()} className="bg-[#0D7377] hover:bg-teal-700 text-white flex-1" data-testid="button-save-onboarding">
+            <Button onClick={save} disabled={saving || !form.title.trim()} className="bg-[#2563EB] hover:bg-teal-700 text-white flex-1" data-testid="button-save-onboarding">
               {saving ? "Saving…" : "Add Item"}
             </Button>
             <Button variant="outline" onClick={onClose}>Cancel</Button>
@@ -183,7 +183,7 @@ function ReadingCard({
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className={`font-semibold text-sm leading-snug mb-1.5 ${acked ? "line-through text-slate-400" : "text-[#1A1F2B]"}`}>
+          <p className={`font-semibold text-sm leading-snug mb-1.5 ${acked ? "line-through text-slate-400" : "text-[#0F172A]"}`}>
             {item.title}
           </p>
 
@@ -396,15 +396,15 @@ function OnboardingContent() {
       {/* Header */}
       <div className="flex items-start justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B] flex items-center gap-2">
-            <GraduationCap className="w-6 h-6 text-[#0D7377]" /> Employee Onboarding
+          <h1 className="text-2xl font-display text-[#0F172A] flex items-center gap-2">
+            <GraduationCap className="w-6 h-6 text-[#2563EB]" /> Employee Onboarding
           </h1>
           <p className="text-slate-500 text-sm mt-0.5">
             ~15–18 hours of reading across six weeks — about 3 hours per week, on the clock. This is real work.
           </p>
         </div>
         {isAdmin && (
-          <Button onClick={() => setAdding(true)} className="bg-[#0D7377] hover:bg-teal-700 text-white gap-1.5 shrink-0" data-testid="button-add-item">
+          <Button onClick={() => setAdding(true)} className="bg-[#2563EB] hover:bg-teal-700 text-white gap-1.5 shrink-0" data-testid="button-add-item">
             <Plus className="w-4 h-4" /> Add Item
           </Button>
         )}
@@ -417,19 +417,19 @@ function OnboardingContent() {
             <div className="flex items-center gap-2">
               {pct === 100
                 ? <Sparkles className="w-5 h-5 text-green-500" />
-                : <GraduationCap className="w-5 h-5 text-[#0D7377]" />
+                : <GraduationCap className="w-5 h-5 text-[#2563EB]" />
               }
-              <span className="font-semibold text-sm text-[#1A1F2B]">
+              <span className="font-semibold text-sm text-[#0F172A]">
                 {pct === 100 ? "Onboarding complete — welcome to the crew!" : "Your reading progress"}
               </span>
             </div>
-            <span className={`text-sm font-bold ${pct === 100 ? "text-green-600" : "text-[#0D7377]"}`} data-testid="text-onboarding-progress">
+            <span className={`text-sm font-bold ${pct === 100 ? "text-green-600" : "text-[#2563EB]"}`} data-testid="text-onboarding-progress">
               {done} of {total} read
             </span>
           </div>
           <div className="w-full bg-slate-100 rounded-full h-2.5">
             <div
-              className={`h-2.5 rounded-full transition-all duration-500 ${pct === 100 ? "bg-green-500" : "bg-[#0D7377]"}`}
+              className={`h-2.5 rounded-full transition-all duration-500 ${pct === 100 ? "bg-green-500" : "bg-[#2563EB]"}`}
               style={{ width: `${pct}%` }}
             />
           </div>
@@ -456,15 +456,15 @@ function OnboardingContent() {
                 <tbody>
                   {WEEKLY_PLAN.map((row, i) => (
                     <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
-                      <td className="px-3 py-2 font-medium text-[#0D7377]">{row.week}</td>
+                      <td className="px-3 py-2 font-medium text-[#2563EB]">{row.week}</td>
                       <td className="px-3 py-2 text-slate-600">{row.focus}</td>
                       <td className="px-3 py-2 text-slate-400 text-right font-mono">{row.est}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <div className="bg-[#0D7377]/5 border-t border-slate-100 px-3 py-2">
-                <p className="text-xs text-[#0D7377] font-medium">Total: ~15–18 hours over six weeks. This time is on the clock — protect it.</p>
+              <div className="bg-[#2563EB]/5 border-t border-slate-100 px-3 py-2">
+                <p className="text-xs text-[#2563EB] font-medium">Total: ~15–18 hours over six weeks. This time is on the clock — protect it.</p>
               </div>
             </div>
           )}

@@ -44,7 +44,7 @@ export function unlocksForRank(rank: Rank | null | undefined) {
 
 // SVG-based renderer — no asset files. Layered: base disc → cloak → face →
 // beard → helm → emblem. All optional.
-export function AvatarRenderer({ initials, config, size = 36, ringColor = "#D4A843" }: AvatarRendererProps) {
+export function AvatarRenderer({ initials, config, size = 36, ringColor = "#10B981" }: AvatarRendererProps) {
   const { helm, cloak, beard, emblem } = useMemo(() => ({
     helm:   (config?.helm   ?? "none") as HelmOpt,
     cloak:  (config?.cloak  ?? "none") as CloakOpt,
@@ -69,8 +69,8 @@ export function AvatarRenderer({ initials, config, size = 36, ringColor = "#D4A8
       {/* Face disc */}
       <defs>
         <linearGradient id="hk-avatar-face" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"  stopColor="#0D7377" />
-          <stop offset="100%" stopColor="#0a5f62" />
+          <stop offset="0%"  stopColor="#2563EB" />
+          <stop offset="100%" stopColor="#1d4ed8" />
         </linearGradient>
       </defs>
       <circle cx="32" cy="32" r="28" fill="url(#hk-avatar-face)" />
@@ -101,15 +101,15 @@ function HelmLayer({ variant }: { variant: HelmOpt }) {
   if (variant === "ironcap") {
     return (
       <g>
-        <path d="M10 26 Q32 6 54 26 L54 30 L10 30 Z" fill="#5b6470" stroke="#1A1F2B" strokeWidth="1" />
-        <line x1="32" y1="8" x2="32" y2="30" stroke="#1A1F2B" strokeWidth="1" />
+        <path d="M10 26 Q32 6 54 26 L54 30 L10 30 Z" fill="#5b6470" stroke="#0F172A" strokeWidth="1" />
+        <line x1="32" y1="8" x2="32" y2="30" stroke="#0F172A" strokeWidth="1" />
       </g>
     );
   }
   if (variant === "horned") {
     return (
       <g>
-        <path d="M10 26 Q32 6 54 26 L54 30 L10 30 Z" fill="#3a4252" stroke="#1A1F2B" strokeWidth="1" />
+        <path d="M10 26 Q32 6 54 26 L54 30 L10 30 Z" fill="#3a4252" stroke="#0F172A" strokeWidth="1" />
         <path d="M10 26 Q4 18 2 12" fill="none" stroke="#e8d6a8" strokeWidth="2.5" strokeLinecap="round" />
         <path d="M54 26 Q60 18 62 12" fill="none" stroke="#e8d6a8" strokeWidth="2.5" strokeLinecap="round" />
       </g>
@@ -118,9 +118,9 @@ function HelmLayer({ variant }: { variant: HelmOpt }) {
   if (variant === "winged") {
     return (
       <g>
-        <path d="M10 26 Q32 6 54 26 L54 30 L10 30 Z" fill="#2a3142" stroke="#1A1F2B" strokeWidth="1" />
-        <path d="M8 22 Q2 18 4 10 Q10 14 12 22 Z" fill="#D4A843" />
-        <path d="M56 22 Q62 18 60 10 Q54 14 52 22 Z" fill="#D4A843" />
+        <path d="M10 26 Q32 6 54 26 L54 30 L10 30 Z" fill="#2a3142" stroke="#0F172A" strokeWidth="1" />
+        <path d="M8 22 Q2 18 4 10 Q10 14 12 22 Z" fill="#10B981" />
+        <path d="M56 22 Q62 18 60 10 Q54 14 52 22 Z" fill="#10B981" />
       </g>
     );
   }
@@ -137,13 +137,13 @@ function CloakLayer({ variant }: { variant: CloakOpt }) {
       <path
         d="M4 56 Q4 40 14 36 L50 36 Q60 40 60 56 L60 64 L4 64 Z"
         fill={fill}
-        stroke="#1A1F2B" strokeWidth="0.75"
+        stroke="#0F172A" strokeWidth="0.75"
       />
       {variant === "fur" && (
         <path d="M14 36 Q32 32 50 36" fill="none" stroke="#d8c9a3" strokeWidth="2" strokeLinecap="round" />
       )}
       {variant === "royal" && (
-        <circle cx="32" cy="40" r="2" fill="#D4A843" />
+        <circle cx="32" cy="40" r="2" fill="#10B981" />
       )}
     </g>
   );
@@ -160,8 +160,8 @@ function BeardLayer({ variant }: { variant: BeardOpt }) {
     return (
       <g>
         <path d="M22 44 Q32 52 42 44 Q42 56 32 58 Q22 56 22 44 Z" fill="#3a2a1a" />
-        <circle cx="29" cy="60" r="1.5" fill="#D4A843" />
-        <circle cx="35" cy="60" r="1.5" fill="#D4A843" />
+        <circle cx="29" cy="60" r="1.5" fill="#10B981" />
+        <circle cx="35" cy="60" r="1.5" fill="#10B981" />
       </g>
     );
   }
@@ -172,15 +172,15 @@ function EmblemLayer({ variant }: { variant: EmblemOpt }) {
   const cx = 50, cy = 50, r = 8;
   return (
     <g>
-      <circle cx={cx} cy={cy} r={r} fill="#1A1F2B" stroke="#D4A843" strokeWidth="1.5" />
+      <circle cx={cx} cy={cy} r={r} fill="#0F172A" stroke="#10B981" strokeWidth="1.5" />
       {variant === "raven" && (
-        <path d={`M${cx - 4} ${cy + 1} Q${cx} ${cy - 4} ${cx + 4} ${cy + 1} L${cx + 2} ${cy + 3} L${cx - 2} ${cy + 3} Z`} fill="#D4A843" />
+        <path d={`M${cx - 4} ${cy + 1} Q${cx} ${cy - 4} ${cx + 4} ${cy + 1} L${cx + 2} ${cy + 3} L${cx - 2} ${cy + 3} Z`} fill="#10B981" />
       )}
       {variant === "wolf" && (
-        <path d={`M${cx - 4} ${cy + 3} L${cx - 3} ${cy - 3} L${cx - 1} ${cy - 1} L${cx + 1} ${cy - 1} L${cx + 3} ${cy - 3} L${cx + 4} ${cy + 3} Z`} fill="#D4A843" />
+        <path d={`M${cx - 4} ${cy + 3} L${cx - 3} ${cy - 3} L${cx - 1} ${cy - 1} L${cx + 1} ${cy - 1} L${cx + 3} ${cy - 3} L${cx + 4} ${cy + 3} Z`} fill="#10B981" />
       )}
       {variant === "tree" && (
-        <g stroke="#D4A843" strokeWidth="1.2" fill="none" strokeLinecap="round">
+        <g stroke="#10B981" strokeWidth="1.2" fill="none" strokeLinecap="round">
           <line x1={cx} y1={cy - 4} x2={cx} y2={cy + 4} />
           <line x1={cx} y1={cy - 2} x2={cx - 3} y2={cy - 4} />
           <line x1={cx} y1={cy - 2} x2={cx + 3} y2={cy - 4} />

@@ -66,7 +66,7 @@ export default function BoardExpertiseRater({ value, onChange, readOnly = false 
                       className="flex items-center justify-between py-1.5 px-1"
                       data-testid={`expertise-row-${area.key}`}
                     >
-                      <span className="text-sm text-[#1A1F2B] leading-snug flex-1 pr-3">{area.label}</span>
+                      <span className="text-sm text-[#0F172A] leading-snug flex-1 pr-3">{area.label}</span>
                       <span
                         className={`text-xs font-medium px-2 py-0.5 rounded-full border shrink-0 ${meta.activeBg} ${meta.activeText} ${meta.activeBorder}`}
                         data-testid={`expertise-badge-${area.key}`}
@@ -83,7 +83,7 @@ export default function BoardExpertiseRater({ value, onChange, readOnly = false 
                     className="py-2 px-1 rounded-lg hover:bg-slate-50/80 transition-colors"
                     data-testid={`expertise-row-${area.key}`}
                   >
-                    <p className="text-sm text-[#1A1F2B] mb-1.5 leading-snug">{area.label}</p>
+                    <p className="text-sm text-[#0F172A] mb-1.5 leading-snug">{area.label}</p>
                     <div className="flex gap-1 flex-wrap">
                       {EXPERTISE_LEVELS.map(level => {
                         const isSelected = current === level.value;

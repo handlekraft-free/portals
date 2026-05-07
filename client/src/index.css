@@ -1,47 +1,107 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* Brand Palette — override these in your fork */
-  /* Charcoal Slate #1A1F2B -> 222 25% 14% */
-  /* Deep Teal #0D7377 -> 182 80% 26% */
-  /* Warm Gold #D4A843 -> 42 64% 55% */
-  /* Off-White #F5F3EF -> 40 30% 95% */
-  
-  --background: 40 30% 95%;
-  --foreground: 222 25% 14%;
+  /* Modern professional palette — calm blue primary, emerald accent,
+     neutral slate surfaces. Edit these to rebrand. */
 
-  --primary: 222 25% 14%;
-  --primary-foreground: 182 80% 85%;
+  /* Surfaces */
+  --background: 210 40% 98%;       /* slate-50  #F8FAFC */
+  --foreground: 222 47% 11%;       /* slate-900 #0F172A */
 
-  --secondary: 182 80% 26%;
-  --secondary-foreground: 222 25% 14%;
+  --card: 0 0% 100%;               /* white */
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
 
-  --muted: 222 15% 90%;
-  --muted-foreground: 222 15% 40%;
+  /* Primary — calm professional blue */
+  --primary: 217 91% 50%;          /* blue-600 #2563EB */
+  --primary-foreground: 0 0% 100%;
 
-  --accent: 42 64% 55%;
-  --accent-foreground: 222 25% 14%;
+  /* Secondary — soft neutral */
+  --secondary: 210 40% 96%;        /* slate-100 */
+  --secondary-foreground: 222 47% 11%;
 
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
+  /* Muted text & surfaces */
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%; /* slate-500 */
 
-  --border: 222 15% 85%;
-  --input: 222 15% 85%;
-  --ring: 182 80% 26%;
+  /* Accent — calm emerald green */
+  --accent: 160 84% 39%;           /* emerald-500 #10B981 */
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 72% 51%;        /* red-600 */
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 214 32% 91%;           /* slate-200 */
+  --input: 214 32% 91%;
+  --ring: 217 91% 50%;             /* blue-600 focus ring */
 
   --radius: 0.5rem;
 
-  --font-display: 'DM Serif Display', serif;
-  --font-body: 'Outfit', sans-serif;
+  /* Sidebar tokens (consumed by shadcn sidebar primitives). */
+  --sidebar: 222 47% 11%;
+  --sidebar-foreground: 210 40% 96%;
+  --sidebar-border: 215 25% 27%;
+  --sidebar-ring: 217 91% 60%;
+  --sidebar-primary: 217 91% 60%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 215 28% 17%;
+  --sidebar-accent-foreground: 210 40% 96%;
+
+  /* Charts — blue/green palette */
+  --chart-1: 217 91% 60%;
+  --chart-2: 160 84% 39%;
+  --chart-3: 199 89% 48%;
+  --chart-4: 262 83% 58%;
+  --chart-5: 38 92% 50%;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-serif: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Legacy alias used by existing components */
+  --font-display: var(--font-sans);
+  --font-body: var(--font-sans);
 }
 
 .dark {
-  --background: 222 25% 14%;
-  --foreground: 40 30% 95%;
+  --background: 222 47% 11%;       /* slate-900 */
+  --foreground: 210 40% 98%;
+
+  --card: 217 33% 17%;             /* slate-800 */
+  --card-foreground: 210 40% 98%;
+  --popover: 217 33% 17%;
+  --popover-foreground: 210 40% 98%;
+
+  --primary: 217 91% 60%;          /* blue-500 */
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 217 33% 17%;
+  --secondary-foreground: 210 40% 98%;
+
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 65%;
+
+  --accent: 160 84% 39%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 215 25% 27%;
+  --input: 215 25% 27%;
+  --ring: 217 91% 60%;
+
+  --sidebar: 222 47% 7%;
+  --sidebar-foreground: 210 40% 96%;
+  --sidebar-border: 215 25% 22%;
+  --sidebar-ring: 217 91% 60%;
+  --sidebar-primary: 217 91% 60%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 215 28% 17%;
+  --sidebar-accent-foreground: 210 40% 96%;
 }
 
 @layer base {
@@ -50,10 +110,8 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: var(--font-body);
-  }
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
 
@@ -61,25 +119,25 @@
   .text-balance {
     text-wrap: balance;
   }
-  
+
   .glass-nav {
-    background: rgba(26, 31, 43, 0.9);
+    background: hsl(var(--background) / 0.85);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid hsl(var(--border) / 0.6);
   }
-  
+
   .hero-gradient {
-    background: radial-gradient(circle at 50% 50%, rgba(13, 115, 119, 0.15) 0%, rgba(26, 31, 43, 0) 50%);
+    background: radial-gradient(circle at 50% 50%, hsl(var(--primary) / 0.10) 0%, hsl(var(--background) / 0) 60%);
   }
 }
 
-/* Balance slider thumb styling */
+/* Range slider thumb styling — uses primary token */
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: var(--thumb-color, #0D7377);
+  background: var(--thumb-color, hsl(var(--primary)));
   cursor: pointer;
   border: 2px solid white;
   box-shadow: 0 1px 4px rgba(0,0,0,0.25);
@@ -92,7 +150,7 @@ input[type="range"]::-moz-range-thumb {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: var(--thumb-color, #0D7377);
+  background: var(--thumb-color, hsl(var(--primary)));
   cursor: pointer;
   border: 2px solid white;
   box-shadow: 0 1px 4px rgba(0,0,0,0.25);

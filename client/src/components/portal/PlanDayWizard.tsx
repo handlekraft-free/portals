@@ -348,7 +348,7 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
         onClick={e => e.stopPropagation()}
       >
         {/* ── Header ── */}
-        <div className="bg-gradient-to-r from-[#1A1F2B] to-[#0D7377] px-6 pt-5 pb-4 relative overflow-hidden">
+        <div className="bg-gradient-to-r from-[#0F172A] to-[#2563EB] px-6 pt-5 pb-4 relative overflow-hidden">
           <button
             onClick={handleClose}
             className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10 z-10"
@@ -384,7 +384,7 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
                   key={s}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     s === step
-                      ? "bg-[#D4A843] w-5"
+                      ? "bg-[#10B981] w-5"
                       : CONTENT_STEPS.indexOf(s) < CONTENT_STEPS.indexOf(step as any)
                         ? "bg-white/45 w-2"
                         : "bg-white/15 w-2"
@@ -463,7 +463,7 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
             {(step === "welcome" || step === "calendar" || step === "inbox") && (
               <Button
                 onClick={advance}
-                className="bg-[#0D7377] hover:bg-[#0a5f62] text-white gap-1.5 rounded-xl px-5"
+                className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white gap-1.5 rounded-xl px-5"
                 data-testid="button-wizard-next"
               >
                 {step === "welcome" ? "Let's go" : "Got it"}
@@ -475,7 +475,7 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
               <Button
                 onClick={advance}
                 disabled={selectedTaskIds.size === 0 && allTasks.length > 0}
-                className="bg-[#0D7377] hover:bg-[#0a5f62] text-white gap-1.5 rounded-xl px-5 disabled:opacity-40"
+                className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white gap-1.5 rounded-xl px-5 disabled:opacity-40"
                 data-testid="button-wizard-next"
               >
                 {allTasks.length === 0
@@ -499,7 +499,7 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
                 <Button
                   onClick={advance}
                   disabled={!selectedLesson}
-                  className="bg-[#0D7377] hover:bg-[#0a5f62] text-white gap-1.5 rounded-xl px-5 disabled:opacity-40"
+                  className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white gap-1.5 rounded-xl px-5 disabled:opacity-40"
                   data-testid="button-wizard-next"
                 >
                   Add to plan <ChevronRight className="w-4 h-4" />
@@ -510,7 +510,7 @@ export function PlanDayWizard({ isOpen, onClose, onComplete }: Props) {
             {step === "oath" && (
               <Button
                 onClick={finish}
-                className="bg-[#D4A843] hover:bg-[#c49535] text-[#1A1F2B] font-semibold gap-1.5 rounded-xl px-6"
+                className="bg-[#10B981] hover:bg-[#c49535] text-[#0F172A] font-semibold gap-1.5 rounded-xl px-6"
                 data-testid="button-wizard-begin"
               >
                 Begin the Raid <Flame className="w-4 h-4" />
@@ -532,9 +532,9 @@ function WelcomeStep({ name, lowEnergy }: { name: string; lowEnergy: boolean }) 
   return (
     <div className="text-center py-3">
       <p className="text-slate-400 text-sm mb-2">{today}</p>
-      <p className="text-[#1A1F2B] text-xl font-semibold mb-2">
-        {lowEnergy ? <>Easy does it, <span className="text-[#0D7377]">{name}</span>.</>
-                   : <>Ready to raid, <span className="text-[#0D7377]">{name}</span>?</>}
+      <p className="text-[#0F172A] text-xl font-semibold mb-2">
+        {lowEnergy ? <>Easy does it, <span className="text-[#2563EB]">{name}</span>.</>
+                   : <>Ready to raid, <span className="text-[#2563EB]">{name}</span>?</>}
       </p>
       <p className="text-slate-500 text-sm leading-relaxed max-w-sm mx-auto mb-6">
         {lowEnergy
@@ -543,7 +543,7 @@ function WelcomeStep({ name, lowEnergy }: { name: string; lowEnergy: boolean }) 
       </p>
       <div className="flex justify-center gap-5">
         {[
-          { icon: <Calendar    className="w-5 h-5 text-[#0D7377]"  />, label: "Calendar" },
+          { icon: <Calendar    className="w-5 h-5 text-[#2563EB]"  />, label: "Calendar" },
           { icon: <MessageSquare className="w-5 h-5 text-amber-500" />, label: "Inbox"    },
           { icon: <Target      className="w-5 h-5 text-teal-600"   />, label: "3 Tasks"  },
           { icon: <BookOpen    className="w-5 h-5 text-purple-500" />, label: "1 Lesson" },
@@ -565,9 +565,9 @@ function CalendarStep({ events }: { events: any[] }) {
     return (
       <div className="text-center py-8">
         <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-          <Calendar className="w-7 h-7 text-[#0D7377]" />
+          <Calendar className="w-7 h-7 text-[#2563EB]" />
         </div>
-        <p className="font-semibold text-[#1A1F2B] mb-1">Clear skies today!</p>
+        <p className="font-semibold text-[#0F172A] mb-1">Clear skies today!</p>
         <p className="text-slate-400 text-sm">No meetings on the calendar. The day is yours.</p>
       </div>
     );
@@ -580,13 +580,13 @@ function CalendarStep({ events }: { events: any[] }) {
 
   return (
     <div>
-      <div className="bg-teal-50 rounded-xl px-4 py-3 mb-4 text-sm text-[#1A1F2B]">
+      <div className="bg-teal-50 rounded-xl px-4 py-3 mb-4 text-sm text-[#0F172A]">
         <span className="font-semibold">
           {events.length} meeting{events.length !== 1 ? "s" : ""} today.
         </span>
         {firstTime && (
           <> First one at{" "}
-            <span className="font-semibold text-[#0D7377]">{firstTime}</span>.
+            <span className="font-semibold text-[#2563EB]">{firstTime}</span>.
           </>
         )}
       </div>
@@ -606,10 +606,10 @@ function CalendarStep({ events }: { events: any[] }) {
                 soon ? "bg-amber-50 border border-amber-100" : "bg-slate-50"
               }`}
             >
-              <span className={`text-xs font-mono font-semibold shrink-0 ${soon ? "text-amber-600" : "text-[#0D7377]"}`}>
+              <span className={`text-xs font-mono font-semibold shrink-0 ${soon ? "text-amber-600" : "text-[#2563EB]"}`}>
                 {t}
               </span>
-              <span className="text-sm font-medium text-[#1A1F2B] truncate flex-1">{ev.title}</span>
+              <span className="text-sm font-medium text-[#0F172A] truncate flex-1">{ev.title}</span>
               {soon && <span className="text-[10px] text-amber-500 shrink-0 font-semibold">soon</span>}
             </div>
           );
@@ -626,7 +626,7 @@ function InboxStep({ navCounts, gmail }: { navCounts: any; gmail: any[] }) {
     <div>
       {unread > 0 ? (
         <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-4">
-          <p className="font-semibold text-[#1A1F2B] text-sm">
+          <p className="font-semibold text-[#0F172A] text-sm">
             <span className="text-amber-600">{unread} unread message{unread !== 1 ? "s" : ""}</span> waiting.
           </p>
           <p className="text-slate-400 text-xs mt-0.5">
@@ -647,7 +647,7 @@ function InboxStep({ navCounts, gmail }: { navCounts: any; gmail: any[] }) {
             {gmail.slice(0, 4).map((m, i) => (
               <div key={i} className="flex items-start gap-2.5 px-3 py-2 bg-slate-50 rounded-xl">
                 <span className="text-xs text-slate-400 shrink-0 pt-0.5 truncate max-w-[5rem]">{m.subtitle}</span>
-                <span className="text-sm font-medium text-[#1A1F2B] truncate">{m.title}</span>
+                <span className="text-sm font-medium text-[#0F172A] truncate">{m.title}</span>
               </div>
             ))}
           </div>
@@ -676,7 +676,7 @@ function TasksStep({
         <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
           <CheckCircle2 className="w-7 h-7 text-green-500" />
         </div>
-        <p className="font-semibold text-[#1A1F2B] mb-1">No open tasks.</p>
+        <p className="font-semibold text-[#0F172A] mb-1">No open tasks.</p>
         <p className="text-slate-400 text-sm">Enjoy the open horizon, Viking.</p>
       </div>
     );
@@ -692,7 +692,7 @@ function TasksStep({
         </p>
         <span
           className={`text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors ${
-            selectedIds.size === target ? "bg-[#0D7377] text-white" : "bg-slate-100 text-slate-500"
+            selectedIds.size === target ? "bg-[#2563EB] text-white" : "bg-slate-100 text-slate-500"
           }`}
         >
           {selectedIds.size}/{target}
@@ -710,7 +710,7 @@ function TasksStep({
               disabled={disabled}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all text-left ${
                 selected
-                  ? "border-[#0D7377] bg-teal-50"
+                  ? "border-[#2563EB] bg-teal-50"
                   : disabled
                     ? "border-transparent bg-slate-50 opacity-35 cursor-not-allowed"
                     : "border-transparent bg-slate-50 hover:border-slate-200 hover:bg-white"
@@ -718,12 +718,12 @@ function TasksStep({
               data-testid={`task-select-${task.id}`}
             >
               <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                selected ? "border-[#0D7377] bg-[#0D7377]" : "border-slate-300"
+                selected ? "border-[#2563EB] bg-[#2563EB]" : "border-slate-300"
               }`}>
                 {selected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-[#1A1F2B] truncate leading-tight">{task.title}</p>
+                <p className="text-sm font-medium text-[#0F172A] truncate leading-tight">{task.title}</p>
                 <p className="text-xs text-slate-400 truncate">{task.board?.name} · {task.column?.title}</p>
               </div>
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold shrink-0 ${priClass}`}>
@@ -750,7 +750,7 @@ function LearningStep({
         <div className="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
           <BookOpen className="w-7 h-7 text-purple-400" />
         </div>
-        <p className="font-semibold text-[#1A1F2B] mb-1">No lessons available yet.</p>
+        <p className="font-semibold text-[#0F172A] mb-1">No lessons available yet.</p>
         <p className="text-slate-400 text-sm">This step will skip automatically.</p>
       </div>
     );
@@ -777,7 +777,7 @@ function LearningStep({
               {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-[#1A1F2B] truncate">{lesson.lessonTitle}</p>
+              <p className="text-sm font-medium text-[#0F172A] truncate">{lesson.lessonTitle}</p>
               <p className="text-xs text-slate-400 truncate">{lesson.courseTitle} · {lesson.moduleTitle}</p>
             </div>
           </button>
@@ -800,7 +800,7 @@ function OathStep({
     <div className="space-y-4">
       <div>
         <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <Target className="w-3.5 h-3.5 text-[#0D7377]" /> Today's quests
+          <Target className="w-3.5 h-3.5 text-[#2563EB]" /> Today's quests
         </p>
         {tasks.length === 0 ? (
           <p className="text-sm text-slate-400 italic px-1">No tasks — free exploration day!</p>
@@ -808,8 +808,8 @@ function OathStep({
           <div className="space-y-2">
             {tasks.map((t, i) => (
               <div key={t.id} className="flex items-center gap-3 px-3 py-2 bg-teal-50 rounded-xl">
-                <span className="text-xs font-bold text-[#0D7377] shrink-0 w-4">{i + 1}</span>
-                <span className="text-sm font-medium text-[#1A1F2B] truncate">{t.title}</span>
+                <span className="text-xs font-bold text-[#2563EB] shrink-0 w-4">{i + 1}</span>
+                <span className="text-sm font-medium text-[#0F172A] truncate">{t.title}</span>
               </div>
             ))}
           </div>
@@ -821,7 +821,7 @@ function OathStep({
           <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <MessageSquare className="w-3.5 h-3.5 text-amber-500" /> To check first
           </p>
-          <div className="px-3 py-2 bg-amber-50 rounded-xl text-sm text-[#1A1F2B]">
+          <div className="px-3 py-2 bg-amber-50 rounded-xl text-sm text-[#0F172A]">
             {unread} unread message{unread !== 1 ? "s" : ""}
           </div>
         </div>
@@ -833,7 +833,7 @@ function OathStep({
             <BookOpen className="w-3.5 h-3.5 text-purple-500" /> Learning goal
           </p>
           <div className="px-3 py-2 bg-purple-50 rounded-xl text-sm">
-            <span className="font-medium text-[#1A1F2B]">{learning.lessonTitle}</span>
+            <span className="font-medium text-[#0F172A]">{learning.lessonTitle}</span>
             <span className="text-slate-400"> · {learning.courseTitle}</span>
           </div>
         </div>

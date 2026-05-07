@@ -41,7 +41,7 @@ function RosterContent() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-display text-[#1A1F2B] flex items-center gap-2"><Shield className="w-6 h-6 text-indigo-500" /> Manage Board Roster</h1>
+        <h1 className="text-2xl font-display text-[#0F172A] flex items-center gap-2"><Shield className="w-6 h-6 text-indigo-500" /> Manage Board Roster</h1>
         <p className="text-slate-500 text-sm mt-0.5">Edit board member roles, positions, and terms (admin only).</p>
       </div>
 
@@ -53,7 +53,7 @@ function RosterContent() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs font-bold shrink-0">{m.firstName?.[0]}{m.lastName?.[0]}</div>
-                    <p className="font-semibold text-[#1A1F2B]">{m.firstName} {m.lastName}</p>
+                    <p className="font-semibold text-[#0F172A]">{m.firstName} {m.lastName}</p>
                     <p className="text-sm text-slate-400">{m.email}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -101,7 +101,7 @@ function RosterContent() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-[#1A1F2B]">{m.firstName} {m.lastName}</p>
+                      <p className="font-semibold text-[#0F172A]">{m.firstName} {m.lastName}</p>
                       <Badge className="bg-indigo-100 text-indigo-700 text-xs">{m.role === "admin" ? "Admin" : "Board"}</Badge>
                       {m.status === "inactive" && <Badge variant="secondary" className="text-xs">Inactive</Badge>}
                     </div>

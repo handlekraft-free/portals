@@ -4,9 +4,9 @@ import { ChevronDown, Briefcase, Building2, GraduationCap, Shield } from "lucide
 import { getPortalPath } from "@/lib/auth";
 
 const PORTAL_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  admin:    { label: "Team Portal",          icon: <Briefcase className="w-3.5 h-3.5" />,     color: "#0D7377" },
-  employee: { label: "Workforce Portal",     icon: <Briefcase className="w-3.5 h-3.5" />,     color: "#0D7377" },
-  client:   { label: "Client CRM",           icon: <Building2 className="w-3.5 h-3.5" />,     color: "#D4A843" },
+  admin:    { label: "Team Portal",          icon: <Briefcase className="w-3.5 h-3.5" />,     color: "#2563EB" },
+  employee: { label: "Workforce Portal",     icon: <Briefcase className="w-3.5 h-3.5" />,     color: "#2563EB" },
+  client:   { label: "Client CRM",           icon: <Building2 className="w-3.5 h-3.5" />,     color: "#10B981" },
   student:  { label: "Student LMS",          icon: <GraduationCap className="w-3.5 h-3.5" />, color: "#7C3AED" },
   board:    { label: "Board Member Portal",  icon: <Shield className="w-3.5 h-3.5" />,        color: "#4F46E5" },
 };

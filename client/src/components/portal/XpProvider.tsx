@@ -96,7 +96,7 @@ function RankUpOverlay({ rank, onDismiss }: { rank: Rank; onDismiss: () => void 
     >
       <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-auto" onClick={onDismiss} />
       <div
-        className={`relative pointer-events-auto rounded-2xl shadow-2xl border border-[#D4A843]/40 px-10 py-8 max-w-sm text-center animate-in zoom-in-95 duration-500 overflow-hidden ${theme.gradient}`}
+        className={`relative pointer-events-auto rounded-2xl shadow-2xl border border-[#10B981]/40 px-10 py-8 max-w-sm text-center animate-in zoom-in-95 duration-500 overflow-hidden ${theme.gradient}`}
       >
         {/* Rank-specific decorative backdrop SVG — pure decoration, no interaction. */}
         <svg
@@ -111,12 +111,12 @@ function RankUpOverlay({ rank, onDismiss }: { rank: Rank; onDismiss: () => void 
         {(() => {
           const Icon = RANK_ICONS[rank.key] ?? Sparkles;
           return (
-            <div className="mx-auto mb-3 w-14 h-14 rounded-full bg-[#D4A843]/15 ring-2 ring-[#D4A843]/50 flex items-center justify-center" data-testid="icon-new-rank">
-              <Icon className="w-7 h-7 text-[#D4A843]" />
+            <div className="mx-auto mb-3 w-14 h-14 rounded-full bg-[#10B981]/15 ring-2 ring-[#10B981]/50 flex items-center justify-center" data-testid="icon-new-rank">
+              <Icon className="w-7 h-7 text-[#10B981]" />
             </div>
           );
         })()}
-        <div className="text-[#D4A843] text-xs uppercase tracking-[0.25em] font-semibold mb-2">A new rank</div>
+        <div className="text-[#10B981] text-xs uppercase tracking-[0.25em] font-semibold mb-2">A new rank</div>
         <div id="rank-up-title" className="font-display text-4xl text-white mb-2" data-testid="text-new-rank">
           You are now a {rank.name}
         </div>
@@ -125,14 +125,14 @@ function RankUpOverlay({ rank, onDismiss }: { rank: Rank; onDismiss: () => void 
           <button
             onClick={saveMilestone}
             disabled={saving || saved}
-            className="bg-[#D4A843] hover:bg-[#c49535] text-[#1A1F2B] font-semibold rounded-lg px-3 py-1.5 text-xs disabled:bg-slate-200 disabled:text-slate-500"
+            className="bg-[#10B981] hover:bg-[#c49535] text-[#0F172A] font-semibold rounded-lg px-3 py-1.5 text-xs disabled:bg-slate-200 disabled:text-slate-500"
             data-testid="button-save-rank-up"
           >
             {saved ? "Saved to saga" : saving ? "Saving…" : "Save to my saga"}
           </button>
           <button
             onClick={onDismiss} autoFocus
-            className="text-white/55 hover:text-white text-xs underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-[#D4A843]/50 rounded px-2 py-0.5"
+            className="text-white/55 hover:text-white text-xs underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-[#10B981]/50 rounded px-2 py-0.5"
             data-testid="button-dismiss-rank-up"
           >continue (Esc)</button>
         </div>
@@ -154,18 +154,18 @@ const KONUNGR_RAYS: Array<[number, number]> = Array.from({ length: 12 }, (_, i) 
 // the rank: rough oar strokes for Thrall → crown rays for Konungr.
 const RANK_THEMES: Record<string, { gradient: string; backdrop: React.ReactNode }> = {
   thrall: {
-    gradient: "bg-gradient-to-br from-[#3A4154] to-[#1A1F2B]",
+    gradient: "bg-gradient-to-br from-[#3A4154] to-[#0F172A]",
     backdrop: (
-      <g stroke="#D4A843" strokeWidth="2" fill="none">
+      <g stroke="#10B981" strokeWidth="2" fill="none">
         <path d="M30 160 L50 60" /><path d="M70 170 L90 70" />
         <path d="M110 165 L130 65" /><path d="M150 175 L170 75" />
       </g>
     ),
   },
   karl: {
-    gradient: "bg-gradient-to-br from-[#1A1F2B] to-[#0D7377]",
+    gradient: "bg-gradient-to-br from-[#0F172A] to-[#2563EB]",
     backdrop: (
-      <g stroke="#D4A843" strokeWidth="1.5" fill="none">
+      <g stroke="#10B981" strokeWidth="1.5" fill="none">
         <circle cx="100" cy="100" r="40" />
         <circle cx="100" cy="100" r="60" />
         <circle cx="100" cy="100" r="80" />
@@ -173,26 +173,26 @@ const RANK_THEMES: Record<string, { gradient: string; backdrop: React.ReactNode 
     ),
   },
   jarl: {
-    gradient: "bg-gradient-to-br from-[#0D7377] to-[#14A085]",
+    gradient: "bg-gradient-to-br from-[#2563EB] to-[#14A085]",
     backdrop: (
-      <g fill="#D4A843">
+      <g fill="#10B981">
         <polygon points="100,30 110,70 150,70 118,95 130,140 100,115 70,140 82,95 50,70 90,70" />
       </g>
     ),
   },
   hersir: {
-    gradient: "bg-gradient-to-br from-[#1A1F2B] via-[#2D3748] to-[#0D7377]",
+    gradient: "bg-gradient-to-br from-[#0F172A] via-[#2D3748] to-[#2563EB]",
     backdrop: (
-      <g stroke="#D4A843" strokeWidth="2" fill="none">
+      <g stroke="#10B981" strokeWidth="2" fill="none">
         <path d="M40 160 L100 40 L160 160 Z" />
         <path d="M70 160 L100 90 L130 160" />
       </g>
     ),
   },
   skald: {
-    gradient: "bg-gradient-to-br from-[#2D1B4E] via-[#1A1F2B] to-[#0D7377]",
+    gradient: "bg-gradient-to-br from-[#2D1B4E] via-[#0F172A] to-[#2563EB]",
     backdrop: (
-      <g fill="#D4A843">
+      <g fill="#10B981">
         <circle cx="40" cy="40" r="2" /><circle cx="80" cy="60" r="2.5" />
         <circle cx="120" cy="35" r="2" /><circle cx="160" cy="55" r="3" />
         <circle cx="50" cy="120" r="2.5" /><circle cx="100" cy="160" r="3" />
@@ -201,9 +201,9 @@ const RANK_THEMES: Record<string, { gradient: string; backdrop: React.ReactNode 
     ),
   },
   konungr: {
-    gradient: "bg-gradient-to-br from-[#5A2D0C] via-[#1A1F2B] to-[#D4A843]/40",
+    gradient: "bg-gradient-to-br from-[#5A2D0C] via-[#0F172A] to-[#10B981]/40",
     backdrop: (
-      <g stroke="#D4A843" strokeWidth="2" fill="none">
+      <g stroke="#10B981" strokeWidth="2" fill="none">
         {KONUNGR_RAYS.map(([x2, y2], i) => (
           <line key={i} x1="100" y1="100" x2={x2} y2={y2} />
         ))}

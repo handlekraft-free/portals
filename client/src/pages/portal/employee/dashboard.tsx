@@ -61,14 +61,14 @@ function TimesheetNudge() {
 
   return (
     <div
-      className="mb-5 rounded-2xl bg-gradient-to-br from-teal-50 via-white to-white border border-[#0D7377]/20 p-4 flex items-start gap-4 shadow-sm"
+      className="mb-5 rounded-2xl bg-gradient-to-br from-teal-50 via-white to-white border border-[#2563EB]/20 p-4 flex items-start gap-4 shadow-sm"
       data-testid="banner-timesheet-nudge"
     >
-      <div className="shrink-0 w-10 h-10 rounded-xl bg-[#0D7377]/10 flex items-center justify-center mt-0.5">
-        <ClipboardCheck className="w-5 h-5 text-[#0D7377]" />
+      <div className="shrink-0 w-10 h-10 rounded-xl bg-[#2563EB]/10 flex items-center justify-center mt-0.5">
+        <ClipboardCheck className="w-5 h-5 text-[#2563EB]" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-[#1A1F2B]">
+        <p className="text-sm font-semibold text-[#0F172A]">
           Your timesheet is ready to review
         </p>
         <p className="text-sm text-slate-500 mt-0.5">
@@ -76,7 +76,7 @@ function TimesheetNudge() {
           Your hours are already prefilled — just take a look and click Submit if everything looks right.
         </p>
         {hours && (
-          <p className="text-xs text-[#0D7377] font-medium mt-1.5">
+          <p className="text-xs text-[#2563EB] font-medium mt-1.5">
             {hours} logged and ready to go
           </p>
         )}
@@ -91,7 +91,7 @@ function TimesheetNudge() {
         </button>
         <a
           href={timePath}
-          className="bg-[#0D7377] text-white text-xs font-medium px-4 py-2 rounded-xl hover:bg-[#0D7377]/90 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
+          className="bg-[#2563EB] text-white text-xs font-medium px-4 py-2 rounded-xl hover:bg-[#2563EB]/90 transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
           data-testid="link-timesheet-nudge-review"
         >
           Review & Submit <ArrowRight className="w-3.5 h-3.5" />
@@ -178,9 +178,9 @@ function BalanceSlider() {
     <Card className="border-0 shadow-sm h-full">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-          <Zap className="w-4 h-4 text-[#D4A843]" /> My Energy Level
+          <Zap className="w-4 h-4 text-[#10B981]" /> My Energy Level
           {saving && <span className="text-xs text-slate-400 font-normal ml-auto">Saving…</span>}
-          {saved && <span className="text-xs text-[#0D7377] font-normal ml-auto">Saved</span>}
+          {saved && <span className="text-xs text-[#2563EB] font-normal ml-auto">Saved</span>}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -280,7 +280,7 @@ function TeamPulse() {
     <Card className="border-0 shadow-sm h-full">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-          <Users className="w-4 h-4 text-[#0D7377]" /> Team Pulse
+          <Users className="w-4 h-4 text-[#2563EB]" /> Team Pulse
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -389,21 +389,21 @@ function DayPlanCard({
 
   return (
     <div className={`rounded-2xl border mb-6 overflow-hidden transition-all ${
-      allDone ? "border-green-200 bg-green-50" : "border-[#0D7377]/20 bg-white"
+      allDone ? "border-green-200 bg-green-50" : "border-[#2563EB]/20 bg-white"
     }`}>
       <div className={`px-5 py-3 flex items-center justify-between ${
-        allDone ? "bg-green-100/60" : "bg-gradient-to-r from-[#1A1F2B]/5 to-[#0D7377]/5"
+        allDone ? "bg-green-100/60" : "bg-gradient-to-r from-[#0F172A]/5 to-[#2563EB]/5"
       }`}>
         <div className="flex items-center gap-2">
-          <MapPin className={`w-4 h-4 ${allDone ? "text-green-600" : "text-[#0D7377]"}`} />
-          <span className={`text-sm font-semibold ${allDone ? "text-green-700" : "text-[#1A1F2B]"}`}>
+          <MapPin className={`w-4 h-4 ${allDone ? "text-green-600" : "text-[#2563EB]"}`} />
+          <span className={`text-sm font-semibold ${allDone ? "text-green-700" : "text-[#0F172A]"}`}>
             {allDone ? "Today's quests — all conquered! ⚔️" : "Today's Quest Plan"}
           </span>
           <span className="text-xs text-slate-400">{new Date(plan.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}</span>
         </div>
         <button
           onClick={onReplan}
-          className="flex items-center gap-1 text-xs text-slate-400 hover:text-[#0D7377] transition-colors"
+          className="flex items-center gap-1 text-xs text-slate-400 hover:text-[#2563EB] transition-colors"
           data-testid="button-replan"
           title="Re-plan your day"
         >
@@ -416,7 +416,7 @@ function DayPlanCard({
         {plan.tasks.length > 0 && (
           <div className="flex-1 min-w-48">
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-              <Target className="w-3 h-3 text-[#0D7377]" /> Quests
+              <Target className="w-3 h-3 text-[#2563EB]" /> Quests
             </p>
             <div className="space-y-1.5">
               {plan.tasks.map((t, i) => (
@@ -428,8 +428,8 @@ function DayPlanCard({
                 >
                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
                     checked.has(t.id)
-                      ? "border-[#0D7377] bg-[#0D7377]"
-                      : "border-slate-300 group-hover:border-[#0D7377]"
+                      ? "border-[#2563EB] bg-[#2563EB]"
+                      : "border-slate-300 group-hover:border-[#2563EB]"
                   }`}>
                     {checked.has(t.id) && (
                       <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 10" fill="none">
@@ -440,7 +440,7 @@ function DayPlanCard({
                   <span className={`text-sm leading-tight transition-colors ${
                     checked.has(t.id)
                       ? "line-through text-slate-400"
-                      : "text-[#1A1F2B] group-hover:text-[#0D7377]"
+                      : "text-[#0F172A] group-hover:text-[#2563EB]"
                   }`}>
                     <span className="text-slate-400 text-xs mr-1 font-bold">{i + 1}.</span>
                     {t.title}
@@ -459,7 +459,7 @@ function DayPlanCard({
             </p>
             <a
               href={`/portal/student/courses/${plan.learningGoal.courseId}`}
-              className="flex items-start gap-2 text-sm text-[#1A1F2B] hover:text-purple-600 transition-colors"
+              className="flex items-start gap-2 text-sm text-[#0F172A] hover:text-purple-600 transition-colors"
             >
               <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center shrink-0 mt-0.5">
                 <BookOpen className="w-2.5 h-2.5 text-purple-500" />
@@ -534,9 +534,9 @@ function MyTasksPanel() {
                   className="flex items-start gap-3 rounded-xl px-3 py-2.5 hover:bg-slate-50 transition-colors group"
                   data-testid={`task-item-${task.id}`}
                 >
-                  <Circle className="w-4 h-4 mt-0.5 text-slate-300 shrink-0 group-hover:text-[#0D7377] transition-colors" />
+                  <Circle className="w-4 h-4 mt-0.5 text-slate-300 shrink-0 group-hover:text-[#2563EB] transition-colors" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#1A1F2B] truncate leading-tight">{task.title}</p>
+                    <p className="text-sm font-medium text-[#0F172A] truncate leading-tight">{task.title}</p>
                     <p className="text-xs text-slate-400 mt-0.5 truncate">{task.board?.name} · {task.column?.title}</p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
@@ -553,7 +553,7 @@ function MyTasksPanel() {
             {open.length > VISIBLE && (
               <button
                 onClick={() => setShowAll(v => !v)}
-                className="flex items-center gap-1 text-xs text-[#0D7377] font-medium px-3 py-1 hover:underline w-full text-left"
+                className="flex items-center gap-1 text-xs text-[#2563EB] font-medium px-3 py-1 hover:underline w-full text-left"
                 data-testid="button-tasks-toggle"
               >
                 {showAll ? "Show less" : `See ${open.length - VISIBLE} more`}
@@ -571,7 +571,7 @@ function MyTasksPanel() {
 
 const TICKET_STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   open:        { bg: "bg-blue-100",   text: "text-blue-700",   label: "Open" },
-  in_progress: { bg: "bg-teal-100",   text: "text-[#0D7377]",  label: "In Progress" },
+  in_progress: { bg: "bg-teal-100",   text: "text-[#2563EB]",  label: "In Progress" },
   resolved:    { bg: "bg-green-100",  text: "text-green-700",  label: "Resolved" },
   closed:      { bg: "bg-slate-100",  text: "text-slate-500",  label: "Closed" },
 };
@@ -594,7 +594,7 @@ function ClientTicketsPanel() {
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-semibold text-slate-700 flex items-center justify-between">
           <span className="flex items-center gap-2">
-            <Ticket className="w-4 h-4 text-[#0D7377]" /> Client Tickets
+            <Ticket className="w-4 h-4 text-[#2563EB]" /> Client Tickets
           </span>
           <span className="text-xs font-normal text-slate-400">{active.length} active</span>
         </CardTitle>
@@ -627,7 +627,7 @@ function ClientTicketsPanel() {
                   data-testid={`ticket-item-${ticket.id}`}
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#1A1F2B] truncate leading-tight">{ticket.title}</p>
+                    <p className="text-sm font-medium text-[#0F172A] truncate leading-tight">{ticket.title}</p>
                     <p className="text-xs text-slate-400 mt-0.5">Opened {age}</p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
@@ -638,7 +638,7 @@ function ClientTicketsPanel() {
               );
             })}
             {active.length > 6 && (
-              <a href="/portal/employee/tickets" className="flex items-center gap-1 text-xs text-[#0D7377] font-medium px-3 py-1 hover:underline">
+              <a href="/portal/employee/tickets" className="flex items-center gap-1 text-xs text-[#2563EB] font-medium px-3 py-1 hover:underline">
                 View {active.length - 6} more <ArrowRight className="w-3 h-3" />
               </a>
             )}
@@ -682,7 +682,7 @@ function DashboardContent() {
   return (
     <div>
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-[#1A1F2B] to-[#0D7377] rounded-2xl mb-6 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#0F172A] to-[#2563EB] rounded-2xl mb-6 text-white relative overflow-hidden">
         {/* Viking — clickable to open Plan My Day */}
         <img
           src={vikingCodingImg}
@@ -704,7 +704,7 @@ function DashboardContent() {
             </p>
             <button
               onClick={() => setWizardOpen(true)}
-              className="flex items-center gap-1 text-[10px] font-semibold text-[#D4A843] hover:text-[#f0c050] border border-[#D4A843]/40 hover:border-[#D4A843]/70 rounded-full px-2.5 py-0.5 transition-colors"
+              className="flex items-center gap-1 text-[10px] font-semibold text-[#10B981] hover:text-[#f0c050] border border-[#10B981]/40 hover:border-[#10B981]/70 rounded-full px-2.5 py-0.5 transition-colors"
               data-testid="button-plan-day"
             >
               ⚔️ {todayPlan ? "Re-plan my day" : "Plan my day"}
@@ -722,8 +722,8 @@ function DashboardContent() {
           <div className="border-t border-white/10 mx-4 mb-1 mt-1" />
         )}
         {googleAccounts.filter(a => a.calendar.length > 0 || a.gmail.length > 0).map((acct, acctIdx) => {
-          const LABEL_COLORS = ["text-[#D4A843]", "text-purple-300", "text-orange-300", "text-blue-300"];
-          const DOT_COLORS = ["bg-[#D4A843]", "bg-purple-400", "bg-orange-400", "bg-blue-400"];
+          const LABEL_COLORS = ["text-[#10B981]", "text-purple-300", "text-orange-300", "text-blue-300"];
+          const DOT_COLORS = ["bg-[#10B981]", "bg-purple-400", "bg-orange-400", "bg-blue-400"];
           const labelColor = LABEL_COLORS[acctIdx % LABEL_COLORS.length];
           const dotColor = DOT_COLORS[acctIdx % DOT_COLORS.length];
           const hasData = acct.calendar.length > 0 || acct.gmail.length > 0;
@@ -858,19 +858,19 @@ function DashboardContent() {
 
       {/* ── Communication Hub ─────────────────────────────────────────────── */}
       <div className="mb-6">
-        <h2 className="text-base font-semibold text-[#1A1F2B] mb-4 flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-[#0D7377]" /> Communication Hub
+        <h2 className="text-base font-semibold text-[#0F172A] mb-4 flex items-center gap-2">
+          <MessageSquare className="w-4 h-4 text-[#2563EB]" /> Communication Hub
         </h2>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#0D7377] inline-block" /> Team Chat
+              <span className="w-2 h-2 rounded-full bg-[#2563EB] inline-block" /> Team Chat
             </p>
             <TeamChat />
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#1A1F2B] inline-block" /> AI Assistant
+              <span className="w-2 h-2 rounded-full bg-[#0F172A] inline-block" /> AI Assistant
             </p>
             <ClaudeChat variant="employee" />
           </div>
@@ -879,8 +879,8 @@ function DashboardContent() {
 
       {/* ── Balance Hub ───────────────────────────────────────────────────── */}
       <div>
-        <h2 className="text-base font-semibold text-[#1A1F2B] mb-4 flex items-center gap-2">
-          <Zap className="w-4 h-4 text-[#D4A843]" /> Balance Hub
+        <h2 className="text-base font-semibold text-[#0F172A] mb-4 flex items-center gap-2">
+          <Zap className="w-4 h-4 text-[#10B981]" /> Balance Hub
         </h2>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <BalanceSlider />

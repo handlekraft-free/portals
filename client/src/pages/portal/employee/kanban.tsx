@@ -65,7 +65,7 @@ function InterestFitStars({ score }: { score: number }) {
       {[1, 2, 3, 4, 5].map(i => (
         <Star
           key={i}
-          className={`w-3 h-3 ${i <= s ? "text-[#D4A843] fill-[#D4A843]" : "text-slate-300"}`}
+          className={`w-3 h-3 ${i <= s ? "text-[#10B981] fill-[#10B981]" : "text-slate-300"}`}
           aria-hidden="true"
         />
       ))}
@@ -93,7 +93,7 @@ const PRIORITY_DOT: Record<string, string> = {
   medium: "bg-yellow-400",
   low: "bg-blue-400",
 };
-const LABEL_COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#0D7377", "#6366f1", "#ec4899", "#64748b"];
+const LABEL_COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#2563EB", "#6366f1", "#ec4899", "#64748b"];
 
 const INTEREST_LABELS: Record<number, { emoji: string; text: string; color: string }> = {
   0: { emoji: "😓", text: "This drains me — can we reassign it?", color: "text-red-500" },
@@ -113,7 +113,7 @@ function initials(u: { firstName?: string; lastName?: string } | null) {
 
 function Avatar({ user, size = "sm", variant = "assignee" }: { user: any; size?: "sm" | "md" | "lg"; variant?: "assignee" | "reviewer" }) {
   const sz = size === "sm" ? "w-6 h-6 text-xs" : size === "md" ? "w-8 h-8 text-sm" : "w-10 h-10 text-base";
-  const bg = variant === "reviewer" ? "bg-[#D4A843]" : "bg-[#0D7377]";
+  const bg = variant === "reviewer" ? "bg-[#10B981]" : "bg-[#2563EB]";
   const title = user ? `${user.firstName} ${user.lastName}${variant === "reviewer" ? " (Reviewer)" : ""}` : "";
   return (
     <div className={`${sz} ${bg} rounded-full text-white flex items-center justify-center font-bold shrink-0`} title={title}>
@@ -165,10 +165,10 @@ function UserPicker({ current, users, onSelect, onClose, label }: {
           <button key={u.id} onClick={() => onSelect(u)} className={`w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-sm ${current?.id === u.id ? "bg-teal-50" : ""}`} data-testid={`option-user-${u.id}`}>
             <Avatar user={u} size="sm" />
             <div className="text-left">
-              <p className="font-medium text-[#1A1F2B] leading-none">{u.firstName} {u.lastName}</p>
+              <p className="font-medium text-[#0F172A] leading-none">{u.firstName} {u.lastName}</p>
               <p className="text-xs text-slate-400">{u.role}</p>
             </div>
-            {current?.id === u.id && <Check className="w-3.5 h-3.5 text-[#0D7377] ml-auto" />}
+            {current?.id === u.id && <Check className="w-3.5 h-3.5 text-[#2563EB] ml-auto" />}
           </button>
         ))}
         {filtered.length === 0 && <p className="text-xs text-slate-400 px-3 py-2">No members found</p>}
@@ -194,12 +194,12 @@ function InterestRating({ value, onChange }: { value: number | null; onChange: (
             <button
               key={n}
               onClick={() => onChange(selected ? null : n)}
-              className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left transition-colors text-xs ${selected ? "bg-teal-50 border border-[#0D7377]/30" : "hover:bg-slate-50 border border-transparent"}`}
+              className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left transition-colors text-xs ${selected ? "bg-teal-50 border border-[#2563EB]/30" : "hover:bg-slate-50 border border-transparent"}`}
               data-testid={`interest-${n}`}
             >
               <span className="text-base leading-none w-5">{info.emoji}</span>
               <span className={`flex-1 ${selected ? info.color : "text-slate-600"} font-medium`}>{n} — {info.text}</span>
-              {selected && <Check className="w-3 h-3 text-[#0D7377] shrink-0" />}
+              {selected && <Check className="w-3 h-3 text-[#2563EB] shrink-0" />}
             </button>
           );
         })}
@@ -414,9 +414,9 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
               {editingTitle ? (
                 <input autoFocus value={titleVal} onChange={e => setTitleVal(e.target.value)}
                   onBlur={saveTitle} onKeyDown={e => e.key === "Enter" && saveTitle()}
-                  className="w-full text-lg font-semibold text-[#1A1F2B] border-b-2 border-[#0D7377] outline-none bg-transparent" data-testid="input-card-title" />
+                  className="w-full text-lg font-semibold text-[#0F172A] border-b-2 border-[#2563EB] outline-none bg-transparent" data-testid="input-card-title" />
               ) : (
-                <h2 className="text-lg font-semibold text-[#1A1F2B] cursor-pointer hover:text-[#0D7377] transition-colors" onClick={() => setEditingTitle(true)} data-testid="text-card-title">{card.title}</h2>
+                <h2 className="text-lg font-semibold text-[#0F172A] cursor-pointer hover:text-[#2563EB] transition-colors" onClick={() => setEditingTitle(true)} data-testid="text-card-title">{card.title}</h2>
               )}
               <p className="text-xs text-slate-400 mt-0.5">
                 Created by {card.creator ? `${card.creator.firstName} ${card.creator.lastName}` : "unknown"} · {relTime(card.createdAt)}
@@ -459,13 +459,13 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Description</h4>
-                {!editingDesc && <button onClick={() => setEditingDesc(true)} className="text-xs text-[#0D7377] hover:underline" data-testid="button-edit-desc"><Pencil className="w-3 h-3 inline mr-0.5" />Edit</button>}
+                {!editingDesc && <button onClick={() => setEditingDesc(true)} className="text-xs text-[#2563EB] hover:underline" data-testid="button-edit-desc"><Pencil className="w-3 h-3 inline mr-0.5" />Edit</button>}
               </div>
               {editingDesc ? (
                 <div>
-                  <textarea autoFocus value={descVal} onChange={e => setDescVal(e.target.value)} rows={4} placeholder="Add a description…" className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none" data-testid="textarea-card-desc" />
+                  <textarea autoFocus value={descVal} onChange={e => setDescVal(e.target.value)} rows={4} placeholder="Add a description…" className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 resize-none" data-testid="textarea-card-desc" />
                   <div className="flex gap-2 mt-1">
-                    <Button size="sm" className="bg-[#0D7377] text-white h-7 text-xs" onClick={saveDesc} data-testid="button-save-desc">Save</Button>
+                    <Button size="sm" className="bg-[#2563EB] text-white h-7 text-xs" onClick={saveDesc} data-testid="button-save-desc">Save</Button>
                     <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setEditingDesc(false); setDescVal(card.description || ""); }}>Cancel</Button>
                   </div>
                 </div>
@@ -477,16 +477,16 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
             </div>
 
             {/* Ask Claude */}
-            <div className={`rounded-xl border transition-colors ${showAskClaude ? "border-[#0D7377]/40 bg-teal-50/50" : "border-slate-200 bg-slate-50"}`}>
+            <div className={`rounded-xl border transition-colors ${showAskClaude ? "border-[#2563EB]/40 bg-teal-50/50" : "border-slate-200 bg-slate-50"}`}>
               <button
                 className="w-full flex items-center justify-between px-4 py-3 text-left"
                 onClick={() => { setShowAskClaude(v => !v); if (!showAskClaude) { setClaudeAdvice(""); setClaudeError(""); setClaudeQuestion(""); } }}
                 data-testid="button-toggle-ask-claude"
               >
                 <div className="flex items-center gap-2">
-                  <Sparkles className={`w-4 h-4 shrink-0 ${showAskClaude ? "text-[#0D7377]" : "text-slate-400"}`} />
+                  <Sparkles className={`w-4 h-4 shrink-0 ${showAskClaude ? "text-[#2563EB]" : "text-slate-400"}`} />
                   <div>
-                    <p className={`text-sm font-semibold ${showAskClaude ? "text-[#0D7377]" : "text-slate-600"}`}>Ask Claude for help</p>
+                    <p className={`text-sm font-semibold ${showAskClaude ? "text-[#2563EB]" : "text-slate-600"}`}>Ask Claude for help</p>
                     {!showAskClaude && <p className="text-xs text-slate-400">Get beginner-friendly advice on how to tackle this task</p>}
                   </div>
                 </div>
@@ -494,7 +494,7 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
               </button>
 
               {showAskClaude && (
-                <div className="px-4 pb-4 space-y-3 border-t border-[#0D7377]/20">
+                <div className="px-4 pb-4 space-y-3 border-t border-[#2563EB]/20">
                   <p className="text-xs text-slate-500 pt-3 leading-relaxed">
                     Claude will read this card's title, description, priority, due date, and labels, then give you friendly advice on how to get started — written for beginners. Nothing will change on the card.
                   </p>
@@ -508,7 +508,7 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
                       onChange={e => setClaudeQuestion(e.target.value)}
                       placeholder="e.g. What tools should I use? Where do I start?"
                       rows={2}
-                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none bg-white"
+                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 resize-none bg-white"
                       data-testid="textarea-claude-question"
                     />
                   </div>
@@ -516,7 +516,7 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
                   <Button
                     onClick={askClaude}
                     disabled={claudeLoading}
-                    className="w-full bg-[#0D7377] hover:bg-[#0D7377]/90 text-white gap-2"
+                    className="w-full bg-[#2563EB] hover:bg-[#2563EB]/90 text-white gap-2"
                     data-testid="button-get-claude-advice"
                   >
                     {claudeLoading ? (
@@ -531,10 +531,10 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
                   )}
 
                   {claudeAdvice && (
-                    <div className="bg-white border border-[#0D7377]/20 rounded-xl p-4 space-y-2" data-testid="text-claude-advice">
+                    <div className="bg-white border border-[#2563EB]/20 rounded-xl p-4 space-y-2" data-testid="text-claude-advice">
                       <div className="flex items-center gap-1.5 mb-2">
-                        <Sparkles className="w-3.5 h-3.5 text-[#0D7377]" />
-                        <p className="text-xs font-semibold text-[#0D7377] uppercase tracking-wider">Claude's Advice</p>
+                        <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
+                        <p className="text-xs font-semibold text-[#2563EB] uppercase tracking-wider">Claude's Advice</p>
                       </div>
                       <div className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{claudeAdvice}</div>
                       <p className="text-xs text-slate-400 pt-1 border-t border-slate-100 mt-2">
@@ -563,7 +563,7 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
                 <input ref={fileInputRef} type="file" multiple className="hidden" onChange={e => handleFileUpload(e.target.files)} data-testid="input-file-upload" />
               </div>
               {card.attachments?.length === 0 && (
-                <div className="border-2 border-dashed border-slate-200 rounded-lg p-4 text-center text-slate-300 text-xs cursor-pointer hover:border-[#0D7377]/40 transition-colors" onClick={() => fileInputRef.current?.click()}>
+                <div className="border-2 border-dashed border-slate-200 rounded-lg p-4 text-center text-slate-300 text-xs cursor-pointer hover:border-[#2563EB]/40 transition-colors" onClick={() => fileInputRef.current?.click()}>
                   <Upload className="w-5 h-5 mx-auto mb-1" /> Drop files here or click to upload
                 </div>
               )}
@@ -581,11 +581,11 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-[#1A1F2B] truncate">{att.fileName}</p>
+                        <p className="text-sm font-medium text-[#0F172A] truncate">{att.fileName}</p>
                         <p className="text-xs text-slate-400">{fmtBytes(att.fileSize)} · {att.firstName} {att.lastName} · {relTime(att.createdAt)}</p>
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <a href={`/api/kanban/attachments/${att.id}/download`} download className="p-1.5 rounded-lg hover:bg-white text-slate-500 hover:text-[#0D7377]" data-testid={`button-download-${att.id}`}><Download className="w-4 h-4" /></a>
+                        <a href={`/api/kanban/attachments/${att.id}/download`} download className="p-1.5 rounded-lg hover:bg-white text-slate-500 hover:text-[#2563EB]" data-testid={`button-download-${att.id}`}><Download className="w-4 h-4" /></a>
                         {(att.uploadedBy === currentUserId) && (
                           <button onClick={() => deleteAttachment(att.id)} className="p-1.5 rounded-lg hover:bg-white text-slate-400 hover:text-red-500" data-testid={`button-delete-att-${att.id}`}><Trash2 className="w-4 h-4" /></button>
                         )}
@@ -608,14 +608,14 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
                     <Avatar user={c} size="sm" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-xs font-semibold text-[#1A1F2B]">{c.firstName} {c.lastName}</span>
+                        <span className="text-xs font-semibold text-[#0F172A]">{c.firstName} {c.lastName}</span>
                         <span className="text-xs text-slate-400">{relTime(c.createdAt)}{c.editedAt && " (edited)"}</span>
                       </div>
                       {editingComment === c.id ? (
                         <div className="mt-1">
-                          <textarea autoFocus value={editCommentText} onChange={e => setEditCommentText(e.target.value)} rows={2} className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none" data-testid="textarea-edit-comment" />
+                          <textarea autoFocus value={editCommentText} onChange={e => setEditCommentText(e.target.value)} rows={2} className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 resize-none" data-testid="textarea-edit-comment" />
                           <div className="flex gap-2 mt-1">
-                            <Button size="sm" className="bg-[#0D7377] text-white h-6 text-xs" onClick={() => saveEditComment(c.id)}>Save</Button>
+                            <Button size="sm" className="bg-[#2563EB] text-white h-6 text-xs" onClick={() => saveEditComment(c.id)}>Save</Button>
                             <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => setEditingComment(null)}>Cancel</Button>
                           </div>
                         </div>
@@ -624,7 +624,7 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
                       )}
                       {c.userId === currentUserId && editingComment !== c.id && (
                         <div className="flex gap-2 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="text-xs text-slate-400 hover:text-[#0D7377]" onClick={() => { setEditingComment(c.id); setEditCommentText(c.content); }} data-testid={`button-edit-comment-${c.id}`}>Edit</button>
+                          <button className="text-xs text-slate-400 hover:text-[#2563EB]" onClick={() => { setEditingComment(c.id); setEditCommentText(c.content); }} data-testid={`button-edit-comment-${c.id}`}>Edit</button>
                           <button className="text-xs text-slate-400 hover:text-red-500" onClick={() => deleteComment(c.id)} data-testid={`button-delete-comment-${c.id}`}>Delete</button>
                         </div>
                       )}
@@ -633,8 +633,8 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
                 ))}
               </div>
               <form onSubmit={submitComment} className="flex gap-2 mt-3">
-                <input value={commentText} onChange={e => setCommentText(e.target.value)} placeholder="Write a comment…" className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-card-comment" />
-                <Button type="submit" size="sm" className="bg-[#0D7377] text-white" disabled={!commentText.trim()} data-testid="button-add-comment">Post</Button>
+                <input value={commentText} onChange={e => setCommentText(e.target.value)} placeholder="Write a comment…" className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-card-comment" />
+                <Button type="submit" size="sm" className="bg-[#2563EB] text-white" disabled={!commentText.trim()} data-testid="button-add-comment">Post</Button>
               </form>
             </div>
           </div>
@@ -645,7 +645,7 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
             {/* Assignee */}
             <div className="relative">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Owner</p>
-              <button className="w-full flex items-center gap-2 text-sm text-left bg-white border border-slate-200 rounded-lg px-2.5 py-2 hover:border-[#0D7377]/50 transition-colors" onClick={() => { setShowAssigneePicker(v => !v); setShowReviewerPicker(false); }} data-testid="button-assignee-picker">
+              <button className="w-full flex items-center gap-2 text-sm text-left bg-white border border-slate-200 rounded-lg px-2.5 py-2 hover:border-[#2563EB]/50 transition-colors" onClick={() => { setShowAssigneePicker(v => !v); setShowReviewerPicker(false); }} data-testid="button-assignee-picker">
                 {card.assignee ? (
                   <><Avatar user={card.assignee} size="sm" variant="assignee" /><span className="truncate">{card.assignee.firstName} {card.assignee.lastName}</span></>
                 ) : (
@@ -662,7 +662,7 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
                 <Eye className="w-3 h-3" /> Reviewer
               </p>
-              <button className="w-full flex items-center gap-2 text-sm text-left bg-white border border-slate-200 rounded-lg px-2.5 py-2 hover:border-[#D4A843]/50 transition-colors" onClick={() => { setShowReviewerPicker(v => !v); setShowAssigneePicker(false); }} data-testid="button-reviewer-picker">
+              <button className="w-full flex items-center gap-2 text-sm text-left bg-white border border-slate-200 rounded-lg px-2.5 py-2 hover:border-[#10B981]/50 transition-colors" onClick={() => { setShowReviewerPicker(v => !v); setShowAssigneePicker(false); }} data-testid="button-reviewer-picker">
                 {card.reviewer ? (
                   <><Avatar user={card.reviewer} size="sm" variant="reviewer" /><span className="truncate">{card.reviewer.firstName} {card.reviewer.lastName}</span></>
                 ) : (
@@ -724,7 +724,7 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
             {/* Priority */}
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Priority</p>
-              <select value={card.priority} onChange={e => patch({ priority: e.target.value })} className="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="select-card-priority">
+              <select value={card.priority} onChange={e => patch({ priority: e.target.value })} className="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="select-card-priority">
                 <option value="urgent">🔴 Urgent</option>
                 <option value="high">🟠 High</option>
                 <option value="medium">🟡 Medium</option>
@@ -735,7 +735,7 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
             {/* Due Date */}
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Calendar className="w-3 h-3" /> Due Date</p>
-              <input type="date" value={card.dueDate ? new Date(card.dueDate).toISOString().split("T")[0] : ""} onChange={e => patch({ dueDate: e.target.value || null })} className={`w-full text-sm border rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 ${isOverdue ? "border-red-300 text-red-600" : "border-slate-200"}`} data-testid="input-card-due-date" />
+              <input type="date" value={card.dueDate ? new Date(card.dueDate).toISOString().split("T")[0] : ""} onChange={e => patch({ dueDate: e.target.value || null })} className={`w-full text-sm border rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 ${isOverdue ? "border-red-300 text-red-600" : "border-slate-200"}`} data-testid="input-card-due-date" />
               {isOverdue && <p className="text-xs text-red-500 mt-0.5">Overdue!</p>}
             </div>
 
@@ -743,7 +743,7 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Labels</p>
-                <button onClick={() => setEditingLabels(v => !v)} className="text-xs text-[#0D7377]">{editingLabels ? "Done" : "Edit"}</button>
+                <button onClick={() => setEditingLabels(v => !v)} className="text-xs text-[#2563EB]">{editingLabels ? "Done" : "Edit"}</button>
               </div>
               <div className="flex flex-wrap gap-1 mb-1">
                 {(card.labels || []).map((l: string) => (
@@ -754,7 +754,7 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
               </div>
               {editingLabels && (
                 <div className="flex gap-1">
-                  <input value={labelInput} onChange={e => setLabelInput(e.target.value)} onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addLabel())} placeholder="Add label…" className="flex-1 min-w-0 text-xs border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#0D7377]/30" data-testid="input-label" />
+                  <input value={labelInput} onChange={e => setLabelInput(e.target.value)} onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addLabel())} placeholder="Add label…" className="flex-1 min-w-0 text-xs border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#2563EB]/30" data-testid="input-label" />
                   <Button size="sm" variant="outline" className="h-6 px-2" onClick={addLabel}><Plus className="w-3 h-3" /></Button>
                 </div>
               )}
@@ -765,7 +765,7 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
               {!showMoveToBoard ? (
                 <button
                   onClick={openMovePanel}
-                  className="w-full text-xs text-[#0D7377] hover:text-[#0D7377]/80 flex items-center gap-1.5 py-1 font-medium"
+                  className="w-full text-xs text-[#2563EB] hover:text-[#2563EB]/80 flex items-center gap-1.5 py-1 font-medium"
                   data-testid="button-move-to-board"
                 >
                   <ArrowRightLeft className="w-3.5 h-3.5" /> Move to another board
@@ -786,7 +786,7 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
                     <select
                       value={moveTargetBoardId ?? ""}
                       onChange={e => e.target.value ? selectTargetBoard(Number(e.target.value)) : setMoveTargetBoardId(null)}
-                      className="w-full text-xs border border-slate-200 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+                      className="w-full text-xs border border-slate-200 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
                       data-testid="select-target-board"
                     >
                       <option value="">Select board…</option>
@@ -804,7 +804,7 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
                       <select
                         value={moveTargetColumnId ?? ""}
                         onChange={e => setMoveTargetColumnId(e.target.value ? Number(e.target.value) : null)}
-                        className="w-full text-xs border border-slate-200 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+                        className="w-full text-xs border border-slate-200 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
                         data-testid="select-target-column"
                       >
                         <option value="">Select column…</option>
@@ -818,7 +818,7 @@ function CardDetailModal({ cardId, users, currentUserId, onClose, onUpdated }: {
                   {/* Move button */}
                   <Button
                     size="sm"
-                    className="w-full h-7 text-xs bg-[#0D7377] text-white"
+                    className="w-full h-7 text-xs bg-[#2563EB] text-white"
                     disabled={!moveTargetBoardId || !moveTargetColumnId || moving}
                     onClick={executeMove}
                     data-testid="button-confirm-move"
@@ -871,7 +871,7 @@ function MyTasksView({ onOpenCard, onOpenBoard }: { onOpenCard: (id: number, boa
     <div>
       <div className="flex items-center gap-2 mb-4 flex-wrap">
         {(["all", "owner", "reviewer"] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors capitalize ${filter === f ? "bg-[#0D7377] text-white border-[#0D7377]" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`} data-testid={`filter-tasks-${f}`}>
+          <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors capitalize ${filter === f ? "bg-[#2563EB] text-white border-[#2563EB]" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`} data-testid={`filter-tasks-${f}`}>
             {f === "all" ? "All My Tasks" : f === "owner" ? "I Own" : "I'm Reviewing"}
             <span className="ml-1.5 text-xs opacity-70">
               {f === "all" ? tasks.length : tasks.filter(t => f === "owner" ? (t.role === "assignee" || t.role === "both") : (t.role === "reviewer" || t.role === "both")).length}
@@ -919,7 +919,7 @@ function TaskRow({ task, onOpen, onOpenBoard }: { task: any; onOpen: () => void;
       <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <p className="text-sm font-semibold text-[#1A1F2B] line-clamp-1">{task.title}</p>
+            <p className="text-sm font-semibold text-[#0F172A] line-clamp-1">{task.title}</p>
             {(task.role === "reviewer" || task.role === "both") && (
               <span className="inline-flex items-center gap-1 text-xs bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-2 py-0.5">
                 <Eye className="w-3 h-3" /> Reviewer
@@ -927,7 +927,7 @@ function TaskRow({ task, onOpen, onOpenBoard }: { task: any; onOpen: () => void;
             )}
           </div>
           <div className="flex items-center gap-3 text-xs text-slate-400 flex-wrap">
-            <button onClick={e => { e.stopPropagation(); onOpenBoard(); }} className="flex items-center gap-1 hover:text-[#0D7377] transition-colors">
+            <button onClick={e => { e.stopPropagation(); onOpenBoard(); }} className="flex items-center gap-1 hover:text-[#2563EB] transition-colors">
               <Kanban className="w-3 h-3" />{task.board?.name || "Board"}
             </button>
             <span className="flex items-center gap-1">
@@ -1010,8 +1010,8 @@ function ClaimModal({ card, boards, onClose, onClaimed, claimerName }: {
       <div className="relative overflow-hidden bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Ship className="w-5 h-5 text-[#0D7377]" />
-            <h2 className="text-lg font-display text-[#1A1F2B]">Claim This Quest</h2>
+            <Ship className="w-5 h-5 text-[#2563EB]" />
+            <h2 className="text-lg font-display text-[#0F172A]">Claim This Quest</h2>
           </div>
           <button onClick={onClose} className="p-1 rounded hover:bg-slate-100 text-slate-400"><X className="w-4 h-4" /></button>
         </div>
@@ -1023,7 +1023,7 @@ function ClaimModal({ card, boards, onClose, onClaimed, claimerName }: {
               <span key={l} className="text-xs bg-white text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded">{l}</span>
             ))}
           </div>
-          <p className="font-semibold text-[#1A1F2B] text-sm">{card.title}</p>
+          <p className="font-semibold text-[#0F172A] text-sm">{card.title}</p>
           {card.description && <p className="text-xs text-slate-500 mt-1 line-clamp-3">{card.description}</p>}
         </div>
 
@@ -1031,7 +1031,7 @@ function ClaimModal({ card, boards, onClose, onClaimed, claimerName }: {
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Move to board <span className="text-slate-400 font-normal">(optional — leave blank to stay in Factory)</span></label>
             <select value={targetBoardId} onChange={e => { setTargetBoardId(e.target.value); setTargetColumnId(""); }}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="select-claim-board">
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="select-claim-board">
               <option value="">— Stay in Factory (just assign to me)</option>
               {nonFactoryBoards.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
@@ -1041,7 +1041,7 @@ function ClaimModal({ card, boards, onClose, onClaimed, claimerName }: {
               <label className="block text-xs font-medium text-slate-600 mb-1">Move to column</label>
               {loadingCols ? <div className="h-10 bg-slate-100 rounded-lg animate-pulse" /> : (
                 <select value={targetColumnId} onChange={e => setTargetColumnId(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="select-claim-column">
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="select-claim-column">
                   <option value="">— Pick a column</option>
                   {boardColumns.map((c: any) => <option key={c.id} value={c.id}>{c.title}</option>)}
                 </select>
@@ -1052,7 +1052,7 @@ function ClaimModal({ card, boards, onClose, onClaimed, claimerName }: {
 
         <div className="flex gap-2 mt-5">
           <Button onClick={doClaim} disabled={claiming || (!!targetBoardId && !targetColumnId)}
-            className="bg-[#0D7377] text-white flex-1 gap-2" data-testid="button-claim-quest">
+            className="bg-[#2563EB] text-white flex-1 gap-2" data-testid="button-claim-quest">
             {claiming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Anchor className="w-4 h-4" />}
             Claim Quest
           </Button>
@@ -1077,8 +1077,8 @@ function ClaimModal({ card, boards, onClose, onClaimed, claimerName }: {
                 transition={{ type: "spring", stiffness: 380, damping: 18 }}
                 className="flex flex-col items-center gap-1"
               >
-                <VikingCrossedSwords className="w-24 h-24 text-[#0D7377] drop-shadow-md" />
-                <span className="text-xs font-display tracking-wide text-[#0D7377] bg-white/90 rounded px-2 py-0.5 border border-[#0D7377]/30">
+                <VikingCrossedSwords className="w-24 h-24 text-[#2563EB] drop-shadow-md" />
+                <span className="text-xs font-display tracking-wide text-[#2563EB] bg-white/90 rounded px-2 py-0.5 border border-[#2563EB]/30">
                   Claimed{claimerName ? ` by ${claimerName}` : ""}
                 </span>
               </motion.div>
@@ -1133,8 +1133,8 @@ function BountyModal({ card, onClose, onSaved }: {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Crown className="w-5 h-5 text-[#D4A843]" />
-            <h2 className="text-lg font-display text-[#1A1F2B]">Bounty Settings</h2>
+            <Crown className="w-5 h-5 text-[#10B981]" />
+            <h2 className="text-lg font-display text-[#0F172A]">Bounty Settings</h2>
           </div>
           <button onClick={onClose} className="p-1 rounded hover:bg-slate-100 text-slate-400"><X className="w-4 h-4" /></button>
         </div>
@@ -1158,13 +1158,13 @@ function BountyModal({ card, onClose, onSaved }: {
           {hasExpiry && (
             <input
               type="date" value={expiresAt} onChange={e => setExpiresAt(e.target.value)}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/40"
               data-testid="input-bounty-expires-at"
             />
           )}
         </div>
         <div className="flex gap-2 mt-5">
-          <Button onClick={() => save(false)} disabled={saving} className="bg-[#D4A843] text-white flex-1 gap-2" data-testid="button-save-bounty">
+          <Button onClick={() => save(false)} disabled={saving} className="bg-[#10B981] text-white flex-1 gap-2" data-testid="button-save-bounty">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />}
             Save Bounty
           </Button>
@@ -1203,8 +1203,8 @@ function AddTaskModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
-            <Plus className="w-5 h-5 text-[#0D7377]" />
-            <h2 className="text-lg font-display text-[#1A1F2B]">Add Quest to Factory</h2>
+            <Plus className="w-5 h-5 text-[#2563EB]" />
+            <h2 className="text-lg font-display text-[#0F172A]">Add Quest to Factory</h2>
           </div>
           <button onClick={onClose} className="p-1 rounded hover:bg-slate-100 text-slate-400"><X className="w-4 h-4" /></button>
         </div>
@@ -1212,18 +1212,18 @@ function AddTaskModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Title <span className="text-red-400">*</span></label>
             <input autoFocus value={title} onChange={e => setTitle(e.target.value)} onKeyDown={e => e.key === "Enter" && doAdd()}
-              placeholder="What needs to be built?" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-factory-title" />
+              placeholder="What needs to be built?" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-factory-title" />
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
             <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} placeholder="More context about this quest..."
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none" data-testid="input-factory-desc" />
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 resize-none" data-testid="input-factory-desc" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Priority</label>
               <select value={priority} onChange={e => setPriority(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="select-factory-priority">
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="select-factory-priority">
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
@@ -1233,12 +1233,12 @@ function AddTaskModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Labels <span className="text-slate-400 font-normal">(comma-sep)</span></label>
               <input value={labels} onChange={e => setLabels(e.target.value)} placeholder="ai, automation"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-factory-labels" />
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-factory-labels" />
             </div>
           </div>
         </div>
         <div className="flex gap-2 mt-5">
-          <Button onClick={doAdd} disabled={adding || !title.trim()} className="bg-[#0D7377] text-white flex-1 gap-2" data-testid="button-add-factory-task">
+          <Button onClick={doAdd} disabled={adding || !title.trim()} className="bg-[#2563EB] text-white flex-1 gap-2" data-testid="button-add-factory-task">
             {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Add to Factory
           </Button>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
@@ -1318,8 +1318,8 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
       <div className="flex flex-col sm:flex-row sm:items-start gap-3 mb-5">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <Ship className="w-5 h-5 text-[#0D7377]" />
-            <h2 className="text-xl font-display text-[#1A1F2B]">Longship Factory</h2>
+            <Ship className="w-5 h-5 text-[#2563EB]" />
+            <h2 className="text-xl font-display text-[#0F172A]">Longship Factory</h2>
             <Badge variant="secondary" className="text-xs">{allCards.length} quests</Badge>
           </div>
           <p className="text-sm text-slate-500">Unassigned future-building tasks. Browse, add to the pile, or claim one to make it yours.</p>
@@ -1329,7 +1329,7 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
             <Kanban className="w-3.5 h-3.5" /> Board View
           </Button>
           <Button variant="outline" size="sm" onClick={() => setShowCsvGuide(p => !p)}
-            className={`gap-1.5 text-xs ${showCsvGuide ? "border-[#0D7377] text-[#0D7377]" : "border-slate-200"}`} data-testid="button-csv-guide">
+            className={`gap-1.5 text-xs ${showCsvGuide ? "border-[#2563EB] text-[#2563EB]" : "border-slate-200"}`} data-testid="button-csv-guide">
             <Info className="w-3.5 h-3.5" /> CSV Guide
             <ChevronDown className={`w-3 h-3 transition-transform ${showCsvGuide ? "rotate-180" : ""}`} />
           </Button>
@@ -1339,10 +1339,10 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
           </Button>
           <input ref={csvInputRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleCsvImport} data-testid="input-csv-file" />
           <Button variant="outline" size="sm" onClick={() => setShowGenerate(true)}
-            className="gap-1.5 text-xs border-[#D4A843] text-[#8a6a14] hover:bg-amber-50" data-testid="button-generate-with-ai">
+            className="gap-1.5 text-xs border-[#10B981] text-[#8a6a14] hover:bg-amber-50" data-testid="button-generate-with-ai">
             <Sparkles className="w-3.5 h-3.5" /> Generate with AI
           </Button>
-          <Button size="sm" onClick={() => setShowAddTask(true)} className="bg-[#0D7377] text-white gap-1.5 text-xs" data-testid="button-add-factory-quest">
+          <Button size="sm" onClick={() => setShowAddTask(true)} className="bg-[#2563EB] text-white gap-1.5 text-xs" data-testid="button-add-factory-quest">
             <Plus className="w-3.5 h-3.5" /> Add Quest
           </Button>
         </div>
@@ -1350,10 +1350,10 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
 
       {/* CSV Guide */}
       {showCsvGuide && (
-        <div className="mb-5 rounded-xl border border-[#0D7377]/20 bg-teal-50/50 p-4">
+        <div className="mb-5 rounded-xl border border-[#2563EB]/20 bg-teal-50/50 p-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold text-[#0D7377] flex items-center gap-1.5"><Info className="w-4 h-4" /> CSV Format Guide</p>
-            <a href="/api/kanban/factory/sample.csv" download className="inline-flex items-center gap-1 text-xs text-[#0D7377] hover:underline" data-testid="link-download-sample-csv">
+            <p className="text-sm font-semibold text-[#2563EB] flex items-center gap-1.5"><Info className="w-4 h-4" /> CSV Format Guide</p>
+            <a href="/api/kanban/factory/sample.csv" download className="inline-flex items-center gap-1 text-xs text-[#2563EB] hover:underline" data-testid="link-download-sample-csv">
               <FileDown className="w-3.5 h-3.5" /> Download sample.csv
             </a>
           </div>
@@ -1377,7 +1377,7 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
             "Write grant templates","Reusable templates",low,"grants,content",
           </div>
           {importResult && (
-            <p className="mt-2 text-xs text-[#0D7377] font-medium">
+            <p className="mt-2 text-xs text-[#2563EB] font-medium">
               Last import: {importResult.inserted} added{importResult.skipped > 0 ? `, ${importResult.skipped} skipped` : ""}.
             </p>
           )}
@@ -1389,11 +1389,11 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
         <div className="relative flex-1 min-w-[160px] max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search quests..."
-            className="w-full pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+            className="w-full pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
             data-testid="input-factory-search" />
         </div>
         <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
-          className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+          className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
           data-testid="select-factory-priority-filter">
           <option value="all">All priorities</option>
           <option value="urgent">Urgent</option>
@@ -1402,7 +1402,7 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
           <option value="low">Low</option>
         </select>
         <select value={filterColumn} onChange={e => setFilterColumn(e.target.value)}
-          className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+          className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
           data-testid="select-factory-column-filter">
           <option value="all">All columns</option>
           {columns.map((col: any) => <option key={col.id} value={col.id}>{col.title}</option>)}
@@ -1416,7 +1416,7 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
           <Ship className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p className="text-sm font-medium">{allCards.length === 0 ? "The Factory is empty — add the first quest!" : "No quests match your filters."}</p>
           {allCards.length === 0 && (
-            <Button onClick={() => setShowAddTask(true)} className="mt-4 bg-[#0D7377] text-white gap-2"><Plus className="w-4 h-4" /> Add First Quest</Button>
+            <Button onClick={() => setShowAddTask(true)} className="mt-4 bg-[#2563EB] text-white gap-2"><Plus className="w-4 h-4" /> Add First Quest</Button>
           )}
         </div>
       ) : (
@@ -1436,14 +1436,14 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
                 <HoverCardTrigger asChild>
                 <div
                   tabIndex={0}
-                  className={`group relative flex flex-col rounded-xl p-4 shadow-sm border-l-4 ${PRIORITY_BORDER[card.priority] || "border-l-slate-200"} bg-gradient-to-br from-[#fbf6e8] via-[#fdfaf0] to-[#f5ecd3] hover:shadow-md hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D7377]/40 transition-all`}
+                  className={`group relative flex flex-col rounded-xl p-4 shadow-sm border-l-4 ${PRIORITY_BORDER[card.priority] || "border-l-slate-200"} bg-gradient-to-br from-[#fbf6e8] via-[#fdfaf0] to-[#f5ecd3] hover:shadow-md hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40 transition-all`}
                   style={{ backgroundImage: "linear-gradient(135deg,#fbf6e8 0%,#fdfaf0 60%,#f5ecd3 100%)" }}
                   data-testid={`factory-card-${card.id}`}
                 >
                   {/* Bounty ribbon */}
                   {card.bountyActive && (
                     <div
-                      className="absolute -top-2 -right-2 z-10 flex items-center gap-1 px-2 py-1 rounded-md bg-gradient-to-r from-[#D4A843] to-[#b48424] text-white text-[10px] font-bold uppercase tracking-wider shadow-md"
+                      className="absolute -top-2 -right-2 z-10 flex items-center gap-1 px-2 py-1 rounded-md bg-gradient-to-r from-[#10B981] to-[#b48424] text-white text-[10px] font-bold uppercase tracking-wider shadow-md"
                       title={expiryStr ? `Bounty expires ${expiryStr}` : "Open bounty"}
                       data-testid={`bounty-ribbon-${card.id}`}
                     >
@@ -1454,7 +1454,7 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
                   <div className="flex items-start gap-3 mb-2">
                     <WaxSeal priority={card.priority} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#1A1F2B] line-clamp-2 leading-snug">{card.title}</p>
+                      <p className="text-sm font-semibold text-[#0F172A] line-clamp-2 leading-snug">{card.title}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <InterestFitStars score={fitScore} />
                         {card.assignee && (
@@ -1471,11 +1471,11 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
                     </div>
                     {/* XP reward stamp */}
                     <div
-                      className="flex flex-col items-center justify-center w-14 h-14 rounded-full bg-[#0D7377] text-white shadow-md ring-2 ring-[#D4A843]/40 shrink-0"
+                      className="flex flex-col items-center justify-center w-14 h-14 rounded-full bg-[#2563EB] text-white shadow-md ring-2 ring-[#10B981]/40 shrink-0"
                       title={`Reward: ${totalXp} XP`}
                       data-testid={`xp-stamp-${card.id}`}
                     >
-                      <Coins className="w-3.5 h-3.5 -mb-0.5 text-[#D4A843]" />
+                      <Coins className="w-3.5 h-3.5 -mb-0.5 text-[#10B981]" />
                       <span className="text-sm font-bold leading-none">{totalXp}</span>
                       <span className="text-[8px] uppercase tracking-wider opacity-80 mt-0.5">XP</span>
                     </div>
@@ -1488,13 +1488,13 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
                   {(card.labels || []).length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-3">
                       {(card.labels as string[]).slice(0, 4).map(l => (
-                        <span key={l} className="text-[10px] bg-white/70 text-slate-600 border border-[#D4A843]/30 px-1.5 py-0.5 rounded">{l}</span>
+                        <span key={l} className="text-[10px] bg-white/70 text-slate-600 border border-[#10B981]/30 px-1.5 py-0.5 rounded">{l}</span>
                       ))}
                       {card.labels.length > 4 && <span className="text-[10px] text-slate-500">+{card.labels.length - 4}</span>}
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between gap-2 mt-auto pt-3 border-t border-[#D4A843]/30">
+                  <div className="flex items-center justify-between gap-2 mt-auto pt-3 border-t border-[#10B981]/30">
                     <div className="flex items-center gap-2 text-xs text-slate-500 min-w-0">
                       <span className="flex items-center gap-1 truncate">
                         <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ background: card.columnColor || "#64748b" }} />
@@ -1510,7 +1510,7 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
                       {isManager && (
                         <button
                           onClick={() => setBountyCard(card)}
-                          className={`p-1 rounded ${card.bountyActive ? "text-[#D4A843]" : "text-slate-400 hover:text-[#D4A843]"} hover:bg-white/70`}
+                          className={`p-1 rounded ${card.bountyActive ? "text-[#10B981]" : "text-slate-400 hover:text-[#10B981]"} hover:bg-white/70`}
                           aria-label="Set bounty"
                           title={card.bountyActive ? `Bounty ×${Number(card.bountyMultiplier).toFixed(1)}` : "Set bounty (manager)"}
                           data-testid={`button-bounty-${card.id}`}
@@ -1520,7 +1520,7 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
                       )}
                       <Button
                         size="sm" onClick={() => setClaimingCard(card)}
-                        className="bg-[#0D7377] hover:bg-[#0a5e62] text-white text-xs gap-1 h-7 px-2"
+                        className="bg-[#2563EB] hover:bg-[#0a5e62] text-white text-xs gap-1 h-7 px-2"
                         data-testid={`button-claim-${card.id}`}
                       >
                         <Anchor className="w-3 h-3" /> Claim
@@ -1529,8 +1529,8 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
                   </div>
                 </div>
                 </HoverCardTrigger>
-                <HoverCardContent side="top" align="end" className="w-72 p-3 bg-[#fdfaf0] border-[#D4A843]/40">
-                  <p className="text-sm font-semibold text-[#1A1F2B] mb-1">{card.title}</p>
+                <HoverCardContent side="top" align="end" className="w-72 p-3 bg-[#fdfaf0] border-[#10B981]/40">
+                  <p className="text-sm font-semibold text-[#0F172A] mb-1">{card.title}</p>
                   {card.description && (
                     <p className="text-xs text-slate-600 mb-2 whitespace-pre-wrap">{card.description}</p>
                   )}
@@ -1547,7 +1547,7 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
                         <span className="font-mono">×{Number(card.bountyMultiplier).toFixed(1)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between border-t border-[#D4A843]/30 pt-1 mt-1 font-semibold text-[#0D7377]">
+                    <div className="flex justify-between border-t border-[#10B981]/30 pt-1 mt-1 font-semibold text-[#2563EB]">
                       <span>Reward if you claim &amp; finish</span><span className="font-mono">{totalXp} XP</span>
                     </div>
                   </div>
@@ -1556,7 +1556,7 @@ function LongshipFactoryViewInner({ factoryData, boards, onRefresh, onOpenInBoar
                       {(card.labels as string[]).map(l => {
                         const matched = fitTags.includes(l.toLowerCase());
                         return (
-                          <span key={l} className={`text-[10px] px-1.5 py-0.5 rounded border ${matched ? "bg-[#D4A843]/20 text-[#8a6a14] border-[#D4A843]/50" : "bg-white text-slate-600 border-slate-200"}`}>
+                          <span key={l} className={`text-[10px] px-1.5 py-0.5 rounded border ${matched ? "bg-[#10B981]/20 text-[#8a6a14] border-[#10B981]/50" : "bg-white text-slate-600 border-slate-200"}`}>
                             {l}
                           </span>
                         );
@@ -1688,8 +1688,8 @@ function GenerateQuestsModal({ onClose, onGenerated }: { onClose: () => void; on
       <div className={`bg-white rounded-2xl shadow-2xl w-full ${inPreview ? "max-w-3xl" : "max-w-xl"} mx-4 p-6 max-h-[90vh] flex flex-col`} onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[#D4A843]" />
-            <h2 className="text-lg font-display text-[#1A1F2B]">
+            <Sparkles className="w-5 h-5 text-[#10B981]" />
+            <h2 className="text-lg font-display text-[#0F172A]">
               {inPreview ? "Review Generated Quests" : "Generate Quests with AI"}
             </h2>
           </div>
@@ -1715,7 +1715,7 @@ function GenerateQuestsModal({ onClose, onGenerated }: { onClose: () => void; on
                   rows={6}
                   maxLength={MAX_PROMPT}
                   placeholder='e.g., "We need to become more trauma informed across all client intake and training materials."'
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40 resize-none"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/40 resize-none"
                   data-testid="input-generate-prompt"
                 />
                 <div className="flex justify-between mt-1">
@@ -1733,7 +1733,7 @@ function GenerateQuestsModal({ onClose, onGenerated }: { onClose: () => void; on
                   max={MAX_COUNT}
                   value={count}
                   onChange={e => setCount(Number(e.target.value))}
-                  className="w-32 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40"
+                  className="w-32 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/40"
                   data-testid="input-generate-count"
                 />
               </div>
@@ -1747,7 +1747,7 @@ function GenerateQuestsModal({ onClose, onGenerated }: { onClose: () => void; on
               <Button
                 onClick={doGenerate}
                 disabled={generating || !prompt.trim()}
-                className="bg-[#D4A843] hover:bg-[#bf962e] text-white flex-1 gap-2"
+                className="bg-[#10B981] hover:bg-[#bf962e] text-white flex-1 gap-2"
                 data-testid="button-do-generate"
               >
                 {generating ? <><Loader2 className="w-4 h-4 animate-spin" /> Drafting…</> : <><Sparkles className="w-4 h-4" /> Draft {Math.min(Math.max(Math.floor(count || 0), 1), MAX_COUNT)} quest{count === 1 ? "" : "s"}</>}
@@ -1778,7 +1778,7 @@ function GenerateQuestsModal({ onClose, onGenerated }: { onClose: () => void; on
                         type="checkbox"
                         checked={d.keep}
                         onChange={e => updateDraft(d.id, { keep: e.target.checked })}
-                        className="rounded border-slate-300 text-[#0D7377] focus:ring-[#0D7377]/30"
+                        className="rounded border-slate-300 text-[#2563EB] focus:ring-[#2563EB]/30"
                         data-testid={`toggle-keep-${idx}`}
                       />
                       Keep
@@ -1789,7 +1789,7 @@ function GenerateQuestsModal({ onClose, onGenerated }: { onClose: () => void; on
                       disabled={!d.keep}
                       maxLength={200}
                       placeholder="Title"
-                      className="flex-1 border border-slate-200 rounded px-2 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40 disabled:bg-transparent"
+                      className="flex-1 border border-slate-200 rounded px-2 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#10B981]/40 disabled:bg-transparent"
                       data-testid={`input-draft-title-${idx}`}
                     />
                     <button
@@ -1808,7 +1808,7 @@ function GenerateQuestsModal({ onClose, onGenerated }: { onClose: () => void; on
                     rows={2}
                     maxLength={2000}
                     placeholder="Description"
-                    className="w-full border border-slate-200 rounded px-2 py-1.5 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40 disabled:bg-transparent mb-2"
+                    className="w-full border border-slate-200 rounded px-2 py-1.5 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-[#10B981]/40 disabled:bg-transparent mb-2"
                     data-testid={`input-draft-desc-${idx}`}
                   />
                   <div className="grid grid-cols-2 gap-2">
@@ -1818,7 +1818,7 @@ function GenerateQuestsModal({ onClose, onGenerated }: { onClose: () => void; on
                         value={d.priority}
                         onChange={e => updateDraft(d.id, { priority: e.target.value as DraftPriority })}
                         disabled={!d.keep}
-                        className="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40 disabled:bg-transparent"
+                        className="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-[#10B981]/40 disabled:bg-transparent"
                         data-testid={`select-draft-priority-${idx}`}
                       >
                         <option value="low">Low</option>
@@ -1834,7 +1834,7 @@ function GenerateQuestsModal({ onClose, onGenerated }: { onClose: () => void; on
                         onChange={e => updateDraft(d.id, { labels: e.target.value })}
                         disabled={!d.keep}
                         placeholder="ai, automation"
-                        className="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-[#D4A843]/40 disabled:bg-transparent"
+                        className="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-[#10B981]/40 disabled:bg-transparent"
                         data-testid={`input-draft-labels-${idx}`}
                       />
                     </div>
@@ -1863,7 +1863,7 @@ function GenerateQuestsModal({ onClose, onGenerated }: { onClose: () => void; on
               <Button
                 onClick={doPublish}
                 disabled={busy || kept.length === 0}
-                className="bg-[#0D7377] hover:bg-[#0a5a5e] text-white gap-2"
+                className="bg-[#2563EB] hover:bg-[#0a5a5e] text-white gap-2"
                 data-testid="button-publish-drafts"
               >
                 {publishing ? <><Loader2 className="w-4 h-4 animate-spin" /> Publishing…</> : <><Check className="w-4 h-4" /> Publish {kept.length} quest{kept.length === 1 ? "" : "s"}</>}
@@ -2008,7 +2008,7 @@ function KanbanContent() {
         <button onClick={() => setActiveBoard(null)} className="flex items-center gap-1 text-slate-500 hover:text-slate-700 text-sm" data-testid="button-back-boards">
           <ArrowLeft className="w-4 h-4" /> Boards
         </button>
-        <h1 className="text-lg font-display text-[#1A1F2B]">{activeBoard.name}</h1>
+        <h1 className="text-lg font-display text-[#0F172A]">{activeBoard.name}</h1>
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-4" style={{ minHeight: "70vh" }}>
@@ -2024,7 +2024,7 @@ function KanbanContent() {
               </div>
               <Droppable droppableId={String(col.id)}>
                 {(provided, snapshot) => (
-                  <div ref={provided.innerRef} {...provided.droppableProps} className={`flex-1 rounded-xl p-2 min-h-[200px] space-y-2 transition-colors ${snapshot.isDraggingOver ? "bg-[#0D7377]/10" : "bg-slate-100"}`}>
+                  <div ref={provided.innerRef} {...provided.droppableProps} className={`flex-1 rounded-xl p-2 min-h-[200px] space-y-2 transition-colors ${snapshot.isDraggingOver ? "bg-[#2563EB]/10" : "bg-slate-100"}`}>
                     {col.cards?.map((card: any, index: number) => (
                       <Draggable key={card.id} draggableId={String(card.id)} index={index}>
                         {(provided, snapshot) => (
@@ -2041,7 +2041,7 @@ function KanbanContent() {
                                 ))}
                               </div>
                             )}
-                            <p className="text-sm font-medium text-[#1A1F2B] line-clamp-2">{card.title}</p>
+                            <p className="text-sm font-medium text-[#0F172A] line-clamp-2">{card.title}</p>
                             {/* Footer row */}
                             <div className="flex items-center gap-1.5 mt-2">
                               <span className={`text-xs px-1.5 py-0.5 rounded border ${PRIORITY_COLORS[card.priority] || ""}`}>{card.priority}</span>
@@ -2063,7 +2063,7 @@ function KanbanContent() {
                                 {/* Manager-visible "Loved this" gold marker — set when a 4★+ rated card is completed */}
                                 {card.lovedThis && (user?.role === "admin") && (
                                   <span
-                                    className="text-[#D4A843]"
+                                    className="text-[#10B981]"
                                     title="Loved this — completed and rated 4★ or higher"
                                     data-testid={`badge-loved-${card.id}`}
                                   >
@@ -2086,7 +2086,7 @@ function KanbanContent() {
                         <textarea autoFocus value={newCardTitle} onChange={e => setNewCardTitle(e.target.value)} placeholder="Card title…" rows={2} className="w-full text-sm border-0 outline-none resize-none" data-testid="input-new-card-title"
                           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addCard(col.id, activeBoard.id); } }} />
                         <div className="flex gap-1 mt-1">
-                          <Button size="sm" className="bg-[#0D7377] text-white text-xs h-7" onClick={() => addCard(col.id, activeBoard.id)} data-testid="button-save-card"><Check className="w-3 h-3" /></Button>
+                          <Button size="sm" className="bg-[#2563EB] text-white text-xs h-7" onClick={() => addCard(col.id, activeBoard.id)} data-testid="button-save-card"><Check className="w-3 h-3" /></Button>
                           <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => { setAddingCard(null); setNewCardTitle(""); }}><X className="w-3 h-3" /></Button>
                         </div>
                       </div>
@@ -2102,7 +2102,7 @@ function KanbanContent() {
           ))}
         </DragDropContext>
         <div className="shrink-0 w-12 flex items-start justify-center pt-10">
-          <button onClick={addColumn} className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-400 hover:text-[#0D7377] hover:shadow-md transition-all" data-testid="button-add-column">
+          <button onClick={addColumn} className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-400 hover:text-[#2563EB] hover:shadow-md transition-all" data-testid="button-add-column">
             <Plus className="w-4 h-4" />
           </button>
         </div>
@@ -2125,26 +2125,26 @@ function KanbanContent() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B] flex items-center gap-2">
+          <h1 className="text-2xl font-display text-[#0F172A] flex items-center gap-2">
             Kanban Boards
-            <VikingCrossedSwords size={22} className="text-[#0D7377]/40" />
+            <VikingCrossedSwords size={22} className="text-[#2563EB]/40" />
           </h1>
           <p className="text-slate-500 text-sm mt-0.5">Your battle plans, organized by the gods.</p>
         </div>
         {view === "boards" && (
-          <Button onClick={() => setShowNewBoard(true)} className="bg-[#0D7377] text-white gap-2" data-testid="button-new-board"><Plus className="w-4 h-4" /> New Board</Button>
+          <Button onClick={() => setShowNewBoard(true)} className="bg-[#2563EB] text-white gap-2" data-testid="button-new-board"><Plus className="w-4 h-4" /> New Board</Button>
         )}
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 mb-5 border-b border-slate-200 overflow-x-auto">
-        <button onClick={() => setView("boards")} className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px flex items-center gap-1.5 transition-colors whitespace-nowrap ${view === "boards" ? "border-[#0D7377] text-[#0D7377]" : "border-transparent text-slate-500 hover:text-slate-700"}`} data-testid="tab-boards">
+        <button onClick={() => setView("boards")} className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px flex items-center gap-1.5 transition-colors whitespace-nowrap ${view === "boards" ? "border-[#2563EB] text-[#2563EB]" : "border-transparent text-slate-500 hover:text-slate-700"}`} data-testid="tab-boards">
           <Kanban className="w-4 h-4" /> All Boards <span className="text-xs">{boards.filter((b: any) => !b.isLongshipFactory).length}</span>
         </button>
-        <button onClick={() => setView("my-tasks")} className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px flex items-center gap-1.5 transition-colors whitespace-nowrap ${view === "my-tasks" ? "border-[#0D7377] text-[#0D7377]" : "border-transparent text-slate-500 hover:text-slate-700"}`} data-testid="tab-my-tasks">
+        <button onClick={() => setView("my-tasks")} className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px flex items-center gap-1.5 transition-colors whitespace-nowrap ${view === "my-tasks" ? "border-[#2563EB] text-[#2563EB]" : "border-transparent text-slate-500 hover:text-slate-700"}`} data-testid="tab-my-tasks">
           <ClipboardList className="w-4 h-4" /> My Tasks
         </button>
-        <button onClick={() => { setView("factory"); if (!factoryData) loadFactory(); }} className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px flex items-center gap-1.5 transition-colors whitespace-nowrap ${view === "factory" ? "border-[#D4A843] text-[#D4A843]" : "border-transparent text-slate-500 hover:text-slate-700"}`} data-testid="tab-factory">
+        <button onClick={() => { setView("factory"); if (!factoryData) loadFactory(); }} className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px flex items-center gap-1.5 transition-colors whitespace-nowrap ${view === "factory" ? "border-[#10B981] text-[#10B981]" : "border-transparent text-slate-500 hover:text-slate-700"}`} data-testid="tab-factory">
           <Ship className="w-4 h-4" /> Longship Factory
         </button>
       </div>
@@ -2172,10 +2172,10 @@ function KanbanContent() {
       ) : (
         <>
           {showNewBoard && (
-            <Card className="mb-4 border-[#0D7377]/20 shadow-sm">
+            <Card className="mb-4 border-[#2563EB]/20 shadow-sm">
               <CardContent className="pt-4 flex gap-2">
-                <input autoFocus value={newBoardName} onChange={e => setNewBoardName(e.target.value)} placeholder="Board name" className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" onKeyDown={e => e.key === "Enter" && createBoard()} data-testid="input-board-name" />
-                <Button onClick={createBoard} className="bg-[#0D7377] text-white" data-testid="button-create-board"><Check className="w-4 h-4" /></Button>
+                <input autoFocus value={newBoardName} onChange={e => setNewBoardName(e.target.value)} placeholder="Board name" className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" onKeyDown={e => e.key === "Enter" && createBoard()} data-testid="input-board-name" />
+                <Button onClick={createBoard} className="bg-[#2563EB] text-white" data-testid="button-create-board"><Check className="w-4 h-4" /></Button>
                 <Button variant="outline" onClick={() => setShowNewBoard(false)}><X className="w-4 h-4" /></Button>
               </CardContent>
             </Card>
@@ -2188,13 +2188,13 @@ function KanbanContent() {
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-[#1A1F2B]">{board.name}</h3>
+                      <h3 className="font-semibold text-[#0F172A]">{board.name}</h3>
                       {board.description && <p className="text-xs text-slate-400 mt-1 line-clamp-2">{board.description}</p>}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={e => openEditBoard(e, board)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-[#0D7377]"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-[#2563EB]"
                         data-testid={`button-edit-board-${board.id}`}
                         title="Edit board"
                       ><Pencil className="w-3.5 h-3.5" /></button>
@@ -2229,7 +2229,7 @@ function KanbanContent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setEditingBoard(null)}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-display text-[#1A1F2B]">Edit Board</h2>
+              <h2 className="text-lg font-display text-[#0F172A]">Edit Board</h2>
               <button onClick={() => setEditingBoard(null)} className="p-1 rounded hover:bg-slate-100 text-slate-400"><X className="w-4 h-4" /></button>
             </div>
             <div className="space-y-4">
@@ -2240,7 +2240,7 @@ function KanbanContent() {
                   value={editName}
                   onChange={e => setEditName(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && saveEditBoard()}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
                   data-testid="input-edit-board-name"
                 />
               </div>
@@ -2250,13 +2250,13 @@ function KanbanContent() {
                   value={editDesc}
                   onChange={e => setEditDesc(e.target.value)}
                   rows={3}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 resize-none"
                   data-testid="input-edit-board-desc"
                 />
               </div>
             </div>
             <div className="flex gap-2 mt-5">
-              <Button onClick={saveEditBoard} className="bg-[#0D7377] text-white flex-1" data-testid="button-save-board-edit">Save changes</Button>
+              <Button onClick={saveEditBoard} className="bg-[#2563EB] text-white flex-1" data-testid="button-save-board-edit">Save changes</Button>
               <Button variant="outline" onClick={() => setEditingBoard(null)}>Cancel</Button>
             </div>
           </div>

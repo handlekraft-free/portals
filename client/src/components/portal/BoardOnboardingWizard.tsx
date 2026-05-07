@@ -30,30 +30,30 @@ const STEPS = [
 function WelcomeStep({ firstName, onNext }: { firstName: string; onNext: () => void }) {
   return (
     <div className="text-center space-y-6 py-4">
-      <div className="w-16 h-16 rounded-2xl bg-[#0D7377]/10 flex items-center justify-center mx-auto">
-        <Sparkles className="w-8 h-8 text-[#0D7377]" />
+      <div className="w-16 h-16 rounded-2xl bg-[#2563EB]/10 flex items-center justify-center mx-auto">
+        <Sparkles className="w-8 h-8 text-[#2563EB]" />
       </div>
       <div>
-        <h2 className="text-2xl font-display text-[#1A1F2B] mb-2">Welcome, {firstName}!</h2>
+        <h2 className="text-2xl font-display text-[#0F172A] mb-2">Welcome, {firstName}!</h2>
         <p className="text-slate-500 max-w-md mx-auto leading-relaxed">
-          You've been added to the <strong className="text-[#0D7377]">{BRAND.name}</strong> Board of Directors portal.
+          You've been added to the <strong className="text-[#2563EB]">{BRAND.name}</strong> Board of Directors portal.
           This quick setup takes about 3 minutes and will get you ready to participate fully.
         </p>
       </div>
       <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto text-left">
         {[
-          { icon: <KeyRound className="w-4 h-4 text-[#0D7377]" />, text: "Set a secure password" },
-          { icon: <User className="w-4 h-4 text-[#0D7377]" />, text: "Complete your profile" },
-          { icon: <BarChart3 className="w-4 h-4 text-[#0D7377]" />, text: "Rate your expertise" },
-          { icon: <CalendarClock className="w-4 h-4 text-[#0D7377]" />, text: "Set your availability" },
-          { icon: <LayoutDashboard className="w-4 h-4 text-[#0D7377]" />, text: "Tour the portal" },
+          { icon: <KeyRound className="w-4 h-4 text-[#2563EB]" />, text: "Set a secure password" },
+          { icon: <User className="w-4 h-4 text-[#2563EB]" />, text: "Complete your profile" },
+          { icon: <BarChart3 className="w-4 h-4 text-[#2563EB]" />, text: "Rate your expertise" },
+          { icon: <CalendarClock className="w-4 h-4 text-[#2563EB]" />, text: "Set your availability" },
+          { icon: <LayoutDashboard className="w-4 h-4 text-[#2563EB]" />, text: "Tour the portal" },
         ].map((item, i) => (
           <div key={i} className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2.5 text-sm text-slate-700">
             {item.icon} {item.text}
           </div>
         ))}
       </div>
-      <Button onClick={onNext} className="bg-[#0D7377] hover:bg-[#0a5c60] text-white px-8 gap-2" data-testid="wizard-start">
+      <Button onClick={onNext} className="bg-[#2563EB] hover:bg-[#0a5c60] text-white px-8 gap-2" data-testid="wizard-start">
         Get Started <ChevronRight className="w-4 h-4" />
       </Button>
     </div>
@@ -96,7 +96,7 @@ function PasswordStep({ mustChange, onNext, onSkip }: { mustChange: boolean; onN
       <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
         <Check className="w-7 h-7 text-green-600" />
       </div>
-      <p className="text-lg font-semibold text-[#1A1F2B]">Password updated!</p>
+      <p className="text-lg font-semibold text-[#0F172A]">Password updated!</p>
       <p className="text-slate-500 text-sm mt-1">Moving to the next step…</p>
     </div>
   );
@@ -104,7 +104,7 @@ function PasswordStep({ mustChange, onNext, onSkip }: { mustChange: boolean; onN
   return (
     <div className="space-y-5 max-w-sm mx-auto">
       <div>
-        <h2 className="text-xl font-display text-[#1A1F2B] mb-1">Set Your Password</h2>
+        <h2 className="text-xl font-display text-[#0F172A] mb-1">Set Your Password</h2>
         <p className="text-sm text-slate-500">
           {mustChange ? "An administrator set a temporary password for you. Please create a private one now." : "Update your password to something secure and memorable."}
         </p>
@@ -119,7 +119,7 @@ function PasswordStep({ mustChange, onNext, onSkip }: { mustChange: boolean; onN
               value={current}
               onChange={e => setCurrent(e.target.value)}
               placeholder="Your current password"
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
               data-testid="input-current-password"
             />
             <button onClick={() => setShowCurrent(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
@@ -136,7 +136,7 @@ function PasswordStep({ mustChange, onNext, onSkip }: { mustChange: boolean; onN
               value={next}
               onChange={e => setNext(e.target.value)}
               placeholder="8+ characters"
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
               data-testid="input-new-password"
             />
             <button onClick={() => setShowNext(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
@@ -162,7 +162,7 @@ function PasswordStep({ mustChange, onNext, onSkip }: { mustChange: boolean; onN
             value={confirm}
             onChange={e => setConfirm(e.target.value)}
             placeholder="Repeat new password"
-            className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 ${confirm && confirm !== next ? "border-red-300 focus:ring-red-200" : "border-slate-200 focus:ring-[#0D7377]/30"}`}
+            className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 ${confirm && confirm !== next ? "border-red-300 focus:ring-red-200" : "border-slate-200 focus:ring-[#2563EB]/30"}`}
             data-testid="input-confirm-password"
           />
           {confirm && confirm !== next && <p className="text-xs text-red-500 mt-1">Passwords don't match</p>}
@@ -178,7 +178,7 @@ function PasswordStep({ mustChange, onNext, onSkip }: { mustChange: boolean; onN
         <Button
           onClick={save}
           disabled={loading || !current || !next || !confirm}
-          className={`bg-[#0D7377] hover:bg-[#0a5c60] text-white gap-2 ${!mustChange ? "flex-1" : "w-full"}`}
+          className={`bg-[#2563EB] hover:bg-[#0a5c60] text-white gap-2 ${!mustChange ? "flex-1" : "w-full"}`}
           data-testid="wizard-save-password"
         >
           {loading ? "Saving…" : <><Check className="w-4 h-4" /> Update Password</>}
@@ -248,14 +248,14 @@ function ProfileStep({ initialData, onNext, onSkip }: {
   return (
     <div className="space-y-5 max-w-md mx-auto">
       <div>
-        <h2 className="text-xl font-display text-[#1A1F2B] mb-1">Your Profile</h2>
+        <h2 className="text-xl font-display text-[#0F172A] mb-1">Your Profile</h2>
         <p className="text-sm text-slate-500">Help your fellow board members know you better. All fields are optional.</p>
       </div>
 
       {/* Identity card with photo upload */}
       <div className="bg-slate-50 rounded-xl p-4 flex items-center gap-3">
         <div className="relative group shrink-0">
-          <div className="w-14 h-14 rounded-full bg-[#0D7377]/10 text-[#0D7377] font-bold text-sm flex items-center justify-center overflow-hidden">
+          <div className="w-14 h-14 rounded-full bg-[#2563EB]/10 text-[#2563EB] font-bold text-sm flex items-center justify-center overflow-hidden">
             {photoUrl ? (
               <img src={photoUrl} alt="" className="w-full h-full object-cover" />
             ) : (
@@ -268,10 +268,10 @@ function ProfileStep({ initialData, onNext, onSkip }: {
           </label>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-[#1A1F2B] text-sm">{initialData.firstName} {initialData.lastName}</p>
+          <p className="font-semibold text-[#0F172A] text-sm">{initialData.firstName} {initialData.lastName}</p>
           <p className="text-xs text-slate-500">{initialData.email}</p>
           {initialData.boardPosition && (
-            <Badge className="mt-0.5 bg-[#D4A843]/15 text-[#9a7420] border-[#D4A843]/30 text-xs gap-1">
+            <Badge className="mt-0.5 bg-[#10B981]/15 text-[#9a7420] border-[#10B981]/30 text-xs gap-1">
               <ShieldCheck className="w-2.5 h-2.5" />{initialData.boardPosition}
             </Badge>
           )}
@@ -287,7 +287,7 @@ function ProfileStep({ initialData, onNext, onSkip }: {
             onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
             placeholder="Phone number"
             type="tel"
-            className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+            className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
             data-testid="input-wizard-phone"
           />
         </div>
@@ -297,7 +297,7 @@ function ProfileStep({ initialData, onNext, onSkip }: {
             value={form.linkedIn}
             onChange={e => setForm(f => ({ ...f, linkedIn: e.target.value }))}
             placeholder="LinkedIn profile URL"
-            className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+            className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
             data-testid="input-wizard-linkedin"
           />
         </div>
@@ -307,7 +307,7 @@ function ProfileStep({ initialData, onNext, onSkip }: {
             value={form.preferredMeetingTimes}
             onChange={e => setForm(f => ({ ...f, preferredMeetingTimes: e.target.value }))}
             placeholder="Preferred meeting times (e.g. Tue/Thu 5–7 PM PST)"
-            className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+            className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
             data-testid="input-wizard-times"
           />
         </div>
@@ -318,7 +318,7 @@ function ProfileStep({ initialData, onNext, onSkip }: {
             onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
             placeholder="Short bio — your background, expertise, why you serve on this board…"
             rows={3}
-            className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none"
+            className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 resize-none"
             data-testid="textarea-wizard-bio"
           />
         </div>
@@ -329,9 +329,9 @@ function ProfileStep({ initialData, onNext, onSkip }: {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FileText className="w-4 h-4 text-slate-400" />
-            <p className="text-sm font-medium text-[#1A1F2B]">Resume / CV</p>
+            <p className="text-sm font-medium text-[#0F172A]">Resume / CV</p>
           </div>
-          <label className="flex items-center gap-1.5 text-xs font-medium text-[#0D7377] cursor-pointer hover:text-[#0a5c60] transition-colors" data-testid="wizard-upload-resume-label">
+          <label className="flex items-center gap-1.5 text-xs font-medium text-[#2563EB] cursor-pointer hover:text-[#0a5c60] transition-colors" data-testid="wizard-upload-resume-label">
             {resumeUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
             {resumeFile ? "Replace" : "Upload"}
             <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleResumeUpload} data-testid="input-wizard-resume" />
@@ -350,7 +350,7 @@ function ProfileStep({ initialData, onNext, onSkip }: {
         <Button onClick={onSkip} variant="outline" className="flex-1" data-testid="wizard-skip-profile">
           Skip for now
         </Button>
-        <Button onClick={save} disabled={loading} className="flex-1 bg-[#0D7377] hover:bg-[#0a5c60] text-white gap-2" data-testid="wizard-save-profile">
+        <Button onClick={save} disabled={loading} className="flex-1 bg-[#2563EB] hover:bg-[#0a5c60] text-white gap-2" data-testid="wizard-save-profile">
           {loading ? "Saving…" : <><Check className="w-4 h-4" /> Save Profile</>}
         </Button>
       </div>
@@ -380,7 +380,7 @@ function ExpertiseStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-display text-[#1A1F2B] mb-1">Your Board Expertise</h2>
+        <h2 className="text-xl font-display text-[#0F172A] mb-1">Your Board Expertise</h2>
         <p className="text-sm text-slate-500">
           Rate yourself on each knowledge area. This helps the board understand its collective strengths and gaps — and guides recruitment priorities. All ratings are visible to fellow board members.
         </p>
@@ -392,7 +392,7 @@ function ExpertiseStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
         <Button onClick={onSkip} variant="outline" className="flex-1" data-testid="wizard-skip-expertise">
           Skip for now
         </Button>
-        <Button onClick={save} disabled={loading} className="flex-1 bg-[#0D7377] hover:bg-[#0a5c60] text-white gap-2" data-testid="wizard-save-expertise">
+        <Button onClick={save} disabled={loading} className="flex-1 bg-[#2563EB] hover:bg-[#0a5c60] text-white gap-2" data-testid="wizard-save-expertise">
           {loading ? "Saving…" : <><Check className="w-4 h-4" /> Save Expertise</>}
         </Button>
       </div>
@@ -406,7 +406,7 @@ function AvailabilityStep({ onNext, onSkip }: { onNext: () => void; onSkip: () =
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-display text-[#1A1F2B] mb-1">When Are You Available?</h2>
+        <h2 className="text-xl font-display text-[#0F172A] mb-1">When Are You Available?</h2>
         <p className="text-sm text-slate-500">
           Check the windows when you're typically free for a 90-minute board meeting. This helps find dates everyone can make.
         </p>
@@ -432,7 +432,7 @@ const TOUR_ITEMS = [
     bg: "bg-indigo-50 border-indigo-100",
   },
   {
-    icon: <CalendarClock className="w-5 h-5 text-[#0D7377]" />,
+    icon: <CalendarClock className="w-5 h-5 text-[#2563EB]" />,
     title: "Schedule Coordinator",
     desc: "Create time polls so the whole board can vote on availability — then confirm the winner as a meeting.",
     href: "/portal/board/scheduling",
@@ -472,7 +472,7 @@ function TourStep({ onFinish, loading }: { onFinish: () => void; loading: boolea
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-display text-[#1A1F2B] mb-1">You're Almost Ready!</h2>
+        <h2 className="text-xl font-display text-[#0F172A] mb-1">You're Almost Ready!</h2>
         <p className="text-sm text-slate-500">Here's a quick overview of your board portal. You can explore each section from the sidebar at any time.</p>
       </div>
 
@@ -481,22 +481,22 @@ function TourStep({ onFinish, loading }: { onFinish: () => void; loading: boolea
           <div key={item.title} className={`rounded-xl border p-3.5 ${item.bg}`}>
             <div className="flex items-center gap-2 mb-1.5">
               {item.icon}
-              <span className="text-sm font-semibold text-[#1A1F2B]">{item.title}</span>
+              <span className="text-sm font-semibold text-[#0F172A]">{item.title}</span>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">{item.desc}</p>
           </div>
         ))}
       </div>
 
-      <div className="bg-[#0D7377]/5 border border-[#0D7377]/15 rounded-xl p-4 text-sm text-slate-600">
-        <p className="font-medium text-[#0D7377] mb-1">One more thing</p>
+      <div className="bg-[#2563EB]/5 border border-[#2563EB]/15 rounded-xl p-4 text-sm text-slate-600">
+        <p className="font-medium text-[#2563EB] mb-1">One more thing</p>
         <p>Check your notifications (bell icon in the header) for meeting reminders, document requests, and action items assigned to you.</p>
       </div>
 
       <Button
         onClick={onFinish}
         disabled={loading}
-        className="w-full bg-[#0D7377] hover:bg-[#0a5c60] text-white py-3 gap-2 text-base"
+        className="w-full bg-[#2563EB] hover:bg-[#0a5c60] text-white py-3 gap-2 text-base"
         data-testid="wizard-finish"
       >
         {loading ? "Setting up…" : <><Sparkles className="w-5 h-5" /> Enter the Board Member Portal</>}
@@ -527,12 +527,12 @@ export default function BoardOnboardingWizard({ onComplete }: { onComplete: () =
   const firstName = user?.firstName ?? "there";
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#F5F3EF] flex flex-col">
+    <div className="fixed inset-0 z-50 bg-[#F8FAFC] flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white shadow-sm shrink-0">
         <div className="flex items-center gap-3">
           <img src={logoImg} alt={BRAND.name} className="h-7 w-auto" />
-          <span className="font-display text-[#1A1F2B] text-lg hidden sm:inline">Board Member Portal Setup</span>
+          <span className="font-display text-[#0F172A] text-lg hidden sm:inline">Board Member Portal Setup</span>
         </div>
         {/* Step pills */}
         <div className="flex items-center gap-1.5">
@@ -541,8 +541,8 @@ export default function BoardOnboardingWizard({ onComplete }: { onComplete: () =
               key={s.id}
               onClick={() => { if (i < step) setStep(i); }}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-                i === step ? "bg-[#0D7377] text-white shadow-sm" :
-                i < step ? "bg-[#0D7377]/15 text-[#0D7377] cursor-pointer hover:bg-[#0D7377]/25" :
+                i === step ? "bg-[#2563EB] text-white shadow-sm" :
+                i < step ? "bg-[#2563EB]/15 text-[#2563EB] cursor-pointer hover:bg-[#2563EB]/25" :
                 "bg-slate-100 text-slate-400 cursor-default"
               }`}
             >
@@ -589,7 +589,7 @@ export default function BoardOnboardingWizard({ onComplete }: { onComplete: () =
           </Button>
           <div className="flex gap-1">
             {STEPS.map((_, i) => (
-              <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all ${i === step ? "bg-[#0D7377] w-4" : i < step ? "bg-[#0D7377]/40" : "bg-slate-300"}`} />
+              <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all ${i === step ? "bg-[#2563EB] w-4" : i < step ? "bg-[#2563EB]/40" : "bg-slate-300"}`} />
             ))}
           </div>
           <span className="text-xs text-slate-400">{step + 1} of {STEPS.length}</span>

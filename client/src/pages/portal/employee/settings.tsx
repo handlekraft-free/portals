@@ -116,7 +116,7 @@ function AccountRow({
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") setEditing(false); }}
-              className="border border-slate-200 rounded-lg px-2 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+              className="border border-slate-200 rounded-lg px-2 py-1 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
               data-testid={`input-account-label-${acct.id}`}
             />
             <button onClick={save} className="text-emerald-600 hover:text-emerald-700" data-testid={`button-save-label-${acct.id}`}>
@@ -193,7 +193,7 @@ function SagaRecapCard() {
     <Card className="border border-slate-200 shadow-sm" data-testid="card-saga-recap">
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
-          <ScrollText className="w-4 h-4 text-[#0D7377]" />
+          <ScrollText className="w-4 h-4 text-[#2563EB]" />
           Today's Saga (end-of-day recap)
         </CardTitle>
         <CardDescription className="text-xs">
@@ -258,7 +258,7 @@ function SagaOptOutCard() {
     <Card className="border border-slate-200 shadow-sm" data-testid="card-saga-optout">
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
-          <ScrollText className="w-4 h-4 text-[#D4A843]" />
+          <ScrollText className="w-4 h-4 text-[#10B981]" />
           Saga of the Week
         </CardTitle>
         <CardDescription className="text-xs">
@@ -366,7 +366,7 @@ export default function EmployeeSettings() {
     <EmployeeLayout>
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B]">Settings</h1>
+          <h1 className="text-2xl font-display text-[#0F172A]">Settings</h1>
           <p className="text-sm text-slate-500 mt-1">Manage your portal preferences and connected services.</p>
         </div>
 
@@ -447,7 +447,7 @@ export default function EmployeeSettings() {
                     <ExternalLink className="w-3.5 h-3.5 mr-1.5" /> Open Calendar
                   </Button>
                   <Button variant="outline" size="sm"
-                    className="text-[#0D7377] border-[#0D7377]/30 hover:bg-teal-50 ml-auto"
+                    className="text-[#2563EB] border-[#2563EB]/30 hover:bg-teal-50 ml-auto"
                     onClick={() => { setAddingAccount(true); setNewLabel(""); }}
                     data-testid="button-add-account">
                     <Plus className="w-3.5 h-3.5 mr-1.5" /> Add another account
@@ -456,8 +456,8 @@ export default function EmployeeSettings() {
 
                 {/* Add account form */}
                 {addingAccount && (
-                  <div className="rounded-xl border border-[#0D7377]/20 bg-teal-50/60 p-4 space-y-3">
-                    <p className="text-sm font-semibold text-[#1A1F2B]">Add another Google account</p>
+                  <div className="rounded-xl border border-[#2563EB]/20 bg-teal-50/60 p-4 space-y-3">
+                    <p className="text-sm font-semibold text-[#0F172A]">Add another Google account</p>
 
                     <div>
                       <label className="text-xs font-medium text-slate-500 mb-1 block">
@@ -470,7 +470,7 @@ export default function EmployeeSettings() {
                         onChange={(e) => setNewEmail(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && startConnect()}
                         placeholder="you@example.com"
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
                         data-testid="input-new-account-email"
                       />
                     </div>
@@ -484,7 +484,7 @@ export default function EmployeeSettings() {
                         onChange={(e) => setNewLabel(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && startConnect()}
                         placeholder="e.g. Work"
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
                         data-testid="input-new-account-label"
                       />
                     </div>
@@ -492,7 +492,7 @@ export default function EmployeeSettings() {
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        className="bg-[#0D7377] hover:bg-[#0a5f62] text-white"
+                        className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white"
                         onClick={startConnect}
                         disabled={connectPending}
                         data-testid="button-connect-new-account"
@@ -531,14 +531,14 @@ export default function EmployeeSettings() {
                     <span>Next 3 upcoming meetings per account (within 7 days)</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-slate-500">
-                    <Plus className="w-4 h-4 text-[#0D7377] shrink-0" />
+                    <Plus className="w-4 h-4 text-[#2563EB] shrink-0" />
                     <span>Add as many Google accounts as you need</span>
                   </div>
                 </div>
 
                 {!addingAccount ? (
                   <Button
-                    className="bg-[#0D7377] hover:bg-[#0a5f62] text-white w-full sm:w-auto"
+                    className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white w-full sm:w-auto"
                     onClick={() => { setAddingAccount(true); setNewLabel("Primary"); }}
                     data-testid="button-connect-google"
                   >
@@ -551,8 +551,8 @@ export default function EmployeeSettings() {
                     Connect Google Account
                   </Button>
                 ) : (
-                  <div className="rounded-xl border border-[#0D7377]/20 bg-teal-50/60 p-4 space-y-3">
-                    <p className="text-sm font-semibold text-[#1A1F2B]">Connect your Google account</p>
+                  <div className="rounded-xl border border-[#2563EB]/20 bg-teal-50/60 p-4 space-y-3">
+                    <p className="text-sm font-semibold text-[#0F172A]">Connect your Google account</p>
                     <div>
                       <label className="text-xs font-medium text-slate-500 mb-1 block">
                         Label for this account <span className="text-slate-400 font-normal">(e.g. "Work", "Personal")</span>
@@ -563,12 +563,12 @@ export default function EmployeeSettings() {
                         onChange={(e) => setNewLabel(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && startConnect()}
                         placeholder="e.g. Primary"
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
                         data-testid="input-new-account-label"
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" className="bg-[#0D7377] hover:bg-[#0a5f62] text-white" onClick={startConnect} disabled={connectPending} data-testid="button-connect-new-account">
+                      <Button size="sm" className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white" onClick={startConnect} disabled={connectPending} data-testid="button-connect-new-account">
                         {connectPending ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : (
                           <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 mr-1.5">
                             <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

@@ -53,7 +53,7 @@ function FilesContent() {
 
   return (
     <div>
-      <h1 className="text-2xl font-display text-[#1A1F2B] mb-1">Files</h1>
+      <h1 className="text-2xl font-display text-[#0F172A] mb-1">Files</h1>
       <p className="text-slate-500 text-sm mb-5">Shared files between you and the {BRAND.name} team.</p>
 
       {/* Upload Zone */}
@@ -62,7 +62,7 @@ function FilesContent() {
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
-        className={`border-2 border-dashed rounded-xl p-8 mb-5 text-center cursor-pointer transition-colors ${dragOver ? "border-[#0D7377] bg-teal-50" : "border-slate-200 hover:border-[#0D7377]/50 hover:bg-slate-50"}`}
+        className={`border-2 border-dashed rounded-xl p-8 mb-5 text-center cursor-pointer transition-colors ${dragOver ? "border-[#2563EB] bg-teal-50" : "border-slate-200 hover:border-[#2563EB]/50 hover:bg-slate-50"}`}
         data-testid="upload-zone"
       >
         <input ref={inputRef} type="file" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) uploadFile(f); }} data-testid="input-file-upload" />
@@ -74,7 +74,7 @@ function FilesContent() {
       {/* Tabs */}
       <div className="flex gap-2 mb-4">
         {(["all", "mine"] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${tab === t ? "bg-[#0D7377] text-white border-[#0D7377]" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`} data-testid={`tab-${t}`}>
+          <button key={t} onClick={() => setTab(t)} className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${tab === t ? "bg-[#2563EB] text-white border-[#2563EB]" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`} data-testid={`tab-${t}`}>
             {t === "all" ? "All Files" : "My Uploads"}
           </button>
         ))}
@@ -89,11 +89,11 @@ function FilesContent() {
               <CardContent className="py-3 px-4 flex items-center gap-3">
                 {getIcon(f.mimeType)}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#1A1F2B] truncate">{f.fileName}</p>
+                  <p className="text-sm font-medium text-[#0F172A] truncate">{f.fileName}</p>
                   <p className="text-xs text-slate-400">{formatSize(f.fileSize)} · {new Date(f.createdAt).toLocaleDateString()} · {f.uploadedByRole === "employee" ? "From team" : "Your upload"}</p>
                 </div>
                 <div className="flex gap-2 shrink-0">
-                  <a href={`/api/client/files/${f.id}/download`} download className="p-1.5 rounded hover:bg-slate-100 text-slate-500 hover:text-[#0D7377]" data-testid={`button-download-${f.id}`}><Download className="w-4 h-4" /></a>
+                  <a href={`/api/client/files/${f.id}/download`} download className="p-1.5 rounded hover:bg-slate-100 text-slate-500 hover:text-[#2563EB]" data-testid={`button-download-${f.id}`}><Download className="w-4 h-4" /></a>
                   {f.uploadedByRole !== "employee" && (
                     <button onClick={() => deleteFile(f.id)} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-red-500" data-testid={`button-delete-file-${f.id}`}><Trash2 className="w-4 h-4" /></button>
                   )}

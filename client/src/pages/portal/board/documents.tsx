@@ -102,7 +102,7 @@ function VersionHistoryModal({
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
           <div>
-            <p className="font-semibold text-[#1A1F2B]">Version History</p>
+            <p className="font-semibold text-[#0F172A]">Version History</p>
             <p className="text-xs text-slate-500 mt-0.5 truncate max-w-xs">{doc.title}</p>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" data-testid="button-close-versions"><X className="w-4 h-4" /></button>
@@ -118,7 +118,7 @@ function VersionHistoryModal({
                   <span className="text-indigo-600 text-xs font-bold">v{v.versionNumber}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#1A1F2B] truncate">{v.filename || v.title}</p>
+                  <p className="text-sm font-medium text-[#0F172A] truncate">{v.filename || v.title}</p>
                   <p className="text-xs text-slate-400">
                     {fmtDate(v.uploadedAt || v.uploaded_at)} · {formatBytes(v.fileSize || v.file_size)}
                     {(v.uploaderFirst || v.uploader_first) && (
@@ -195,7 +195,7 @@ function AckTrackingModal({ doc, onClose }: { doc: any; onClose: () => void }) {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
           <div>
-            <p className="font-semibold text-[#1A1F2B]">Acknowledgment Tracking</p>
+            <p className="font-semibold text-[#0F172A]">Acknowledgment Tracking</p>
             <p className="text-xs text-slate-500 mt-0.5 truncate max-w-xs">{doc.title}</p>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" data-testid="button-close-acks"><X className="w-4 h-4" /></button>
@@ -213,7 +213,7 @@ function AckTrackingModal({ doc, onClose }: { doc: any; onClose: () => void }) {
                     {data.acked.map((a: any) => (
                       <div key={a.user_id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-green-50" data-testid={`acked-row-${a.user_id}`}>
                         <div>
-                          <p className="text-sm font-medium text-[#1A1F2B]">{a.first_name} {a.last_name}</p>
+                          <p className="text-sm font-medium text-[#0F172A]">{a.first_name} {a.last_name}</p>
                           {a.board_position && <p className="text-xs text-slate-400">{a.board_position}</p>}
                         </div>
                         <p className="text-xs text-green-600">{fmtDate(a.acked_at)}</p>
@@ -229,7 +229,7 @@ function AckTrackingModal({ doc, onClose }: { doc: any; onClose: () => void }) {
                     {data.notAcked.map((u: any) => (
                       <div key={u.user_id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-amber-50" data-testid={`notacked-row-${u.user_id}`}>
                         <div>
-                          <p className="text-sm font-medium text-[#1A1F2B]">{u.first_name} {u.last_name}</p>
+                          <p className="text-sm font-medium text-[#0F172A]">{u.first_name} {u.last_name}</p>
                           {u.board_position && <p className="text-xs text-slate-400">{u.board_position}</p>}
                         </div>
                         <button
@@ -275,7 +275,7 @@ function AuditTrailModal({ doc, onClose }: { doc: any; onClose: () => void }) {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
           <div>
-            <p className="font-semibold text-[#1A1F2B]">Document Activity</p>
+            <p className="font-semibold text-[#0F172A]">Document Activity</p>
             <p className="text-xs text-slate-500 mt-0.5 truncate max-w-xs">{doc.title}</p>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" data-testid="button-close-audit"><X className="w-4 h-4" /></button>
@@ -292,7 +292,7 @@ function AuditTrailModal({ doc, onClose }: { doc: any; onClose: () => void }) {
                 <div key={e.id} className="flex items-start gap-3 px-3 py-2 rounded-lg hover:bg-slate-50" data-testid={`audit-row-${e.id}`}>
                   <span className="text-sm mt-0.5">{ACTION_ICON[e.action] || "•"}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-[#1A1F2B]">
+                    <p className="text-sm text-[#0F172A]">
                       <span className="font-medium">{e.first_name} {e.last_name}</span>
                       {" "}<span className="text-slate-500 capitalize">{e.action.replace("_", " ")}</span>
                     </p>
@@ -343,7 +343,7 @@ function EditDocModal({ doc, onClose, onSaved }: { doc: any; onClose: () => void
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
-          <p className="font-semibold text-[#1A1F2B]">Edit Document</p>
+          <p className="font-semibold text-[#0F172A]">Edit Document</p>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-5 space-y-3">
@@ -442,7 +442,7 @@ function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded:
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl">
-          <p className="font-semibold text-[#1A1F2B]">Add Board Document</p>
+          <p className="font-semibold text-[#0F172A]">Add Board Document</p>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" data-testid="button-close-upload"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-5 space-y-3">
@@ -645,7 +645,7 @@ function ShareModal({
               <Link2 className="w-4 h-4 text-indigo-500" />
             </div>
             <div>
-              <p className="font-semibold text-[#1A1F2B] text-sm">Share via Link</p>
+              <p className="font-semibold text-[#0F172A] text-sm">Share via Link</p>
               <p className="text-xs text-slate-400 truncate max-w-56">{doc.title}</p>
             </div>
           </div>
@@ -773,7 +773,7 @@ function DocCard({
 
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-1">
-              <p className="font-semibold text-sm text-[#1A1F2B]">{doc.title}</p>
+              <p className="font-semibold text-sm text-[#0F172A]">{doc.title}</p>
               {currentVer && (
                 <Badge variant="outline" className="text-xs border-indigo-200 text-indigo-600 px-1.5">
                   v{currentVer}
@@ -1048,7 +1048,7 @@ function DocumentsContent() {
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="text-2xl font-display text-[#1A1F2B]">
+            <h1 className="text-2xl font-display text-[#0F172A]">
               {searchAllResults !== null ? "Search Results" : activeCategory === "_all" ? "Board Documents" : activeCategory}
             </h1>
             <p className="text-slate-500 text-sm mt-0.5">

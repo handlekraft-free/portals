@@ -18,7 +18,7 @@ router.get("/projects", async (req, res) => {
 router.post("/projects", async (req, res) => {
   const { name, clientId, color, hourlyRate, budgetHours } = req.body;
   if (!name) return res.status(400).json({ success: false, error: "Name required" });
-  const [p] = await db.insert(projects).values({ name, clientId: clientId || null, color: color || "#0D7377", hourlyRate: hourlyRate || "0", budgetHours: budgetHours || "0" }).returning();
+  const [p] = await db.insert(projects).values({ name, clientId: clientId || null, color: color || "#2563EB", hourlyRate: hourlyRate || "0", budgetHours: budgetHours || "0" }).returning();
   res.status(201).json({ success: true, data: p });
 });
 

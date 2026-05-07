@@ -289,7 +289,7 @@ function CalendarContent() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B]">Board Calendar</h1>
+          <h1 className="text-2xl font-display text-[#0F172A]">Board Calendar</h1>
           <p className="text-slate-500 text-sm mt-0.5">Monthly view of all board meetings and reminders.</p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -323,7 +323,7 @@ function CalendarContent() {
                 <button onClick={prevMonth} className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors" data-testid="button-prev-month">
                   <ChevronLeft className="w-4 h-4 text-slate-600" />
                 </button>
-                <h2 className="font-semibold text-[#1A1F2B]">{MONTHS[viewMonth]} {viewYear}</h2>
+                <h2 className="font-semibold text-[#0F172A]">{MONTHS[viewMonth]} {viewYear}</h2>
                 <button onClick={nextMonth} className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors" data-testid="button-next-month">
                   <ChevronRight className="w-4 h-4 text-slate-600" />
                 </button>
@@ -405,7 +405,7 @@ function CalendarContent() {
             <Card className="border-0 shadow-sm mt-4" data-testid="calendar-day-panel">
               <CardContent className="pt-4 pb-3">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-semibold text-[#1A1F2B]">
+                  <p className="text-sm font-semibold text-[#0F172A]">
                     {MONTHS[viewMonth]} {selectedDayNum}, {viewYear}
                   </p>
                   <div className="flex items-center gap-1.5">
@@ -445,7 +445,7 @@ function CalendarContent() {
                         >
                           <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${TYPE_COLORS[m.meetingType] || "bg-indigo-500"}`} />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-[#1A1F2B] truncate">{m.title}</p>
+                            <p className="text-sm font-medium text-[#0F172A] truncate">{m.title}</p>
                             <p className="text-xs text-slate-400">
                               {new Date(m.scheduledAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                               {m.location ? ` · ${m.location}` : ""}
@@ -500,7 +500,7 @@ function CalendarContent() {
               <CardContent className="pt-4">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="font-semibold text-[#1A1F2B]" data-testid="text-cal-meeting-title">{selected.title}</h3>
+                    <h3 className="font-semibold text-[#0F172A]" data-testid="text-cal-meeting-title">{selected.title}</h3>
                     <div className="flex gap-3 text-xs text-slate-500 mt-1 flex-wrap">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
@@ -765,7 +765,7 @@ function CalendarContent() {
                     <div className="flex gap-3 items-start">
                       <div className={`w-1 self-stretch rounded-full shrink-0 ${TYPE_COLORS[m.meetingType] || "bg-indigo-500"}`} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#1A1F2B] truncate">{m.title}</p>
+                        <p className="text-sm font-semibold text-[#0F172A] truncate">{m.title}</p>
                         <p className="text-xs text-slate-400 mt-0.5">
                           {d.toLocaleDateString(undefined, { month: "short", day: "numeric" })} · {d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </p>
@@ -795,7 +795,7 @@ function CalendarContent() {
                   <div key={r.id} className="bg-white rounded-xl shadow-sm px-3 py-2.5 flex gap-2.5 items-start group" data-testid={`sidebar-reminder-${r.id}`}>
                     <AlarmClock className="w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#1A1F2B] truncate">{r.title}</p>
+                      <p className="text-sm font-medium text-[#0F172A] truncate">{r.title}</p>
                       <p className="text-xs text-slate-400">
                         {new Date(r.reminderDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · {new Date(r.reminderDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </p>
@@ -822,7 +822,7 @@ function CalendarContent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" data-testid="schedule-meeting-modal">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-100">
-              <h2 className="text-base font-semibold text-[#1A1F2B] flex items-center gap-2">
+              <h2 className="text-base font-semibold text-[#0F172A] flex items-center gap-2">
                 <CalendarDays className="w-4 h-4 text-indigo-500" /> Schedule a New Meeting
               </h2>
               <button onClick={() => setShowMeetingModal(false)} className="text-slate-400 hover:text-slate-600" data-testid="button-close-meeting-modal">
@@ -903,7 +903,7 @@ function CalendarContent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" data-testid="reminder-modal">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
             <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-100">
-              <h2 className="text-base font-semibold text-[#1A1F2B] flex items-center gap-2">
+              <h2 className="text-base font-semibold text-[#0F172A] flex items-center gap-2">
                 <AlarmClock className="w-4 h-4 text-amber-500" />
                 {editReminder ? "Edit Reminder" : "Add Reminder"}
               </h2>

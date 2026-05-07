@@ -67,7 +67,7 @@ function UploadModal({ onClose, onUploaded }: { onClose: () => void; onUploaded:
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="p-5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white rounded-t-2xl">
-          <p className="font-semibold text-[#1A1F2B]">Upload Financial Report</p>
+          <p className="font-semibold text-[#0F172A]">Upload Financial Report</p>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400" data-testid="button-close-upload-financial"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-5 space-y-3">
@@ -181,7 +181,7 @@ function FinancialsContent() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B] flex items-center gap-2">
+          <h1 className="text-2xl font-display text-[#0F172A] flex items-center gap-2">
             <DollarSign className="w-6 h-6 text-indigo-500" /> Financials
           </h1>
           <p className="text-slate-500 text-sm mt-0.5">Financial reports, budgets, and audit documents for board review.</p>
@@ -230,7 +230,7 @@ function FinancialsContent() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                        <p className="font-semibold text-sm text-[#1A1F2B]">{r.title}</p>
+                        <p className="font-semibold text-sm text-[#0F172A]">{r.title}</p>
                         <Badge className={`text-xs border-0 ${badge.class}`}>{badge.label}</Badge>
                         <Badge variant="outline" className="text-xs text-indigo-600 border-indigo-200">{r.period}</Badge>
                       </div>

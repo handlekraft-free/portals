@@ -51,7 +51,7 @@ function ClientTicketsContent() {
     <div>
       <button onClick={() => setActiveTicket(null)} className="flex items-center gap-1 text-slate-500 hover:text-slate-700 text-sm mb-4" data-testid="button-back-tickets"><ArrowLeft className="w-4 h-4" /> All Tickets</button>
       <div className="flex items-center gap-3 mb-4">
-        <h2 className="text-lg font-display text-[#1A1F2B] flex-1">{activeTicket.title}</h2>
+        <h2 className="text-lg font-display text-[#0F172A] flex-1">{activeTicket.title}</h2>
         <Badge className={`text-xs ${STATUS_COLORS[activeTicket.status] || ""}`}>{activeTicket.status.replace("_", " ")}</Badge>
         <Badge className={`text-xs ${PRIORITY_COLORS[activeTicket.priority] || ""}`}>{activeTicket.priority}</Badge>
       </div>
@@ -60,7 +60,7 @@ function ClientTicketsContent() {
           <p className="text-sm text-slate-600 mb-4 pb-4 border-b">{activeTicket.description}</p>
           <div className="space-y-3 max-h-[45vh] overflow-y-auto">
             {activeTicket.comments?.filter((c: any) => !c.internal).map((c: any) => (
-              <div key={c.id} className={`p-3 rounded-xl text-sm ${c.authorRole !== "client" ? "bg-white shadow-sm border ml-0 mr-12" : "bg-[#0D7377]/10 border border-[#0D7377]/20 ml-12 mr-0"}`} data-testid={`comment-${c.id}`}>
+              <div key={c.id} className={`p-3 rounded-xl text-sm ${c.authorRole !== "client" ? "bg-white shadow-sm border ml-0 mr-12" : "bg-[#2563EB]/10 border border-[#2563EB]/20 ml-12 mr-0"}`} data-testid={`comment-${c.id}`}>
                 <p className="font-medium text-slate-700 mb-1">{c.authorRole === "client" ? "You" : `${BRAND.name} Team`}</p>
                 <p className="text-slate-600">{c.content}</p>
                 <p className="text-xs text-slate-400 mt-1">{new Date(c.createdAt).toLocaleString()}</p>
@@ -69,8 +69,8 @@ function ClientTicketsContent() {
           </div>
           {activeTicket.status !== "closed" && (
             <form onSubmit={addComment} className="mt-4 flex gap-2">
-              <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Add a comment..." rows={2} className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-comment" />
-              <Button type="submit" className="bg-[#0D7377] text-white self-end gap-1" data-testid="button-comment"><Send className="w-4 h-4" /></Button>
+              <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Add a comment..." rows={2} className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-comment" />
+              <Button type="submit" className="bg-[#2563EB] text-white self-end gap-1" data-testid="button-comment"><Send className="w-4 h-4" /></Button>
             </form>
           )}
         </CardContent>
@@ -81,19 +81,19 @@ function ClientTicketsContent() {
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <div><h1 className="text-2xl font-display text-[#1A1F2B]">Support Tickets</h1><p className="text-slate-500 text-sm">Get help from the {BRAND.name} team.</p></div>
-        <Button onClick={() => setShowCreate(true)} className="bg-[#0D7377] text-white gap-2" data-testid="button-new-ticket"><Plus className="w-4 h-4" /> New Ticket</Button>
+        <div><h1 className="text-2xl font-display text-[#0F172A]">Support Tickets</h1><p className="text-slate-500 text-sm">Get help from the {BRAND.name} team.</p></div>
+        <Button onClick={() => setShowCreate(true)} className="bg-[#2563EB] text-white gap-2" data-testid="button-new-ticket"><Plus className="w-4 h-4" /> New Ticket</Button>
       </div>
       {showCreate && (
-        <Card className="mb-4 border-[#0D7377]/20 shadow-sm">
+        <Card className="mb-4 border-[#2563EB]/20 shadow-sm">
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-sm">New Support Request</CardTitle>
             <button onClick={() => setShowCreate(false)}><X className="w-4 h-4 text-slate-400" /></button>
           </CardHeader>
           <CardContent>
             <form onSubmit={createTicket} className="space-y-3">
-              <input required value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Brief description of the issue *" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-ticket-title" />
-              <textarea required value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Detailed description..." rows={3} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-ticket-desc" />
+              <input required value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Brief description of the issue *" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-ticket-title" />
+              <textarea required value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Detailed description..." rows={3} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-ticket-desc" />
               <div className="grid grid-cols-2 gap-3">
                 <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="select-category">
                   {["general", "bug", "feature_request", "billing", "access", "other"].map(c => <option key={c} value={c}>{c.replace("_", " ")}</option>)}
@@ -102,7 +102,7 @@ function ClientTicketsContent() {
                   {["low", "medium", "high", "urgent"].map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
-              <Button type="submit" className="bg-[#0D7377] text-white" data-testid="button-submit-ticket">Submit Ticket</Button>
+              <Button type="submit" className="bg-[#2563EB] text-white" data-testid="button-submit-ticket">Submit Ticket</Button>
             </form>
           </CardContent>
         </Card>
@@ -114,7 +114,7 @@ function ClientTicketsContent() {
               <Card key={t.id} className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => loadTicket(t.id)} data-testid={`ticket-row-${t.id}`}>
                 <CardContent className="py-3 px-4 flex items-center gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#1A1F2B] truncate">{t.title}</p>
+                    <p className="text-sm font-medium text-[#0F172A] truncate">{t.title}</p>
                     <p className="text-xs text-slate-400">{new Date(t.createdAt).toLocaleDateString()} · {t.category}</p>
                   </div>
                   <div className="flex gap-2 shrink-0">

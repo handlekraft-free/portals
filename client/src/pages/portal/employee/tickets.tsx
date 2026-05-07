@@ -55,10 +55,10 @@ function TicketsContent() {
   if (!activeTicket) return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <div><h1 className="text-2xl font-display text-[#1A1F2B]">Client Tickets</h1><p className="text-slate-500 text-sm">Support requests from your clients.</p></div>
+        <div><h1 className="text-2xl font-display text-[#0F172A]">Client Tickets</h1><p className="text-slate-500 text-sm">Support requests from your clients.</p></div>
         <div className="flex gap-2 flex-wrap">
           {["all", "open", "in_progress", "waiting", "resolved"].map(s => (
-            <button key={s} onClick={() => setStatusFilter(s)} className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${statusFilter === s ? "bg-[#0D7377] text-white border-[#0D7377]" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`} data-testid={`filter-${s}`}>{s.replace("_", " ")}</button>
+            <button key={s} onClick={() => setStatusFilter(s)} className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${statusFilter === s ? "bg-[#2563EB] text-white border-[#2563EB]" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`} data-testid={`filter-${s}`}>{s.replace("_", " ")}</button>
           ))}
         </div>
       </div>
@@ -69,7 +69,7 @@ function TicketsContent() {
               <Card key={t.id} className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => loadTicket(t.id)} data-testid={`card-ticket-${t.id}`}>
                 <CardContent className="py-3 px-4 flex items-center gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#1A1F2B]">{t.title}</p>
+                    <p className="text-sm font-medium text-[#0F172A]">{t.title}</p>
                     <p className="text-xs text-slate-400 mt-0.5">{t.clientFirstName ? `${t.clientFirstName} ${t.clientLastName}` : `Client #${t.clientId}`} · {t.category} · <span className={slaHours(t) > 24 ? "text-red-500" : ""}>{slaHours(t)}h open</span></p>
                   </div>
                   <div className="flex gap-2 shrink-0">
@@ -89,7 +89,7 @@ function TicketsContent() {
     <div>
       <div className="flex items-center gap-3 mb-4">
         <button onClick={() => setActiveTicket(null)} className="flex items-center gap-1 text-slate-500 hover:text-slate-700 text-sm" data-testid="button-back-tickets"><ArrowLeft className="w-4 h-4" /> Tickets</button>
-        <h1 className="text-lg font-display text-[#1A1F2B] flex-1">{activeTicket.title}</h1>
+        <h1 className="text-lg font-display text-[#0F172A] flex-1">{activeTicket.title}</h1>
       </div>
       <div className="grid md:grid-cols-3 gap-4">
         <div className="md:col-span-2">
@@ -109,13 +109,13 @@ function TicketsContent() {
                 ))}
               </div>
               <form onSubmit={addComment} className="mt-4 space-y-2">
-                <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Add a comment..." rows={3} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-ticket-comment" />
+                <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Add a comment..." rows={3} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-ticket-comment" />
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-2 text-sm text-slate-600">
                     <input type="checkbox" checked={internal} onChange={e => setInternal(e.target.checked)} data-testid="checkbox-internal" />
                     Internal only (not visible to client)
                   </label>
-                  <Button type="submit" size="sm" className="bg-[#0D7377] text-white" data-testid="button-submit-comment">Comment</Button>
+                  <Button type="submit" size="sm" className="bg-[#2563EB] text-white" data-testid="button-submit-comment">Comment</Button>
                 </div>
               </form>
             </CardContent>

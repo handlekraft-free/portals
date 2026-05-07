@@ -44,7 +44,7 @@ function CoursesContent() {
     if (type === "video") return <Play className="w-4 h-4 text-blue-500" />;
     if (type === "file") return <File className="w-4 h-4 text-slate-400" />;
     if (type === "quiz") return <HelpCircle className="w-4 h-4 text-purple-500" />;
-    return <FileText className="w-4 h-4 text-[#0D7377]" />;
+    return <FileText className="w-4 h-4 text-[#2563EB]" />;
   };
 
   if (activeLesson && activeCourse) return (
@@ -52,12 +52,12 @@ function CoursesContent() {
       <div className="flex items-center gap-2 mb-4 text-sm text-slate-500">
         <button onClick={() => setActiveLesson(null)} className="hover:text-slate-700">Modules</button>
         <ChevronRight className="w-3 h-3" />
-        <span className="text-[#1A1F2B] font-medium">{activeLesson.title}</span>
+        <span className="text-[#0F172A] font-medium">{activeLesson.title}</span>
       </div>
       <Card className="border-0 shadow-sm mb-4">
         <CardContent className="pt-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-display text-[#1A1F2B]">{activeLesson.title}</h2>
+            <h2 className="text-xl font-display text-[#0F172A]">{activeLesson.title}</h2>
             <Badge variant="secondary" className="text-xs">{activeLesson.contentType}</Badge>
           </div>
           {activeLesson.contentType === "text" && (
@@ -69,7 +69,7 @@ function CoursesContent() {
             </div>
           )}
           {activeLesson.contentType === "file" && (
-            <a href={activeLesson.content} className="flex items-center gap-2 text-[#0D7377] hover:underline" data-testid="lesson-file-link"><File className="w-4 h-4" /> Download File</a>
+            <a href={activeLesson.content} className="flex items-center gap-2 text-[#2563EB] hover:underline" data-testid="lesson-file-link"><File className="w-4 h-4" /> Download File</a>
           )}
           {activeLesson.contentType === "quiz" && (
             <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-600" data-testid="lesson-quiz">
@@ -81,7 +81,7 @@ function CoursesContent() {
               {activeLesson.completed ? "✓ Completed" : "Not yet completed"}
             </span>
             {!activeLesson.completed && (
-              <Button onClick={() => markComplete(activeLesson.id)} className="bg-[#0D7377] text-white gap-2" data-testid="button-mark-complete">
+              <Button onClick={() => markComplete(activeLesson.id)} className="bg-[#2563EB] text-white gap-2" data-testid="button-mark-complete">
                 <Check className="w-4 h-4" /> Mark as Complete
               </Button>
             )}
@@ -95,7 +95,7 @@ function CoursesContent() {
     <div>
       <button onClick={() => setActiveCourse(null)} className="flex items-center gap-1 text-slate-500 hover:text-slate-700 text-sm mb-4" data-testid="button-back-courses"><ArrowLeft className="w-4 h-4" /> My Courses</button>
       <div className="flex items-center gap-3 mb-2">
-        <h1 className="text-2xl font-display text-[#1A1F2B] flex-1">{activeCourse.title}</h1>
+        <h1 className="text-2xl font-display text-[#0F172A] flex-1">{activeCourse.title}</h1>
       </div>
       <div className="flex items-center gap-2 mb-5">
         <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -107,7 +107,7 @@ function CoursesContent() {
         {activeCourse.modules?.map((mod: any) => (
           <Card key={mod.id} className="border-0 shadow-sm" data-testid={`module-${mod.id}`}>
             <CardContent className="pt-4">
-              <h3 className="font-semibold text-[#1A1F2B] mb-3">{mod.title}</h3>
+              <h3 className="font-semibold text-[#0F172A] mb-3">{mod.title}</h3>
               <div className="space-y-1.5">
                 {mod.lessons?.map((l: any) => (
                   <button key={l.id} onClick={() => loadLesson(activeCourse.id, l.id)} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors text-left" data-testid={`lesson-item-${l.id}`}>
@@ -129,7 +129,7 @@ function CoursesContent() {
 
   return (
     <div>
-      <h1 className="text-2xl font-display text-[#1A1F2B] mb-1">My Courses</h1>
+      <h1 className="text-2xl font-display text-[#0F172A] mb-1">My Courses</h1>
       <p className="text-slate-500 text-sm mb-5">Your enrolled fellowship training courses.</p>
       {loading ? <div className="space-y-3">{[...Array(2)].map((_, i) => <div key={i} className="h-24 bg-white rounded-xl animate-pulse" />)}</div> : (
         <div className="space-y-3">
@@ -137,7 +137,7 @@ function CoursesContent() {
             courses.map((c: any) => (
               <Card key={c.id} className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => loadCourse(c.id)} data-testid={`course-card-${c.id}`}>
                 <CardContent className="py-4 px-5">
-                  <h3 className="font-semibold text-[#1A1F2B]">{c.title}</h3>
+                  <h3 className="font-semibold text-[#0F172A]">{c.title}</h3>
                   {c.description && <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{c.description}</p>}
                   <div className="flex items-center gap-2 mt-3">
                     <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">

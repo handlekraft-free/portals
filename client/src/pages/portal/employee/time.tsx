@@ -248,10 +248,10 @@ function BiWeeklyTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; o
             {/* Week group headers */}
             <tr className="bg-slate-50 border-b border-slate-100">
               <th className="text-left px-4 py-1.5 text-xs text-slate-400 w-40" />
-              <th colSpan={7} className="text-center py-1.5 text-xs font-semibold text-[#0D7377] border-r border-slate-200">
+              <th colSpan={7} className="text-center py-1.5 text-xs font-semibold text-[#2563EB] border-r border-slate-200">
                 Week 1 · {fmtDate(weekStart)} – {fmtDate(addDays(weekStart, 6))}
               </th>
-              <th colSpan={7} className="text-center py-1.5 text-xs font-semibold text-[#D4A843]">
+              <th colSpan={7} className="text-center py-1.5 text-xs font-semibold text-[#10B981]">
                 Week 2 · {fmtDate(addDays(weekStart, 7))} – {fmtDate(periodEnd)}
               </th>
               <th className="text-center px-3 py-1.5 text-xs text-slate-400">Total</th>
@@ -268,10 +268,10 @@ function BiWeeklyTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; o
                 return (
                   <th
                     key={idx}
-                    className={`text-center px-1.5 py-2 text-xs font-semibold uppercase tracking-wider ${isBoundary ? "border-l border-slate-200" : ""} ${isWeekend ? "text-slate-400" : isToday ? "text-[#0D7377]" : "text-slate-500"}`}
+                    className={`text-center px-1.5 py-2 text-xs font-semibold uppercase tracking-wider ${isBoundary ? "border-l border-slate-200" : ""} ${isWeekend ? "text-slate-400" : isToday ? "text-[#2563EB]" : "text-slate-500"}`}
                   >
                     <div>{DAY_NAMES_SHORT[dayOfWeek]}</div>
-                    <div className={`font-normal text-xs mt-0.5 normal-case ${isToday ? "font-bold text-[#0D7377]" : "text-slate-400"}`}>{fmtDate(date)}</div>
+                    <div className={`font-normal text-xs mt-0.5 normal-case ${isToday ? "font-bold text-[#2563EB]" : "text-slate-400"}`}>{fmtDate(date)}</div>
                   </th>
                 );
               })}
@@ -286,7 +286,7 @@ function BiWeeklyTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; o
                   <td className="px-4 py-2">
                     <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cc.color }} />
-                      <span className="text-xs font-medium text-[#1A1F2B] leading-tight">{cc.name}</span>
+                      <span className="text-xs font-medium text-[#0F172A] leading-tight">{cc.name}</span>
                     </div>
                   </td>
                   {BIWEEK_INDICES.map((idx, i) => {
@@ -306,23 +306,23 @@ function BiWeeklyTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; o
                           onChange={e => setCell(cc.id, idx, parseFloat(e.target.value) || 0)}
                           disabled={isLocked}
                           data-testid={`input-cc-${cc.id}-${idx}`}
-                          className={`w-12 text-center border rounded-lg py-1 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 ${
+                          className={`w-12 text-center border rounded-lg py-1 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 ${
                             isLocked ? "bg-slate-50 text-slate-400 cursor-not-allowed border-slate-100" :
-                            val > 0 ? "border-[#0D7377]/40 text-[#1A1F2B] bg-[#0D7377]/5" : "border-slate-200 text-slate-400"
+                            val > 0 ? "border-[#2563EB]/40 text-[#0F172A] bg-[#2563EB]/5" : "border-slate-200 text-slate-400"
                           }`}
                         />
                       </td>
                     );
                   })}
                   <td className="px-3 py-2 text-center">
-                    <span className={`text-sm font-bold ${rt > 0 ? "text-[#1A1F2B]" : "text-slate-300"}`}>{rt > 0 ? `${rt}h` : "—"}</span>
+                    <span className={`text-sm font-bold ${rt > 0 ? "text-[#0F172A]" : "text-slate-300"}`}>{rt > 0 ? `${rt}h` : "—"}</span>
                   </td>
                 </tr>
               );
             })}
           </tbody>
           <tfoot>
-            <tr className="bg-[#0D7377]/5 border-t-2 border-[#0D7377]/20">
+            <tr className="bg-[#2563EB]/5 border-t-2 border-[#2563EB]/20">
               <td className="px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Daily Total</td>
               {BIWEEK_INDICES.map((idx, i) => {
                 const dayOfWeek = i % 7;
@@ -331,12 +331,12 @@ function BiWeeklyTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; o
                 const ct = colTotal(idx);
                 return (
                   <td key={idx} className={`px-1 py-2 text-center ${isWeekend ? "bg-slate-50/60" : ""} ${isBoundary ? "border-l border-slate-200" : ""}`}>
-                    <span className={`text-sm font-bold ${ct > 0 ? "text-[#0D7377]" : "text-slate-300"}`}>{ct > 0 ? `${ct}h` : "—"}</span>
+                    <span className={`text-sm font-bold ${ct > 0 ? "text-[#2563EB]" : "text-slate-300"}`}>{ct > 0 ? `${ct}h` : "—"}</span>
                   </td>
                 );
               })}
               <td className="px-3 py-2 text-center">
-                <span className="text-base font-extrabold text-[#0D7377]">{grandTotal}h</span>
+                <span className="text-base font-extrabold text-[#2563EB]">{grandTotal}h</span>
               </td>
             </tr>
           </tfoot>
@@ -351,7 +351,7 @@ function BiWeeklyTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; o
         placeholder="Notes (optional) — any context for your approver"
         rows={2}
         data-testid="input-timesheet-notes"
-        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none disabled:bg-slate-50 disabled:text-slate-400"
+        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 resize-none disabled:bg-slate-50 disabled:text-slate-400"
       />
 
       {!isLocked && (
@@ -359,7 +359,7 @@ function BiWeeklyTimesheetPanel({ weekStart, onSubmitted }: { weekStart: Date; o
           <Button onClick={saveDraft} disabled={saving} variant="outline" className="gap-2" data-testid="button-save-draft">
             <FileText className="w-4 h-4" /> Save Draft
           </Button>
-          <Button onClick={submitSheet} disabled={saving || grandTotal === 0} className="bg-[#0D7377] text-white gap-2" data-testid="button-submit-timesheet">
+          <Button onClick={submitSheet} disabled={saving || grandTotal === 0} className="bg-[#2563EB] text-white gap-2" data-testid="button-submit-timesheet">
             <Send className="w-4 h-4" /> Submit for Approval
           </Button>
         </div>
@@ -450,7 +450,7 @@ function ProjectTimesheetPanel({ onSubmitted }: { onSubmitted: () => void }) {
             <Square className="w-4 h-4" /> {formatTime(timerSeconds)} Stop
           </Button>
         ) : (
-          <Button onClick={startTimer} className="bg-[#0D7377] hover:bg-[#0D7377]/90 text-white gap-2" data-testid="button-start-timer">
+          <Button onClick={startTimer} className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-white gap-2" data-testid="button-start-timer">
             <Play className="w-4 h-4" /> Start Timer
           </Button>
         )}
@@ -460,25 +460,25 @@ function ProjectTimesheetPanel({ onSubmitted }: { onSubmitted: () => void }) {
       </div>
 
       {showAdd && (
-        <Card className="border-[#0D7377]/30 shadow-sm">
+        <Card className="border-[#2563EB]/30 shadow-sm">
           <CardHeader className="pb-2"><CardTitle className="text-sm">Add Time Entry</CardTitle></CardHeader>
           <CardContent>
             <form onSubmit={addEntry} className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="md:col-span-2">
-                <input required value={form.taskDescription} onChange={e => setForm(f => ({ ...f, taskDescription: e.target.value }))} placeholder="Task description *" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-task-desc" />
+                <input required value={form.taskDescription} onChange={e => setForm(f => ({ ...f, taskDescription: e.target.value }))} placeholder="Task description *" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-task-desc" />
               </div>
               <select value={form.projectId} onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))} className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" data-testid="select-project">
                 <option value="">No Project</option>
                 {projects.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
-              <input type="number" value={form.durationMinutes} onChange={e => setForm(f => ({ ...f, durationMinutes: e.target.value }))} placeholder="Duration (minutes)" className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-duration" />
+              <input type="number" value={form.durationMinutes} onChange={e => setForm(f => ({ ...f, durationMinutes: e.target.value }))} placeholder="Duration (minutes)" className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-duration" />
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <input type="checkbox" id="billable" checked={form.billable} onChange={e => setForm(f => ({ ...f, billable: e.target.checked }))} data-testid="checkbox-billable" />
                 <label htmlFor="billable">Billable</label>
               </div>
               <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Notes" rows={2} className="md:col-span-2 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" />
               <div className="md:col-span-2 flex gap-2">
-                <Button type="submit" className="bg-[#0D7377] text-white gap-1" data-testid="button-save-entry"><Check className="w-4 h-4" /> Save</Button>
+                <Button type="submit" className="bg-[#2563EB] text-white gap-1" data-testid="button-save-entry"><Check className="w-4 h-4" /> Save</Button>
                 <Button type="button" variant="outline" onClick={() => setShowAdd(false)}><X className="w-4 h-4" /> Cancel</Button>
               </div>
             </form>
@@ -508,7 +508,7 @@ function ProjectTimesheetPanel({ onSubmitted }: { onSubmitted: () => void }) {
                     <Card key={entry.id} className="border-0 shadow-sm">
                       <CardContent className="py-3 px-4 flex items-center gap-3">
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-[#1A1F2B] truncate">{entry.taskDescription}</p>
+                          <p className="text-sm font-medium text-[#0F172A] truncate">{entry.taskDescription}</p>
                           <p className="text-xs text-slate-400 mt-0.5">{formatDuration(entry.durationMinutes)}{entry.billable && " · Billable"}</p>
                         </div>
                         <Badge variant="secondary" className={`text-xs shrink-0 ${STATUS_COLORS[entry.status] || ""}`}>{entry.status}</Badge>
@@ -582,7 +582,7 @@ function HistoryPanel() {
               <div className="flex items-center justify-between gap-2">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-semibold text-[#1A1F2B]">
+                    <p className="text-sm font-semibold text-[#0F172A]">
                       {monthly ? fmtMonthLabel(start) : `Week of ${fmtDate(start)} – ${fmtDate(end)}`}
                     </p>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[r.status] || "bg-slate-100 text-slate-600"}`}>{r.status}</span>
@@ -598,7 +598,7 @@ function HistoryPanel() {
                   {r.notes && <p className="text-xs text-slate-500 mt-1 italic">{r.notes}</p>}
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-lg font-bold text-[#1A1F2B]">{r.totalHours}h</p>
+                  <p className="text-lg font-bold text-[#0F172A]">{r.totalHours}h</p>
                   {r.submittedAt && <p className="text-xs text-slate-400">Submitted {new Date(r.submittedAt).toLocaleDateString()}</p>}
                 </div>
               </div>
@@ -654,7 +654,7 @@ function ApprovalsPanel() {
       {rejectModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
-            <h3 className="font-semibold text-[#1A1F2B] mb-3">Reject Timesheet</h3>
+            <h3 className="font-semibold text-[#0F172A] mb-3">Reject Timesheet</h3>
             <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Reason for rejection (required)" rows={3} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 mb-3" data-testid="input-reject-reason" autoFocus />
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => { setRejectModal(null); setRejectReason(""); }}>Cancel</Button>
@@ -674,10 +674,10 @@ function ApprovalsPanel() {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <div className="w-7 h-7 rounded-full bg-[#0D7377] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-[#2563EB] flex items-center justify-center text-white text-xs font-bold shrink-0">
                       {r.employeeFirstName?.[0]}{r.employeeLastName?.[0]}
                     </div>
-                    <span className="font-semibold text-[#1A1F2B] text-sm">{r.employeeFirstName} {r.employeeLastName}</span>
+                    <span className="font-semibold text-[#0F172A] text-sm">{r.employeeFirstName} {r.employeeLastName}</span>
                     <span className="text-xs text-slate-400">{r.employeeEmail}</span>
                   </div>
                   <p className="text-sm text-slate-600 mt-1">Week of {fmtDate(start)} – {fmtDate(end)} · <strong>{r.totalHours}h</strong> · <span className="capitalize">{r.mode}</span></p>
@@ -763,8 +763,8 @@ function ReportsPanel({ canApprove }: { canApprove: boolean }) {
             <ChevronLeft className="w-4 h-4" />
           </button>
           <div className="text-center min-w-36">
-            <p className="font-semibold text-[#1A1F2B] text-sm">{monthLabel}</p>
-            {isCurrentMonth && <p className="text-xs text-[#0D7377]">Current Month</p>}
+            <p className="font-semibold text-[#0F172A] text-sm">{monthLabel}</p>
+            {isCurrentMonth && <p className="text-xs text-[#2563EB]">Current Month</p>}
           </div>
           <button onClick={nextMonth} disabled={isCurrentMonth} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 disabled:opacity-30" data-testid="button-next-month">
             <ChevronRight className="w-4 h-4" />
@@ -776,7 +776,7 @@ function ReportsPanel({ canApprove }: { canApprove: boolean }) {
             <select
               value={employeeId}
               onChange={e => setEmployeeId(e.target.value)}
-              className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 min-w-44"
+              className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 min-w-44"
               data-testid="select-report-employee"
             >
               <option value="all">All Employees</option>
@@ -805,10 +805,10 @@ function ReportsPanel({ canApprove }: { canApprove: boolean }) {
           {canApprove && employeeId === "all" && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { label: "Total Hours", value: employees.reduce((s: number, e: any) => s + e.monthTotalHours, 0).toFixed(1), color: "text-[#1A1F2B]" },
+                { label: "Total Hours", value: employees.reduce((s: number, e: any) => s + e.monthTotalHours, 0).toFixed(1), color: "text-[#0F172A]" },
                 { label: "Approved", value: employees.reduce((s: number, e: any) => s + e.approvedHours, 0).toFixed(1), color: "text-green-600" },
                 { label: "Pending Review", value: employees.reduce((s: number, e: any) => s + e.pendingHours, 0).toFixed(1), color: "text-blue-600" },
-                { label: "Employees", value: employees.length, color: "text-[#0D7377]" },
+                { label: "Employees", value: employees.length, color: "text-[#2563EB]" },
               ].map(s => (
                 <Card key={s.label} className="border-0 shadow-sm">
                   <CardContent className="pt-3 pb-3">
@@ -853,11 +853,11 @@ function ReportsPanel({ canApprove }: { canApprove: boolean }) {
                           {canApprove && employeeId === "all" && (
                             <td className="p-3 pl-4">
                               <div className="flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-full bg-[#0D7377] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                <div className="w-7 h-7 rounded-full bg-[#2563EB] flex items-center justify-center text-white text-xs font-bold shrink-0">
                                   {emp.firstName[0]}{emp.lastName[0]}
                                 </div>
                                 <div>
-                                  <p className="font-medium text-[#1A1F2B]">{emp.firstName} {emp.lastName}</p>
+                                  <p className="font-medium text-[#0F172A]">{emp.firstName} {emp.lastName}</p>
                                   <p className="text-xs text-slate-400">{emp.email}</p>
                                 </div>
                               </div>
@@ -878,7 +878,7 @@ function ReportsPanel({ canApprove }: { canApprove: boolean }) {
                             );
                           })}
                           <td className="p-3 pr-4 text-right">
-                            <span className="font-bold text-[#1A1F2B]">{emp.monthTotalHours.toFixed(1)}h</span>
+                            <span className="font-bold text-[#0F172A]">{emp.monthTotalHours.toFixed(1)}h</span>
                           </td>
                           <td className="p-3 pr-4 text-right">
                             <div className="flex flex-col gap-0.5 items-end">
@@ -898,7 +898,7 @@ function ReportsPanel({ canApprove }: { canApprove: boolean }) {
                                   return (
                                     <div key={ts.id} className="bg-white rounded-lg px-3 py-2 shadow-sm flex flex-wrap gap-3 items-center">
                                       <div className="min-w-32">
-                                        <p className="text-xs font-medium text-[#1A1F2B]">
+                                        <p className="text-xs font-medium text-[#0F172A]">
                                           {fmtDate(new Date(ts.periodStart + "T12:00:00"))} – {fmtDate(new Date(ts.periodEnd + "T12:00:00"))}
                                         </p>
                                         <p className="text-xs text-slate-400 capitalize">{ts.mode} · <span className={STATUS_COLORS[ts.status]?.includes("green") ? "text-green-600" : ts.status === "submitted" ? "text-blue-600" : "text-slate-500"}>{ts.status}</span></p>
@@ -910,7 +910,7 @@ function ReportsPanel({ canApprove }: { canApprove: boolean }) {
                                           ))}
                                         </div>
                                       )}
-                                      <span className="ml-auto font-bold text-sm text-[#1A1F2B]">{parseFloat(ts.totalHours).toFixed(0)}h</span>
+                                      <span className="ml-auto font-bold text-sm text-[#0F172A]">{parseFloat(ts.totalHours).toFixed(0)}h</span>
                                       {ts.notes && <p className="w-full text-xs text-slate-400 italic">"{ts.notes}"</p>}
                                     </div>
                                   );
@@ -981,9 +981,9 @@ function TimeContent() {
     <div className="max-w-5xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B] flex items-center gap-2">
+          <h1 className="text-2xl font-display text-[#0F172A] flex items-center gap-2">
             Timesheets
-            <VikingAxeSvg size={22} className="text-[#0D7377]/40" />
+            <VikingAxeSvg size={22} className="text-[#2563EB]/40" />
           </h1>
           <p className="text-slate-500 text-sm mt-0.5">Track your hours and submit for approval.</p>
         </div>
@@ -992,14 +992,14 @@ function TimeContent() {
           <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1 self-start sm:self-auto">
             <button
               onClick={() => setTimesheetMode("simple")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${timesheetMode === "simple" ? "bg-white shadow text-[#1A1F2B]" : "text-slate-500 hover:text-slate-700"}`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${timesheetMode === "simple" ? "bg-white shadow text-[#0F172A]" : "text-slate-500 hover:text-slate-700"}`}
               data-testid="button-mode-simple"
             >
               Simple
             </button>
             <button
               onClick={() => setTimesheetMode("project")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${timesheetMode === "project" ? "bg-white shadow text-[#1A1F2B]" : "text-slate-500 hover:text-slate-700"}`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${timesheetMode === "project" ? "bg-white shadow text-[#0F172A]" : "text-slate-500 hover:text-slate-700"}`}
               data-testid="button-mode-project"
             >
               Project Tracked
@@ -1014,11 +1014,11 @@ function TimeContent() {
           <button
             key={t.key}
             onClick={() => setTab(t.key as any)}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${tab === t.key ? "border-[#0D7377] text-[#0D7377]" : "border-transparent text-slate-500 hover:text-slate-700"}`}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${tab === t.key ? "border-[#2563EB] text-[#2563EB]" : "border-transparent text-slate-500 hover:text-slate-700"}`}
             data-testid={`tab-${t.key}`}
           >
             {t.label}
-            {t.key === "approvals" && <span className="ml-1.5 bg-[#0D7377] text-white text-xs rounded-full px-1.5 py-0.5">!</span>}
+            {t.key === "approvals" && <span className="ml-1.5 bg-[#2563EB] text-white text-xs rounded-full px-1.5 py-0.5">!</span>}
           </button>
         ))}
       </div>
@@ -1031,8 +1031,8 @@ function TimeContent() {
               <ChevronLeft className="w-4 h-4" />
             </button>
             <div className="flex-1 text-center">
-              <p className="text-sm font-semibold text-[#1A1F2B]">{periodLabel}</p>
-              {isCurrentPeriod && <span className="text-xs text-[#0D7377] font-medium">Current Period</span>}
+              <p className="text-sm font-semibold text-[#0F172A]">{periodLabel}</p>
+              {isCurrentPeriod && <span className="text-xs text-[#2563EB] font-medium">Current Period</span>}
             </div>
             <button onClick={nextPeriod} disabled={isCurrentPeriod} className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500 disabled:opacity-30" data-testid="button-next-period">
               <ChevronRight className="w-4 h-4" />

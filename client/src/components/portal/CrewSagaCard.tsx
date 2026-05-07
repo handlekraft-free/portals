@@ -48,7 +48,7 @@ export function CrewSagaCard() {
 
   return (
     <div
-      className="rounded-2xl bg-gradient-to-br from-[#1A1F2B] to-[#2a3142] text-white mb-6 overflow-hidden relative"
+      className="rounded-2xl bg-gradient-to-br from-[#0F172A] to-[#2a3142] text-white mb-6 overflow-hidden relative"
       data-testid="card-saga-of-week"
     >
       <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
@@ -58,8 +58,8 @@ export function CrewSagaCard() {
       <div className="relative px-5 py-4">
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-2">
-            <ScrollText className="w-4 h-4 text-[#D4A843]" />
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#D4A843]">
+            <ScrollText className="w-4 h-4 text-[#10B981]" />
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#10B981]">
               Saga of the Week
             </span>
           </div>

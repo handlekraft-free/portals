@@ -76,7 +76,7 @@ function AdditionalRolesEditor({
           return (
             <label
               key={role}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm transition-colors ${checked ? "border-[#0D7377] bg-[#0D7377]/5 text-[#0D7377] font-medium" : "border-slate-200 text-slate-500 hover:border-slate-300"}`}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm transition-colors ${checked ? "border-[#2563EB] bg-[#2563EB]/5 text-[#2563EB] font-medium" : "border-slate-200 text-slate-500 hover:border-slate-300"}`}
               data-testid={`checkbox-role-${role}`}
             >
               <input
@@ -86,7 +86,7 @@ function AdditionalRolesEditor({
                   if (e.target.checked) onChange([...additionalRoles, role]);
                   else onChange(additionalRoles.filter(r => r !== role));
                 }}
-                className="accent-[#0D7377]"
+                className="accent-[#2563EB]"
               />
               {ROLE_LABELS[role]}
             </label>
@@ -108,7 +108,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 function Avatar({ u }: { u: any }) {
   return (
-    <div className="w-8 h-8 rounded-full bg-[#0D7377] flex items-center justify-center text-white text-xs font-bold shrink-0">
+    <div className="w-8 h-8 rounded-full bg-[#2563EB] flex items-center justify-center text-white text-xs font-bold shrink-0">
       {u.firstName?.[0]}{u.lastName?.[0]}
     </div>
   );
@@ -138,10 +138,10 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white rounded-t-2xl">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[#0D7377]/10 flex items-center justify-center">
-              <UserPlus className="w-4 h-4 text-[#0D7377]" />
+            <div className="w-8 h-8 rounded-full bg-[#2563EB]/10 flex items-center justify-center">
+              <UserPlus className="w-4 h-4 text-[#2563EB]" />
             </div>
-            <h2 className="text-lg font-semibold text-[#1A1F2B]">Add New User</h2>
+            <h2 className="text-lg font-semibold text-[#0F172A]">Add New User</h2>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
         </div>
@@ -150,16 +150,16 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-medium text-slate-500 mb-1 block">First Name *</label>
-              <input required value={form.firstName} onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))} placeholder="Jordan" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-first-name" />
+              <input required value={form.firstName} onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))} placeholder="Jordan" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-first-name" />
             </div>
             <div>
               <label className="text-xs font-medium text-slate-500 mb-1 block">Last Name *</label>
-              <input required value={form.lastName} onChange={e => setForm(f => ({ ...f, lastName: e.target.value }))} placeholder="Lee" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-last-name" />
+              <input required value={form.lastName} onChange={e => setForm(f => ({ ...f, lastName: e.target.value }))} placeholder="Lee" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-last-name" />
             </div>
           </div>
           <div>
             <label className="text-xs font-medium text-slate-500 mb-1 block">Email Address *</label>
-            <input required type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder={`jordan@${BRAND.domain}`} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-user-email" />
+            <input required type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder={`jordan@${BRAND.domain}`} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-user-email" />
           </div>
           <div>
             <label className="text-xs font-medium text-slate-500 mb-1 block">Primary Role *</label>
@@ -170,7 +170,7 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
                 setForm(f => ({ ...f, role: newRole }));
                 setAdditionalRoles(prev => prev.filter(r => r !== newRole));
               }}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
               data-testid="select-user-role"
             >
               <option value="employee">Employee — access internal tools</option>
@@ -187,11 +187,11 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
           />
           <div>
             <label className="text-xs font-medium text-slate-500 mb-1 block">Temporary Password *</label>
-            <input required value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="They'll change this on first login" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-user-password" />
+            <input required value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="They'll change this on first login" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-user-password" />
             <p className="text-xs text-slate-400 mt-1">User will be prompted to change their password on first sign-in.</p>
           </div>
           <div className="flex gap-2 pt-2">
-            <Button type="submit" className="flex-1 bg-[#0D7377] text-white gap-2" disabled={saving} data-testid="button-save-user">
+            <Button type="submit" className="flex-1 bg-[#2563EB] text-white gap-2" disabled={saving} data-testid="button-save-user">
               {saving ? "Creating…" : <><UserPlus className="w-4 h-4" /> Create User</>}
             </Button>
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
@@ -266,7 +266,7 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
           <div className="flex items-center gap-3">
             <Avatar u={user} />
             <div>
-              <h2 className="text-base font-semibold text-[#1A1F2B]">{user.firstName} {user.lastName}</h2>
+              <h2 className="text-base font-semibold text-[#0F172A]">{user.firstName} {user.lastName}</h2>
               <p className="text-xs text-slate-400">{user.email}</p>
             </div>
           </div>
@@ -285,7 +285,7 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
                   setForm(f => ({ ...f, role: newRole }));
                   setAdditionalRoles(prev => prev.filter(r => r !== newRole));
                 }}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
                 data-testid={`select-edit-role-${user.id}`}
               >
                 <option value="employee">Employee</option>
@@ -297,7 +297,7 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 block">Status</label>
-              <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid={`select-edit-status-${user.id}`}>
+              <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid={`select-edit-status-${user.id}`}>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
@@ -316,7 +316,7 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
             <div className="bg-indigo-50 rounded-xl p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-indigo-600" />
-                <p className="text-sm font-semibold text-[#1A1F2B]">Board Member Details</p>
+                <p className="text-sm font-semibold text-[#0F172A]">Board Member Details</p>
               </div>
               <div>
                 <label className="text-xs font-medium text-slate-500 mb-1.5 block">Board Position / Title</label>
@@ -345,7 +345,7 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
                   <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${form.isBoardMember ? "translate-x-4" : "translate-x-0"}`} />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-[#1A1F2B]">Active Board Member</p>
+                  <p className="text-sm font-medium text-[#0F172A]">Active Board Member</p>
                   <p className="text-xs text-slate-400">Appears in all board-specific lists, quorum, and votes</p>
                 </div>
               </label>
@@ -356,21 +356,21 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
           {(form.role === "employee" || form.role === "admin") && (
             <div className="bg-slate-50 rounded-xl p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-[#0D7377]" />
-                <p className="text-sm font-semibold text-[#1A1F2B]">Manager Settings</p>
+                <Shield className="w-4 h-4 text-[#2563EB]" />
+                <p className="text-sm font-semibold text-[#0F172A]">Manager Settings</p>
               </div>
               <label className="flex items-center gap-3 cursor-pointer" data-testid={`checkbox-can-approve-${user.id}`}>
-                <div className={`w-10 h-6 rounded-full transition-colors flex items-center px-1 ${form.canApprove ? "bg-[#0D7377]" : "bg-slate-300"}`} onClick={() => setForm(f => ({ ...f, canApprove: !f.canApprove }))}>
+                <div className={`w-10 h-6 rounded-full transition-colors flex items-center px-1 ${form.canApprove ? "bg-[#2563EB]" : "bg-slate-300"}`} onClick={() => setForm(f => ({ ...f, canApprove: !f.canApprove }))}>
                   <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${form.canApprove ? "translate-x-4" : "translate-x-0"}`} />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-[#1A1F2B]">Timesheet Approver</p>
+                  <p className="text-sm font-medium text-[#0F172A]">Timesheet Approver</p>
                   <p className="text-xs text-slate-400">This person can approve team timesheets</p>
                 </div>
               </label>
               <div>
                 <label className="text-xs font-medium text-slate-500 mb-1.5 block">Reports To (Manager)</label>
-                <select value={form.approverId} onChange={e => setForm(f => ({ ...f, approverId: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 bg-white" data-testid={`select-approver-${user.id}`}>
+                <select value={form.approverId} onChange={e => setForm(f => ({ ...f, approverId: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 bg-white" data-testid={`select-approver-${user.id}`}>
                   <option value="">— No manager assigned —</option>
                   {managers.map(m => (
                     <option key={m.id} value={m.id}>{m.firstName} {m.lastName} ({m.role})</option>
@@ -381,7 +381,7 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
             </div>
           )}
 
-          <Button onClick={save} className="w-full bg-[#0D7377] text-white gap-2" disabled={saving} data-testid={`button-save-edit-${user.id}`}>
+          <Button onClick={save} className="w-full bg-[#2563EB] text-white gap-2" disabled={saving} data-testid={`button-save-edit-${user.id}`}>
             {saving ? "Saving…" : <><Check className="w-4 h-4" /> Save Changes</>}
           </Button>
 
@@ -431,9 +431,9 @@ function ManagersTab({ users, onEdit }: { users: any[]; onEdit: (u: any) => void
                       <Avatar u={mgr} />
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold text-[#1A1F2B]">{mgr.firstName} {mgr.lastName}</p>
+                          <p className="font-semibold text-[#0F172A]">{mgr.firstName} {mgr.lastName}</p>
                           <Badge className={`text-xs ${ROLE_COLORS[mgr.role] || ""}`}>{mgr.role}</Badge>
-                          {mgr.canApprove && <span className="inline-flex items-center gap-1 text-xs text-[#0D7377] bg-teal-50 px-2 py-0.5 rounded-full"><ShieldCheck className="w-3 h-3" /> Approver</span>}
+                          {mgr.canApprove && <span className="inline-flex items-center gap-1 text-xs text-[#2563EB] bg-teal-50 px-2 py-0.5 rounded-full"><ShieldCheck className="w-3 h-3" /> Approver</span>}
                         </div>
                         <p className="text-xs text-slate-400">{mgr.email}</p>
                       </div>
@@ -486,11 +486,11 @@ function ManagersTab({ users, onEdit }: { users: any[]; onEdit: (u: any) => void
 
 function ChargeCodeModal({ code, onClose, onSaved }: { code: any | null; onClose: () => void; onSaved: () => void }) {
   const isEdit = !!code;
-  const [form, setForm] = useState({ name: code?.name || "", description: code?.description || "", color: code?.color || "#0D7377" });
+  const [form, setForm] = useState({ name: code?.name || "", description: code?.description || "", color: code?.color || "#2563EB" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const PRESET_COLORS = ["#0D7377", "#6366f1", "#D4A843", "#ef4444", "#22c55e", "#f97316", "#64748b", "#ec4899"];
+  const PRESET_COLORS = ["#2563EB", "#6366f1", "#10B981", "#ef4444", "#22c55e", "#f97316", "#64748b", "#ec4899"];
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -512,7 +512,7 @@ function ChargeCodeModal({ code, onClose, onSaved }: { code: any | null; onClose
             <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: form.color + "20" }}>
               <Tag className="w-4 h-4" style={{ color: form.color }} />
             </div>
-            <h2 className="text-base font-semibold text-[#1A1F2B]">{isEdit ? "Edit Charge Code" : "New Charge Code"}</h2>
+            <h2 className="text-base font-semibold text-[#0F172A]">{isEdit ? "Edit Charge Code" : "New Charge Code"}</h2>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
         </div>
@@ -520,24 +520,24 @@ function ChargeCodeModal({ code, onClose, onSaved }: { code: any | null; onClose
           {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
           <div>
             <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Name *</label>
-            <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Working and Available" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-cc-name" />
+            <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Working and Available" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-cc-name" />
           </div>
           <div>
             <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Description</label>
-            <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Short description for team members…" rows={2} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none" />
+            <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Short description for team members…" rows={2} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 resize-none" />
           </div>
           <div>
             <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Color</label>
             <div className="flex items-center gap-3 flex-wrap">
               {PRESET_COLORS.map(c => (
-                <button key={c} type="button" onClick={() => setForm(f => ({ ...f, color: c }))} className={`w-7 h-7 rounded-full border-2 transition-all ${form.color === c ? "border-[#1A1F2B] scale-110" : "border-transparent"}`} style={{ backgroundColor: c }} data-testid={`color-${c.replace("#", "")}`} />
+                <button key={c} type="button" onClick={() => setForm(f => ({ ...f, color: c }))} className={`w-7 h-7 rounded-full border-2 transition-all ${form.color === c ? "border-[#0F172A] scale-110" : "border-transparent"}`} style={{ backgroundColor: c }} data-testid={`color-${c.replace("#", "")}`} />
               ))}
               <input type="color" value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} className="w-7 h-7 rounded-full cursor-pointer border border-slate-200" title="Custom color" />
             </div>
           </div>
           <div className="flex gap-2 pt-2">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
-            <Button type="submit" className="flex-1 bg-[#0D7377] text-white gap-2" disabled={saving} data-testid="button-save-charge-code">
+            <Button type="submit" className="flex-1 bg-[#2563EB] text-white gap-2" disabled={saving} data-testid="button-save-charge-code">
               <Check className="w-4 h-4" /> {saving ? "Saving…" : isEdit ? "Save Changes" : "Create Code"}
             </Button>
           </div>
@@ -573,7 +573,7 @@ function ChargeCodesTab() {
         <div>
           <p className="text-sm text-slate-500">Charge codes categorize how time is spent on timesheets. Employees select a charge code for each row when logging hours.</p>
         </div>
-        <Button onClick={() => { setEditCode(null); setShowModal(true); }} className="bg-[#0D7377] text-white gap-2 shrink-0" data-testid="button-create-charge-code">
+        <Button onClick={() => { setEditCode(null); setShowModal(true); }} className="bg-[#2563EB] text-white gap-2 shrink-0" data-testid="button-create-charge-code">
           <Plus className="w-4 h-4" /> New Code
         </Button>
       </div>
@@ -593,7 +593,7 @@ function ChargeCodesTab() {
               <div key={code.id} className={`flex items-center gap-4 px-4 py-3.5 hover:bg-slate-50 transition-colors ${!code.active ? "opacity-50" : ""}`} data-testid={`charge-code-row-${code.id}`}>
                 <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: code.color }} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-[#1A1F2B]">{code.name}</p>
+                  <p className="text-sm font-semibold text-[#0F172A]">{code.name}</p>
                   {code.description && <p className="text-xs text-slate-400 truncate">{code.description}</p>}
                 </div>
                 <Badge className={`text-xs border-0 shrink-0 ${code.active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>
@@ -601,11 +601,11 @@ function ChargeCodesTab() {
                 </Badge>
                 <span className="text-xs text-slate-400 shrink-0">#{code.position + 1}</span>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => { setEditCode(code); setShowModal(true); }} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-[#0D7377] transition-colors" title="Edit" data-testid={`button-edit-cc-${code.id}`}>
+                  <button onClick={() => { setEditCode(code); setShowModal(true); }} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-[#2563EB] transition-colors" title="Edit" data-testid={`button-edit-cc-${code.id}`}>
                     <Edit className="w-4 h-4" />
                   </button>
                   <button onClick={() => toggleActive(code)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-amber-600 transition-colors" title={code.active ? "Deactivate" : "Activate"} data-testid={`button-toggle-cc-${code.id}`}>
-                    {code.active ? <ToggleRight className="w-4 h-4 text-[#0D7377]" /> : <ToggleLeft className="w-4 h-4" />}
+                    {code.active ? <ToggleRight className="w-4 h-4 text-[#2563EB]" /> : <ToggleLeft className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
@@ -678,14 +678,14 @@ function AdminUsersContent() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B]">User Management</h1>
+          <h1 className="text-2xl font-display text-[#0F172A]">User Management</h1>
           <p className="text-slate-500 text-sm">Add employees, clients, students, and set up manager relationships.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => window.open("/api/admin/portal-users/export/csv")} className="gap-2 hidden sm:flex" data-testid="button-export-csv">
             <Download className="w-4 h-4" /> Export
           </Button>
-          <Button onClick={() => setShowCreate(true)} className="bg-[#0D7377] text-white gap-2" data-testid="button-create-user">
+          <Button onClick={() => setShowCreate(true)} className="bg-[#2563EB] text-white gap-2" data-testid="button-create-user">
             <UserPlus className="w-4 h-4" /> Add User
           </Button>
         </div>
@@ -694,8 +694,8 @@ function AdminUsersContent() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
         {[
-          { role: "employee", label: "Employees", color: "text-[#0D7377]", bg: "bg-teal-50" },
-          { role: "client", label: "Clients", color: "text-[#D4A843]", bg: "bg-amber-50" },
+          { role: "employee", label: "Employees", color: "text-[#2563EB]", bg: "bg-teal-50" },
+          { role: "client", label: "Clients", color: "text-[#10B981]", bg: "bg-amber-50" },
           { role: "student", label: "Students", color: "text-purple-600", bg: "bg-purple-50" },
           { role: "board", label: "Board Members", color: "text-indigo-600", bg: "bg-indigo-50" },
           { role: "admin", label: "Admins", color: "text-red-600", bg: "bg-red-50" },
@@ -712,9 +712,9 @@ function AdminUsersContent() {
       {/* Tabs */}
       <div className="flex gap-1 mb-4 border-b border-slate-200">
         {tabs.map(t => (
-          <button key={t.key} onClick={() => setActiveTab(t.key as any)} className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px flex items-center gap-1.5 ${activeTab === t.key ? "border-[#0D7377] text-[#0D7377]" : "border-transparent text-slate-500 hover:text-slate-700"}`} data-testid={`tab-${t.key}`}>
+          <button key={t.key} onClick={() => setActiveTab(t.key as any)} className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px flex items-center gap-1.5 ${activeTab === t.key ? "border-[#2563EB] text-[#2563EB]" : "border-transparent text-slate-500 hover:text-slate-700"}`} data-testid={`tab-${t.key}`}>
             {t.label}
-            {t.count != null && t.count > 0 && <span className={`text-xs rounded-full px-1.5 py-0.5 ${activeTab === t.key ? "bg-[#0D7377] text-white" : "bg-slate-200 text-slate-500"}`}>{t.count}</span>}
+            {t.count != null && t.count > 0 && <span className={`text-xs rounded-full px-1.5 py-0.5 ${activeTab === t.key ? "bg-[#2563EB] text-white" : "bg-slate-200 text-slate-500"}`}>{t.count}</span>}
           </button>
         ))}
       </div>
@@ -740,7 +740,7 @@ function AdminUsersContent() {
             </div>
             <div className="flex gap-1">
               {["all", "admin", "employee", "client", "student", "board"].map(r => (
-                <button key={r} onClick={() => setRoleFilter(r)} className={`px-3 py-1.5 rounded-full text-xs border transition-colors capitalize ${roleFilter === r ? "bg-[#0D7377] text-white border-[#0D7377]" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`} data-testid={`filter-${r}`}>{r === "board" ? "Board" : r}</button>
+                <button key={r} onClick={() => setRoleFilter(r)} className={`px-3 py-1.5 rounded-full text-xs border transition-colors capitalize ${roleFilter === r ? "bg-[#2563EB] text-white border-[#2563EB]" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`} data-testid={`filter-${r}`}>{r === "board" ? "Board" : r}</button>
               ))}
             </div>
           </div>
@@ -791,7 +791,7 @@ function AdminUsersContent() {
                             <div className="flex items-center gap-2.5">
                               <Avatar u={u} />
                               <div>
-                                <p className="font-medium text-[#1A1F2B]">{u.firstName} {u.lastName}</p>
+                                <p className="font-medium text-[#0F172A]">{u.firstName} {u.lastName}</p>
                                 <p className="text-xs text-slate-400">{u.email}</p>
                               </div>
                             </div>
@@ -801,7 +801,7 @@ function AdminUsersContent() {
                               {(Array.isArray(u.roles) && u.roles.length > 0 ? u.roles : [u.role]).map((r: string) => (
                                 <Badge key={r} className={`text-xs border-0 ${ROLE_COLORS[r] || ""}`}>{ROLE_LABELS[r] ?? r}</Badge>
                               ))}
-                              {u.canApprove && <span title="Timesheet approver"><ShieldCheck className="w-3.5 h-3.5 text-[#0D7377]" /></span>}
+                              {u.canApprove && <span title="Timesheet approver"><ShieldCheck className="w-3.5 h-3.5 text-[#2563EB]" /></span>}
                             </div>
                           </td>
                           <td className="p-3">
@@ -830,7 +830,7 @@ function AdminUsersContent() {
                           </td>
                           <td className="p-3">
                             <div className="flex items-center gap-1">
-                              <button onClick={() => setEditUser(u)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-[#0D7377] transition-colors" title="Edit user" data-testid={`button-edit-${u.id}`}>
+                              <button onClick={() => setEditUser(u)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-[#2563EB] transition-colors" title="Edit user" data-testid={`button-edit-${u.id}`}>
                                 <Edit className="w-4 h-4" />
                               </button>
                               <button onClick={() => deleteUser(u)} className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors" title="Delete user permanently" data-testid={`button-delete-${u.id}`}>

@@ -15,8 +15,8 @@ import { useEnabledPortals } from "@/lib/portals";
 type Role = "employee" | "client" | "student" | "board" | "admin";
 
 const ROLE_META: Record<string, { label: string; icon: React.ReactNode; desc: string; color: string }> = {
-  employee: { label: "Workforce Portal",    icon: <Briefcase className="w-6 h-6" />, desc: "Employees & Staff", color: "border-[#0D7377] bg-[#0D7377]/10 text-[#0D7377]" },
-  client:   { label: "Client CRM",          icon: <Building2 className="w-6 h-6" />, desc: "Organizations we serve", color: "border-[#D4A843] bg-[#D4A843]/10 text-[#D4A843]" },
+  employee: { label: "Workforce Portal",    icon: <Briefcase className="w-6 h-6" />, desc: "Employees & Staff", color: "border-[#2563EB] bg-[#2563EB]/10 text-[#2563EB]" },
+  client:   { label: "Client CRM",          icon: <Building2 className="w-6 h-6" />, desc: "Organizations we serve", color: "border-[#10B981] bg-[#10B981]/10 text-[#10B981]" },
   student:  { label: "Student LMS",         icon: <GraduationCap className="w-6 h-6" />, desc: "Fellowship Fellows", color: "border-purple-500 bg-purple-500/10 text-purple-600" },
   board:    { label: "Board Member Portal", icon: <Scale className="w-6 h-6" />, desc: "Board of Directors", color: "border-indigo-400 bg-indigo-500/10 text-indigo-400" },
   admin:    { label: "Admin",       icon: <Shield className="w-6 h-6" />, desc: "Full system access", color: "border-red-400 bg-red-500/10 text-red-400" },
@@ -131,13 +131,13 @@ export default function LoginPage() {
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-[#1A1F2B] flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-[#D4A843] border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-[#10B981] border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1A1F2B] via-[#1A1F2B] to-[#0D7377]/20 flex items-center justify-center p-4 font-body">
+    <div className="min-h-screen bg-gradient-to-br from-[#0F172A] via-[#0F172A] to-[#2563EB]/20 flex items-center justify-center p-4 font-body">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
@@ -161,8 +161,8 @@ export default function LoginPage() {
             ) : (
               <>
                 <div className="flex flex-col items-center mb-5 gap-2">
-                  <div className="w-10 h-10 rounded-full bg-[#0D7377]/20 flex items-center justify-center">
-                    <KeyRound className="w-5 h-5 text-[#0D7377]" />
+                  <div className="w-10 h-10 rounded-full bg-[#2563EB]/20 flex items-center justify-center">
+                    <KeyRound className="w-5 h-5 text-[#2563EB]" />
                   </div>
                   <h2 className="text-lg font-semibold text-white text-center">Set your password</h2>
                   <p className="text-white/50 text-sm text-center">
@@ -174,7 +174,7 @@ export default function LoginPage() {
                   <div>
                     <Label className="text-white/70 text-sm">New password</Label>
                     <div className="relative mt-1">
-                      <Input type={showNew ? "text" : "password"} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Min. 8 characters" required autoFocus className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#0D7377] pr-10" data-testid="input-new-password" />
+                      <Input type={showNew ? "text" : "password"} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Min. 8 characters" required autoFocus className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#2563EB] pr-10" data-testid="input-new-password" />
                       <button type="button" onClick={() => setShowNew(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60">
                         {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -188,7 +188,7 @@ export default function LoginPage() {
                   <div>
                     <Label className="text-white/70 text-sm">Confirm new password</Label>
                     <div className="relative mt-1">
-                      <Input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Repeat your new password" required className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#0D7377] pr-10" data-testid="input-confirm-password" />
+                      <Input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Repeat your new password" required className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#2563EB] pr-10" data-testid="input-confirm-password" />
                       <button type="button" onClick={() => setShowConfirm(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60">
                         {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -197,7 +197,7 @@ export default function LoginPage() {
                     {confirmPassword.length > 0 && newPassword === confirmPassword && newPassword.length >= 8 && <p className="text-xs mt-1 text-emerald-400">Passwords match ✓</p>}
                   </div>
                   {changeError && <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-3 py-2 rounded-lg" data-testid="text-change-error">{changeError}</div>}
-                  <Button type="submit" disabled={changingPw || newPassword !== confirmPassword || newPassword.length < 8} className="w-full bg-[#0D7377] hover:bg-[#0D7377]/90 text-white font-semibold py-2.5 rounded-xl" data-testid="button-set-password">
+                  <Button type="submit" disabled={changingPw || newPassword !== confirmPassword || newPassword.length < 8} className="w-full bg-[#2563EB] hover:bg-[#2563EB]/90 text-white font-semibold py-2.5 rounded-xl" data-testid="button-set-password">
                     {changingPw ? "Saving…" : "Set my password & continue"}
                   </Button>
                 </form>
@@ -208,8 +208,8 @@ export default function LoginPage() {
           ) : pendingRoleSelect ? (
             <>
               <div className="flex flex-col items-center mb-5 gap-2">
-                <div className="w-10 h-10 rounded-full bg-[#0D7377]/20 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-[#0D7377]" />
+                <div className="w-10 h-10 rounded-full bg-[#2563EB]/20 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-[#2563EB]" />
                 </div>
                 <h2 className="text-lg font-semibold text-white text-center">Choose your portal</h2>
                 <p className="text-white/50 text-sm text-center">
@@ -260,7 +260,7 @@ export default function LoginPage() {
               <>
                 <h2 className="text-lg font-semibold text-white mb-1 text-center">Sign in</h2>
                 <p className="text-white/40 text-sm text-center mb-6">Enter your administrator credentials to continue</p>
-                <Button onClick={() => setSelectedRole("admin")} className="w-full bg-[#0D7377] hover:bg-[#0D7377]/90 text-white font-semibold py-2.5 rounded-xl" data-testid="button-continue-credentials">
+                <Button onClick={() => setSelectedRole("admin")} className="w-full bg-[#2563EB] hover:bg-[#2563EB]/90 text-white font-semibold py-2.5 rounded-xl" data-testid="button-continue-credentials">
                   Continue
                 </Button>
               </>
@@ -303,19 +303,19 @@ export default function LoginPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <Label htmlFor="email" className="text-white/70 text-sm">Email</Label>
-                  <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={`you@${BRAND.domain}`} required className="mt-1 bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#0D7377]" data-testid="input-email" />
+                  <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={`you@${BRAND.domain}`} required className="mt-1 bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#2563EB]" data-testid="input-email" />
                 </div>
                 <div>
                   <Label htmlFor="password" className="text-white/70 text-sm">Password</Label>
                   <div className="relative mt-1">
-                    <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#0D7377] pr-10" data-testid="input-password" />
+                    <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#2563EB] pr-10" data-testid="input-password" />
                     <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60">
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
                 {error && <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-3 py-2 rounded-lg" data-testid="text-login-error">{error}</div>}
-                <Button type="submit" disabled={submitting} className="w-full bg-[#0D7377] hover:bg-[#0D7377]/90 text-white font-semibold py-2.5 rounded-xl" data-testid="button-login-submit">
+                <Button type="submit" disabled={submitting} className="w-full bg-[#2563EB] hover:bg-[#2563EB]/90 text-white font-semibold py-2.5 rounded-xl" data-testid="button-login-submit">
                   {submitting ? "Signing in..." : "Sign In"}
                 </Button>
               </form>

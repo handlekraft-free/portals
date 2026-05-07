@@ -16,7 +16,7 @@ const ENERGY_LABELS: Record<number, { label: string; color: string }> = {
   2: { label: "Low",       color: "bg-orange-400" },
   3: { label: "Steady",    color: "bg-amber-400" },
   4: { label: "Strong",    color: "bg-emerald-400" },
-  5: { label: "Energized", color: "bg-[#0D7377]" },
+  5: { label: "Energized", color: "bg-[#2563EB]" },
 };
 
 const STAT_ICON: Record<Stat, typeof Target> = {
@@ -73,7 +73,7 @@ function SagaTimeline() {
               className="text-white/80 text-[11px] leading-tight"
               data-testid={`item-saga-milestone-${m.id}`}
             >
-              <span className="text-[#D4A843]">•</span>{" "}
+              <span className="text-[#10B981]">•</span>{" "}
               <span className="font-medium">{m.title}</span>
               <span className="text-white/30 text-[10px]"> · {new Date(m.createdAt).toLocaleDateString()}</span>
               {m.blurb && (
@@ -124,7 +124,7 @@ function PerEventSoundToggles() {
               type="checkbox"
               checked={on}
               onChange={() => toggle(s)}
-              className="accent-[#D4A843] w-3 h-3"
+              className="accent-[#10B981] w-3 h-3"
               data-testid={`toggle-sound-${s}`}
             />
           </label>
@@ -189,7 +189,7 @@ function HeroCardPopover({ onCustomizeAvatar }: { onCustomizeAvatar: () => void 
         title="Hero menu"
         aria-label="Hero menu"
         aria-expanded={open}
-        className="text-white/40 hover:text-white/80 transition-colors p-1 -m-1 rounded focus:outline-none focus:ring-1 focus:ring-[#D4A843]/40"
+        className="text-white/40 hover:text-white/80 transition-colors p-1 -m-1 rounded focus:outline-none focus:ring-1 focus:ring-[#10B981]/40"
         data-testid="button-hero-settings"
       >
         <Settings className="w-3.5 h-3.5" />
@@ -206,14 +206,14 @@ function HeroCardPopover({ onCustomizeAvatar }: { onCustomizeAvatar: () => void 
             <button
               onClick={() => setTab("saga")}
               className={`flex-1 text-[10px] uppercase tracking-wider font-semibold py-2 transition-colors ${
-                tab === "saga" ? "text-[#D4A843] border-b-2 border-[#D4A843]" : "text-white/40 hover:text-white/70"
+                tab === "saga" ? "text-[#10B981] border-b-2 border-[#10B981]" : "text-white/40 hover:text-white/70"
               }`}
               data-testid="tab-my-saga"
             >My Saga</button>
             <button
               onClick={() => setTab("settings")}
               className={`flex-1 text-[10px] uppercase tracking-wider font-semibold py-2 transition-colors ${
-                tab === "settings" ? "text-[#D4A843] border-b-2 border-[#D4A843]" : "text-white/40 hover:text-white/70"
+                tab === "settings" ? "text-[#10B981] border-b-2 border-[#10B981]" : "text-white/40 hover:text-white/70"
               }`}
               data-testid="tab-hero-settings"
             >Settings</button>
@@ -229,9 +229,9 @@ function HeroCardPopover({ onCustomizeAvatar }: { onCustomizeAvatar: () => void 
                 className="w-full flex items-center gap-2 px-2 py-1.5 rounded bg-white/5 hover:bg-white/10 text-white/80 text-xs transition-colors"
                 data-testid="button-open-avatar-customizer-saga"
               >
-                <Wand2 className="w-3.5 h-3.5 text-[#D4A843]" />
+                <Wand2 className="w-3.5 h-3.5 text-[#10B981]" />
                 <span className="flex-1 text-left">Customize avatar</span>
-                <span className="text-[10px] uppercase tracking-wider font-semibold text-[#D4A843]">Edit</span>
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-[#10B981]">Edit</span>
               </button>
               {/* Streaks row */}
               <div className="grid grid-cols-2 gap-2">
@@ -263,7 +263,7 @@ function HeroCardPopover({ onCustomizeAvatar }: { onCustomizeAvatar: () => void 
                 className="bg-white/5 rounded-md px-2 py-1.5 flex items-center gap-2"
                 data-testid="stat-crew-bond"
               >
-                <Anchor className="w-3 h-3 text-[#0D7377]" />
+                <Anchor className="w-3 h-3 text-[#2563EB]" />
                 <div className="flex-1">
                   <div className="text-white/50 text-[9px] uppercase tracking-wider">Crew Bond</div>
                   <div className="text-white text-xs">
@@ -309,7 +309,7 @@ function HeroCardPopover({ onCustomizeAvatar }: { onCustomizeAvatar: () => void 
               >
                 {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
                 <span className="flex-1 text-left">Completion sounds</span>
-                <span className={`text-[10px] uppercase tracking-wider font-semibold ${soundEnabled ? "text-[#D4A843]" : "text-white/30"}`}>
+                <span className={`text-[10px] uppercase tracking-wider font-semibold ${soundEnabled ? "text-[#10B981]" : "text-white/30"}`}>
                   {soundEnabled ? "On" : "Off"}
                 </span>
               </button>
@@ -324,7 +324,7 @@ function HeroCardPopover({ onCustomizeAvatar }: { onCustomizeAvatar: () => void 
               >
                 <Wand2 className="w-3.5 h-3.5" />
                 <span className="flex-1 text-left">Customize avatar</span>
-                <span className="text-[10px] uppercase tracking-wider font-semibold text-[#D4A843]">Edit</span>
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-[#10B981]">Edit</span>
               </button>
             </div>
           )}
@@ -430,7 +430,7 @@ export function HeroCard() {
           type="button"
           onClick={() => setCustomizerOpen(true)}
           title="Customize avatar"
-          className="rounded-full focus:outline-none focus:ring-2 focus:ring-[#D4A843]/50"
+          className="rounded-full focus:outline-none focus:ring-2 focus:ring-[#10B981]/50"
           data-testid="button-hero-avatar"
         >
           <AvatarRenderer initials={initials} config={avatarConfig} size={36} />
@@ -439,7 +439,7 @@ export function HeroCard() {
           <p className="text-white text-sm font-medium truncate leading-tight" data-testid="text-hero-name">
             {user?.firstName} {user?.lastName}
           </p>
-          <p className="text-[#D4A843] text-[11px] uppercase tracking-wider font-semibold truncate" data-testid="text-hero-rank">
+          <p className="text-[#10B981] text-[11px] uppercase tracking-wider font-semibold truncate" data-testid="text-hero-rank">
             {progress.rank.name} · L{progress.level}
           </p>
         </div>
@@ -449,7 +449,7 @@ export function HeroCard() {
       <div className="space-y-1">
         <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-[#D4A843] to-[#e6bd5e] rounded-full"
+            className="h-full bg-gradient-to-r from-[#10B981] to-[#e6bd5e] rounded-full"
             style={{ width: `${renderedPct}%` }}
             data-testid="bar-xp-fill"
           />
@@ -461,7 +461,7 @@ export function HeroCard() {
               <span>{progress.xpToNextRank} to {progress.nextRank.name}</span>
             </>
           ) : (
-            <span className="mx-auto text-[#D4A843]/80">Konungr · max rank</span>
+            <span className="mx-auto text-[#10B981]/80">Konungr · max rank</span>
           )}
         </div>
       </div>

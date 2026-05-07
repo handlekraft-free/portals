@@ -169,12 +169,12 @@ function BoardProfileContent() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link href="/portal/board/dashboard" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-[#0D7377] mb-4 transition-colors no-underline" data-testid="link-back-dashboard">
+      <Link href="/portal/board/dashboard" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-[#2563EB] mb-4 transition-colors no-underline" data-testid="link-back-dashboard">
         <LayoutDashboard className="w-3.5 h-3.5" /> Back to Dashboard
       </Link>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B]">My Profile</h1>
+          <h1 className="text-2xl font-display text-[#0F172A]">My Profile</h1>
           <p className="text-slate-500 text-sm mt-0.5">Your board member profile and contact information.</p>
         </div>
         {!editing && (
@@ -195,7 +195,7 @@ function BoardProfileContent() {
             <Button
               onClick={save}
               disabled={saving}
-              className="bg-[#0D7377] hover:bg-[#0a5c60] text-white gap-1 h-9"
+              className="bg-[#2563EB] hover:bg-[#0a5c60] text-white gap-1 h-9"
               data-testid="button-save-profile"
             >
               <Check className="w-4 h-4" /> {saving ? "Saving…" : "Save Changes"}
@@ -209,7 +209,7 @@ function BoardProfileContent() {
         <CardContent className="pt-5 pb-4">
           <div className="flex items-center gap-4">
             <div className="relative group shrink-0" data-testid="profile-avatar">
-              <div className="w-16 h-16 rounded-full bg-[#0D7377]/10 flex items-center justify-center text-[#0D7377] text-xl font-bold overflow-hidden">
+              <div className="w-16 h-16 rounded-full bg-[#2563EB]/10 flex items-center justify-center text-[#2563EB] text-xl font-bold overflow-hidden">
                 {(profile.photoUrl || profile.avatarUrl) ? (
                   <img src={profile.photoUrl || profile.avatarUrl!} alt={fullName} className="w-full h-full object-cover" />
                 ) : initials}
@@ -226,23 +226,23 @@ function BoardProfileContent() {
                     value={form.firstName}
                     onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))}
                     placeholder="First name"
-                    className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 w-32"
+                    className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 w-32"
                     data-testid="input-first-name"
                   />
                   <input
                     value={form.lastName}
                     onChange={e => setForm(f => ({ ...f, lastName: e.target.value }))}
                     placeholder="Last name"
-                    className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 w-36"
+                    className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 w-36"
                     data-testid="input-last-name"
                   />
                 </div>
               ) : (
-                <p className="text-lg font-semibold text-[#1A1F2B]" data-testid="profile-name">{fullName}</p>
+                <p className="text-lg font-semibold text-[#0F172A]" data-testid="profile-name">{fullName}</p>
               )}
               <div className="flex flex-wrap gap-2 mt-1.5">
                 {profile.boardPosition && (
-                  <Badge className="bg-[#D4A843]/15 text-[#9a7420] border-[#D4A843]/30 gap-1" data-testid="profile-position">
+                  <Badge className="bg-[#10B981]/15 text-[#9a7420] border-[#10B981]/30 gap-1" data-testid="profile-position">
                     <ShieldCheck className="w-3 h-3" /> {profile.boardPosition}
                   </Badge>
                 )}
@@ -269,11 +269,11 @@ function BoardProfileContent() {
                   value={form.email}
                   onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                   type="email"
-                  className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
                   data-testid="input-email"
                 />
               ) : (
-                <p className="text-sm text-[#1A1F2B]" data-testid="profile-email">{profile.email}</p>
+                <p className="text-sm text-[#0F172A]" data-testid="profile-email">{profile.email}</p>
               )}
             </div>
           </div>
@@ -288,11 +288,11 @@ function BoardProfileContent() {
                   onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                   type="tel"
                   placeholder="(555) 000-0000"
-                  className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
                   data-testid="input-phone"
                 />
               ) : (
-                <p className="text-sm text-[#1A1F2B]" data-testid="profile-phone">
+                <p className="text-sm text-[#0F172A]" data-testid="profile-phone">
                   {profile.phone || <span className="text-slate-400 italic">Not provided</span>}
                 </p>
               )}
@@ -308,13 +308,13 @@ function BoardProfileContent() {
                   value={form.linkedIn}
                   onChange={e => setForm(f => ({ ...f, linkedIn: e.target.value }))}
                   placeholder="https://linkedin.com/in/yourprofile"
-                  className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
                   data-testid="input-linkedin"
                 />
               ) : (
                 <p className="text-sm" data-testid="profile-linkedin">
                   {profile.linkedIn ? (
-                    <a href={profile.linkedIn} target="_blank" rel="noopener noreferrer" className="text-[#0D7377] hover:underline">
+                    <a href={profile.linkedIn} target="_blank" rel="noopener noreferrer" className="text-[#2563EB] hover:underline">
                       {profile.linkedIn}
                     </a>
                   ) : <span className="text-slate-400 italic">Not provided</span>}
@@ -332,11 +332,11 @@ function BoardProfileContent() {
                   value={form.preferredMeetingTimes}
                   onChange={e => setForm(f => ({ ...f, preferredMeetingTimes: e.target.value }))}
                   placeholder="e.g. Weekdays 5–7 PM PST"
-                  className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
                   data-testid="input-preferred-times"
                 />
               ) : (
-                <p className="text-sm text-[#1A1F2B]" data-testid="profile-preferred-times">
+                <p className="text-sm text-[#0F172A]" data-testid="profile-preferred-times">
                   {profile.preferredMeetingTimes || <span className="text-slate-400 italic">Not provided</span>}
                 </p>
               )}
@@ -355,11 +355,11 @@ function BoardProfileContent() {
               onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
               placeholder="Share a brief bio about your background, expertise, and why you serve on this board…"
               rows={5}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 resize-none"
               data-testid="textarea-bio"
             />
           ) : (
-            <p className="text-sm text-[#1A1F2B] whitespace-pre-wrap" data-testid="profile-bio">
+            <p className="text-sm text-[#0F172A] whitespace-pre-wrap" data-testid="profile-bio">
               {profile.bio || <span className="text-slate-400 italic">No bio provided. Click "Edit Profile" to add one.</span>}
             </p>
           )}
@@ -370,7 +370,7 @@ function BoardProfileContent() {
       <Card className="border-0 shadow-sm mb-5">
         <CardContent className="pt-5 pb-4">
           <div className="flex items-center gap-2 mb-3">
-            <BarChart3 className="w-4 h-4 text-[#0D7377]" />
+            <BarChart3 className="w-4 h-4 text-[#2563EB]" />
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Board Expertise</p>
           </div>
           {editing ? (
@@ -386,10 +386,10 @@ function BoardProfileContent() {
         <CardContent className="pt-5 pb-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-[#0D7377]" />
+              <FileText className="w-4 h-4 text-[#2563EB]" />
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Resume / CV</p>
             </div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-[#0D7377] cursor-pointer hover:text-[#0a5c60] transition-colors" data-testid="button-upload-resume">
+            <label className="flex items-center gap-1.5 text-xs font-medium text-[#2563EB] cursor-pointer hover:text-[#0a5c60] transition-colors" data-testid="button-upload-resume">
               {resumeUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
               {profile.resumeUrl ? "Replace" : "Upload"}
               <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleResumeUpload} data-testid="input-resume-upload" />
@@ -402,7 +402,7 @@ function BoardProfileContent() {
               data-testid="link-download-resume"
             >
               <FileText className="w-4 h-4 text-slate-400 shrink-0" />
-              <span className="flex-1 truncate text-sm text-[#1A1F2B]">{profile.resumeName || "Resume"}</span>
+              <span className="flex-1 truncate text-sm text-[#0F172A]">{profile.resumeName || "Resume"}</span>
               <Download className="w-3.5 h-3.5 text-slate-400" />
             </a>
           ) : (
@@ -422,13 +422,13 @@ function BoardProfileContent() {
                 {profile.termStart && (
                   <div>
                     <p className="text-xs text-slate-400">Term Start</p>
-                    <p className="text-sm font-medium text-[#1A1F2B]">{new Date(profile.termStart).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
+                    <p className="text-sm font-medium text-[#0F172A]">{new Date(profile.termStart).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
                   </div>
                 )}
                 {profile.termEnd && (
                   <div>
                     <p className="text-xs text-slate-400">Term End</p>
-                    <p className="text-sm font-medium text-[#1A1F2B]">{new Date(profile.termEnd).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
+                    <p className="text-sm font-medium text-[#0F172A]">{new Date(profile.termEnd).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
                   </div>
                 )}
               </div>
@@ -451,8 +451,8 @@ function BoardProfileContent() {
       <Card className="rounded-2xl border-slate-200 shadow-sm">
         <CardContent className="p-6 space-y-4">
           <div className="flex items-center gap-2 mb-2">
-            <CalendarClock className="w-4 h-4 text-[#0D7377]" />
-            <h2 className="text-base font-semibold text-[#1A1F2B]">Meeting Availability</h2>
+            <CalendarClock className="w-4 h-4 text-[#2563EB]" />
+            <h2 className="text-base font-semibold text-[#0F172A]">Meeting Availability</h2>
           </div>
           <p className="text-sm text-slate-500 -mt-2">
             Mark the windows when you're typically free for a 90-minute board meeting. Used by the Schedule Coordinator to find the best meeting times.
@@ -464,13 +464,13 @@ function BoardProfileContent() {
       {/* Relaunch setup wizard */}
       <div className="mt-2 border border-dashed border-slate-200 rounded-2xl p-5 flex items-center justify-between bg-white/50">
         <div>
-          <p className="text-sm font-semibold text-[#1A1F2B]">Setup Wizard</p>
+          <p className="text-sm font-semibold text-[#0F172A]">Setup Wizard</p>
           <p className="text-xs text-slate-500 mt-0.5">Walk through onboarding steps again — password, profile, and availability.</p>
         </div>
         <Button
           onClick={() => setShowWizard(true)}
           variant="outline"
-          className="gap-2 text-[#0D7377] border-[#0D7377]/30 hover:bg-[#0D7377]/5 shrink-0"
+          className="gap-2 text-[#2563EB] border-[#2563EB]/30 hover:bg-[#2563EB]/5 shrink-0"
           data-testid="button-relaunch-wizard"
         >
           <Sparkles className="w-4 h-4" /> Relaunch Wizard

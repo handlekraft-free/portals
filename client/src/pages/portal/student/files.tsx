@@ -45,7 +45,7 @@ function StudentFilesContent() {
 
   return (
     <div>
-      <h1 className="text-2xl font-display text-[#1A1F2B] mb-1">Files</h1>
+      <h1 className="text-2xl font-display text-[#0F172A] mb-1">Files</h1>
       <p className="text-slate-500 text-sm mb-5">Files from your instructors and your assignment uploads.</p>
 
       <div
@@ -73,10 +73,10 @@ function StudentFilesContent() {
                     <CardContent className="py-3 px-4 flex items-center gap-3">
                       <File className="w-5 h-5 text-slate-400 shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-[#1A1F2B] truncate">{f.fileName}</p>
+                        <p className="text-sm font-medium text-[#0F172A] truncate">{f.fileName}</p>
                         <p className="text-xs text-slate-400">{formatSize(f.fileSize)} · {new Date(f.createdAt).toLocaleDateString()}</p>
                       </div>
-                      <a href={`/api/student/files/${f.id}/download`} download className="p-1.5 rounded hover:bg-slate-100 text-slate-500 hover:text-[#0D7377]" data-testid={`button-download-${f.id}`}><Download className="w-4 h-4" /></a>
+                      <a href={`/api/student/files/${f.id}/download`} download className="p-1.5 rounded hover:bg-slate-100 text-slate-500 hover:text-[#2563EB]" data-testid={`button-download-${f.id}`}><Download className="w-4 h-4" /></a>
                     </CardContent>
                   </Card>
                 ))

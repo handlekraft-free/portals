@@ -93,14 +93,14 @@ export const STAT_META: Record<Stat, StatMeta> = {
     key: "focus",
     name: "Focus",
     blurb: "Showing up day after day with intention.",
-    color: "#0D7377",
+    color: "#2563EB",
     earnedHow: "Earned by finishing your Daily Raid (Plan Day).",
   },
   initiative: {
     key: "initiative",
     name: "Initiative",
     blurb: "Stepping forward and claiming work nobody owned.",
-    color: "#D4A843",
+    color: "#10B981",
     earnedHow: "Earned with a 1.5× bonus for completing factory quests you claimed.",
   },
   stewardship: {

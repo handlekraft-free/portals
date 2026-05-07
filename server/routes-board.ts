@@ -2165,9 +2165,9 @@ router.all("/meetings/:id/packet", async (req, res) => {
     ORDER BY pd.added_at ASC
   `);
 
-  const navy = "#1A1F2B";
-  const teal = "#0D7377";
-  const gold = "#D4A843";
+  const navy = "#0F172A";
+  const teal = "#2563EB";
+  const gold = "#10B981";
   const darkGray = "#333333";
   const lightGray = "#888888";
 

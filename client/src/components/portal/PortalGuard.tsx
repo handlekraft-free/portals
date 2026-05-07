@@ -42,21 +42,21 @@ function ForcePasswordChangeModal() {
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#1A1F2B]/90 backdrop-blur-sm p-4 font-body">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0F172A]/90 backdrop-blur-sm p-4 font-body">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-7">
         {done ? (
           <div className="flex flex-col items-center py-8 gap-3">
             <CheckCircle2 className="w-14 h-14 text-emerald-500" />
-            <p className="text-[#1A1F2B] font-semibold text-xl">Password updated!</p>
+            <p className="text-[#0F172A] font-semibold text-xl">Password updated!</p>
             <p className="text-slate-500 text-sm text-center">Taking you in…</p>
           </div>
         ) : (
           <>
             <div className="flex flex-col items-center mb-6 gap-2">
-              <div className="w-12 h-12 rounded-full bg-[#0D7377]/10 flex items-center justify-center mb-1">
-                <KeyRound className="w-6 h-6 text-[#0D7377]" />
+              <div className="w-12 h-12 rounded-full bg-[#2563EB]/10 flex items-center justify-center mb-1">
+                <KeyRound className="w-6 h-6 text-[#2563EB]" />
               </div>
-              <h2 className="text-xl font-display text-[#1A1F2B] text-center">Set your password</h2>
+              <h2 className="text-xl font-display text-[#0F172A] text-center">Set your password</h2>
               <p className="text-slate-500 text-sm text-center leading-relaxed">
                 Welcome{user?.firstName ? `, ${user.firstName}` : ""}! Your account was set up with a temporary
                 password. Please choose a new one to keep things secure.
@@ -139,7 +139,7 @@ function ForcePasswordChangeModal() {
               <Button
                 type="submit"
                 disabled={saving || newPassword !== confirmPassword || newPassword.length < 8 || !currentPassword}
-                className="w-full bg-[#0D7377] hover:bg-[#0D7377]/90 text-white font-semibold py-2.5 rounded-xl mt-2"
+                className="w-full bg-[#2563EB] hover:bg-[#2563EB]/90 text-white font-semibold py-2.5 rounded-xl mt-2"
                 data-testid="button-set-password"
               >
                 {saving ? "Saving…" : "Set my password & continue"}
@@ -227,8 +227,8 @@ export function PortalGuard({ allowedRoles, children }: PortalGuardProps) {
   }, [user, loading, switching, allowedRoles, setLocation]);
 
   if (loading || switching) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f5f3ef]">
-      <div className="w-8 h-8 border-2 border-[#0D7377] border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
+      <div className="w-8 h-8 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin" />
     </div>
   );
 

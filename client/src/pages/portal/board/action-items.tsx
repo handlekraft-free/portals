@@ -62,7 +62,7 @@ function NewItemModal({ members, onClose, onCreated }: { members: any[]; onClose
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
         <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-          <p className="font-semibold text-[#1A1F2B]">New Action Item</p>
+          <p className="font-semibold text-[#0F172A]">New Action Item</p>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400" data-testid="button-close-new-item"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-5 space-y-3">
@@ -156,7 +156,7 @@ function EditItemModal({ item, members, onClose, onSaved }: {
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
         <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-          <p className="font-semibold text-[#1A1F2B]">Edit Action Item</p>
+          <p className="font-semibold text-[#0F172A]">Edit Action Item</p>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400" data-testid="button-close-edit-item"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-5 space-y-3">
@@ -247,7 +247,7 @@ function ActionItemRow({ item, currentUserId, members, onUpdate, onEdit, onDelet
           <CheckSquare className={`w-4 h-4 mt-0.5 shrink-0 ${isOverdue ? "text-red-400" : item.status === "complete" ? "text-green-500" : item.status === "in_progress" ? "text-amber-400" : "text-slate-400"}`} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-0.5">
-              <p className={`text-sm font-medium ${item.status === "complete" ? "line-through text-slate-400" : "text-[#1A1F2B]"}`}>{item.title}</p>
+              <p className={`text-sm font-medium ${item.status === "complete" ? "line-through text-slate-400" : "text-[#0F172A]"}`}>{item.title}</p>
               <Badge className={`text-xs ${STATUS_BADGE[item.status]}`}>{item.status?.replace("_", " ")}</Badge>
             </div>
             {item.description && <p className="text-xs text-slate-500 mb-1">{item.description}</p>}
@@ -365,7 +365,7 @@ function ActionItemsContent() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B] flex items-center gap-2">
+          <h1 className="text-2xl font-display text-[#0F172A] flex items-center gap-2">
             Action Items
             <VikingAxeSvg size={22} className="text-indigo-400/50" />
           </h1>
@@ -430,7 +430,7 @@ function ActionItemsContent() {
                     <div className="flex items-center gap-3">
                       <BarChart2 className="w-4 h-4 shrink-0 text-teal-500" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-[#1A1F2B] line-clamp-1">{poll.title}</p>
+                        <p className="text-sm font-medium text-[#0F172A] line-clamp-1">{poll.title}</p>
                         <p className="text-xs text-teal-600 font-medium mt-0.5 flex items-center gap-1">
                           <Clock className="w-3 h-3" /> Availability poll — response needed
                         </p>

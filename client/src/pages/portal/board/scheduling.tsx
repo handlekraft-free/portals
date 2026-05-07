@@ -142,18 +142,18 @@ function AvailabilityTab({ currentUserId, isAdmin }: { currentUserId: number; is
     <div className="space-y-6">
       {/* Best overlap summary */}
       {sorted.length > 0 && (
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-[#0D7377]/5 to-transparent">
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-[#2563EB]/5 to-transparent">
           <CardContent className="pt-4 pb-4">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#0D7377]" /> Best Overlap Windows
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#2563EB]" /> Best Overlap Windows
             </p>
             <div className="flex flex-wrap gap-2">
               {sorted.map(e => (
                 <div key={e.key} className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm shadow-sm">
-                  <span className="font-medium text-[#1A1F2B]">{DAY_FULL[e.day]}</span>
+                  <span className="font-medium text-[#0F172A]">{DAY_FULL[e.day]}</span>
                   <span className="text-slate-400">·</span>
                   <span className="text-slate-600">{TIME_LABELS[e.time].split(" ")[0]}</span>
-                  <Badge className="bg-[#0D7377]/10 text-[#0D7377] border-0 text-xs ml-1">{e.count}/{totalMembers}</Badge>
+                  <Badge className="bg-[#2563EB]/10 text-[#2563EB] border-0 text-xs ml-1">{e.count}/{totalMembers}</Badge>
                 </div>
               ))}
             </div>
@@ -186,18 +186,18 @@ function AvailabilityTab({ currentUserId, isAdmin }: { currentUserId: number; is
                         const key = `${d}-${t}`;
                         const ids = heatmap[key] || [];
                         const pct = totalMembers > 0 ? ids.length / totalMembers : 0;
-                        const bg = pct === 0 ? "bg-slate-50" : pct < 0.33 ? "bg-[#0D7377]/15" : pct < 0.66 ? "bg-[#0D7377]/35" : "bg-[#0D7377]/65";
+                        const bg = pct === 0 ? "bg-slate-50" : pct < 0.33 ? "bg-[#2563EB]/15" : pct < 0.66 ? "bg-[#2563EB]/35" : "bg-[#2563EB]/65";
                         const isHovered = hovered === key;
                         return (
                           <td key={d} className="py-1 px-0.5">
                             <div
-                              className={`h-10 rounded-lg flex items-center justify-center cursor-default transition-all ${bg} ${isHovered ? "ring-2 ring-[#0D7377]" : ""}`}
+                              className={`h-10 rounded-lg flex items-center justify-center cursor-default transition-all ${bg} ${isHovered ? "ring-2 ring-[#2563EB]" : ""}`}
                               onMouseEnter={() => setHovered(key)}
                               onMouseLeave={() => setHovered(null)}
                               title={ids.length > 0 ? ids.map(id => { const m = allMembers.find(x => x.userId === id); return m ? `${m.firstName} ${m.lastName}` : ""; }).join(", ") : "No availability"}
                             >
                               {ids.length > 0 && (
-                                <span className={`text-xs font-semibold ${pct >= 0.5 ? "text-white" : "text-[#0D7377]"}`}>{ids.length}</span>
+                                <span className={`text-xs font-semibold ${pct >= 0.5 ? "text-white" : "text-[#2563EB]"}`}>{ids.length}</span>
                               )}
                             </div>
                           </td>
@@ -246,7 +246,7 @@ function AvailabilityTab({ currentUserId, isAdmin }: { currentUserId: number; is
                             <td key={d} className="py-1 px-0.5">
                               <button
                                 onClick={() => toggleSlot(d, t)}
-                                className={`w-full h-10 rounded-lg border-2 transition-all flex items-center justify-center ${checked ? "border-[#0D7377] bg-[#0D7377]/15 text-[#0D7377]" : "border-slate-200 hover:border-slate-300 bg-white"}`}
+                                className={`w-full h-10 rounded-lg border-2 transition-all flex items-center justify-center ${checked ? "border-[#2563EB] bg-[#2563EB]/15 text-[#2563EB]" : "border-slate-200 hover:border-slate-300 bg-white"}`}
                                 data-testid={`avail-${d}-${t}`}
                               >
                                 {checked && <Check className="w-4 h-4" />}
@@ -264,7 +264,7 @@ function AvailabilityTab({ currentUserId, isAdmin }: { currentUserId: number; is
                 <select
                   value={myTimezone}
                   onChange={e => setMyTimezone(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
                   data-testid="select-avail-timezone"
                 >
                   {Object.entries(TZ_LABELS).map(([tz, label]) => (
@@ -279,13 +279,13 @@ function AvailabilityTab({ currentUserId, isAdmin }: { currentUserId: number; is
                   onChange={e => setMyNotes(e.target.value)}
                   rows={2}
                   placeholder="e.g. Prefer Tuesday afternoons. Unavailable 3rd week of December."
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 resize-none"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 resize-none"
                   data-testid="input-avail-notes"
                 />
               </div>
               <div className="flex gap-2">
                 <Button onClick={() => { setEditingMine(false); load(); }} variant="outline" className="h-8 text-sm" data-testid="button-cancel-avail">Cancel</Button>
-                <Button onClick={save} disabled={saving} className="bg-[#0D7377] hover:bg-[#0a5c60] text-white h-8 text-sm" data-testid="button-save-avail">
+                <Button onClick={save} disabled={saving} className="bg-[#2563EB] hover:bg-[#0a5c60] text-white h-8 text-sm" data-testid="button-save-avail">
                   {saving ? "Saving…" : "Save Availability"}
                 </Button>
               </div>
@@ -330,13 +330,13 @@ function AvailabilityTab({ currentUserId, isAdmin }: { currentUserId: number; is
             <div className="divide-y divide-slate-100">
               {allMembers.map(m => (
                 <div key={m.userId} className="py-3 flex items-start gap-3" data-testid={`member-avail-${m.userId}`}>
-                  <div className="w-8 h-8 rounded-full bg-[#0D7377]/10 text-[#0D7377] text-xs font-bold flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-[#2563EB]/10 text-[#2563EB] text-xs font-bold flex items-center justify-center shrink-0">
                     {m.firstName?.[0]}{m.lastName?.[0]}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-medium text-[#1A1F2B]">{m.firstName} {m.lastName}
-                        {m.boardPosition && <span className="ml-1.5 text-xs text-[#D4A843] font-normal">({m.boardPosition})</span>}
+                      <p className="text-sm font-medium text-[#0F172A]">{m.firstName} {m.lastName}
+                        {m.boardPosition && <span className="ml-1.5 text-xs text-[#10B981] font-normal">({m.boardPosition})</span>}
                       </p>
                       {m.timezone && (
                         <span className="inline-flex items-center gap-1 text-[10px] bg-indigo-50 text-indigo-500 border border-indigo-100 rounded px-1.5 py-0.5" data-testid={`badge-avail-tz-${m.userId}`}>
@@ -391,7 +391,7 @@ function PollCard({ poll, currentUserId, isAdmin, onOpen, onDelete }: {
     <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:border-slate-300 transition-colors cursor-pointer group" onClick={() => onOpen(poll.id)} data-testid={`poll-card-${poll.id}`}>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
-          <p className="text-sm font-semibold text-[#1A1F2B] truncate">{poll.title}</p>
+          <p className="text-sm font-semibold text-[#0F172A] truncate">{poll.title}</p>
           <Badge className={poll.status === "open" ? "bg-green-100 text-green-700 border-green-300" : "bg-slate-100 text-slate-500 border-slate-200"}>
             {poll.status === "open" ? "Open" : <><Lock className="w-2.5 h-2.5 inline mr-0.5" />Closed</>}
           </Badge>
@@ -510,14 +510,14 @@ function PollDetailView({ pollId, currentUserId, isAdmin, onBack, onRefresh }: {
 
   return (
     <div>
-      <button onClick={onBack} className="text-sm text-[#0D7377] hover:underline mb-4 flex items-center gap-1">
+      <button onClick={onBack} className="text-sm text-[#2563EB] hover:underline mb-4 flex items-center gap-1">
         ← Back to polls
       </button>
 
       <div className="flex items-start justify-between mb-5">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h2 className="text-xl font-display text-[#1A1F2B]">{detail.title}</h2>
+            <h2 className="text-xl font-display text-[#0F172A]">{detail.title}</h2>
             <Badge className={isClosed ? "bg-slate-100 text-slate-500 border-slate-200" : "bg-green-100 text-green-700 border-green-300"}>
               {isClosed ? <><Lock className="w-2.5 h-2.5 inline mr-0.5" />Closed</> : "Open"}
             </Badge>
@@ -557,7 +557,7 @@ function PollDetailView({ pollId, currentUserId, isAdmin, onBack, onRefresh }: {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       {isConfirmed && <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />}
-                      <p className="text-sm font-semibold text-[#1A1F2B]">{fmtDateTime(slot.proposedAt, detail.timezone)}</p>
+                      <p className="text-sm font-semibold text-[#0F172A]">{fmtDateTime(slot.proposedAt, detail.timezone)}</p>
                       <span className="text-xs text-slate-400">{slot.durationMinutes} min</span>
                       {isConfirmed && <Badge className="bg-green-100 text-green-700 border-green-300">Selected</Badge>}
                     </div>
@@ -565,7 +565,7 @@ function PollDetailView({ pollId, currentUserId, isAdmin, onBack, onRefresh }: {
                     {/* Progress bar */}
                     <div className="flex items-center gap-2 mb-2">
                       <div className="flex-1 bg-slate-100 rounded-full h-1.5">
-                        <div className="h-1.5 rounded-full bg-[#0D7377] transition-all" style={{ width: `${pctFill}%` }} />
+                        <div className="h-1.5 rounded-full bg-[#2563EB] transition-all" style={{ width: `${pctFill}%` }} />
                       </div>
                       <span className="text-xs text-slate-500 shrink-0">
                         <span className="text-green-600 font-medium">{tally.yes}</span>
@@ -581,7 +581,7 @@ function PollDetailView({ pollId, currentUserId, isAdmin, onBack, onRefresh }: {
                         const avail = resp?.availability || "no";
                         const isMe = m.id === currentUserId;
                         return (
-                          <span key={m.id} className={`text-xs px-1.5 py-0.5 rounded border flex items-center gap-0.5 ${AVAIL_COLORS[avail]} ${isMe ? "ring-1 ring-offset-0 ring-[#0D7377]" : ""}`} title={`${m.firstName} ${m.lastName}: ${AVAIL_LABELS[avail]}`}>
+                          <span key={m.id} className={`text-xs px-1.5 py-0.5 rounded border flex items-center gap-0.5 ${AVAIL_COLORS[avail]} ${isMe ? "ring-1 ring-offset-0 ring-[#2563EB]" : ""}`} title={`${m.firstName} ${m.lastName}: ${AVAIL_LABELS[avail]}`}>
                             {AVAIL_ICONS[avail]}
                             <span>{m.firstName[0]}{m.lastName[0]}</span>
                           </span>
@@ -653,7 +653,7 @@ function PollDetailView({ pollId, currentUserId, isAdmin, onBack, onRefresh }: {
 
       {/* Submit responses */}
       {!isClosed && detail.slots.length > 0 && (
-        <Button onClick={submitResponses} disabled={submitting} className="w-full bg-[#0D7377] hover:bg-[#0a5c60] text-white mb-5" data-testid="button-submit-responses">
+        <Button onClick={submitResponses} disabled={submitting} className="w-full bg-[#2563EB] hover:bg-[#0a5c60] text-white mb-5" data-testid="button-submit-responses">
           {submitting ? "Saving…" : "Save My Availability"}
         </Button>
       )}
@@ -663,7 +663,7 @@ function PollDetailView({ pollId, currentUserId, isAdmin, onBack, onRefresh }: {
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-4 pb-4">
             {!addingSlot ? (
-              <button onClick={() => setAddingSlot(true)} className="flex items-center gap-2 text-sm text-[#0D7377] hover:underline" data-testid="button-add-slot">
+              <button onClick={() => setAddingSlot(true)} className="flex items-center gap-2 text-sm text-[#2563EB] hover:underline" data-testid="button-add-slot">
                 <Plus className="w-4 h-4" /> Propose another time slot
               </button>
             ) : (
@@ -671,9 +671,9 @@ function PollDetailView({ pollId, currentUserId, isAdmin, onBack, onRefresh }: {
                 <p className="text-sm font-semibold text-slate-700">Add a Time Slot</p>
                 <div className="flex gap-2 flex-wrap">
                   <input type="date" value={newSlotDate} onChange={e => setNewSlotDate(e.target.value)}
-                    className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-slot-date" />
+                    className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-slot-date" />
                   <input type="time" value={newSlotTime} onChange={e => setNewSlotTime(e.target.value)}
-                    className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-slot-time" />
+                    className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-slot-time" />
                   <select value={newSlotDuration} onChange={e => setNewSlotDuration(e.target.value)}
                     className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none" data-testid="select-slot-duration">
                     <option value="60">60 min</option>
@@ -683,7 +683,7 @@ function PollDetailView({ pollId, currentUserId, isAdmin, onBack, onRefresh }: {
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" onClick={() => setAddingSlot(false)} variant="outline" className="h-8 text-sm">Cancel</Button>
-                  <Button size="sm" onClick={addSlot} disabled={!newSlotDate} className="bg-[#0D7377] hover:bg-[#0a5c60] text-white h-8 text-sm" data-testid="button-submit-slot">Add Slot</Button>
+                  <Button size="sm" onClick={addSlot} disabled={!newSlotDate} className="bg-[#2563EB] hover:bg-[#0a5c60] text-white h-8 text-sm" data-testid="button-submit-slot">Add Slot</Button>
                 </div>
               </div>
             )}
@@ -752,7 +752,7 @@ function PollsTab({ currentUserId, isAdmin }: { currentUserId: number; isAdmin: 
       {creating && (
         <Card className="border-indigo-200 shadow-sm">
           <CardContent className="pt-4 space-y-4">
-            <p className="text-sm font-semibold text-[#1A1F2B]">Create a Time Poll</p>
+            <p className="text-sm font-semibold text-[#0F172A]">Create a Time Poll</p>
             <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Poll title (e.g. Q3 Board Meeting)"
               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" data-testid="input-poll-title" />
             <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Optional description"
@@ -834,7 +834,7 @@ function SchedulingContent() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-display text-[#1A1F2B]">Schedule Coordinator</h1>
+        <h1 className="text-2xl font-display text-[#0F172A]">Schedule Coordinator</h1>
         <p className="text-slate-500 text-sm mt-0.5">Find the best time for board meetings — no back-and-forth emails needed.</p>
       </div>
 
@@ -842,14 +842,14 @@ function SchedulingContent() {
       <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6 w-fit">
         <button
           onClick={() => setTab("polls")}
-          className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "polls" ? "bg-white text-[#1A1F2B] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+          className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "polls" ? "bg-white text-[#0F172A] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
           data-testid="tab-polls"
         >
           <CalendarDays className="w-3.5 h-3.5 inline mr-1.5" />Time Polls
         </button>
         <button
           onClick={() => setTab("availability")}
-          className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "availability" ? "bg-white text-[#1A1F2B] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+          className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "availability" ? "bg-white text-[#0F172A] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
           data-testid="tab-availability"
         >
           <Users className="w-3.5 h-3.5 inline mr-1.5" />Standing Availability

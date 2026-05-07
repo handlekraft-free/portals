@@ -69,7 +69,7 @@ function MemberProfileModal({ member, onClose }: { member: any; onClose: () => v
               ) : initials}
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg font-semibold text-[#1A1F2B]" data-testid="modal-member-name">
+              <h2 className="text-lg font-semibold text-[#0F172A]" data-testid="modal-member-name">
                 {member.firstName} {member.lastName}
               </h2>
               {member.boardPosition && (
@@ -93,7 +93,7 @@ function MemberProfileModal({ member, onClose }: { member: any; onClose: () => v
             <a
               href={`mailto:${member.email}`}
               onClick={e => e.stopPropagation()}
-              className="flex items-center gap-2.5 text-sm text-[#1A1F2B] hover:text-indigo-600 no-underline transition-colors"
+              className="flex items-center gap-2.5 text-sm text-[#0F172A] hover:text-indigo-600 no-underline transition-colors"
               data-testid="modal-member-email"
             >
               <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -103,7 +103,7 @@ function MemberProfileModal({ member, onClose }: { member: any; onClose: () => v
               <a
                 href={`tel:${member.phone}`}
                 onClick={e => e.stopPropagation()}
-                className="flex items-center gap-2.5 text-sm text-[#1A1F2B] hover:text-indigo-600 no-underline transition-colors"
+                className="flex items-center gap-2.5 text-sm text-[#0F172A] hover:text-indigo-600 no-underline transition-colors"
               >
                 <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                 {member.phone}
@@ -115,7 +115,7 @@ function MemberProfileModal({ member, onClose }: { member: any; onClose: () => v
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={e => e.stopPropagation()}
-                className="flex items-center gap-2.5 text-sm text-[#1A1F2B] hover:text-indigo-600 no-underline transition-colors"
+                className="flex items-center gap-2.5 text-sm text-[#0F172A] hover:text-indigo-600 no-underline transition-colors"
               >
                 <SiLinkedin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                 LinkedIn Profile
@@ -127,7 +127,7 @@ function MemberProfileModal({ member, onClose }: { member: any; onClose: () => v
           {member.bio && (
             <div className="pt-4 pb-4">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">About</p>
-              <p className="text-sm text-[#1A1F2B] leading-relaxed whitespace-pre-wrap">{member.bio}</p>
+              <p className="text-sm text-[#0F172A] leading-relaxed whitespace-pre-wrap">{member.bio}</p>
             </div>
           )}
 
@@ -137,7 +137,7 @@ function MemberProfileModal({ member, onClose }: { member: any; onClose: () => v
               <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Preferred Meeting Times</p>
-                <p className="text-sm text-[#1A1F2B]">{member.preferredMeetingTimes}</p>
+                <p className="text-sm text-[#0F172A]">{member.preferredMeetingTimes}</p>
               </div>
             </div>
           )}
@@ -163,7 +163,7 @@ function MemberProfileModal({ member, onClose }: { member: any; onClose: () => v
                 data-testid="modal-member-resume"
               >
                 <FileText className="w-4 h-4 text-slate-400 shrink-0" />
-                <span className="flex-1 truncate text-sm text-[#1A1F2B]">{member.resumeName || "Resume"}</span>
+                <span className="flex-1 truncate text-sm text-[#0F172A]">{member.resumeName || "Resume"}</span>
                 <Download className="w-3.5 h-3.5 text-slate-400" />
               </a>
             </div>
@@ -185,7 +185,7 @@ function MemberProfileModal({ member, onClose }: { member: any; onClose: () => v
           {(member.termStart || member.termEnd) && (
             <div className="pt-4">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Board Term</p>
-              <p className="text-sm text-[#1A1F2B]">
+              <p className="text-sm text-[#0F172A]">
                 {fmtMonthYear(member.termStart) ?? "?"} – {fmtMonthYear(member.termEnd) ?? "Present"}
               </p>
             </div>
@@ -236,7 +236,7 @@ function EditMemberModal({ member, onClose, onSaved }: { member: any; onClose: (
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="p-5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white rounded-t-2xl">
           <div>
-            <p className="font-semibold text-[#1A1F2B]">Edit Profile</p>
+            <p className="font-semibold text-[#0F172A]">Edit Profile</p>
             <p className="text-xs text-slate-500">{member.firstName} {member.lastName}</p>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400" data-testid="button-close-edit-member"><X className="w-4 h-4" /></button>
@@ -355,7 +355,7 @@ function MemberCard({ member, isAdmin, onEdit, onView }: {
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-semibold text-[#1A1F2B]">{member.firstName} {member.lastName}</p>
+                  <p className="font-semibold text-[#0F172A]">{member.firstName} {member.lastName}</p>
                   {member.role === "admin" && <Badge className="bg-red-100 text-red-700 text-xs">Admin</Badge>}
                 </div>
                 {member.boardPosition && (
@@ -462,7 +462,7 @@ function DirectoryContent() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-display text-[#1A1F2B] flex items-center gap-2">
+        <h1 className="text-2xl font-display text-[#0F172A] flex items-center gap-2">
           <Users className="w-6 h-6 text-indigo-500" /> Board Directory
         </h1>
         <p className="text-slate-500 text-sm mt-0.5">

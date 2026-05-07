@@ -141,7 +141,7 @@ function ComposeBox({
           size="sm"
           onClick={submit}
           disabled={!text.trim() || busy}
-          className="bg-[#0D7377] hover:bg-teal-700 text-white gap-1.5 text-xs h-7 px-3"
+          className="bg-[#2563EB] hover:bg-teal-700 text-white gap-1.5 text-xs h-7 px-3"
           data-testid="button-submit-comment"
         >
           <Send className="w-3 h-3" />
@@ -236,7 +236,7 @@ function CommentNode({
           <Avatar authorId={comment.author_id} first={comment.first_name} last={comment.last_name} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs font-semibold text-[#1A1F2B]">{authorName(comment)}</span>
+              <span className="text-xs font-semibold text-[#0F172A]">{authorName(comment)}</span>
               <span className="text-[10px] text-slate-400">{fmtTime(comment.created_at)}</span>
               {comment.edited_at && <span className="text-[10px] text-slate-300">(edited)</span>}
               {comment.resolved && (
@@ -451,7 +451,7 @@ export function DocumentDiscussion({ documentId, documentTitle, onClose, embedde
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0">
           <div>
-            <p className="font-semibold text-[#1A1F2B] flex items-center gap-2">
+            <p className="font-semibold text-[#0F172A] flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-teal-500" />
               Discussion
               {totalThreads > 0 && (
@@ -469,7 +469,7 @@ export function DocumentDiscussion({ documentId, documentTitle, onClose, embedde
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`px-2.5 py-1 rounded-md transition-colors capitalize font-medium ${filter === f ? "bg-white shadow-sm text-[#1A1F2B]" : "text-slate-500 hover:text-slate-700"}`}
+                  className={`px-2.5 py-1 rounded-md transition-colors capitalize font-medium ${filter === f ? "bg-white shadow-sm text-[#0F172A]" : "text-slate-500 hover:text-slate-700"}`}
                   data-testid={`filter-${f}`}
                 >
                   {f === "all" ? `All (${totalThreads})` : f === "open" ? `Open (${openCount})` : `Resolved (${resolvedCount})`}

@@ -347,7 +347,7 @@ function ForumsContent() {
         </button>
         <div className="flex items-start justify-between gap-3 mb-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl font-display text-[#1A1F2B]" data-testid="text-topic-title">{activeTopic.title}</h1>
+            <h1 className="text-xl font-display text-[#0F172A]" data-testid="text-topic-title">{activeTopic.title}</h1>
             {activeTopic.committee_name && (
               <Badge className="bg-violet-100 text-violet-700 text-xs gap-1" data-testid={`badge-topic-committee-${activeTopic.id}`}>
                 <Lock className="w-3 h-3" /> {activeTopic.committee_name}
@@ -463,7 +463,7 @@ function ForumsContent() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B] flex items-center gap-2">
+          <h1 className="text-2xl font-display text-[#0F172A] flex items-center gap-2">
             <MessageSquare className="w-6 h-6 text-indigo-500" /> Board Forums
           </h1>
           <p className="text-slate-500 text-sm mt-0.5">Private discussion forums for board members.</p>
@@ -476,7 +476,7 @@ function ForumsContent() {
       {newTopic && (
         <Card className="mb-5 border-indigo-200 shadow-sm">
           <CardContent className="pt-4 space-y-3">
-            <p className="text-sm font-semibold text-[#1A1F2B]">Start a New Discussion</p>
+            <p className="text-sm font-semibold text-[#0F172A]">Start a New Discussion</p>
             <input
               value={topicForm.title}
               onChange={e => setTopicForm(f => ({ ...f, title: e.target.value }))}
@@ -548,7 +548,7 @@ function ForumsContent() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="font-semibold text-sm text-[#1A1F2B]">{t.title}</p>
+                      <p className="font-semibold text-sm text-[#0F172A]">{t.title}</p>
                       {t.committee_name && (
                         <Badge className="bg-violet-100 text-violet-700 text-xs gap-1" data-testid={`badge-topic-committee-${t.id}`}>
                           <Lock className="w-3 h-3" /> {t.committee_name}

@@ -62,7 +62,7 @@ export function Navbar() {
                   e.preventDefault();
                   handleNavClick(link.href);
                 }}
-                className="text-white/80 hover:text-[#D4A843] text-sm font-medium transition-colors"
+                className="text-white/80 hover:text-[#10B981] text-sm font-medium transition-colors"
                 data-testid={`link-nav-${link.name.toLowerCase().replace(/\s+/g, '-')}`}
               >
                 {link.name}
@@ -78,7 +78,7 @@ export function Navbar() {
               </Button>
             </Link>
             <Button 
-              className="bg-[#D4A843] hover:bg-[#D4A843]/90 text-[#1A1F2B] font-bold rounded-full px-6 hover:shadow-lg hover:shadow-[#D4A843]/20 transition-all"
+              className="bg-[#10B981] hover:bg-[#10B981]/90 text-[#0F172A] font-bold rounded-full px-6 hover:shadow-lg hover:shadow-[#10B981]/20 transition-all"
               onClick={() => handleNavClick("#get-involved")}
               data-testid="button-get-involved"
             >
@@ -102,7 +102,7 @@ export function Navbar() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 z-40 bg-[#1A1F2B] pt-24 px-6 md:hidden"
+            className="fixed inset-0 z-40 bg-[#0F172A] pt-24 px-6 md:hidden"
           >
             <div className="flex flex-col gap-6">
               {navLinks.map((link) => (
@@ -116,11 +116,11 @@ export function Navbar() {
                   className="text-2xl font-display text-white border-b border-white/10 pb-4 flex justify-between items-center"
                 >
                   {link.name}
-                  <ChevronRight className="w-5 h-5 text-[#D4A843]" />
+                  <ChevronRight className="w-5 h-5 text-[#10B981]" />
                 </a>
               ))}
               <Button 
-                className="bg-[#D4A843] text-[#1A1F2B] w-full py-6 text-lg font-bold mt-4"
+                className="bg-[#10B981] text-[#0F172A] w-full py-6 text-lg font-bold mt-4"
                 onClick={() => handleNavClick("#get-involved")}
               >
                 Get Involved

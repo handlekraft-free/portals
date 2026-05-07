@@ -60,11 +60,11 @@ function MessageBubble({ msg, streaming }: { msg: any; streaming?: boolean }) {
   const { names, text } = parseContent(msg.content || "");
   return (
     <div className={`flex gap-3 ${isUser ? "flex-row-reverse" : ""}`} data-testid={`ai-message-${msg.id || "streaming"}`}>
-      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${isUser ? "bg-[#0D7377]" : "bg-[#1A1F2B]"}`}>
+      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${isUser ? "bg-[#2563EB]" : "bg-[#0F172A]"}`}>
         {isUser ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-white" />}
       </div>
       <div className={`max-w-[80%] ${isUser ? "items-end" : "items-start"} flex flex-col`}>
-        <div className={`rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words ${isUser ? "bg-[#0D7377] text-white rounded-tr-sm" : "bg-slate-100 text-slate-800 rounded-tl-sm"}`}>
+        <div className={`rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words ${isUser ? "bg-[#2563EB] text-white rounded-tr-sm" : "bg-slate-100 text-slate-800 rounded-tl-sm"}`}>
           <AttachmentChips names={names} isUser={isUser} />
           {text}
           {streaming && <span className="inline-block w-1 h-4 bg-slate-600 animate-pulse ml-0.5 align-text-bottom" />}
@@ -337,13 +337,13 @@ export default function ClaudeChat({ variant = "general" }: { variant?: ChatVari
 
   return (
     <div
-      className={`flex flex-col h-[520px] bg-white rounded-2xl shadow-sm border overflow-hidden transition-colors ${dragOver ? "border-[#0D7377] border-2" : "border-slate-200"}`}
+      className={`flex flex-col h-[520px] bg-white rounded-2xl shadow-sm border overflow-hidden transition-colors ${dragOver ? "border-[#2563EB] border-2" : "border-slate-200"}`}
       onDragOver={e => { e.preventDefault(); setDragOver(true); }}
       onDragLeave={() => setDragOver(false)}
       onDrop={handleDrop}
     >
       {/* Header */}
-      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-slate-200 shrink-0 bg-gradient-to-r from-[#1A1F2B] to-[#0D7377]">
+      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-slate-200 shrink-0 bg-gradient-to-r from-[#0F172A] to-[#2563EB]">
         <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
           <Sparkles className="w-4 h-4 text-white" />
         </div>
@@ -366,7 +366,7 @@ export default function ClaudeChat({ variant = "general" }: { variant?: ChatVari
           </div>
         ) : isEmpty ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1A1F2B] to-[#0D7377] flex items-center justify-center">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0F172A] to-[#2563EB] flex items-center justify-center">
               <Bot className="w-7 h-7 text-white" />
             </div>
             <div>
@@ -389,7 +389,7 @@ export default function ClaudeChat({ variant = "general" }: { variant?: ChatVari
             )}
             {streaming && !streamingText && (
               <div className="flex gap-3">
-                <div className="w-7 h-7 rounded-full bg-[#1A1F2B] flex items-center justify-center shrink-0">
+                <div className="w-7 h-7 rounded-full bg-[#0F172A] flex items-center justify-center shrink-0">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
                 <div className="bg-slate-100 rounded-2xl rounded-tl-sm px-3.5 py-2.5 flex items-center gap-1">
@@ -417,8 +417,8 @@ export default function ClaudeChat({ variant = "general" }: { variant?: ChatVari
 
       {/* Drag overlay hint */}
       {dragOver && (
-        <div className="absolute inset-0 bg-[#0D7377]/10 flex items-center justify-center pointer-events-none rounded-2xl z-10">
-          <div className="bg-white border-2 border-dashed border-[#0D7377] rounded-xl px-6 py-4 text-sm font-medium text-[#0D7377]">
+        <div className="absolute inset-0 bg-[#2563EB]/10 flex items-center justify-center pointer-events-none rounded-2xl z-10">
+          <div className="bg-white border-2 border-dashed border-[#2563EB] rounded-xl px-6 py-4 text-sm font-medium text-[#2563EB]">
             Drop files to attach
           </div>
         </div>
@@ -440,7 +440,7 @@ export default function ClaudeChat({ variant = "general" }: { variant?: ChatVari
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={streaming || pendingFiles.length >= 5}
-            className="p-2 rounded-xl border border-slate-200 text-slate-400 hover:text-[#0D7377] hover:border-[#0D7377]/40 transition-colors disabled:opacity-40 shrink-0"
+            className="p-2 rounded-xl border border-slate-200 text-slate-400 hover:text-[#2563EB] hover:border-[#2563EB]/40 transition-colors disabled:opacity-40 shrink-0"
             title="Attach image or file"
             data-testid="button-attach-file"
           >
@@ -457,7 +457,7 @@ export default function ClaudeChat({ variant = "general" }: { variant?: ChatVari
           />
 
           {/* Text input */}
-          <div className="flex-1 border border-slate-200 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-[#0D7377]/30">
+          <div className="flex-1 border border-slate-200 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-[#2563EB]/30">
             <textarea
               ref={textareaRef}
               value={input}
@@ -475,7 +475,7 @@ export default function ClaudeChat({ variant = "general" }: { variant?: ChatVari
           <button
             onClick={send}
             disabled={!canSend}
-            className="bg-gradient-to-br from-[#1A1F2B] to-[#0D7377] text-white p-2.5 rounded-xl hover:opacity-90 disabled:opacity-40 transition-all shrink-0"
+            className="bg-gradient-to-br from-[#0F172A] to-[#2563EB] text-white p-2.5 rounded-xl hover:opacity-90 disabled:opacity-40 transition-all shrink-0"
             data-testid="button-send-claude"
           >
             {streaming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}

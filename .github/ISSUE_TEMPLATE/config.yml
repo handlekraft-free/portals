@@ -1,8 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security vulnerability
-    url: https://github.com/handlekraft/open-portals/blob/main/SECURITY.md
-    about: Please do NOT open a public issue. Email robert@handlekraft.ai instead.
-  - name: Commercial support (paid)
-    url: https://github.com/handlekraft/open-portals/blob/main/SUPPORT.md
-    about: Installation, deployment, rebranding, custom features, SLAs — email robert@handlekraft.ai
+    url: https://github.com/your-org/open-portals/security/advisories/new
+    about: Report security issues privately, or email robert@handlekraft.ai
+  - name: Commercial support, deployment, or custom features
+    url: mailto:robert@handlekraft.ai
+    about: Paid services from the maintainers — installation, rebranding, integrations, SLAs
+  - name: Questions and discussion
+    url: https://github.com/your-org/open-portals/discussions
+    about: Ask a question or start a discussion (non-bug, non-feature)

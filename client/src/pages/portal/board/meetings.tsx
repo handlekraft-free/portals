@@ -148,7 +148,7 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
       {/* Header */}
       <div className="flex items-start justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B]">{detail.title}</h1>
+          <h1 className="text-2xl font-display text-[#0F172A]">{detail.title}</h1>
           <div className="flex items-center gap-3 mt-1 text-sm text-slate-500 flex-wrap">
             <span className="flex items-center gap-1.5">
               <CalendarDays className="w-3.5 h-3.5" />
@@ -214,7 +214,7 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
             <div className="flex items-center gap-2">
               <Bell className={`w-4 h-4 ${noticeSent ? "text-green-500" : "text-amber-500"}`} />
               <div>
-                <p className="text-sm font-medium text-[#1A1F2B]">
+                <p className="text-sm font-medium text-[#0F172A]">
                   {noticeSent ? "Notice Sent" : "Notice Not Yet Sent"}
                 </p>
                 {detail.notices?.length > 0 && (
@@ -336,7 +336,7 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
                   <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs font-bold shrink-0">
                     {(r.first_name || r.firstName)?.[0]}{(r.last_name || r.lastName)?.[0]}
                   </div>
-                  <span className="text-[#1A1F2B] flex-1 truncate">{r.first_name || r.firstName} {r.last_name || r.lastName}</span>
+                  <span className="text-[#0F172A] flex-1 truncate">{r.first_name || r.firstName} {r.last_name || r.lastName}</span>
                   <span className={`text-xs ${RSVP_LABELS[r.response]?.color}`}>{RSVP_LABELS[r.response]?.label}</span>
                 </div>
               ))}
@@ -362,7 +362,7 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
                 {detail.attendees.map((a: any) => (
                   <div key={a.id} className="flex items-center gap-2 text-sm" data-testid={`attendee-${a.userId}`}>
                     <div className={`w-2 h-2 rounded-full shrink-0 ${a.attendance === "present" ? "bg-green-500" : a.attendance === "excused" ? "bg-amber-400" : "bg-red-400"}`} />
-                    <span className="text-[#1A1F2B] flex-1 truncate">{a.firstName} {a.lastName}</span>
+                    <span className="text-[#0F172A] flex-1 truncate">{a.firstName} {a.lastName}</span>
                     <span className={`text-xs capitalize ${a.attendance === "present" ? "text-green-600" : a.attendance === "excused" ? "text-amber-600" : "text-red-500"}`}>
                       {a.attendance} ({a.participationMethod === "in_person" ? "in person" : "remote"})
                     </span>
@@ -374,7 +374,7 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
               <div className="space-y-2">
                 {boardMembers.map(member => (
                   <div key={member.id} className="flex items-center gap-2 flex-wrap" data-testid={`attendance-row-${member.id}`}>
-                    <span className="text-sm text-[#1A1F2B] w-32 shrink-0">{member.firstName} {member.lastName}</span>
+                    <span className="text-sm text-[#0F172A] w-32 shrink-0">{member.firstName} {member.lastName}</span>
                     <select
                       value={attendance[member.id]?.attendance || "absent"}
                       onChange={e => setAttendance(prev => ({ ...prev, [member.id]: { ...prev[member.id], attendance: e.target.value } }))}
@@ -438,7 +438,7 @@ function MeetingDetail({ meeting, onBack, onRefresh, boardMembers }: {
                   </div>
                 ) : (
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#1A1F2B]">{item.title}</p>
+                    <p className="text-sm font-medium text-[#0F172A]">{item.title}</p>
                     {item.description && <p className="text-xs text-slate-400 mt-0.5">{item.description}</p>}
                     <div className="flex gap-3 text-xs text-slate-400 mt-0.5">
                       {item.duration && <span><Clock className="w-3 h-3 inline mr-0.5" />{item.duration} min</span>}
@@ -531,7 +531,7 @@ function MeetingsContent() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B] flex items-center gap-2">
+          <h1 className="text-2xl font-display text-[#0F172A] flex items-center gap-2">
             Board Meetings
             <VikingShieldSvg size={22} className="text-indigo-400/50" />
           </h1>
@@ -546,7 +546,7 @@ function MeetingsContent() {
       {showCreate && (
         <Card className="mb-5 border-indigo-200 shadow-sm">
           <CardContent className="pt-4 space-y-3">
-            <p className="text-sm font-semibold text-[#1A1F2B]">Schedule a New Meeting</p>
+            <p className="text-sm font-semibold text-[#0F172A]">Schedule a New Meeting</p>
             <input
               value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="Meeting title" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
@@ -624,7 +624,7 @@ function MeetingsContent() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-semibold text-sm text-[#1A1F2B]">{m.title}</p>
+                            <p className="font-semibold text-sm text-[#0F172A]">{m.title}</p>
                             {!m.myRsvp && <span className="text-xs text-amber-500 font-medium">RSVP needed</span>}
                             {m.myRsvp && <span className={`text-xs ${RSVP_LABELS[m.myRsvp]?.color}`}>{RSVP_LABELS[m.myRsvp]?.label}</span>}
                           </div>
@@ -653,7 +653,7 @@ function MeetingsContent() {
                           <CalendarDays className="w-5 h-5 text-slate-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-[#1A1F2B]">{m.title}</p>
+                          <p className="font-semibold text-sm text-[#0F172A]">{m.title}</p>
                           <p className="text-xs text-slate-400">{new Date(m.scheduledAt).toLocaleDateString()}</p>
                         </div>
                         <Badge className={STATUS_COLORS[m.status] || ""}>{m.status}</Badge>

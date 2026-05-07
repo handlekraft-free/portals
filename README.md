@@ -40,7 +40,7 @@ This repository is the open-source extraction of the internal handləkraft.ai po
 
 ## Screenshots
 
-_Coming soon — placeholder. Help wanted: contributions for screenshots are welcome via the issue tracker._
+_Coming soon — placeholder. Help wanted: see [issue tracker](../../issues) for the screenshot capture issue._
 
 ## Prerequisites
 
@@ -218,7 +218,7 @@ By contributing, you agree your contributions will be licensed under the AGPL-3.
 
 ## Support
 
-- **Community support** (free, best-effort): open a GitHub issue or start a discussion on the project's repository.
+- **Community support** (free, best-effort): [open a GitHub issue](../../issues/new/choose) or start a [discussion](../../discussions).
 - **Commercial support, deployment, rebranding, custom features, and SLAs** are offered by the maintainers (handləkraft.ai). Contact **robert@handlekraft.ai**.
 - **Security vulnerabilities**: see [SECURITY.md](./SECURITY.md) — please email **robert@handlekraft.ai** rather than opening a public issue.
 

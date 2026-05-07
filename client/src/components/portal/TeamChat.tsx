@@ -26,7 +26,7 @@ function initials(u: any) {
   return `${u?.firstName?.[0] || ""}${u?.lastName?.[0] || ""}`.toUpperCase() || "?";
 }
 
-function Avatar({ user, size = "sm", color = "bg-[#0D7377]" }: { user: any; size?: "sm" | "md"; color?: string }) {
+function Avatar({ user, size = "sm", color = "bg-[#2563EB]" }: { user: any; size?: "sm" | "md"; color?: string }) {
   const sz = size === "sm" ? "w-7 h-7 text-xs" : "w-8 h-8 text-sm";
   return (
     <div className={`${sz} ${color} rounded-full text-white flex items-center justify-center font-bold shrink-0`} title={user ? `${user.firstName} ${user.lastName}` : ""}>
@@ -82,7 +82,7 @@ function MessageRow({ msg, currentUserId, onReact, onDelete, onEdit, onOpenThrea
       <Avatar user={msg.author} />
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2 flex-wrap">
-          <span className="text-xs font-semibold text-[#1A1F2B]">{msg.author ? `${msg.author.firstName} ${msg.author.lastName}` : "Unknown"}</span>
+          <span className="text-xs font-semibold text-[#0F172A]">{msg.author ? `${msg.author.firstName} ${msg.author.lastName}` : "Unknown"}</span>
           {msg.isAnnouncement && (
             <span className="text-[10px] font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
               <Megaphone className="w-2.5 h-2.5" /> Announcement
@@ -151,7 +151,7 @@ function ThreadPanel({ parentMsg, currentUserId, onClose, onReact, onDelete, onE
   return (
     <div className="flex flex-col h-full border-l border-slate-200 bg-slate-50">
       <div className="flex items-center gap-2 px-3 py-2.5 border-b border-slate-200 bg-white">
-        <MessageSquare className="w-4 h-4 text-[#0D7377]" />
+        <MessageSquare className="w-4 h-4 text-[#2563EB]" />
         <span className="text-sm font-semibold text-slate-700">Thread</span>
         <button onClick={onClose} className="ml-auto p-1 rounded hover:bg-slate-100" data-testid="button-close-thread"><X className="w-4 h-4 text-slate-400" /></button>
       </div>
@@ -166,8 +166,8 @@ function ThreadPanel({ parentMsg, currentUserId, onClose, onReact, onDelete, onE
       </div>
       <div className="p-2 border-t border-slate-200 bg-white">
         <div className="flex gap-2">
-          <input value={text} onChange={e => setText(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Reply in thread…" className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30" data-testid="input-thread-reply" />
-          <button onClick={send} disabled={sending || !text.trim()} className="bg-[#0D7377] text-white px-3 py-2 rounded-lg hover:bg-[#0D7377]/90 disabled:opacity-40 transition-colors" data-testid="button-send-thread-reply">
+          <input value={text} onChange={e => setText(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Reply in thread…" className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30" data-testid="input-thread-reply" />
+          <button onClick={send} disabled={sending || !text.trim()} className="bg-[#2563EB] text-white px-3 py-2 rounded-lg hover:bg-[#2563EB]/90 disabled:opacity-40 transition-colors" data-testid="button-send-thread-reply">
             {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </button>
         </div>
@@ -186,10 +186,10 @@ function DmMessageRow({ msg, currentUserId, onDelete, onEdit }: {
 
   return (
     <div className="flex gap-2 group relative" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} data-testid={`dm-message-${msg.id}`}>
-      <Avatar user={msg.sender} color={isOwn ? "bg-[#0D7377]" : "bg-[#1A1F2B]"} />
+      <Avatar user={msg.sender} color={isOwn ? "bg-[#2563EB]" : "bg-[#0F172A]"} />
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2">
-          <span className="text-xs font-semibold text-[#1A1F2B]">{msg.sender ? `${msg.sender.firstName} ${msg.sender.lastName}` : "Unknown"}</span>
+          <span className="text-xs font-semibold text-[#0F172A]">{msg.sender ? `${msg.sender.firstName} ${msg.sender.lastName}` : "Unknown"}</span>
           <span className="text-[10px] text-slate-400">{relTime(msg.createdAt)}{msg.editedAt ? " (edited)" : ""}</span>
         </div>
         <p className="text-sm text-slate-700 whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
@@ -216,7 +216,7 @@ function DmPicker({ users, onSelect, onClose }: { users: any[]; onSelect: (userI
     <div className="absolute inset-0 z-40 bg-black/40 flex items-center justify-center" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-72 max-h-96 flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-          <p className="text-sm font-semibold text-[#1A1F2B]">New Direct Message</p>
+          <p className="text-sm font-semibold text-[#0F172A]">New Direct Message</p>
           <button onClick={onClose} className="p-1 rounded hover:bg-slate-100"><X className="w-4 h-4 text-slate-400" /></button>
         </div>
         <div className="px-3 py-2 border-b border-slate-100 flex items-center gap-2">
@@ -226,11 +226,11 @@ function DmPicker({ users, onSelect, onClose }: { users: any[]; onSelect: (userI
         <div className="flex-1 overflow-y-auto py-1">
           {filtered.map(u => (
             <button key={u.id} onClick={() => onSelect(u.id)} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors text-left" data-testid={`dm-user-${u.id}`}>
-              <div className="w-8 h-8 rounded-full bg-[#0D7377] text-white text-xs flex items-center justify-center font-bold shrink-0">
+              <div className="w-8 h-8 rounded-full bg-[#2563EB] text-white text-xs flex items-center justify-center font-bold shrink-0">
                 {initials(u)}
               </div>
               <div>
-                <p className="text-sm font-medium text-[#1A1F2B]">{u.firstName} {u.lastName}</p>
+                <p className="text-sm font-medium text-[#0F172A]">{u.firstName} {u.lastName}</p>
                 <p className="text-xs text-slate-400 capitalize">{u.role}</p>
               </div>
             </button>
@@ -427,7 +427,7 @@ export default function TeamChat() {
     <div className="relative flex h-[520px] bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
 
       {/* ── Sidebar ───────────────────────────────────────────────────────── */}
-      <div className="w-44 shrink-0 bg-[#1A1F2B] flex flex-col">
+      <div className="w-44 shrink-0 bg-[#0F172A] flex flex-col">
         <div className="px-3 pt-3 pb-2 border-b border-white/10">
           <p className="text-white/50 text-[10px] font-semibold uppercase tracking-widest">Team Chat</p>
         </div>
@@ -439,7 +439,7 @@ export default function TeamChat() {
             <button key={ch.id} onClick={() => { setActiveChannel(ch); setView("channel"); setThreadMsg(null); }}
               className={`w-full flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors ${view === "channel" && activeChannel?.id === ch.id ? "bg-white/10 text-white" : "text-white/60 hover:text-white hover:bg-white/5"}`}
               data-testid={`channel-${ch.id}`}>
-              {ch.type === "announcements" ? <Megaphone className="w-3.5 h-3.5 shrink-0 text-[#D4A843]" /> : <Hash className="w-3.5 h-3.5 shrink-0" />}
+              {ch.type === "announcements" ? <Megaphone className="w-3.5 h-3.5 shrink-0 text-[#10B981]" /> : <Hash className="w-3.5 h-3.5 shrink-0" />}
               <span className="truncate">{ch.name}</span>
             </button>
           ))}
@@ -461,7 +461,7 @@ export default function TeamChat() {
           {/* Direct Messages */}
           <div className="flex items-center justify-between px-3 mb-1">
             <p className="text-white/40 text-[10px] font-semibold uppercase tracking-widest flex items-center gap-1">
-              DMs {totalUnread > 0 && <span className="bg-[#D4A843] text-[#1A1F2B] text-[9px] font-bold px-1 rounded-full">{totalUnread}</span>}
+              DMs {totalUnread > 0 && <span className="bg-[#10B981] text-[#0F172A] text-[9px] font-bold px-1 rounded-full">{totalUnread}</span>}
             </p>
             <button onClick={() => setShowDmPicker(true)} className="text-white/40 hover:text-white/80 transition-colors" data-testid="button-new-dm" title="New direct message">
               <Plus className="w-3.5 h-3.5" />
@@ -477,14 +477,14 @@ export default function TeamChat() {
               <button key={conv.id} onClick={() => openDmConv(conv)}
                 className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors ${isActive ? "bg-white/10 text-white" : "text-white/60 hover:text-white hover:bg-white/5"}`}
                 data-testid={`dm-conv-${conv.id}`}>
-                <div className="w-5 h-5 rounded-full bg-[#0D7377]/70 text-white text-[9px] flex items-center justify-center font-bold shrink-0">
+                <div className="w-5 h-5 rounded-full bg-[#2563EB]/70 text-white text-[9px] flex items-center justify-center font-bold shrink-0">
                   {initials(other)}
                 </div>
                 <span className="truncate flex-1 text-left text-sm">
                   {other ? `${other.firstName} ${other.lastName[0]}.` : "?"}
                 </span>
                 {conv.unreadCount > 0 && (
-                  <span className="bg-[#D4A843] text-[#1A1F2B] text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
+                  <span className="bg-[#10B981] text-[#0F172A] text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
                     {conv.unreadCount}
                   </span>
                 )}
@@ -503,8 +503,8 @@ export default function TeamChat() {
       {view === "channel" && (
         <div className={`flex-1 flex flex-col min-w-0 ${threadMsg ? "" : ""}`}>
           <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-200 shrink-0">
-            {activeChannel?.type === "announcements" ? <Megaphone className="w-4 h-4 text-[#D4A843]" /> : <Hash className="w-4 h-4 text-slate-400" />}
-            <span className="font-semibold text-sm text-[#1A1F2B]">{activeChannel?.name || "Select a channel"}</span>
+            {activeChannel?.type === "announcements" ? <Megaphone className="w-4 h-4 text-[#10B981]" /> : <Hash className="w-4 h-4 text-slate-400" />}
+            <span className="font-semibold text-sm text-[#0F172A]">{activeChannel?.name || "Select a channel"}</span>
             {activeChannel?.description && <span className="text-xs text-slate-400 hidden md:block">— {activeChannel.description}</span>}
             {isAdmin && (
               <button onClick={() => setIsAnnouncement(v => !v)} className={`ml-auto flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-colors ${isAnnouncement ? "bg-amber-100 text-amber-700 border-amber-300" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`} data-testid="button-toggle-announcement">
@@ -525,8 +525,8 @@ export default function TeamChat() {
                 <div key={msg.id} className="flex gap-2">
                   <Avatar user={msg.author} />
                   <div className="flex-1 flex gap-2">
-                    <input autoFocus value={editText} onChange={e => setEditText(e.target.value)} onKeyDown={e => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingMsg(null); }} className="flex-1 text-sm border border-[#0D7377] rounded-lg px-3 py-1.5 focus:outline-none" data-testid="input-edit-message" />
-                    <button onClick={saveEdit} className="text-[#0D7377]"><Check className="w-4 h-4" /></button>
+                    <input autoFocus value={editText} onChange={e => setEditText(e.target.value)} onKeyDown={e => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingMsg(null); }} className="flex-1 text-sm border border-[#2563EB] rounded-lg px-3 py-1.5 focus:outline-none" data-testid="input-edit-message" />
+                    <button onClick={saveEdit} className="text-[#2563EB]"><Check className="w-4 h-4" /></button>
                     <button onClick={() => setEditingMsg(null)} className="text-slate-400"><X className="w-4 h-4" /></button>
                   </div>
                 </div>
@@ -549,12 +549,12 @@ export default function TeamChat() {
               </div>
             )}
             <div className="flex gap-2 items-end">
-              <div className="flex-1 flex items-center gap-2 border border-slate-200 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-[#0D7377]/30">
+              <div className="flex-1 flex items-center gap-2 border border-slate-200 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-[#2563EB]/30">
                 <textarea value={text} onChange={e => setText(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder={`Message #${activeChannel?.name || "..."}`} rows={1} className="flex-1 text-sm resize-none focus:outline-none bg-transparent max-h-24" data-testid="input-chat-message" />
                 <input ref={fileRef} type="file" multiple className="hidden" onChange={e => { if (e.target.files) setFiles(prev => [...prev, ...Array.from(e.target.files!)]); }} />
                 <button onClick={() => fileRef.current?.click()} className="text-slate-400 hover:text-slate-600 shrink-0" data-testid="button-attach-file"><Upload className="w-4 h-4" /></button>
               </div>
-              <button onClick={send} disabled={sending || (!text.trim() && files.length === 0)} className="bg-[#0D7377] text-white p-2.5 rounded-xl hover:bg-[#0D7377]/90 disabled:opacity-40 transition-colors shrink-0" data-testid="button-send-message">
+              <button onClick={send} disabled={sending || (!text.trim() && files.length === 0)} className="bg-[#2563EB] text-white p-2.5 rounded-xl hover:bg-[#2563EB]/90 disabled:opacity-40 transition-colors shrink-0" data-testid="button-send-message">
                 {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>
             </div>
@@ -568,12 +568,12 @@ export default function TeamChat() {
           {/* DM Header */}
           <div className="flex items-center gap-3 px-4 py-2.5 border-b border-slate-200 shrink-0">
             {activeDmConv?.otherUser && (
-              <div className="w-7 h-7 rounded-full bg-[#1A1F2B] text-white text-xs flex items-center justify-center font-bold">
+              <div className="w-7 h-7 rounded-full bg-[#0F172A] text-white text-xs flex items-center justify-center font-bold">
                 {initials(activeDmConv.otherUser)}
               </div>
             )}
             <div>
-              <p className="font-semibold text-sm text-[#1A1F2B]">
+              <p className="font-semibold text-sm text-[#0F172A]">
                 {activeDmConv?.otherUser ? `${activeDmConv.otherUser.firstName} ${activeDmConv.otherUser.lastName}` : "Direct Message"}
               </p>
               <p className="text-[10px] text-slate-400 capitalize">{activeDmConv?.otherUser?.role}</p>
@@ -594,10 +594,10 @@ export default function TeamChat() {
             {dmMessages.map(msg => (
               editingDmMsg?.id === msg.id ? (
                 <div key={msg.id} className="flex gap-2">
-                  <Avatar user={msg.sender} color={msg.senderId === user?.id ? "bg-[#0D7377]" : "bg-[#1A1F2B]"} />
+                  <Avatar user={msg.sender} color={msg.senderId === user?.id ? "bg-[#2563EB]" : "bg-[#0F172A]"} />
                   <div className="flex-1 flex gap-2">
-                    <input autoFocus value={editDmText} onChange={e => setEditDmText(e.target.value)} onKeyDown={e => { if (e.key === "Enter") saveDmEdit(); if (e.key === "Escape") setEditingDmMsg(null); }} className="flex-1 text-sm border border-[#0D7377] rounded-lg px-3 py-1.5 focus:outline-none" data-testid="input-edit-dm-message" />
-                    <button onClick={saveDmEdit} className="text-[#0D7377]"><Check className="w-4 h-4" /></button>
+                    <input autoFocus value={editDmText} onChange={e => setEditDmText(e.target.value)} onKeyDown={e => { if (e.key === "Enter") saveDmEdit(); if (e.key === "Escape") setEditingDmMsg(null); }} className="flex-1 text-sm border border-[#2563EB] rounded-lg px-3 py-1.5 focus:outline-none" data-testid="input-edit-dm-message" />
+                    <button onClick={saveDmEdit} className="text-[#2563EB]"><Check className="w-4 h-4" /></button>
                     <button onClick={() => setEditingDmMsg(null)} className="text-slate-400"><X className="w-4 h-4" /></button>
                   </div>
                 </div>
@@ -614,7 +614,7 @@ export default function TeamChat() {
           {/* DM Composer */}
           <div className="p-3 border-t border-slate-200 shrink-0">
             <div className="flex gap-2 items-end">
-              <div className="flex-1 border border-slate-200 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-[#0D7377]/30">
+              <div className="flex-1 border border-slate-200 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-[#2563EB]/30">
                 <textarea
                   value={dmText}
                   onChange={e => setDmText(e.target.value)}
@@ -625,7 +625,7 @@ export default function TeamChat() {
                   data-testid="input-dm-message"
                 />
               </div>
-              <button onClick={sendDm} disabled={dmSending || !dmText.trim()} className="bg-[#0D7377] text-white p-2.5 rounded-xl hover:bg-[#0D7377]/90 disabled:opacity-40 transition-colors shrink-0" data-testid="button-send-dm">
+              <button onClick={sendDm} disabled={dmSending || !dmText.trim()} className="bg-[#2563EB] text-white p-2.5 rounded-xl hover:bg-[#2563EB]/90 disabled:opacity-40 transition-colors shrink-0" data-testid="button-send-dm">
                 {dmSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>
             </div>

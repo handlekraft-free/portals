@@ -1,6 +1,6 @@
-# Open Portals (open-source fork)
+# Handlekraft Portals (open-source fork)
 
-Open-source extraction of the handləkraft.ai portal system: Employee, Client, Student, and Board portals with optional Norse-themed gamification. All marketing/application surfaces have been stripped; this fork is meant to be rebranded by editing `shared/branding.ts`.
+Open-source portal suite (Employee, Client, Student, Board) with optional Norse-themed gamification. The default brand identity is "Handlekraft Portals"; rebrand by editing `shared/branding.ts`. Visual theme is a calm Linear/Notion-style blue + emerald palette driven by tokens in `client/src/index.css` (Inter typography).
 
 **License:** AGPL-3.0-or-later (see LICENSE + NOTICE). Contributors agree to AGPL terms via CONTRIBUTING.md.
 

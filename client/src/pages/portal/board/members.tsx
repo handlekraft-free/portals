@@ -80,7 +80,7 @@ function CompositeExpertiseTable({ members }: { members: any[] }) {
           <div className="flex items-center gap-2.5">
             <BarChart3 className="w-5 h-5 text-indigo-500" />
             <div>
-              <CardTitle className="text-base text-[#1A1F2B]">Composite Board Expertise</CardTitle>
+              <CardTitle className="text-base text-[#0F172A]">Composite Board Expertise</CardTitle>
               <p className="text-xs text-slate-400 mt-0.5">Aggregate self-ratings across {totalMembers} active board member{totalMembers !== 1 ? "s" : ""} with profiles</p>
             </div>
           </div>
@@ -97,7 +97,7 @@ function CompositeExpertiseTable({ members }: { members: any[] }) {
         <div className="flex items-center gap-2 flex-wrap mt-3">
           <div className="rounded-lg bg-slate-50 border border-slate-100 px-3 py-1.5 text-center">
             <p className="text-[10px] text-slate-400 uppercase tracking-wider">Overall</p>
-            <p className="text-sm font-bold text-[#1A1F2B]">{Math.round(overallPct * 100)}%</p>
+            <p className="text-sm font-bold text-[#0F172A]">{Math.round(overallPct * 100)}%</p>
           </div>
           <div className="rounded-lg bg-red-50 border border-red-100 px-3 py-1.5 text-center">
             <p className="text-[10px] text-red-400 uppercase tracking-wider">Gaps</p>
@@ -172,7 +172,7 @@ function ExpertiseRow({ row, totalMembers, showTier = false }: { row: any; total
     <div className="flex items-center gap-3 group" data-testid={`composite-row-${row.key}`}>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 mb-1">
-          <p className="text-sm text-[#1A1F2B] truncate leading-snug">{row.label}</p>
+          <p className="text-sm text-[#0F172A] truncate leading-snug">{row.label}</p>
           {showTier && (
             <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider text-slate-300 border border-slate-200 rounded px-1">
               T{row.tier}
@@ -234,7 +234,7 @@ function MembersContent() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-display text-[#1A1F2B]">Board Members</h1>
+        <h1 className="text-2xl font-display text-[#0F172A]">Board Members</h1>
         <p className="text-slate-500 text-sm mt-0.5">{BRAND.name} Digital Board of Directors</p>
       </div>
 
@@ -257,7 +257,7 @@ function MembersContent() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-semibold text-[#1A1F2B]">{m.firstName} {m.lastName}</p>
+                          <p className="font-semibold text-[#0F172A]">{m.firstName} {m.lastName}</p>
                           {m.role === "admin" && <Badge className="bg-purple-100 text-purple-700 text-xs">Staff</Badge>}
                           {m.status === "inactive" && <Badge variant="secondary" className="text-xs">Inactive</Badge>}
                         </div>

@@ -164,7 +164,7 @@ export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   clientId: integer("client_id"),
-  color: varchar("color", { length: 20 }).default("#0D7377"),
+  color: varchar("color", { length: 20 }).default("#2563EB"),
   hourlyRate: numeric("hourly_rate", { precision: 10, scale: 2 }).default("0"),
   budgetHours: numeric("budget_hours", { precision: 10, scale: 2 }).default("0"),
   active: boolean("active").default(true),
@@ -270,7 +270,7 @@ export const kanbanColumns = pgTable("kanban_columns", {
   boardId: integer("board_id").notNull(),
   title: text("title").notNull(),
   position: integer("position").notNull().default(0),
-  color: varchar("color", { length: 20 }).default("#0D7377"),
+  color: varchar("color", { length: 20 }).default("#2563EB"),
   wipLimit: integer("wip_limit"),
 });
 export type KanbanColumn = typeof kanbanColumns.$inferSelect;

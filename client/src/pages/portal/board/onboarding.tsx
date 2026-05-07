@@ -99,7 +99,7 @@ function AddItemModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl">
-          <p className="font-semibold text-[#1A1F2B]">Add Onboarding Item</p>
+          <p className="font-semibold text-[#0F172A]">Add Onboarding Item</p>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500" data-testid="button-close-add-item"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-5 space-y-3">
@@ -185,7 +185,7 @@ function ReadingCard({
 
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-start gap-2 mb-1">
-            <p className={`font-semibold text-sm leading-snug ${acked ? "line-through text-slate-400" : "text-[#1A1F2B]"}`}>
+            <p className={`font-semibold text-sm leading-snug ${acked ? "line-through text-slate-400" : "text-[#0F172A]"}`}>
               {item.title}
             </p>
           </div>
@@ -399,7 +399,7 @@ function OnboardingContent() {
       {/* Page header */}
       <div className="flex items-start justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-display text-[#1A1F2B] flex items-center gap-2">
+          <h1 className="text-2xl font-display text-[#0F172A] flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-indigo-500" /> Board Onboarding
           </h1>
           <p className="text-slate-500 text-sm mt-0.5">
@@ -422,7 +422,7 @@ function OnboardingContent() {
                 ? <Sparkles className="w-5 h-5 text-green-500" />
                 : <BookOpen className="w-5 h-5 text-indigo-400" />
               }
-              <span className="font-semibold text-sm text-[#1A1F2B]">
+              <span className="font-semibold text-sm text-[#0F172A]">
                 {pct === 100 ? "Onboarding complete — welcome aboard!" : "Your reading progress"}
               </span>
             </div>

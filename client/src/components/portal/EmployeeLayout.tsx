@@ -116,7 +116,7 @@ function BrainDump() {
         onClick={() => setOpen(v => !v)}
         title="Brain Dump — capture a thought"
         data-testid="button-brain-dump"
-        className="fixed bottom-4 left-4 z-20 w-11 h-11 rounded-full bg-[#1A1F2B] hover:bg-[#0D7377] text-white shadow-lg flex items-center justify-center transition-colors duration-200 group"
+        className="fixed bottom-4 left-4 z-20 w-11 h-11 rounded-full bg-[#0F172A] hover:bg-[#2563EB] text-white shadow-lg flex items-center justify-center transition-colors duration-200 group"
       >
         <Lightbulb className="w-5 h-5 group-hover:scale-110 transition-transform" />
       </button>
@@ -131,8 +131,8 @@ function BrainDump() {
             data-testid="modal-brain-dump"
           >
             <div className="flex items-center gap-2 mb-3">
-              <Lightbulb className="w-4 h-4 text-[#D4A843]" />
-              <p className="text-sm font-semibold text-[#1A1F2B]">Brain Dump</p>
+              <Lightbulb className="w-4 h-4 text-[#10B981]" />
+              <p className="text-sm font-semibold text-[#0F172A]">Brain Dump</p>
               <p className="text-xs text-slate-400 ml-auto">Enter to save</p>
             </div>
 
@@ -143,7 +143,7 @@ function BrainDump() {
               onKeyDown={handleKey}
               placeholder="What's on your mind?"
               rows={3}
-              className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 placeholder:text-slate-300"
+              className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 placeholder:text-slate-300"
               data-testid="input-brain-dump"
             />
 
@@ -152,7 +152,7 @@ function BrainDump() {
                 <select
                   value={boardId ?? ""}
                   onChange={e => setBoardId(Number(e.target.value))}
-                  className="w-full text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 appearance-none focus:outline-none focus:ring-2 focus:ring-[#0D7377]/30 text-slate-600 bg-slate-50"
+                  className="w-full text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 appearance-none focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 text-slate-600 bg-slate-50"
                   data-testid="select-brain-dump-board"
                 >
                   {boards.map(b => (
@@ -166,7 +166,7 @@ function BrainDump() {
             <button
               onClick={capture}
               disabled={!text.trim() || saving}
-              className="mt-3 w-full flex items-center justify-center gap-1.5 bg-[#0D7377] hover:bg-[#0a5f62] disabled:opacity-40 text-white text-sm font-medium rounded-xl py-2 transition-colors"
+              className="mt-3 w-full flex items-center justify-center gap-1.5 bg-[#2563EB] hover:bg-[#1d4ed8] disabled:opacity-40 text-white text-sm font-medium rounded-xl py-2 transition-colors"
               data-testid="button-brain-dump-save"
             >
               <Send className="w-3.5 h-3.5" /> {saving ? "Saving…" : "Capture it"}
@@ -271,7 +271,7 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
       return (
         <CountBadge
           count={total}
-          color="bg-[#0D7377] text-white"
+          color="bg-[#2563EB] text-white"
           pulse={navCounts.dmUnread > 0}
           title={
             navCounts.dmUnread > 0
@@ -287,7 +287,7 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
       return (
         <CountBadge
           count={navCounts.openTicketCount}
-          color="bg-[#0D7377]/80 text-white"
+          color="bg-[#2563EB]/80 text-white"
           title={`${navCounts.openTicketCount} open ticket${navCounts.openTicketCount !== 1 ? "s" : ""}`}
         />
       );
@@ -322,13 +322,13 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
   const navLinkClass = (href: string) =>
     `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors no-underline ${
       location === href || location.startsWith(href + "/")
-        ? "bg-[#0D7377] text-white"
+        ? "bg-[#2563EB] text-white"
         : "text-white/60 hover:bg-white/10 hover:text-white"
     }`;
 
   const adminLinkClass = (href: string) =>
     `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors no-underline ${
-      location === href ? "bg-[#D4A843] text-[#1A1F2B]" : "text-white/60 hover:bg-white/10 hover:text-white"
+      location === href ? "bg-[#10B981] text-[#0F172A]" : "text-white/60 hover:bg-white/10 hover:text-white"
     }`;
 
   // ── Sidebar content ───────────────────────────────────────────────────────
@@ -408,9 +408,9 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <XpProvider>
-    <div className="min-h-screen bg-[#f5f3ef] flex font-body">
+    <div className="min-h-screen bg-[#f8fafc] flex font-body">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-56 bg-[#1A1F2B] flex-col fixed inset-y-0 left-0 z-30">
+      <aside className="hidden md:flex w-56 bg-[#0F172A] flex-col fixed inset-y-0 left-0 z-30">
         <SidebarContent />
       </aside>
 
@@ -418,7 +418,7 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/60" onClick={() => setSidebarOpen(false)} />
-          <aside className="absolute left-0 top-0 bottom-0 w-56 bg-[#1A1F2B] flex flex-col">
+          <aside className="absolute left-0 top-0 bottom-0 w-56 bg-[#0F172A] flex flex-col">
             <div className="absolute top-3 right-3">
               <button onClick={() => setSidebarOpen(false)} className="text-white/60 hover:text-white p-1">
                 <X className="w-5 h-5" />
@@ -436,7 +436,7 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
           <button className="md:hidden text-slate-600 hover:text-slate-800" onClick={() => setSidebarOpen(true)}>
             <Menu className="w-5 h-5" />
           </button>
-          <div className="md:hidden font-display text-[#1A1F2B] text-sm">{BRAND.fullName}</div>
+          <div className="md:hidden font-display text-[#0F172A] text-sm">{BRAND.fullName}</div>
           <div className="flex items-center gap-2 ml-auto">
             <PortalSwitcher variant="light" />
             <GoogleNotificationBell />

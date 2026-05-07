@@ -18,10 +18,10 @@ export function VikingCrossedSwords({ size = 18, className = "" }: { size?: numb
     <svg width={size} height={size} viewBox="0 0 18 18" fill="none" aria-hidden="true" className={className}>
       <line x1="2" y1="16" x2="16" y2="2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
       <circle cx="2.5" cy="15.5" r="1.4" fill="currentColor" />
-      <line x1="5" y1="13" x2="7" y2="15" stroke="#D4A843" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="5" y1="13" x2="7" y2="15" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" />
       <line x1="16" y1="16" x2="2" y2="2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
       <circle cx="15.5" cy="15.5" r="1.4" fill="currentColor" />
-      <line x1="13" y1="13" x2="11" y2="15" stroke="#D4A843" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="13" y1="13" x2="11" y2="15" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
@@ -63,7 +63,7 @@ export function VikingSwordSvg({ size = 22, className = "" }: { size?: number; c
   return (
     <svg width={Math.round(size * 0.45)} height={size} viewBox="0 0 10 22" fill="none" aria-hidden="true" className={className}>
       <line x1="5" y1="1" x2="5" y2="18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <line x1="1" y1="8" x2="9" y2="8" stroke="#D4A843" strokeWidth="1.6" strokeLinecap="round" />
+      <line x1="1" y1="8" x2="9" y2="8" stroke="#10B981" strokeWidth="1.6" strokeLinecap="round" />
       <circle cx="5" cy="20" r="1.8" fill="currentColor" />
     </svg>
   );
@@ -102,7 +102,7 @@ export function LongshipWatermark({ className = "" }: { className?: string }) {
 // Full-bleed watermark behind portal page content. Faded brand teal.
 
 export function LongshipBackground() {
-  const C = "#0D7377"; // brand teal
+  const C = "#2563EB"; // brand teal
   const shields = [145, 220, 295, 375, 455, 535, 615, 695, 770];
   const oars    = [150, 230, 310, 390, 470, 550, 630, 710, 790];
 
@@ -299,7 +299,7 @@ export function PageViking({ onClick }: { onClick?: () => void }) {
       {/* Caption / hover prompt */}
       <div className={`bg-white/85 backdrop-blur-sm rounded-2xl px-3 py-1.5 text-[11px] italic shadow-md mb-2 max-w-[160px] text-center leading-snug border transition-all duration-200 ${
         isClickable && hovered
-          ? "text-[#0D7377] border-[#0D7377]/30 scale-105"
+          ? "text-[#2563EB] border-[#2563EB]/30 scale-105"
           : "text-slate-500 border-slate-100"
       }`}>
         {isClickable && hovered ? "Plan my day →" : config.caption}

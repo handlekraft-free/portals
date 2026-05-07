@@ -81,7 +81,7 @@ export function GoogleNotificationBell() {
       >
         <Bell className="w-5 h-5 text-slate-500" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-[#D4A843] text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-[#10B981] text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -93,7 +93,7 @@ export function GoogleNotificationBell() {
             <span className="font-semibold text-sm text-slate-800">
               Google Notifications
               {unreadCount > 0 && (
-                <span className="ml-2 px-1.5 py-0.5 bg-[#D4A843]/15 text-[#b8892e] text-xs rounded-full font-medium">
+                <span className="ml-2 px-1.5 py-0.5 bg-[#10B981]/15 text-[#b8892e] text-xs rounded-full font-medium">
                   {unreadCount} new
                 </span>
               )}
@@ -101,7 +101,7 @@ export function GoogleNotificationBell() {
             {unreadCount > 0 && (
               <button
                 onClick={() => markAllRead.mutate()}
-                className="text-xs text-[#0D7377] hover:underline"
+                className="text-xs text-[#2563EB] hover:underline"
                 data-testid="button-mark-all-read"
               >
                 Mark all read
@@ -154,7 +154,7 @@ export function GoogleNotificationBell() {
                   <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5">
                     <button
                       onClick={() => handleNotifClick(n)}
-                      className="p-1 rounded text-slate-300 hover:text-[#0D7377] hover:bg-teal-50"
+                      className="p-1 rounded text-slate-300 hover:text-[#2563EB] hover:bg-teal-50"
                       title="Open in Google"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
@@ -177,7 +177,7 @@ export function GoogleNotificationBell() {
             <p className="text-xs text-slate-400">Syncs every 60 s</p>
             <a
               href="/portal/employee/settings"
-              className="text-xs text-[#0D7377] hover:underline"
+              className="text-xs text-[#2563EB] hover:underline"
               onClick={() => setOpen(false)}
             >
               Manage

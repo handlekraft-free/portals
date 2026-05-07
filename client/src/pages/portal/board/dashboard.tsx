@@ -79,7 +79,7 @@ function BoardDashboardContent() {
   return (
     <div className="space-y-6">
       {/* Viking Welcome Banner */}
-      <div className="bg-gradient-to-br from-[#1A1F2B] via-[#1e2035] to-indigo-950 rounded-2xl px-6 py-8 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#0F172A] via-[#1e2035] to-indigo-950 rounded-2xl px-6 py-8 text-white relative overflow-hidden">
         {/* Decorative Viking */}
         <img
           src={vikingProudImg}
@@ -140,7 +140,7 @@ function BoardDashboardContent() {
                   {card.icon}
                   {card.warn && <AlertCircle className="w-4 h-4 text-red-400" />}
                 </div>
-                <p className="text-2xl font-bold text-[#1A1F2B]">{card.value}</p>
+                <p className="text-2xl font-bold text-[#0F172A]">{card.value}</p>
                 <p className="text-xs text-slate-500 mt-0.5">{card.label}</p>
               </CardContent>
             </Card>
@@ -186,7 +186,7 @@ function BoardDashboardContent() {
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-semibold text-[#1A1F2B] flex items-center gap-2">
+              <h2 className="font-semibold text-[#0F172A] flex items-center gap-2">
                 <CalendarDays className="w-4 h-4 text-indigo-500" /> Upcoming Meetings
               </h2>
               <Link href="/portal/board/meetings" className="text-xs text-indigo-600 hover:underline no-underline">View all</Link>
@@ -204,7 +204,7 @@ function BoardDashboardContent() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <Link href="/portal/board/meetings" className="no-underline">
-                        <p className="text-sm font-medium text-[#1A1F2B] hover:text-indigo-600 transition-colors truncate">{m.title}</p>
+                        <p className="text-sm font-medium text-[#0F172A] hover:text-indigo-600 transition-colors truncate">{m.title}</p>
                       </Link>
                       <p className="text-xs text-slate-400 mt-0.5">
                         {d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {TYPE_LABELS[m.meetingType] || m.meetingType}
@@ -253,7 +253,7 @@ function BoardDashboardContent() {
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-semibold text-[#1A1F2B] flex items-center gap-2">
+              <h2 className="font-semibold text-[#0F172A] flex items-center gap-2">
                 <CheckSquare className="w-4 h-4 text-amber-500" /> My Action Items
               </h2>
               <Link href="/portal/board/action-items" className="text-xs text-indigo-600 hover:underline no-underline">View all</Link>
@@ -264,7 +264,7 @@ function BoardDashboardContent() {
                 <div className="flex items-start gap-2 py-2.5 border-b border-slate-100 hover:bg-teal-50/40 -mx-1 px-1 rounded transition-colors cursor-pointer" data-testid={`dashboard-poll-${poll.id}`}>
                   <BarChart2 className="w-4 h-4 mt-0.5 shrink-0 text-teal-500" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-[#1A1F2B] line-clamp-1">{poll.title}</p>
+                    <p className="text-sm text-[#0F172A] line-clamp-1">{poll.title}</p>
                     <p className="text-xs text-teal-600 font-medium mt-0.5 flex items-center gap-1">
                       <Clock className="w-3 h-3" /> Availability poll — response needed
                     </p>
@@ -284,7 +284,7 @@ function BoardDashboardContent() {
                 <div key={item.id} className={`flex items-start gap-2 py-2.5 border-b border-slate-100 last:border-0 ${overdue ? "bg-red-50/30 -mx-1 px-1 rounded" : ""}`} data-testid={`dashboard-action-${item.id}`}>
                   <CheckSquare className={`w-4 h-4 mt-0.5 shrink-0 ${overdue ? "text-red-400" : "text-amber-400"}`} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-[#1A1F2B] line-clamp-1">{item.title}</p>
+                    <p className="text-sm text-[#0F172A] line-clamp-1">{item.title}</p>
                     {item.dueDate && (
                       <p className={`text-xs mt-0.5 flex items-center gap-1 ${overdue ? "text-red-500 font-medium" : "text-slate-400"}`}>
                         <Clock className="w-3 h-3" />
@@ -309,7 +309,7 @@ function BoardDashboardContent() {
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-semibold text-[#1A1F2B] flex items-center gap-2">
+              <h2 className="font-semibold text-[#0F172A] flex items-center gap-2">
                 <FileText className="w-4 h-4 text-teal-500" /> Recent Documents
               </h2>
               <Link href="/portal/board/documents" className="text-xs text-indigo-600 hover:underline no-underline">View all</Link>
@@ -320,7 +320,7 @@ function BoardDashboardContent() {
               <div key={doc.id} className="flex items-center gap-3 py-2.5 border-b border-slate-100 last:border-0" data-testid={`dashboard-doc-${doc.id}`}>
                 <FileText className="w-4 h-4 text-slate-400 shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#1A1F2B] truncate">{doc.title}</p>
+                  <p className="text-sm font-medium text-[#0F172A] truncate">{doc.title}</p>
                   <p className="text-xs text-slate-400">{doc.category} · {new Date(doc.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
@@ -332,7 +332,7 @@ function BoardDashboardContent() {
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-semibold text-[#1A1F2B] flex items-center gap-2">
+              <h2 className="font-semibold text-[#0F172A] flex items-center gap-2">
                 <FileSignature className="w-4 h-4 text-purple-500" /> Pending Consents
               </h2>
               <Link href="/portal/board/consents" className="text-xs text-indigo-600 hover:underline no-underline">View all</Link>
@@ -343,7 +343,7 @@ function BoardDashboardContent() {
               <div key={c.id} className="flex items-start gap-2 py-2.5 border-b border-slate-100 last:border-0" data-testid={`dashboard-consent-${c.id}`}>
                 <FileSignature className="w-4 h-4 text-purple-400 mt-0.5 shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#1A1F2B] truncate">{c.title}</p>
+                  <p className="text-sm font-medium text-[#0F172A] truncate">{c.title}</p>
                   <p className="text-xs text-slate-400">{new Date(c.createdAt).toLocaleDateString()}</p>
                 </div>
                 <Link href="/portal/board/consents" className="no-underline">
@@ -358,7 +358,7 @@ function BoardDashboardContent() {
       {/* Communication Hub */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-[#1A1F2B] flex items-center gap-2">
+          <h2 className="font-semibold text-[#0F172A] flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-indigo-500" /> Communication Hub
           </h2>
           <Link href="/portal/board/chat" className="text-xs text-indigo-600 hover:underline no-underline">Open full view</Link>

@@ -64,7 +64,7 @@ function BoardSettingsContent() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-display text-[#1A1F2B] flex items-center gap-2">
+        <h1 className="text-2xl font-display text-[#0F172A] flex items-center gap-2">
           <Settings className="w-6 h-6 text-indigo-500" /> Board Settings
         </h1>
         <p className="text-slate-500 text-sm mt-0.5">Configure governance parameters and your personal notification preferences.</p>
@@ -158,7 +158,7 @@ function BoardSettingsContent() {
               <div className="flex items-center gap-2 flex-1">
                 <Icon className="w-4 h-4 text-slate-400 shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-[#1A1F2B]">{label}</p>
+                  <p className="text-sm font-medium text-[#0F172A]">{label}</p>
                   <p className="text-xs text-slate-400">{desc}</p>
                 </div>
               </div>

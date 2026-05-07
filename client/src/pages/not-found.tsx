@@ -20,7 +20,7 @@ export default function NotFound() {
 
           <div className="mt-8">
              <Link href="/">
-              <Button className="bg-[#1A1F2B] text-white hover:bg-[#1A1F2B]/90">Return to Home</Button>
+              <Button className="bg-[#0F172A] text-white hover:bg-[#0F172A]/90">Return to Home</Button>
             </Link>
           </div>
         </CardContent>

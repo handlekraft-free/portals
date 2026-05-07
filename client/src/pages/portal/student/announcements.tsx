@@ -22,7 +22,7 @@ function AnnouncementsContent() {
 
   return (
     <div>
-      <h1 className="text-2xl font-display text-[#1A1F2B] mb-1">Announcements</h1>
+      <h1 className="text-2xl font-display text-[#0F172A] mb-1">Announcements</h1>
       <p className="text-slate-500 text-sm mb-5">Messages from your instructors and the {BRAND.name} team.</p>
       {loading ? <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-24 bg-white rounded-xl animate-pulse" />)}</div> : (
         <div className="space-y-3">
@@ -35,7 +35,7 @@ function AnnouncementsContent() {
                   <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0"><Megaphone className="w-4 h-4 text-amber-600" /></div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-[#1A1F2B] text-sm">{a.title}</h3>
+                      <h3 className="font-semibold text-[#0F172A] text-sm">{a.title}</h3>
                       {a.isPinned && <Badge className="text-xs bg-amber-100 text-amber-700">Pinned</Badge>}
                     </div>
                     <p className="text-sm text-slate-600">{a.content}</p>

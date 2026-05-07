@@ -174,7 +174,7 @@ function RecapDialog({
         className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-gradient-to-r from-[#1A1F2B] to-[#0D7377] px-6 pt-5 pb-4 relative">
+        <div className="bg-gradient-to-r from-[#0F172A] to-[#2563EB] px-6 pt-5 pb-4 relative">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white/40 hover:text-white p-1 rounded-lg hover:bg-white/10"
@@ -182,7 +182,7 @@ function RecapDialog({
           >
             <X className="w-4 h-4" />
           </button>
-          <div className="flex items-center gap-2 text-[#D4A843] text-[10px] font-semibold uppercase tracking-widest mb-1">
+          <div className="flex items-center gap-2 text-[#10B981] text-[10px] font-semibold uppercase tracking-widest mb-1">
             <Scroll className="w-3 h-3" /> Today's Saga
           </div>
           <h2 className="text-white font-display text-2xl">Hail, {firstName}</h2>
@@ -203,7 +203,7 @@ function RecapDialog({
           {rank.nextRank && (
             <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden" data-testid="recap-next-rank-bar">
               <div
-                className="h-full bg-gradient-to-r from-[#0D7377] to-[#D4A843] transition-all"
+                className="h-full bg-gradient-to-r from-[#2563EB] to-[#10B981] transition-all"
                 style={{ width: `${Math.round(rank.progressPct * 100)}%` }}
               />
             </div>
@@ -238,9 +238,9 @@ function RecapDialog({
               <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                 {data.events.slice(-8).reverse().map((e) => (
                   <div key={e.id} className="flex items-center gap-3 px-3 py-1.5 rounded-lg bg-slate-50 text-sm">
-                    <Sparkles className="w-3 h-3 text-[#D4A843] shrink-0" />
+                    <Sparkles className="w-3 h-3 text-[#10B981] shrink-0" />
                     <span className="flex-1 truncate text-slate-700">{e.reason}</span>
-                    <span className="text-xs font-semibold text-[#0D7377]">+{e.amount}</span>
+                    <span className="text-xs font-semibold text-[#2563EB]">+{e.amount}</span>
                   </div>
                 ))}
               </div>
@@ -257,7 +257,7 @@ function RecapDialog({
           <p className="text-[11px] text-slate-400">Adjust time or turn off in Settings.</p>
           <button
             onClick={onClose}
-            className="bg-[#0D7377] hover:bg-[#0a5f62] text-white rounded-xl px-4 py-2 text-sm font-semibold"
+            className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white rounded-xl px-4 py-2 text-sm font-semibold"
             data-testid="button-close-saga-recap-cta"
           >
             Close the scroll
@@ -272,7 +272,7 @@ function QuickStat({ label, value, testId }: { label: string; value: number | st
   return (
     <div className="rounded-xl bg-slate-50 px-2.5 py-2 text-center" data-testid={testId}>
       <p className="text-[9px] text-slate-400 uppercase tracking-wider">{label}</p>
-      <p className="text-lg font-display text-[#1A1F2B] leading-tight mt-0.5">{value}</p>
+      <p className="text-lg font-display text-[#0F172A] leading-tight mt-0.5">{value}</p>
     </div>
   );
 }
@@ -318,7 +318,7 @@ function SaveMilestoneRow({ data, rankName }: { data: TodayPayload; rankName: st
       <button
         onClick={save}
         disabled={saving || saved}
-        className="text-xs font-semibold rounded-lg px-3 py-1.5 bg-[#D4A843] hover:bg-[#c49535] text-[#1A1F2B] disabled:bg-slate-100 disabled:text-slate-400"
+        className="text-xs font-semibold rounded-lg px-3 py-1.5 bg-[#10B981] hover:bg-[#c49535] text-[#0F172A] disabled:bg-slate-100 disabled:text-slate-400"
         data-testid="button-save-milestone"
       >
         {saved ? "Saved" : saving ? "Saving…" : "Save"}

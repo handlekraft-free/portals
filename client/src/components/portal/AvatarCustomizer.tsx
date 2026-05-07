@@ -102,7 +102,7 @@ export function AvatarCustomizer({ isOpen, initials, initialConfig, onClose, onS
           className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="bg-gradient-to-r from-[#1A1F2B] to-[#0D7377] px-6 pt-5 pb-4 relative">
+          <div className="bg-gradient-to-r from-[#0F172A] to-[#2563EB] px-6 pt-5 pb-4 relative">
             <button
               onClick={onClose}
               className="absolute top-4 right-4 text-white/40 hover:text-white p-1 rounded-lg hover:bg-white/10"
@@ -168,7 +168,7 @@ export function AvatarCustomizer({ isOpen, initials, initialConfig, onClose, onS
             <button
               onClick={save}
               disabled={saving}
-              className="bg-[#D4A843] hover:bg-[#c49535] text-[#1A1F2B] font-semibold rounded-xl px-5 py-2 text-sm flex items-center gap-1.5 disabled:opacity-60"
+              className="bg-[#10B981] hover:bg-[#c49535] text-[#0F172A] font-semibold rounded-xl px-5 py-2 text-sm flex items-center gap-1.5 disabled:opacity-60"
               data-testid="button-save-avatar"
             >
               <Check className="w-4 h-4" /> Save
@@ -214,7 +214,7 @@ function LayerRow<T extends string>({
               onClick={() => onChange(opt)}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-colors ${
                 selected
-                  ? "border-[#0D7377] bg-teal-50 text-[#0D7377]"
+                  ? "border-[#2563EB] bg-teal-50 text-[#2563EB]"
                   : locked && opt !== "none"
                     ? "border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed"
                     : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"

@@ -21,3 +21,11 @@ data/uploads/
 .vscode/
 .idea/
 *.swp
+
+# Replit-local / agent scratch — should not be on GitHub
+.cache/
+.upm/
+.config/
+.local/
+.agents/
+attached_assets/

@@ -903,7 +903,7 @@ function DashboardContent() {
 
 export default function EmployeeDashboard() {
   return (
-    <PortalGuard allowedRoles={["admin", "employee"]}>
+    <PortalGuard allowedRoles={["admin", "manager", "employee"]}>
       <EmployeeLayout>
         <DashboardContent />
       </EmployeeLayout>

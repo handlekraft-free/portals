@@ -17,6 +17,7 @@ import authRoutes from "./routes-auth";
 import timeRoutes from "./routes-time";
 import kanbanRoutes from "./routes-kanban";
 import expenseRoutes from "./routes-expenses";
+import managerRoutes from "./routes-manager";
 import clientPortalRoutes from "./routes-client-portal";
 import studentRoutes from "./routes-student";
 import lmsRoutes from "./routes-lms";
@@ -130,8 +131,9 @@ export async function registerRoutes(
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS photo_url text;
       ALTER TABLE portal_users ADD COLUMN IF NOT EXISTS emergency_contact text;
     `);
-    // Add 'board' enum value (must run outside transaction)
+    // Add 'board' and 'manager' enum values (must run outside transaction)
     await migrationPool.query(`ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'board'`);
+    await migrationPool.query(`ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'manager'`);
     // Create board enum types (idempotent via DO blocks)
     await migrationPool.query(`
       DO $$ BEGIN CREATE TYPE board_meeting_type AS ENUM ('regular','special','committee','annual'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
@@ -460,6 +462,7 @@ export async function registerRoutes(
     app.use("/api/kanban", kanbanRoutes);
     app.use("/api/expenses", expenseRoutes);
     app.use("/api/lms", lmsRoutes);
+    app.use("/api/manager", managerRoutes);
   }
   if (isPortalEnabled("client")) {
     app.use("/api", clientPortalRoutes);

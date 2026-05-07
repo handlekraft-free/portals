@@ -252,10 +252,13 @@ router.get("/reports", async (req, res) => {
 
   // Fetch the current user to check canApprove
   const [currentUser] = await db.select().from(users).where(eq(users.id, userId));
-  const isManager = role === "admin" || currentUser?.canApprove;
+  const isManager = role === "admin" || role === "manager" || currentUser?.canApprove;
 
   if (isManager && req.query.all === "1") {
-    // Return all pending/submitted reports for managers to approve
+    // Return all pending/submitted reports for managers to approve.
+    // Admins and managers see every submitted timesheet; legacy approvers
+    // (canApprove flag) see only timesheets where they're the assigned approver.
+    const broadView = role === "admin" || role === "manager";
     const reports = await db.select({
       id: timeReports.id,
       employeeId: timeReports.employeeId,
@@ -277,7 +280,7 @@ router.get("/reports", async (req, res) => {
       .from(timeReports)
       .innerJoin(users, eq(timeReports.employeeId, users.id))
       .where(
-        role === "admin"
+        broadView
           ? eq(timeReports.status, "submitted")
           : and(eq(timeReports.status, "submitted"), eq(users.approverId, userId))
       )
@@ -346,7 +349,7 @@ router.patch("/reports/:id/approve", async (req, res) => {
   const approverId = req.user!.userId;
   const role = req.user!.role;
   const [currentUser] = await db.select().from(users).where(eq(users.id, approverId));
-  if (role !== "admin" && !currentUser?.canApprove) {
+  if (role !== "admin" && role !== "manager" && !currentUser?.canApprove) {
     return res.status(403).json({ success: false, error: "Not authorized to approve timesheets" });
   }
   const [report] = await db.update(timeReports).set({ status: "approved", approvedBy: approverId, approvedAt: new Date() }).where(eq(timeReports.id, parseInt(req.params.id))).returning();
@@ -358,7 +361,7 @@ router.patch("/reports/:id/reject", async (req, res) => {
   const approverId = req.user!.userId;
   const role = req.user!.role;
   const [currentUser] = await db.select().from(users).where(eq(users.id, approverId));
-  if (role !== "admin" && !currentUser?.canApprove) {
+  if (role !== "admin" && role !== "manager" && !currentUser?.canApprove) {
     return res.status(403).json({ success: false, error: "Not authorized to reject timesheets" });
   }
   const { reason } = req.body;
@@ -384,7 +387,7 @@ router.get("/monthly-report", async (req, res) => {
 
   // Check if current user is manager/admin
   const [currentUser] = await db.select().from(users).where(eq(users.id, userId));
-  const isManager = role === "admin" || currentUser?.canApprove;
+  const isManager = role === "admin" || role === "manager" || currentUser?.canApprove;
 
   // Determine which employees to include
   let employeeFilter: number[] | null = null;

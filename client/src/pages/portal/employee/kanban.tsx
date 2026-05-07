@@ -1901,6 +1901,14 @@ function KanbanContent() {
     document.title = `Kanban | ${BRAND.fullName}`;
     loadBoards();
     apiRequest("GET", "/api/kanban/users").then(r => { if (r.success) setPortalUsers(r.data); });
+    // Deep-link support: /portal/employee/kanban?tab=factory lands on the factory tab
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") === "factory") {
+      setView("factory");
+      loadFactory();
+    } else if (params.get("tab") === "my-tasks") {
+      setView("my-tasks");
+    }
   }, []);
 
   async function loadBoards() {
@@ -2268,7 +2276,7 @@ function KanbanContent() {
 
 export default function EmployeeKanban() {
   return (
-    <PortalGuard allowedRoles={["admin", "employee", "student"]}>
+    <PortalGuard allowedRoles={["admin", "manager", "employee", "student"]}>
       <EmployeeLayout><KanbanContent /></EmployeeLayout>
     </PortalGuard>
   );

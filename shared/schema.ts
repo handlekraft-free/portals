@@ -12,7 +12,7 @@ export type AdminUser = typeof adminUsers.$inferSelect;
 
 // ─── Portal Users ──────────────────────────────────────────────────────────────
 
-export const userRoleEnum = pgEnum("user_role", ["admin", "employee", "client", "student", "board"]);
+export const userRoleEnum = pgEnum("user_role", ["admin", "employee", "manager", "client", "student", "board"]);
 export const userStatusEnum = pgEnum("user_status", ["active", "inactive", "pending"]);
 
 export const users = pgTable("portal_users", {

@@ -20,8 +20,34 @@ router.get("/categories", async (_req, res) => {
 router.get("/reports", async (req, res) => {
   const userId = req.user!.userId;
   const role = req.user!.role;
+  const wantAll = req.query.all === "1";
+  const canSeeAll = role === "admin" || role === "manager";
+
   let reports;
-  if (role === "admin") {
+  if (canSeeAll && wantAll) {
+    // Approver inbox: all submitted (and beyond) reports with employee names
+    reports = await db
+      .select({
+        id: expenseReports.id,
+        userId: expenseReports.userId,
+        title: expenseReports.title,
+        status: expenseReports.status,
+        totalAmount: expenseReports.totalAmount,
+        periodStart: expenseReports.periodStart,
+        periodEnd: expenseReports.periodEnd,
+        notes: expenseReports.notes,
+        submittedAt: expenseReports.submittedAt,
+        approvedAt: expenseReports.approvedAt,
+        rejectReason: expenseReports.rejectReason,
+        createdAt: expenseReports.createdAt,
+        employeeFirstName: users.firstName,
+        employeeLastName: users.lastName,
+        employeeEmail: users.email,
+      })
+      .from(expenseReports)
+      .innerJoin(users, eq(expenseReports.userId, users.id))
+      .orderBy(desc(expenseReports.createdAt));
+  } else if (role === "admin") {
     reports = await db.select().from(expenseReports).orderBy(desc(expenseReports.createdAt));
   } else {
     reports = await db.select().from(expenseReports).where(eq(expenseReports.userId, userId)).orderBy(desc(expenseReports.createdAt));
@@ -64,6 +90,10 @@ router.patch("/reports/:id/submit", async (req, res) => {
 
 router.patch("/reports/:id/approve", async (req, res) => {
   const approverId = req.user!.userId;
+  const role = req.user!.role;
+  if (role !== "admin" && role !== "manager") {
+    return res.status(403).json({ success: false, error: "Not authorized to approve expense reports" });
+  }
   const [report] = await db.update(expenseReports).set({ status: "approved", approvedBy: approverId, approvedAt: new Date() }).where(eq(expenseReports.id, parseInt(req.params.id))).returning();
   if (!report) return res.status(404).json({ success: false, error: "Report not found" });
   console.log(`[Notification] Expense report ${report.id} approved by ${approverId}`);
@@ -71,6 +101,10 @@ router.patch("/reports/:id/approve", async (req, res) => {
 });
 
 router.patch("/reports/:id/reject", async (req, res) => {
+  const role = req.user!.role;
+  if (role !== "admin" && role !== "manager") {
+    return res.status(403).json({ success: false, error: "Not authorized to reject expense reports" });
+  }
   const { reason } = req.body;
   if (!reason) return res.status(400).json({ success: false, error: "Rejection reason required" });
   const [report] = await db.update(expenseReports).set({ status: "rejected", rejectReason: reason }).where(eq(expenseReports.id, parseInt(req.params.id))).returning();

@@ -166,14 +166,55 @@ router.post("/onboarding/:id/ack", async (req, res) => {
   res.status(201).json({ success: true, data: null });
 });
 
+function isOnboardingEditor(role: string | undefined): boolean {
+  return role === "admin" || role === "manager";
+}
+
 router.post("/onboarding/items", async (req, res) => {
+  if (!isOnboardingEditor(req.user?.role)) {
+    return res.status(403).json({ success: false, error: "Only managers can edit onboarding content" });
+  }
   const { title, description, linkUrl, section, estimatedTime, roleFilter, position } = req.body;
   if (!title) return res.status(400).json({ success: false, error: "Title required" });
-  await db.execute(sql`
+  const result = await db.execute(sql`
     INSERT INTO employee_onboarding_items (title, description, link_url, section, estimated_time, role_filter, position)
     VALUES (${title}, ${description ?? null}, ${linkUrl ?? null}, ${section ?? null}, ${estimatedTime ?? null}, ${roleFilter ?? "all"}, ${position ?? 99})
+    RETURNING id
   `);
-  res.status(201).json({ success: true, data: null });
+  res.status(201).json({ success: true, data: { id: (result.rows[0] as any)?.id ?? null } });
+});
+
+router.patch("/onboarding/items/:id", async (req, res) => {
+  if (!isOnboardingEditor(req.user?.role)) {
+    return res.status(403).json({ success: false, error: "Only managers can edit onboarding content" });
+  }
+  const id = parseInt(req.params.id);
+  const { title, description, linkUrl, section, estimatedTime, roleFilter, position } = req.body;
+  const result = await db.execute(sql`
+    UPDATE employee_onboarding_items SET
+      title = COALESCE(${title ?? null}, title),
+      description = ${description !== undefined ? description : sql`description`},
+      link_url = ${linkUrl !== undefined ? linkUrl : sql`link_url`},
+      section = ${section !== undefined ? section : sql`section`},
+      estimated_time = ${estimatedTime !== undefined ? estimatedTime : sql`estimated_time`},
+      role_filter = COALESCE(${roleFilter ?? null}, role_filter),
+      position = COALESCE(${position ?? null}, position)
+    WHERE id = ${id}
+    RETURNING id
+  `);
+  if (result.rows.length === 0) return res.status(404).json({ success: false, error: "Item not found" });
+  res.json({ success: true, data: null });
+});
+
+router.delete("/onboarding/items/:id", async (req, res) => {
+  if (!isOnboardingEditor(req.user?.role)) {
+    return res.status(403).json({ success: false, error: "Only managers can edit onboarding content" });
+  }
+  const id = parseInt(req.params.id);
+  await db.execute(sql`DELETE FROM employee_onboarding_acks WHERE item_id = ${id}`);
+  const result = await db.execute(sql`DELETE FROM employee_onboarding_items WHERE id = ${id} RETURNING id`);
+  if (result.rows.length === 0) return res.status(404).json({ success: false, error: "Item not found" });
+  res.json({ success: true, data: null });
 });
 
 export default router;

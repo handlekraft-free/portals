@@ -35,7 +35,7 @@ function ChatContent() {
 
 export default function EmployeeChat() {
   return (
-    <PortalGuard allowedRoles={["admin", "employee"]}>
+    <PortalGuard allowedRoles={["admin", "manager", "employee"]}>
       <EmployeeLayout><ChatContent /></EmployeeLayout>
     </PortalGuard>
   );

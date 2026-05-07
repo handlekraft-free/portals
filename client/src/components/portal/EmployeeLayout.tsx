@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Clock, Kanban, Receipt, Ticket,
   BookOpen, LogOut, Menu, X, Users, UserPlus,
   ArrowRight, MessageSquare, GraduationCap, Settings,
-  Lightbulb, Send, ChevronDown,
+  Lightbulb, Send, ChevronDown, Shield, ClipboardCheck,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { GoogleNotificationBell } from "@/components/portal/GoogleNotificationBell";
@@ -188,6 +188,11 @@ type NavCounts = {
   timesheetDue: boolean;
 };
 
+type ManagerCounts = {
+  pendingTimesheets: number;
+  pendingExpenses: number;
+};
+
 // ── Sidebar badge components ──────────────────────────────────────────────────
 
 function CountBadge({ count, color, pulse = false, title }: {
@@ -232,6 +237,13 @@ const navItems = [
   { href: "/portal/employee/settings",   icon: <Settings className="w-4 h-4" />,        label: "Settings" },
 ];
 
+const managerItems = [
+  { href: "/portal/manager/dashboard",   icon: <LayoutDashboard className="w-4 h-4" />, label: "Manager Dashboard" },
+  { href: "/portal/manager/approvals",   icon: <ClipboardCheck className="w-4 h-4" />,  label: "Approvals" },
+  { href: "/portal/manager/onboarding",  icon: <GraduationCap className="w-4 h-4" />,   label: "Edit Onboarding" },
+  { href: "/portal/employee/kanban?tab=factory", icon: <Kanban className="w-4 h-4" />,  label: "Longship Factory" },
+];
+
 const adminItems = [
   { href: "/portal/admin/users", icon: <UserPlus className="w-4 h-4" />, label: "Manage Users" },
 ];
@@ -243,6 +255,9 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
   const [location, navigate] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [navCounts, setNavCounts] = useState<NavCounts | null>(null);
+  const [managerCounts, setManagerCounts] = useState<ManagerCounts | null>(null);
+
+  const isManager = user?.role === "manager" || user?.role === "admin";
 
   useEffect(() => {
     function fetchCounts() {
@@ -254,6 +269,18 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
     const id = setInterval(fetchCounts, 45_000);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    if (!isManager) return;
+    function fetchManagerCounts() {
+      apiRequest("GET", "/api/manager/approval-counts")
+        .then(res => { if (res.success) setManagerCounts(res.data); })
+        .catch(() => {});
+    }
+    fetchManagerCounts();
+    const id = setInterval(fetchManagerCounts, 45_000);
+    return () => clearInterval(id);
+  }, [isManager]);
 
   const handleLogout = async () => {
     await logout();
@@ -331,6 +358,31 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
       location === href ? "bg-[#10B981] text-[#0F172A]" : "text-white/60 hover:bg-white/10 hover:text-white"
     }`;
 
+  const managerLinkClass = (href: string) => {
+    const path = href.split("?")[0];
+    const active = location === path;
+    return `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors no-underline ${
+      active ? "bg-[#7C3AED] text-white" : "text-white/60 hover:bg-white/10 hover:text-white"
+    }`;
+  };
+
+  function managerBadge(href: string) {
+    if (!managerCounts) return null;
+    if (href.startsWith("/portal/manager/approvals")) {
+      const total = managerCounts.pendingTimesheets + managerCounts.pendingExpenses;
+      if (total === 0) return null;
+      return (
+        <CountBadge
+          count={total}
+          color="bg-amber-500 text-white"
+          pulse
+          title={`${managerCounts.pendingTimesheets} timesheet, ${managerCounts.pendingExpenses} expense pending`}
+        />
+      );
+    }
+    return null;
+  }
+
   // ── Sidebar content ───────────────────────────────────────────────────────
 
   const SidebarContent = () => (
@@ -366,6 +418,31 @@ export function EmployeeLayout({ children }: { children: React.ReactNode }) {
             </Link>
           );
         })}
+
+        {isManager && (
+          <>
+            <div className="px-3 pt-3 pb-1">
+              <RuneDivider className="text-white/60" />
+            </div>
+            <p className="text-white/30 text-xs font-medium px-3 py-1 uppercase tracking-wider flex items-center gap-2">
+              <Shield size={12} className="text-white/25" />
+              Manager
+            </p>
+            {managerItems.map(item => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={managerLinkClass(item.href)}
+                onClick={() => setSidebarOpen(false)}
+                data-testid={`nav-manager-${item.label.replace(/\s+/g, "-").toLowerCase()}`}
+              >
+                {item.icon}
+                <span className="flex-1 leading-none">{item.label}</span>
+                {managerBadge(item.href)}
+              </Link>
+            ))}
+          </>
+        )}
 
         {user?.role === "admin" && (
           <>

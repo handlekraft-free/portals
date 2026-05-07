@@ -153,7 +153,7 @@ function TicketsContent() {
 
 export default function EmployeeTickets() {
   return (
-    <PortalGuard allowedRoles={["admin", "employee"]}>
+    <PortalGuard allowedRoles={["admin", "manager", "employee"]}>
       <EmployeeLayout><TicketsContent /></EmployeeLayout>
     </PortalGuard>
   );

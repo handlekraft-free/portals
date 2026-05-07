@@ -169,7 +169,7 @@ function ExpensesContent() {
 
 export default function EmployeeExpenses() {
   return (
-    <PortalGuard allowedRoles={["admin", "employee"]}>
+    <PortalGuard allowedRoles={["admin", "manager", "employee"]}>
       <EmployeeLayout><ExpensesContent /></EmployeeLayout>
     </PortalGuard>
   );

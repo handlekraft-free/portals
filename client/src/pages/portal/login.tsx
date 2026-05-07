@@ -12,10 +12,11 @@ import { BRAND } from "@shared/branding";
 import { VERSION } from "@shared/version";
 import { useEnabledPortals } from "@/lib/portals";
 
-type Role = "employee" | "client" | "student" | "board" | "admin";
+type Role = "employee" | "manager" | "client" | "student" | "board" | "admin";
 
 const ROLE_META: Record<string, { label: string; icon: React.ReactNode; desc: string; color: string }> = {
   employee: { label: "Workforce Portal",    icon: <Briefcase className="w-6 h-6" />, desc: "Employees & Staff", color: "border-[#2563EB] bg-[#2563EB]/10 text-[#2563EB]" },
+  manager:  { label: "Manager Portal",      icon: <Briefcase className="w-6 h-6" />, desc: "Approvals & Management", color: "border-[#7C3AED] bg-[#7C3AED]/10 text-[#7C3AED]" },
   client:   { label: "Client CRM",          icon: <Building2 className="w-6 h-6" />, desc: "Organizations we serve", color: "border-[#10B981] bg-[#10B981]/10 text-[#10B981]" },
   student:  { label: "Student LMS",         icon: <GraduationCap className="w-6 h-6" />, desc: "Fellowship Fellows", color: "border-purple-500 bg-purple-500/10 text-purple-600" },
   board:    { label: "Board Member Portal", icon: <Scale className="w-6 h-6" />, desc: "Board of Directors", color: "border-indigo-400 bg-indigo-500/10 text-indigo-400" },
@@ -24,10 +25,13 @@ const ROLE_META: Record<string, { label: string; icon: React.ReactNode; desc: st
 
 const ALL_HINT_ROLES: { id: Role; label: string; icon: React.ReactNode; desc: string; color: string }[] = [
   { id: "employee", ...ROLE_META.employee },
+  { id: "manager",  ...ROLE_META.manager },
   { id: "client",   ...ROLE_META.client },
   { id: "student",  ...ROLE_META.student },
   { id: "board",    ...ROLE_META.board },
 ];
+
+const COMING_SOON_ROLES = new Set<string>(["student", "client"]);
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
@@ -269,20 +273,31 @@ export default function LoginPage() {
               <h2 className="text-lg font-semibold text-white mb-1 text-center">Who are you?</h2>
               <p className="text-white/40 text-sm text-center mb-6">Select your account type to continue</p>
               <div className="space-y-3">
-                {hintRoles.map(r => (
-                  <button
-                    key={r.id}
-                    onClick={() => setSelectedRole(r.id)}
-                    data-testid={`button-role-${r.id}`}
-                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all hover:scale-[1.01] ${r.color}`}
-                  >
-                    <div className="shrink-0">{r.icon}</div>
-                    <div className="text-left">
-                      <div className="font-semibold">{r.label}</div>
-                      <div className="text-xs opacity-70">{r.desc}</div>
-                    </div>
-                  </button>
-                ))}
+                {hintRoles.map(r => {
+                  const isComingSoon = COMING_SOON_ROLES.has(r.id);
+                  return (
+                    <button
+                      key={r.id}
+                      onClick={() => !isComingSoon && setSelectedRole(r.id)}
+                      disabled={isComingSoon}
+                      data-testid={`button-role-${r.id}`}
+                      className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all relative ${isComingSoon ? "opacity-60 cursor-not-allowed" : "hover:scale-[1.01]"} ${r.color}`}
+                    >
+                      <div className="shrink-0">{r.icon}</div>
+                      <div className="text-left">
+                        <div className="font-semibold">{r.label}</div>
+                        <div className="text-xs opacity-70">{r.desc}</div>
+                      </div>
+                      {isComingSoon && (
+                        <div className="ml-auto">
+                          <span className="inline-block px-2.5 py-1 text-xs font-semibold bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 rounded-full">
+                            Coming Soon
+                          </span>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </>
             )

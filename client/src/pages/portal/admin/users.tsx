@@ -36,11 +36,12 @@ function fmtLastLogin(raw: string | null | undefined): { label: string; exact: s
   return { label, exact, color };
 }
 
-const ALL_ROLES = ["admin", "employee", "client", "student", "board"] as const;
+const ALL_ROLES = ["admin", "employee", "manager", "client", "student", "board"] as const;
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
   employee: "Employee",
+  manager: "Manager",
   client: "Client",
   student: "Student",
   board: "Board Member",
@@ -49,6 +50,7 @@ const ROLE_LABELS: Record<string, string> = {
 const ROLE_COLORS: Record<string, string> = {
   admin: "bg-red-100 text-red-700",
   employee: "bg-teal-100 text-teal-700",
+  manager: "bg-purple-100 text-purple-700",
   client: "bg-amber-100 text-amber-700",
   student: "bg-purple-100 text-purple-700",
   board: "bg-indigo-100 text-indigo-700",
@@ -174,6 +176,7 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
               data-testid="select-user-role"
             >
               <option value="employee">Employee — access internal tools</option>
+              <option value="manager">Manager — approvals & staff management</option>
               <option value="client">Client — access client portal</option>
               <option value="student">Student — access learning portal</option>
               <option value="board">Board Member — board portal access</option>
@@ -289,6 +292,7 @@ function EditUserModal({ user, allUsers, onClose, onSaved }: { user: any; allUse
                 data-testid={`select-edit-role-${user.id}`}
               >
                 <option value="employee">Employee</option>
+                <option value="manager">Manager</option>
                 <option value="client">Client</option>
                 <option value="student">Student</option>
                 <option value="board">Board Member</option>
@@ -695,6 +699,7 @@ function AdminUsersContent() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
         {[
           { role: "employee", label: "Employees", color: "text-[#2563EB]", bg: "bg-teal-50" },
+          { role: "manager", label: "Managers", color: "text-purple-600", bg: "bg-purple-50" },
           { role: "client", label: "Clients", color: "text-[#10B981]", bg: "bg-amber-50" },
           { role: "student", label: "Students", color: "text-purple-600", bg: "bg-purple-50" },
           { role: "board", label: "Board Members", color: "text-indigo-600", bg: "bg-indigo-50" },
@@ -739,7 +744,7 @@ function AdminUsersContent() {
               <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or email…" className="pl-9 text-sm" data-testid="input-search-users" />
             </div>
             <div className="flex gap-1">
-              {["all", "admin", "employee", "client", "student", "board"].map(r => (
+              {["all", "admin", "employee", "manager", "client", "student", "board"].map(r => (
                 <button key={r} onClick={() => setRoleFilter(r)} className={`px-3 py-1.5 rounded-full text-xs border transition-colors capitalize ${roleFilter === r ? "bg-[#2563EB] text-white border-[#2563EB]" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`} data-testid={`filter-${r}`}>{r === "board" ? "Board" : r}</button>
               ))}
             </div>

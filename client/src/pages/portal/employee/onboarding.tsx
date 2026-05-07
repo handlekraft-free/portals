@@ -351,7 +351,7 @@ function OnboardingContent() {
   const [adding, setAdding] = useState(false);
   const [showPlan, setShowPlan] = useState(false);
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "manager";
 
   useEffect(() => {
     document.title = `Onboarding | ${BRAND.name}`;
@@ -503,7 +503,7 @@ function OnboardingContent() {
 
 export default function EmployeeOnboarding() {
   return (
-    <PortalGuard allowedRoles={["admin", "employee"]}>
+    <PortalGuard allowedRoles={["admin", "manager", "employee"]}>
       <EmployeeLayout><OnboardingContent /></EmployeeLayout>
     </PortalGuard>
   );

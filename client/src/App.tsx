@@ -51,6 +51,11 @@ import BoardProfile from "@/pages/portal/board/profile";
 import BoardScheduling from "@/pages/portal/board/scheduling";
 import BoardMinutesDetail from "@/pages/portal/board/minutes-detail";
 
+// Manager Portal
+import ManagerDashboard from "@/pages/portal/manager/dashboard";
+import ManagerApprovals from "@/pages/portal/manager/approvals";
+import ManagerOnboarding from "@/pages/portal/manager/onboarding";
+
 // Admin Portal
 import AdminUsers from "@/pages/portal/admin/users";
 
@@ -110,6 +115,11 @@ function Router() {
       <Route path="/portal/board/profile" component={BoardProfile} />
       <Route path="/portal/board/scheduling" component={BoardScheduling} />
       <Route path="/portal/board/minutes/:id" component={BoardMinutesDetail} />
+
+      {/* Manager Portal */}
+      <Route path="/portal/manager/dashboard" component={ManagerDashboard} />
+      <Route path="/portal/manager/approvals" component={ManagerApprovals} />
+      <Route path="/portal/manager/onboarding" component={ManagerOnboarding} />
 
       {/* Admin Portal */}
       <Route path="/portal/admin/users" component={AdminUsers} />

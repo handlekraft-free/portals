@@ -166,7 +166,7 @@ async function reset() {
 async function upsertUser(row: {
   email: string;
   password: string;
-  role: "admin" | "employee" | "client" | "student" | "board";
+  role: "admin" | "employee" | "manager" | "client" | "student" | "board";
   firstName: string;
   lastName: string;
   canApprove?: boolean;
@@ -216,6 +216,14 @@ async function seed() {
     role: "employee",
     firstName: "Sample",
     lastName: "Employee",
+  });
+  const manager = await upsertUser({
+    email: `manager@${BRAND.domain}`,
+    password: "Manager1!",
+    role: "manager",
+    firstName: "Sample",
+    lastName: "Manager",
+    canApprove: true,
   });
   const client = await upsertUser({
     email: `client@${BRAND.domain}`,
@@ -575,6 +583,7 @@ async function seed() {
   console.log("  Portal logins (email/password):");
   console.log(`    admin@${BRAND.domain}     Admin1234!`);
   console.log(`    employee@${BRAND.domain}  Employee1!`);
+  console.log(`    manager@${BRAND.domain}   Manager1!`);
   console.log(`    client@${BRAND.domain}    Client123!`);
   console.log(`    student@${BRAND.domain}   Student1!`);
   console.log(`    board@${BRAND.domain}     Board1234!`);

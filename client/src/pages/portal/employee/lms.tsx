@@ -219,7 +219,7 @@ function LMSContent() {
 
 export default function EmployeeLMS() {
   return (
-    <PortalGuard allowedRoles={["admin", "employee"]}>
+    <PortalGuard allowedRoles={["admin", "manager", "employee"]}>
       <EmployeeLayout><LMSContent /></EmployeeLayout>
     </PortalGuard>
   );

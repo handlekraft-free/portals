@@ -1,7 +1,7 @@
 export interface PortalUser {
   id: number;
   email: string;
-  role: "admin" | "employee" | "client" | "student" | "board";
+  role: "admin" | "employee" | "manager" | "client" | "student" | "board";
   availableRoles: string[];
   firstName: string;
   lastName: string;
@@ -98,6 +98,7 @@ export async function changePassword(currentPassword: string, newPassword: strin
 export function getPortalPath(role: string, enabled?: readonly string[]): string {
   switch (role) {
     case "employee": return "/portal/employee/dashboard";
+    case "manager": return "/portal/manager/dashboard";
     case "client": return "/portal/client/dashboard";
     case "student": return "/portal/student/dashboard";
     case "board": return "/portal/board/dashboard";

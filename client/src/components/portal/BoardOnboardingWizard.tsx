@@ -499,7 +499,7 @@ function TourStep({ onFinish, loading }: { onFinish: () => void; loading: boolea
         className="w-full bg-[#0D7377] hover:bg-[#0a5c60] text-white py-3 gap-2 text-base"
         data-testid="wizard-finish"
       >
-        {loading ? "Setting up…" : <><Sparkles className="w-5 h-5" /> Enter the Board Portal</>}
+        {loading ? "Setting up…" : <><Sparkles className="w-5 h-5" /> Enter the Board Member Portal</>}
       </Button>
     </div>
   );
@@ -532,7 +532,7 @@ export default function BoardOnboardingWizard({ onComplete }: { onComplete: () =
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white shadow-sm shrink-0">
         <div className="flex items-center gap-3">
           <img src={logoImg} alt={BRAND.name} className="h-7 w-auto" />
-          <span className="font-display text-[#1A1F2B] text-lg hidden sm:inline">Board Portal Setup</span>
+          <span className="font-display text-[#1A1F2B] text-lg hidden sm:inline">Board Member Portal Setup</span>
         </div>
         {/* Step pills */}
         <div className="flex items-center gap-1.5">

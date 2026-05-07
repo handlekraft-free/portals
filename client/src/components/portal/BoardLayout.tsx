@@ -214,7 +214,7 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
           <img src={logoImg} alt={BRAND.fullName} className="w-8 h-8 rounded-lg" />
           <div>
             <p className="text-white font-semibold text-sm leading-none">{BRAND.name}</p>
-            <p className="text-xs mt-0.5" style={{ color: ACCENT }}>Board Portal</p>
+            <p className="text-xs mt-0.5" style={{ color: ACCENT }}>Board Member Portal</p>
           </div>
         </Link>
       </div>
@@ -309,7 +309,7 @@ export function BoardLayout({ children }: { children: React.ReactNode }) {
             <button onClick={() => setSidebarOpen(true)} className="text-white/60 hover:text-white" data-testid="button-open-sidebar">
               <Menu className="w-5 h-5" />
             </button>
-            <p className="text-white font-semibold text-sm flex-1">Board Portal</p>
+            <p className="text-white font-semibold text-sm flex-1">Board Member Portal</p>
             <PortalSwitcher variant="dark" />
             <NotificationBell />
           </header>

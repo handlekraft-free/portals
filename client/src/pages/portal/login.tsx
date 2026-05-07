@@ -15,10 +15,10 @@ import { useEnabledPortals } from "@/lib/portals";
 type Role = "employee" | "client" | "student" | "board" | "admin";
 
 const ROLE_META: Record<string, { label: string; icon: React.ReactNode; desc: string; color: string }> = {
-  employee: { label: "Team Member", icon: <Briefcase className="w-6 h-6" />, desc: "Employees & Staff", color: "border-[#0D7377] bg-[#0D7377]/10 text-[#0D7377]" },
-  client:   { label: "Client",      icon: <Building2 className="w-6 h-6" />, desc: "Organizations we serve", color: "border-[#D4A843] bg-[#D4A843]/10 text-[#D4A843]" },
-  student:  { label: "Student",     icon: <GraduationCap className="w-6 h-6" />, desc: "Fellowship Fellows", color: "border-purple-500 bg-purple-500/10 text-purple-600" },
-  board:    { label: "Board Member",icon: <Scale className="w-6 h-6" />, desc: "Board of Directors", color: "border-indigo-400 bg-indigo-500/10 text-indigo-400" },
+  employee: { label: "Workforce Portal",    icon: <Briefcase className="w-6 h-6" />, desc: "Employees & Staff", color: "border-[#0D7377] bg-[#0D7377]/10 text-[#0D7377]" },
+  client:   { label: "Client CRM",          icon: <Building2 className="w-6 h-6" />, desc: "Organizations we serve", color: "border-[#D4A843] bg-[#D4A843]/10 text-[#D4A843]" },
+  student:  { label: "Student LMS",         icon: <GraduationCap className="w-6 h-6" />, desc: "Fellowship Fellows", color: "border-purple-500 bg-purple-500/10 text-purple-600" },
+  board:    { label: "Board Member Portal", icon: <Scale className="w-6 h-6" />, desc: "Board of Directors", color: "border-indigo-400 bg-indigo-500/10 text-indigo-400" },
   admin:    { label: "Admin",       icon: <Shield className="w-6 h-6" />, desc: "Full system access", color: "border-red-400 bg-red-500/10 text-red-400" },
 };
 

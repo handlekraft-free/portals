@@ -51,7 +51,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
             <img src={logoImg} alt={BRAND.fullName} className="w-8 h-8 rounded-lg" />
             <div className="hidden sm:block">
               <p className="text-white font-display text-sm leading-none">{BRAND.fullName}</p>
-              <p className="text-xs mt-0.5" style={{ color: ACCENT }}>Client Portal</p>
+              <p className="text-xs mt-0.5" style={{ color: ACCENT }}>Client CRM</p>
             </div>
           </Link>
 

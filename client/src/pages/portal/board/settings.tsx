@@ -174,7 +174,7 @@ function BoardSettingsContent() {
 
       <Card className="border-0 shadow-sm bg-indigo-50/50">
         <CardContent className="pt-4 pb-4">
-          <p className="text-xs font-semibold text-indigo-700 mb-1">About {BRAND.name} Board Portal</p>
+          <p className="text-xs font-semibold text-indigo-700 mb-1">About {BRAND.name} Board Member Portal</p>
           <p className="text-xs text-indigo-600">This portal supports 501(c)(3) governance best practices including quorum tracking, meeting notice compliance, COI disclosures, and written consent procedures.</p>
         </CardContent>
       </Card>

@@ -16,7 +16,7 @@ function ClientDashboardContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = `Client Portal | ${BRAND.fullName}`;
+    document.title = `Client CRM | ${BRAND.fullName}`;
     load();
   }, []);
 

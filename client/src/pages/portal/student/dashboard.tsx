@@ -14,7 +14,7 @@ function StudentDashboardContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = `Student Portal | ${BRAND.fullName}`;
+    document.title = `Student LMS | ${BRAND.fullName}`;
     load();
   }, []);
 

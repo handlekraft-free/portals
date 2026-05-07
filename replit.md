@@ -52,10 +52,10 @@ Open-source extraction of the handləkraft.ai portal system: Employee, Client, S
 ## Product
 
 - **Internal Portal System:**
-    - **Employee Portal:** Dashboard, time tracking, Kanban boards (Longship Factory), expenses, client tickets, LMS.
-    - **Client Portal:** Dashboard, file management, messaging, support tickets.
-    - **Student Portal:** Dashboard, course access, file management, announcements.
-    - **Board Portal:** Meeting management, documents, minutes, action items, communication, onboarding wizard.
+    - **Workforce Portal:** Dashboard, time tracking, Kanban boards (Longship Factory), expenses, client tickets, LMS.
+    - **Client CRM:** Dashboard, file management, messaging, support tickets.
+    - **Student LMS:** Dashboard, course access, file management, announcements.
+    - **Board Member Portal:** Meeting management, documents, minutes, action items, communication, onboarding wizard.
 - **Gamification Features:** XP progression, stat tracks (Focus, Initiative, Stewardship, Craft), streak system, anonymous Crew Bond mechanics, and daily Saga Recaps.
 - **Accessibility Enhancements:** Reduced motion support for animations and sounds.
 

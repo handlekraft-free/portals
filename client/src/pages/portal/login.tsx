@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Briefcase, Building2, GraduationCap, Eye, EyeOff, ArrowLeft, Shield, Scale, KeyRound, CheckCircle2, Users } from "lucide-react";
 import logoImg from "@/assets/images/logo.png";
 import { BRAND } from "@shared/branding";
+import { useEnabledPortals } from "@/lib/portals";
 
 type Role = "employee" | "client" | "student" | "board" | "admin";
 
@@ -20,7 +21,7 @@ const ROLE_META: Record<string, { label: string; icon: React.ReactNode; desc: st
   admin:    { label: "Admin",       icon: <Shield className="w-6 h-6" />, desc: "Full system access", color: "border-red-400 bg-red-500/10 text-red-400" },
 };
 
-const hintRoles: { id: Role; label: string; icon: React.ReactNode; desc: string; color: string }[] = [
+const ALL_HINT_ROLES: { id: Role; label: string; icon: React.ReactNode; desc: string; color: string }[] = [
   { id: "employee", ...ROLE_META.employee },
   { id: "client",   ...ROLE_META.client },
   { id: "student",  ...ROLE_META.student },
@@ -30,6 +31,9 @@ const hintRoles: { id: Role; label: string; icon: React.ReactNode; desc: string;
 export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { user, setUser, loading } = useAuth();
+  const { enabled: enabledPortals } = useEnabledPortals();
+  const enabledSet = new Set<string>(enabledPortals);
+  const hintRoles = ALL_HINT_ROLES.filter(r => enabledSet.has(r.id));
 
   // Step 1 — role hint picker (cosmetic)
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
@@ -59,8 +63,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     document.title = `Login | ${BRAND.fullName}`;
-    if (!loading && user && !user.mustChangePassword) setLocation(getPortalPath(user.role));
-  }, [user, loading, setLocation]);
+    if (!loading && user && !user.mustChangePassword) setLocation(getPortalPath(user.role, enabledPortals));
+  }, [user, loading, setLocation, enabledPortals]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -80,7 +84,7 @@ export default function LoginPage() {
       setUser(result.user);
     } else {
       setUser(result.user);
-      setLocation(getPortalPath(result.user.role));
+      setLocation(getPortalPath(result.user.role, enabledPortals));
     }
   }
 
@@ -100,7 +104,7 @@ export default function LoginPage() {
       setPendingRoleSelect(null);
     } else {
       setUser(result.user);
-      setLocation(getPortalPath(result.user.role));
+      setLocation(getPortalPath(result.user.role, enabledPortals));
     }
   }
 
@@ -120,7 +124,7 @@ export default function LoginPage() {
       setTimeout(() => {
         const updated = { ...pendingUser!, mustChangePassword: false };
         setUser(updated);
-        setLocation(getPortalPath(updated.role));
+        setLocation(getPortalPath(updated.role, enabledPortals));
       }, 1500);
     }
   }
@@ -213,7 +217,7 @@ export default function LoginPage() {
                 </p>
               </div>
               <div className="space-y-3">
-                {pendingRoleSelect.roles.map(role => {
+                {pendingRoleSelect.roles.filter(role => role === "admin" || enabledSet.has(role)).map(role => {
                   const meta = ROLE_META[role] || { label: role, icon: <Shield className="w-6 h-6" />, desc: "", color: "border-white/20 bg-white/5 text-white" };
                   return (
                     <button
@@ -249,6 +253,17 @@ export default function LoginPage() {
 
           /* ── Step 1: Role hint picker ──────────────────────────────────── */
           ) : !selectedRole ? (
+            hintRoles.length === 0 ? (
+              // No portals enabled (admin-only deployment or misconfigured env).
+              // Skip the hint picker entirely and go straight to credentials.
+              <>
+                <h2 className="text-lg font-semibold text-white mb-1 text-center">Sign in</h2>
+                <p className="text-white/40 text-sm text-center mb-6">Enter your administrator credentials to continue</p>
+                <Button onClick={() => setSelectedRole("admin")} className="w-full bg-[#0D7377] hover:bg-[#0D7377]/90 text-white font-semibold py-2.5 rounded-xl" data-testid="button-continue-credentials">
+                  Continue
+                </Button>
+              </>
+            ) : (
             <>
               <h2 className="text-lg font-semibold text-white mb-1 text-center">Who are you?</h2>
               <p className="text-white/40 text-sm text-center mb-6">Select your account type to continue</p>
@@ -269,6 +284,7 @@ export default function LoginPage() {
                 ))}
               </div>
             </>
+            )
 
           /* ── Step 2: Email + password ─────────────────────────────────── */
           ) : (

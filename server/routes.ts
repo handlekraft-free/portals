@@ -32,6 +32,7 @@ import aiRoutes from "./routes-ai";
 import xpRoutes from "./routes-xp";
 import crewRoutes from "./routes-crew";
 import googleRoutes, { startGooglePolling } from "./routes-google";
+import { ENABLED_PORTALS, isPortalEnabled } from "./portals";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -731,22 +732,38 @@ export async function registerRoutes(
     console.error("[seed] Could not seed board meetings:", e.message);
   }
 
+  // ── Public config (always available) ──────────────────────────────────────
+  app.get("/api/public/portals", (_req: Request, res: Response) => {
+    res.json({ success: true, data: { enabled: ENABLED_PORTALS } });
+  });
+
   // ── New Portal API Routes ──────────────────────────────────────────────────
+  // Always-on: auth, admin user management, shared services.
   app.use("/api/auth", authRoutes);
-  app.use("/api/time", timeRoutes);
-  app.use("/api/kanban", kanbanRoutes);
-  app.use("/api/expenses", expenseRoutes);
-  app.use("/api", clientPortalRoutes);
-  app.use("/api/student", studentRoutes);
-  app.use("/api/lms", lmsRoutes);
   app.use("/api/admin/portal-users", userMgmtRoutes);
-  app.use("/api/board", boardRoutes);
   app.use("/api/balance", balanceRoutes);
   app.use("/api/chat", chatRoutes);
   app.use("/api/ai", aiRoutes);
   app.use("/api/xp", xpRoutes);
   app.use("/api/crew", crewRoutes);
   app.use("/api/google", googleRoutes);
+
+  // Portal-gated: only mount if the corresponding portal is enabled.
+  if (isPortalEnabled("employee")) {
+    app.use("/api/time", timeRoutes);
+    app.use("/api/kanban", kanbanRoutes);
+    app.use("/api/expenses", expenseRoutes);
+    app.use("/api/lms", lmsRoutes);
+  }
+  if (isPortalEnabled("client")) {
+    app.use("/api", clientPortalRoutes);
+  }
+  if (isPortalEnabled("student")) {
+    app.use("/api/student", studentRoutes);
+  }
+  if (isPortalEnabled("board")) {
+    app.use("/api/board", boardRoutes);
+  }
 
   // Start Google background polling
   startGooglePolling();

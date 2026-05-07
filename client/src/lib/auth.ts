@@ -95,13 +95,19 @@ export async function changePassword(currentPassword: string, newPassword: strin
   }
 }
 
-export function getPortalPath(role: string): string {
+export function getPortalPath(role: string, enabled?: readonly string[]): string {
   switch (role) {
-    case "admin": return "/portal/employee/dashboard";
     case "employee": return "/portal/employee/dashboard";
     case "client": return "/portal/client/dashboard";
     case "student": return "/portal/student/dashboard";
     case "board": return "/portal/board/dashboard";
+    case "admin": {
+      // Admin lands on the first enabled portal's dashboard so the page
+      // they see actually has its APIs mounted. Default to employee when
+      // we don't know the enabled list yet (legacy callers).
+      const first = enabled?.find(p => p !== "admin");
+      return first ? getPortalPath(first) : "/portal/employee/dashboard";
+    }
     default: return "/login";
   }
 }

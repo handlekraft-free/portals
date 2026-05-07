@@ -11,6 +11,7 @@ import {
 import { eq, or, ne, isNull, and, lt, gte, lte, inArray } from "drizzle-orm";
 import { signToken, requireAuth, signPendingToken, verifyPendingToken } from "./auth-middleware";
 import type { JwtPayload } from "./auth-middleware";
+import { isRoleEnabled } from "./portals";
 
 const router: Router = createRouter();
 
@@ -50,8 +51,16 @@ router.post("/login", async (req, res) => {
   // Reset lockout on success
   await db.update(users).set({ loginAttempts: 0, lockedUntil: null, lastLogin: new Date() }).where(eq(users.id, user.id));
 
-  // Determine all roles for this user
-  const userRoles: string[] = (user.roles && user.roles.length > 0) ? user.roles : [user.role];
+  // Determine all roles for this user, then drop any disabled by ENABLED_PORTALS.
+  const allRoles: string[] = (user.roles && user.roles.length > 0) ? user.roles : [user.role];
+  const userRoles: string[] = allRoles.filter(isRoleEnabled);
+
+  if (userRoles.length === 0) {
+    return res.status(403).json({
+      success: false,
+      error: "Your account's portal is not enabled on this deployment.",
+    });
+  }
 
   // If user has multiple roles, require role selection before issuing JWT
   if (userRoles.length > 1) {
@@ -121,6 +130,9 @@ router.post("/select-role", async (req, res) => {
   const userRoles: string[] = (user.roles && user.roles.length > 0) ? user.roles : [user.role];
   if (!userRoles.includes(role)) {
     return res.status(403).json({ success: false, error: "Role not assigned to this account" });
+  }
+  if (!isRoleEnabled(role)) {
+    return res.status(403).json({ success: false, error: "That portal is not enabled on this deployment." });
   }
 
   const chosenRole = role as "admin" | "employee" | "client" | "student" | "board";
@@ -193,6 +205,9 @@ router.post("/switch-portal", requireAuth, async (req, res) => {
   if (!availableRoles.includes(role)) {
     return res.status(403).json({ success: false, error: "Role not available for this user" });
   }
+  if (!isRoleEnabled(role)) {
+    return res.status(403).json({ success: false, error: "That portal is not enabled on this deployment." });
+  }
 
   const token = signToken({
     userId: user.id,
@@ -226,7 +241,9 @@ router.get("/me", requireAuth, async (req, res) => {
   // Use the role from the JWT (the role the user selected at login),
   // NOT user.role from the DB — for multi-role users these differ.
   const sessionRole = req.user!.role;
-  const availableRoles: string[] = (user.roles && user.roles.length > 0) ? user.roles : [user.role];
+  const allRoles: string[] = (user.roles && user.roles.length > 0) ? user.roles : [user.role];
+  // Hide disabled portals from the client. Admin is always enabled.
+  const availableRoles = allRoles.filter(isRoleEnabled);
   res.json({
     success: true,
     data: {

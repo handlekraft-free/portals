@@ -12,7 +12,7 @@ Open-source extraction of the handləkraft.ai portal system: Employee, Client, S
 
 **Required Environment Variables:** see `.env.example`
 - Required: `DATABASE_URL`, `JWT_SECRET`
-- Optional: `PORT`, `UPLOAD_DIR`, `ANTHROPIC_API_KEY` / `AI_INTEGRATIONS_ANTHROPIC_API_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
+- Optional: `PORT`, `UPLOAD_DIR`, `ENABLED_PORTALS`, `ANTHROPIC_API_KEY` / `AI_INTEGRATIONS_ANTHROPIC_API_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
 
 ## Stack
 
@@ -41,6 +41,7 @@ Open-source extraction of the handləkraft.ai portal system: Employee, Client, S
 - **Unified Login and Portal System:** A single `/login` page directs users to role-specific portals (Employee, Client, Student, Board Member).
 - **Gamified Engagement:** Uses XP, stat tracks, and workday-aware streaks with Norse theming to encourage participation without leaderboards.
 - **Branding:** All UI strings come from a single `BRAND` object in `shared/branding.ts` so a fork can rebrand by editing one file.
+- **Portal selector:** `ENABLED_PORTALS` env var (parsed by `shared/portals.ts` → `server/portals.ts`) gates both client login choices and server route mounts; client fetches list via `GET /api/public/portals`. Admin is always enabled.
 
 ## Product
 

@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { db } from "./db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { isRoleEnabled } from "./portals";
 
 const JWT_SECRET = process.env.JWT_SECRET || "handlekraft-dev-secret-change-in-production";
 
@@ -89,6 +90,12 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!token) return res.status(401).json({ success: false, error: "Authentication required" });
   const payload = verifyToken(token);
   if (!payload) return res.status(401).json({ success: false, error: "Invalid or expired token" });
+  // Reject stale tokens whose role was disabled after issuance.
+  // (Admin always passes; other roles must be in ENABLED_PORTALS.)
+  if (!isRoleEnabled(payload.role)) {
+    res.clearCookie("hk_token");
+    return res.status(403).json({ success: false, error: "That portal is not enabled on this deployment." });
+  }
   req.user = payload;
   next();
 }

@@ -46,6 +46,25 @@ On first boot the server seeds a default admin user **and** a sample board user:
 
 **Change the admin password immediately in any non-local environment.** You can do this from the Admin → Users page once logged in.
 
+### Choosing which portals to enable
+
+This fork ships four portals: **Employee**, **Client**, **Student**, and **Board**. You can enable any subset by setting the `ENABLED_PORTALS` env var:
+
+```bash
+# Board-only deployment
+ENABLED_PORTALS=board
+
+# Services org without a student program
+ENABLED_PORTALS=employee,client
+
+# All four (this is also the default if the var is unset)
+ENABLED_PORTALS=employee,client,student,board
+```
+
+Disabled portals are hidden from the login screen and their API routes are not mounted at all (requests return 404). The login endpoint also refuses to issue tokens for disabled roles, so it's safe defense-in-depth. The `admin` role is always enabled — it's how you manage users.
+
+The frontend reads the enabled list from `GET /api/public/portals`, so toggling `ENABLED_PORTALS` only requires a server restart, not a rebuild.
+
 ### File uploads
 
 Uploads land in `./data/uploads/` by default (configurable via `UPLOAD_DIR`). The directory is created automatically on first boot.

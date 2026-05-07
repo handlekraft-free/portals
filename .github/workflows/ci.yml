@@ -11,9 +11,11 @@ jobs:
     name: Typecheck & version sync
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
@@ -24,7 +26,7 @@ jobs:
       - name: Verify package.json and shared/version.ts are in sync
         run: |
           PKG_VERSION=$(node -p "require('./package.json').version")
-          SHARED_VERSION=$(node -e "import('./shared/version.ts').then(m => console.log(m.VERSION)).catch(() => { const c = require('fs').readFileSync('./shared/version.ts','utf8'); const m = c.match(/VERSION\\s*=\\s*\"([^\"]+)\"/); console.log(m ? m[1] : ''); })")
+          SHARED_VERSION=$(node -e "import('./shared/version.ts').then(m => console.log(m.VERSION)).catch(() => { const c = require('fs').readFileSync('./shared/version.ts','utf8'); const m = c.match(/VERSION\s*=\s*\"([^\"]+)\"/); console.log(m ? m[1] : ''); })")
           echo "package.json: $PKG_VERSION"
           echo "shared/version.ts: $SHARED_VERSION"
           if [ "$PKG_VERSION" != "$SHARED_VERSION" ]; then

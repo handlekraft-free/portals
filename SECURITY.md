@@ -1,5 +1,7 @@
 # Security policy
 
+Thanks for helping keep Open Portals and the people who use it safe.
+
 ## Reporting a vulnerability
 
 **Please do not open a public GitHub issue for security vulnerabilities.**
@@ -7,10 +9,11 @@
 Email **robert@handlekraft.ai** with:
 
 - A description of the vulnerability
-- Steps to reproduce
+- Steps to reproduce (proof-of-concept code, requests, or screenshots are welcome)
 - Affected version (visible in the login footer or via `GET /api/public/version`)
 - Your assessment of impact (data exposure, privilege escalation, DoS, etc.)
 - Whether you've contacted anyone else about it
+- Your name / handle if you'd like to be credited in the release notes
 
 We acknowledge reports within **2 business days** and aim to ship a fix or
 mitigation within **14 days** for high/critical issues.
@@ -25,6 +28,22 @@ we'll publish a longer-term support policy here.
 | ------- | ------------------- |
 | 0.1.x   | :white_check_mark:  |
 | < 0.1   | :x:                 |
+
+## Scope
+
+In scope:
+
+- The code in this repository (server, client, shared, build scripts)
+- Default configuration shipped in `.env.example` and `.replit`
+
+Out of scope:
+
+- Vulnerabilities in third-party dependencies (please report those upstream;
+  we monitor Dependabot alerts and will pick up patched versions)
+- Issues that require an already-compromised admin account
+- Self-XSS, clickjacking on pages with no sensitive actions, missing best-practice
+  headers without a demonstrated impact
+- Denial-of-service via expensive but legitimate API usage
 
 ## Disclosure
 
@@ -46,3 +65,10 @@ Once a fix is available we will:
   unmounted routes return 404 and reduce attack surface.
 - Rotate the seeded `admin` password on first login.
 - Keep dependencies current; run `npm audit` periodically.
+
+## Commercial security support
+
+Organizations running Open Portals in production who want a defined SLA, hardening
+review, or managed patching can contract paid support from the maintainers
+(handləkraft.ai). See [SUPPORT.md](./SUPPORT.md) or email
+**robert@handlekraft.ai**.

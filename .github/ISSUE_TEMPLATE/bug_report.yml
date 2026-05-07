@@ -1,0 +1,74 @@
+name: Bug report
+description: Something isn't working the way it should
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report. Please fill out the fields below so we can reproduce and fix the issue.
+
+        **Security vulnerabilities:** please do **not** file a public issue. Email **robert@handlekraft.ai** instead — see [SECURITY.md](../../blob/main/SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: Open Portals version
+      description: Visible in the login footer, or via `GET /api/public/version`.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected to happen
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      placeholder: "20.x"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "macOS 14.5 / Ubuntu 22.04 / Windows 11"
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser (if applicable)
+      placeholder: "Chrome 130 / Firefox 131 / Safari 17"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant server logs
+      description: Please redact any secrets, tokens, or personal information.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmations
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I am not reporting a security vulnerability (those go to robert@handlekraft.ai)
+          required: true

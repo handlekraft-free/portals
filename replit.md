@@ -36,6 +36,7 @@ Open-source extraction of the handləkraft.ai portal system: Employee, Client, S
 - **UI Components:** `client/src/components/` (portal components in `client/src/components/portal/`)
 - **File Uploads:** `./data/uploads/`
 - **README / contribution docs:** `README.md`, `CONTRIBUTING.md`, `.env.example`
+- **GitHub-facing config:** `.github/` (issue templates, PR template, CI workflow, Dependabot), `SECURITY.md`
 
 ## Architecture decisions
 

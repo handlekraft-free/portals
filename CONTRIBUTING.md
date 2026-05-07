@@ -44,7 +44,7 @@ GitHub issues are best-effort community support. If you need guaranteed response
 
 ## Reporting security vulnerabilities
 
-Please **do not** open a public issue for security bugs. Email **robert@handlekraft.ai** and we'll acknowledge within 2 business days.
+Please **do not** open a public issue for security bugs. Email **robert@handlekraft.ai** and we'll acknowledge within 2 business days. Full policy: [SECURITY.md](./SECURITY.md).
 
 ## Code style
 

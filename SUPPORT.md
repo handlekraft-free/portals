@@ -8,7 +8,7 @@ Best-effort, provided by the maintainers and other users. No guaranteed response
 
 - **Bug reports and feature requests** → [open a GitHub issue](../../issues/new/choose).
 - **Questions and discussion** → use [GitHub Discussions](../../discussions) (or open an issue tagged `question` if Discussions isn't enabled on your fork).
-- **Security vulnerabilities** → please **do not** open a public issue. Email **robert@handlekraft.ai** with the details and we'll acknowledge within 2 business days.
+- **Security vulnerabilities** → please **do not** open a public issue. Email **robert@handlekraft.ai** with the details and we'll acknowledge within 2 business days. See [SECURITY.md](./SECURITY.md) for the full policy.
 
 When you file an issue, include:
 

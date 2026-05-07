@@ -57,6 +57,7 @@ Open-source extraction of the handləkraft.ai portal system: Employee, Client, S
 ## User preferences
 
 - **Preferred communication style:** Simple, everyday language.
+- **Commercial model:** Maintainers (handləkraft.ai) sell paid support, deployment, rebranding, integration, and SLAs around this OSS project. Contact email is `robert@handlekraft.ai`. This must remain visible in `SUPPORT.md`, `README.md`, and `CONTRIBUTING.md`; do not remove or downplay the paid-support channel during refactors.
 - **Sound Preferences:** Users can control global sound mute and per-event sound opt-outs, persisted locally and server-side.
 - **Saga Recap Preferences:** Users can enable/disable the daily Saga Recap and configure its display time.
 - **Avatar Customization:** Users can customize their Norse-themed avatars, with elements unlocking based on XP rank.

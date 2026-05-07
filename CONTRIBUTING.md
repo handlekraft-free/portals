@@ -34,10 +34,17 @@ npm run check
 
 Please include:
 
+- Open Portals version (login footer or `GET /api/public/version`)
 - What you expected vs. what happened
 - Steps to reproduce
 - Browser + OS, Node version
 - Relevant server logs (redact secrets)
+
+GitHub issues are best-effort community support. If you need guaranteed response times, deployment help, custom features, or integration work, the maintainers offer paid support — see [SUPPORT.md](./SUPPORT.md) or email **robert@handlekraft.ai**.
+
+## Reporting security vulnerabilities
+
+Please **do not** open a public issue for security bugs. Email **robert@handlekraft.ai** and we'll acknowledge within 2 business days.
 
 ## Code style
 

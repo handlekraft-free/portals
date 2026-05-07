@@ -120,6 +120,14 @@ This fork is downstream of an internal codebase. Each release records an `UPSTRE
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
+## Support
+
+- **Community support** (free, best-effort): [open a GitHub issue](../../issues/new/choose).
+- **Commercial support, deployment, rebranding, custom features, and SLAs** are offered by the maintainers (handləkraft.ai). Contact **robert@handlekraft.ai**.
+- **Security vulnerabilities**: please email **robert@handlekraft.ai** rather than opening a public issue.
+
+See [SUPPORT.md](./SUPPORT.md) for full details on what each channel covers.
+
 ## License
 
 MIT — see [LICENSE](./LICENSE).

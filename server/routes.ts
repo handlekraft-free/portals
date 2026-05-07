@@ -33,6 +33,7 @@ import xpRoutes from "./routes-xp";
 import crewRoutes from "./routes-crew";
 import googleRoutes, { startGooglePolling } from "./routes-google";
 import { ENABLED_PORTALS, isPortalEnabled } from "./portals";
+import { VERSION, UPSTREAM_REF } from "@shared/version";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -735,6 +736,9 @@ export async function registerRoutes(
   // ── Public config (always available) ──────────────────────────────────────
   app.get("/api/public/portals", (_req: Request, res: Response) => {
     res.json({ success: true, data: { enabled: ENABLED_PORTALS } });
+  });
+  app.get("/api/public/version", (_req: Request, res: Response) => {
+    res.json({ success: true, data: { version: VERSION, upstreamRef: UPSTREAM_REF } });
   });
 
   // ── New Portal API Routes ──────────────────────────────────────────────────

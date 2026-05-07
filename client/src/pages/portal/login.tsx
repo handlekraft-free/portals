@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Briefcase, Building2, GraduationCap, Eye, EyeOff, ArrowLeft, Shield, Scale, KeyRound, CheckCircle2, Users } from "lucide-react";
 import logoImg from "@/assets/images/logo.png";
 import { BRAND } from "@shared/branding";
+import { VERSION } from "@shared/version";
 import { useEnabledPortals } from "@/lib/portals";
 
 type Role = "employee" | "client" | "student" | "board" | "admin";
@@ -327,8 +328,9 @@ export default function LoginPage() {
           )}
         </div>
 
-        <p className="text-center text-white/20 text-xs mt-6">
+        <p className="text-center text-white/20 text-xs mt-6" data-testid="text-footer">
           © {new Date().getFullYear()} {BRAND.fullName}{BRAND.is501c3 ? ` — ${BRAND.nonprofitNotice}` : ""}
+          <span className="opacity-60"> · v{VERSION}</span>
         </p>
       </div>
     </div>

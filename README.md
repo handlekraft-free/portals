@@ -103,6 +103,19 @@ data/uploads/      Local file uploads (dev)
 
 Edit `shared/branding.ts` and replace the placeholder `BRAND` constants. Every UI surface that shows the org name reads from this file.
 
+## Versioning & upstream sync
+
+This project is versioned with [Semantic Versioning](https://semver.org/) starting at **0.1.0**. The version is the single source of truth in [`shared/version.ts`](./shared/version.ts) (mirrored in `package.json`) and is displayed in the login footer.
+
+It's also exposed at runtime:
+
+```bash
+curl https://your-deployment/api/public/version
+# → {"success":true,"data":{"version":"0.1.0","upstreamRef":"initial-extraction"}}
+```
+
+This fork is downstream of an internal codebase. Each release records an `UPSTREAM_REF` so changes can be ported in either direction with full traceability. See [`UPSTREAM.md`](./UPSTREAM.md) for the sync workflow and [`CHANGELOG.md`](./CHANGELOG.md) for release history.
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md).

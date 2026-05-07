@@ -1,6 +1,7 @@
 {
-  "name": "rest-express",
-  "version": "1.0.0",
+  "name": "open-portals",
+  "version": "0.1.0",
+  "description": "Open-source employee/client/student/board portal system with optional gamification.",
   "type": "module",
   "license": "MIT",
   "scripts": {

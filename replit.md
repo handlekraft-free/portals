@@ -11,7 +11,8 @@ Open-source extraction of the handləkraft.ai portal system: Employee, Client, S
 - **DB Push:** _Populate as you build_
 
 **Required Environment Variables:** see `.env.example`
-- `DATABASE_URL`, `JWT_SECRET`, `FULL_CREW_THRESHOLD`
+- Required: `DATABASE_URL`, `JWT_SECRET`
+- Optional: `PORT`, `UPLOAD_DIR`, `ANTHROPIC_API_KEY` / `AI_INTEGRATIONS_ANTHROPIC_API_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
 
 ## Stack
 

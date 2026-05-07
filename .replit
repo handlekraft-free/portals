@@ -49,4 +49,4 @@ GOOGLE_REDIRECT_URI = "https://site-builder-robertrasmusse1.replit.app/api/googl
 
 [postMerge]
 path = "scripts/post-merge.sh"
-timeoutMs = 20000
+timeoutMs = 240000

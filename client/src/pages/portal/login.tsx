@@ -268,11 +268,6 @@ export default function LoginPage() {
                   </button>
                 ))}
               </div>
-              <div className="mt-6 pt-4 border-t border-white/10 text-center">
-                <a href="/" className="text-white/40 hover:text-white/60 text-sm flex items-center justify-center gap-1 transition-colors">
-                  <ArrowLeft className="w-3 h-3" /> Back to public site
-                </a>
-              </div>
             </>
 
           /* ── Step 2: Email + password ─────────────────────────────────── */

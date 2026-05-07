@@ -1,6 +1,6 @@
-# handləkraft
+# Open Portals (open-source fork)
 
-A full-stack web application for a 501(c)(3) nonprofit that builds and sustains open-source AI tools for community organizations through paid implementation services, while training non-traditional product builders.
+Open-source extraction of the handləkraft.ai portal system: Employee, Client, Student, and Board portals with optional Norse-themed gamification. All marketing/application surfaces have been stripped; this fork is meant to be rebranded by editing `shared/branding.ts`.
 
 ## Run & Operate
 
@@ -10,11 +10,8 @@ A full-stack web application for a 501(c)(3) nonprofit that builds and sustains 
 - **Codegen:** _Populate as you build_
 - **DB Push:** _Populate as you build_
 
-**Required Environment Variables:**
-- `DATABASE_URL` (PostgreSQL connection string)
-- `JWT_SECRET` (for authentication tokens)
-- `SESSION_SECRET` (for legacy admin session)
-- `FULL_CREW_THRESHOLD` (for gamification)
+**Required Environment Variables:** see `.env.example`
+- `DATABASE_URL`, `JWT_SECRET`, `FULL_CREW_THRESHOLD`
 
 ## Stack
 
@@ -24,7 +21,7 @@ A full-stack web application for a 501(c)(3) nonprofit that builds and sustains 
 - **Validation:** _Populate as you build_
 - **Build Tool:** Vite (client), esbuild (server)
 - **Database:** PostgreSQL
-- **Authentication:** JWT (new portals), `express-session` (legacy `/admin`)
+- **Authentication:** JWT (portal users)
 
 ## Where things live
 
@@ -35,20 +32,17 @@ A full-stack web application for a 501(c)(3) nonprofit that builds and sustains 
 - **Branding Configuration:** `shared/branding.ts`
 - **UI Components:** `client/src/components/` (portal components in `client/src/components/portal/`)
 - **File Uploads:** `./data/uploads/`
-- **Public Site Pages:** (Intentionally not listed for open-source extraction prep, see Architecture Decisions)
+- **README / contribution docs:** `README.md`, `CONTRIBUTING.md`, `.env.example`
 
 ## Architecture decisions
 
 - **Modularized API Routes:** Backend API routes are organized by domain (e.g., `authentication`, `time tracking`, `kanban`).
 - **Unified Login and Portal System:** A single `/login` page directs users to role-specific portals (Employee, Client, Student, Board Member).
 - **Gamified Engagement:** Uses XP, stat tracks, and workday-aware streaks with Norse theming to encourage participation without leaderboards.
-- **Open-Source Extraction Preparedness:** Codebase includes markers and practices to facilitate future stripping of marketing-specific content for an open-source fork.
-- **Consistent Branding:** All internal UI elements and messaging consistently use "handləkraft" and a defined color palette, driven by a centralized branding configuration.
+- **Branding:** All UI strings come from a single `BRAND` object in `shared/branding.ts` so a fork can rebrand by editing one file.
 
 ## Product
 
-- **Public Website:** Scroll-based landing page with application forms for fellowships and client requests.
-- **Admin Dashboard:** Manages application queues and user access.
 - **Internal Portal System:**
     - **Employee Portal:** Dashboard, time tracking, Kanban boards (Longship Factory), expenses, client tickets, LMS.
     - **Client Portal:** Dashboard, file management, messaging, support tickets.
@@ -66,7 +60,6 @@ A full-stack web application for a 501(c)(3) nonprofit that builds and sustains 
 
 ## Gotchas
 
-- **Legacy vs. New Auth:** Be aware of two authentication systems: session-based for `/admin` and JWTs for new portals.
 - **Gamification Idempotency:** XP awards and streak advancements use specific `source_id` generation to ensure idempotency across users and events.
 - **Sound Sync:** Cross-tab sound preferences are synchronized via `hk:sound-changed` / `hk:sound-muted-changed` events.
 - **Admin Saga Opt-out:** Admin/managers can opt out the entire team from the Saga of the Week.

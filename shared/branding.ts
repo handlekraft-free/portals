@@ -19,27 +19,27 @@
  *   Norse theme even after rebranding the org name.
  */
 export const BRAND = {
-  /** Primary display name with Unicode schwa (used in body copy, titles). */
-  name: "handləkraft",
+  /** Primary display name (used in body copy, titles). */
+  name: "Your Org",
   /** ASCII form for slugs, email local parts, doc filenames. */
-  nameAscii: "handlekraft",
+  nameAscii: "yourorg",
   /** Bare domain (no scheme, no www). */
-  domain: "handlekraft.ai",
-  /** Most common UI form: name + .ai */
-  fullName: "handləkraft.ai",
+  domain: "example.org",
+  /** Most common UI form (header / login). */
+  fullName: "Your Org",
   /** One-line tagline. */
-  tagline: "The Power to Act",
-  /** Public contact email used in marketing CTAs and footer. */
-  contactEmail: "robert@handlekraft.ai",
+  tagline: "Replace this tagline",
+  /** Public contact email. */
+  contactEmail: "hello@example.org",
   /** Whether this deployment is a 501(c)(3) U.S. nonprofit. */
-  is501c3: true,
+  is501c3: false,
   /** Footer notice rendered when is501c3 is true. */
   nonprofitNotice: "A 501(c)(3) nonprofit initiative",
   /** Strategic-proposal PDF URL (employee onboarding seeds). */
-  proposalUrl: "https://handlekraft.ai/proposal.pdf",
+  proposalUrl: "https://example.org/proposal.pdf",
   /** Tier 1 / Tier 2 training plan URLs (employee onboarding seeds). */
-  tier1TrainingUrl: "https://handlekraft.ai/docs/handlekraft-tier1-training-plan.docx",
-  tier2TrainingUrl: "https://handlekraft.ai/docs/handlekraft-tier2-training-plan.docx",
+  tier1TrainingUrl: "https://example.org/docs/tier1-training-plan.docx",
+  tier2TrainingUrl: "https://example.org/docs/tier2-training-plan.docx",
 } as const;
 
 export type Brand = typeof BRAND;

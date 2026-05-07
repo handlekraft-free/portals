@@ -3,65 +3,6 @@ import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// ─── MARKETING_ONLY: BEGIN ────────────────────────────────────────────────────
-// Everything between the BEGIN and END markers backs the public-facing
-// marketing pages on the handləkraft.ai site (fellowship + client application
-// forms) and is NOT used by any portal feature. The fork-strip script removes:
-//   - both tables and their insert schemas (this block)
-//   - the matching `/api/applications/*` routes in server/routes.ts
-//   - the marketing pages in client/src/pages (home, apply-*, licensing, admin)
-// Do not add portal-aligned tables inside this block.
-
-export const fellowshipApplications = pgTable("fellowship_applications", {
-  id: serial("id").primaryKey(),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
-  email: text("email").notNull(),
-  phone: text("phone"),
-  location: text("location"),
-  background: text("background").notNull(),
-  motivation: text("motivation").notNull(),
-  experience: text("experience"),
-  status: varchar("status", { length: 20 }).notNull().default("new"),
-  rating: integer("rating").default(0),
-  priority: integer("priority").default(0),
-  adminNotes: text("admin_notes"),
-  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
-});
-
-export const insertFellowshipApplicationSchema = createInsertSchema(fellowshipApplications).omit({
-  id: true, status: true, rating: true, priority: true, adminNotes: true, submittedAt: true,
-});
-export type InsertFellowshipApplication = z.infer<typeof insertFellowshipApplicationSchema>;
-export type FellowshipApplication = typeof fellowshipApplications.$inferSelect;
-
-export const clientApplications = pgTable("client_applications", {
-  id: serial("id").primaryKey(),
-  organizationName: text("organization_name").notNull(),
-  contactName: text("contact_name").notNull(),
-  contactEmail: text("contact_email").notNull(),
-  contactPhone: text("contact_phone"),
-  organizationType: text("organization_type").notNull(),
-  location: text("location"),
-  needs: text("needs").notNull(),
-  currentTools: text("current_tools"),
-  urgency: varchar("urgency", { length: 20 }).notNull().default("normal"),
-  status: varchar("status", { length: 20 }).notNull().default("new"),
-  rating: integer("rating").default(0),
-  priority: integer("priority").default(0),
-  adminNotes: text("admin_notes"),
-  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
-});
-
-export const insertClientApplicationSchema = createInsertSchema(clientApplications).omit({
-  id: true, status: true, rating: true, priority: true, adminNotes: true, submittedAt: true,
-});
-export type InsertClientApplication = z.infer<typeof insertClientApplicationSchema>;
-export type ClientApplication = typeof clientApplications.$inferSelect;
-
-// ─── MARKETING_ONLY: END ──────────────────────────────────────────────────────
-// Everything below this line is portal-aligned and SHOULD remain in the OSS fork.
-
 export const adminUsers = pgTable("admin_users", {
   id: serial("id").primaryKey(),
   username: varchar("username", { length: 50 }).notNull().unique(),

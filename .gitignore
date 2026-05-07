@@ -4,3 +4,16 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Local env / secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Local upload directory (dev only)
+data/uploads/
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp

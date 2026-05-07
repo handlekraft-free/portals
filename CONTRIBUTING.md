@@ -54,4 +54,6 @@ Please **do not** open a public issue for security bugs. Email **robert@handlekr
 
 ## License
 
-By contributing, you agree your contributions will be licensed under the project's MIT license.
+By contributing, you agree your contributions will be licensed under the project's **AGPL-3.0-or-later** license. See [LICENSE](./LICENSE) and [NOTICE](./NOTICE) for details.
+
+If you can't accept the AGPL terms (e.g. employer policy), please don't submit a PR — get in touch at **robert@handlekraft.ai** to discuss alternatives.

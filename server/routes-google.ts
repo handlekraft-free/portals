@@ -10,7 +10,7 @@ const router = Router();
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
-const JWT_SECRET = process.env.JWT_SECRET || "handlekraft-dev-secret-change-in-production";
+const JWT_SECRET = process.env.JWT_SECRET || "open-portals-dev-secret-CHANGE-IN-PRODUCTION";
 
 function getRedirectUri(_req: Request): string {
   if (process.env.GOOGLE_REDIRECT_URI) return process.env.GOOGLE_REDIRECT_URI;

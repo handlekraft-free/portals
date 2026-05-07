@@ -30,9 +30,9 @@ export function Wordmark({ className, size = "md", showTagline = false, taglineC
       <span className={cn("font-display tracking-wide leading-none", sizes[size], className)}>
         {BRAND.fullName}
       </span>
-      {showTagline && (
+      {showTagline && BRAND.tagline && (
         <span className={cn("uppercase tracking-[0.25em] font-body font-medium mt-1", taglineSizes[size], taglineClassName)}>
-          The Power to Act
+          {BRAND.tagline}
         </span>
       )}
     </div>

@@ -2,6 +2,8 @@
 
 Open-source extraction of the handləkraft.ai portal system: Employee, Client, Student, and Board portals with optional Norse-themed gamification. All marketing/application surfaces have been stripped; this fork is meant to be rebranded by editing `shared/branding.ts`.
 
+**License:** AGPL-3.0-or-later (see LICENSE + NOTICE). Contributors agree to AGPL terms via CONTRIBUTING.md.
+
 ## Run & Operate
 
 - **Run Dev Server:** `tsx server/index.ts`
@@ -42,7 +44,10 @@ Open-source extraction of the handləkraft.ai portal system: Employee, Client, S
 - **Gamified Engagement:** Uses XP, stat tracks, and workday-aware streaks with Norse theming to encourage participation without leaderboards.
 - **Branding:** All UI strings come from a single `BRAND` object in `shared/branding.ts` so a fork can rebrand by editing one file.
 - **Portal selector:** `ENABLED_PORTALS` env var (parsed by `shared/portals.ts` → `server/portals.ts`) gates both client login choices and server route mounts; client fetches list via `GET /api/public/portals`. Admin is always enabled.
-- **Versioning:** Single source of truth is `shared/version.ts` (`VERSION` + `UPSTREAM_REF`); mirrored in `package.json`. Exposed at `GET /api/public/version` and in the login footer. Bump both files + add a `CHANGELOG.md` entry on every release. See `UPSTREAM.md` for the upstream-sync workflow.
+- **Versioning:** Single source of truth is `shared/version.ts` (`VERSION` + `UPSTREAM_REF`); mirrored in `package.json`. Exposed at `GET /api/public/version` and in the login footer. CI (`.github/workflows/ci.yml`) enforces sync. Bump both + add `CHANGELOG.md` entry on every release. See `UPSTREAM.md`.
+- **AI advisor briefing:** `server/routes-ai.ts` loads `server/ai-briefing.local.md` (gitignored, org-specific) and falls back to `server/ai-briefing.example.md` (generic, in-repo). Operators copy the example to `.local.md` and edit.
+- **OSS scaffolding:** `.github/` (issue templates, PR template, CI), `SECURITY.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), `NOTICE` (AGPL copyright). Issue templates route security and commercial questions to `robert@handlekraft.ai` rather than public issues.
+- **Localization (Option A):** No i18n infrastructure yet. All UI strings inline in JSX in `client/src/`. Forks translate by find/replace. Proper i18n is on the README roadmap.
 
 ## Product
 

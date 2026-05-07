@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 :root {
-  /* handlekraft Palette */
+  /* Brand Palette — override these in your fork */
   /* Charcoal Slate #1A1F2B -> 222 25% 14% */
   /* Deep Teal #0D7377 -> 182 80% 26% */
   /* Warm Gold #D4A843 -> 42 64% 55% */

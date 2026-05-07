@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Open-source employee/client/student/board portal system with optional gamification.",
   "type": "module",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
     "build": "tsx script/build.ts",

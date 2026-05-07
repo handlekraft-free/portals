@@ -28,6 +28,7 @@ interface BoardProfile {
   termStart?: string | null;
   termEnd?: string | null;
   role: string;
+  photoUrl?: string | null;
   avatarUrl?: string | null;
   boardExpertise?: Record<string, string> | null;
   resumeUrl?: string | null;

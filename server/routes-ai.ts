@@ -13,6 +13,8 @@ import {
 } from "@shared/schema";
 import { eq, asc, desc, inArray } from "drizzle-orm";
 import { requireAuth } from "./auth-middleware";
+import { BRAND } from "@shared/branding";
+import fs from "fs";
 
 const router: Router = createRouter();
 router.use(requireAuth as any);
@@ -31,13 +33,20 @@ function getClient() {
 
 // ── Context-aware system prompt builder ───────────────────────────────────────
 
-const ORG_BASE = `handləkraft (pronounced "handle-kraft", meaning "the power to act" in Norwegian) is a 501(c)(3) nonprofit that provides free custom software and websites to community organizations while concurrently training product-focused problem solvers proficient in AI tools. The organization runs on a fellowship model where team members learn by building real products for real clients.`;
+const ORG_BASE = `${BRAND.fullName} is the organization deploying this portal system.${BRAND.tagline ? ` Tagline: "${BRAND.tagline}".` : ""} Refer to the foundational briefing below for organization-specific context, mission, and operating posture.`;
 
-// Load the foundational briefing document once at module init.
-// This is the standing context every AI advisor reads before every response.
+// Load the foundational briefing document once at module init. This is the
+// standing context every AI advisor reads before every response. Operators
+// should copy `server/ai-briefing.example.md` to `server/ai-briefing.local.md`
+// and customize it for their organization. The .local file is gitignored.
 let BRIEFING = "";
+const briefingCandidates = [
+  path.join(process.cwd(), "server", "ai-briefing.local.md"),
+  path.join(process.cwd(), "server", "ai-briefing.example.md"),
+];
 try {
-  BRIEFING = readFileSync(path.join(process.cwd(), "server", "ai-briefing.md"), "utf8").trim();
+  const found = briefingCandidates.find(p => fs.existsSync(p));
+  BRIEFING = found ? readFileSync(found, "utf8").trim() : "";
   console.log(`[AI] Loaded foundational briefing (${BRIEFING.length.toLocaleString()} chars)`);
 } catch (err) {
   console.warn("[AI] Could not load server/ai-briefing.md — falling back to short org base");
@@ -106,9 +115,9 @@ async function buildBoardSystemPrompt(): Promise<string> {
   }
   let docsSection = docs.length === 0
     ? "No documents on file yet."
-    : [...byCategory.entries()].map(([cat, catDocs]) =>
+    : Array.from(byCategory.entries()).map(([cat, catDocs]) =>
         `**${cat}** (${catDocs.length})\n` +
-        catDocs.map(d =>
+        catDocs.map((d: { title: string; description: string | null; linkUrl: string | null }) =>
           `  - ${d.title}${d.description ? `: ${d.description.slice(0, 120)}` : ""}${d.linkUrl ? ` → ${d.linkUrl}` : ""}`
         ).join("\n")
       ).join("\n\n");
@@ -142,7 +151,7 @@ async function buildBoardSystemPrompt(): Promise<string> {
     ? members.map(m => `- ${m.firstName} ${m.lastName}`).join("\n")
     : "No board members listed.";
 
-  return `You are the AI advisor for handləkraft's board portal. You speak as a knowledgeable thinking partner who has read every document in the governance file and followed every forum discussion. You inform conversations; you do not vote, decide, or speak for the organization. Apply the foundational briefing below to interpret everything that follows.
+  return `You are the AI advisor for ${BRAND.fullName}'s board portal. You speak as a knowledgeable thinking partner who has read every document in the governance file and followed every forum discussion. You inform conversations; you do not vote, decide, or speak for the organization. Apply the foundational briefing below to interpret everything that follows.
 
 ${FOUNDATION}
 
@@ -199,7 +208,7 @@ async function buildEmployeeSystemPrompt(): Promise<string> {
     .orderBy(asc(kanbanCards.priority));
 
   // Resolve assignee names
-  const assigneeIds = [...new Set(cards.filter(c => c.assignedTo).map(c => c.assignedTo!))];
+  const assigneeIds = Array.from(new Set(cards.filter(c => c.assignedTo).map(c => c.assignedTo!)));
   const assignees = assigneeIds.length > 0
     ? await db
         .select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
@@ -238,10 +247,10 @@ async function buildEmployeeSystemPrompt(): Promise<string> {
       cardsByCol.get(card.columnId)!.push(card);
     }
 
-    for (const [colId, colCards] of cardsByCol.entries()) {
+    for (const [colId, colCards] of Array.from(cardsByCol.entries())) {
       const colTitle = colMap.get(colId) || "Unknown Column";
       boardsSection += `**${colTitle}** (${colCards.length})\n`;
-      boardsSection += colCards.slice(0, 25).map(c => {
+      boardsSection += colCards.slice(0, 25).map((c: typeof cards[number]) => {
         let s = `  - [${c.priority?.toUpperCase()}] ${c.title}`;
         if (c.assignedTo && userMap.has(c.assignedTo)) s += ` → ${userMap.get(c.assignedTo)}`;
         if (c.description) s += `: ${c.description.slice(0, 90)}`;
@@ -257,7 +266,7 @@ async function buildEmployeeSystemPrompt(): Promise<string> {
 
   const activeCardCount = cards.filter(c => !factoryBoard || c.boardId !== factoryBoard.id).length;
 
-  return `You are the AI advisor for handləkraft's employee portal. You are a senior project advisor and operations strategist with live visibility into every active Kanban board and the shared Longship Factory queue. Apply the foundational briefing below — especially the operating posture (30-hour week, self-managed work, AI-first escalation, accessibility) — when giving advice. Reference actual task names, assignees, and patterns you observe.
+  return `You are the AI advisor for ${BRAND.fullName}'s employee portal. You are a senior project advisor and operations strategist with live visibility into every active Kanban board and the shared Longship Factory queue. Apply the foundational briefing below when giving advice. Reference actual task names, assignees, and patterns you observe.
 
 ${FOUNDATION}
 
@@ -277,7 +286,7 @@ ${boardsSection || "No active cards found across boards."}
 - **Surface synergies**: Point out tasks that could share work, be batched, or benefit from the same solution
 - **Prioritization**: Help the team decide what to pick up next from the factory based on active board needs
 - **Workload insight**: Notice when a person is over-allocated or when a board is blocked
-- **Strategic alignment**: Connect individual tasks back to handləkraft's mission of serving community orgs while training fellows
+- **Strategic alignment**: Connect individual tasks back to ${BRAND.fullName}'s mission as described in the briefing
 - Always reference tasks by their actual names when giving advice
 - Be direct and specific — vague advice isn't useful for a busy team`;
 }
@@ -290,13 +299,13 @@ async function buildSystemPrompt(role: string): Promise<string> {
     console.error("[AI] Failed to build contextual prompt:", err);
   }
   // Fallback generic prompt — still includes the foundational briefing
-  return `You are the AI advisor embedded in the handləkraft internal team portal. Apply the foundational briefing below to everything you say.
+  return `You are the AI advisor embedded in the ${BRAND.fullName} internal team portal. Apply the foundational briefing below to everything you say.
 
 ${FOUNDATION}
 
 ---
 
-You help team members with drafting content, emails, proposals, and documentation; thinking through product and project problems; explaining technical concepts; brainstorming ideas; reviewing and improving text; and analyzing images and documents. Match handləkraft's communication norms (direct, warm, plain language, no corporate jargon). Be honest about uncertainty.`;
+You help team members with drafting content, emails, proposals, and documentation; thinking through product and project problems; explaining technical concepts; brainstorming ideas; reviewing and improving text; and analyzing images and documents. Match the organization's communication norms (direct, warm, plain language, no corporate jargon). Be honest about uncertainty.`;
 }
 
 const IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
@@ -568,7 +577,7 @@ router.post("/forum-comment", async (req: any, res) => {
           `Reply ${i + 1} — ${r.firstName ?? "Unknown"} ${r.lastName ?? ""}:\n${r.content}`
         ).join("\n\n");
 
-    const systemPrompt = `You are the AI advisor for handləkraft's board portal, asked to weigh in on an ongoing forum discussion. Apply the foundational briefing below as your governing context.
+    const systemPrompt = `You are the AI advisor for ${BRAND.fullName}'s board portal, asked to weigh in on an ongoing forum discussion. Apply the foundational briefing below as your governing context.
 
 ${FOUNDATION}
 
@@ -579,10 +588,10 @@ ${FOUNDATION}
 You are commenting publicly inside a board discussion. Your reply will be posted as a forum message visible to all board members. Follow these rules:
 
 - Address the substance of the topic directly and briefly. Aim for 150–300 words.
-- Distinguish (a) what handləkraft has documented, (b) typical nonprofit practice, and (c) your own analysis. Use phrases like "handləkraft's documented position is…", "typical practice suggests…", and "my analysis would suggest…".
+- Distinguish (a) what ${BRAND.fullName} has documented, (b) typical practice in this area, and (c) your own analysis. Use phrases like "the documented position is…", "typical practice suggests…", and "my analysis would suggest…".
 - Surface relevant prior discussions, governance documents, or policies from the briefing when they apply — name them.
 - If the discussion touches a disqualified-person matter, family-employment dynamic, regulatory question, or anything that warrants professional input, say so explicitly and recommend the appropriate channel (counsel, CPA, ED, Board Chair, etc.).
-- Be candid but warm. Match handləkraft's communication norms: direct, plain language, no corporate jargon.
+- Be candid but warm. Communicate in direct, plain language with no corporate jargon.
 - Do NOT vote, decide, or speak for the organization. You inform; you do not act.
 - Do NOT comment on individual board members or staff by name in evaluative ways.
 - If you don't have grounded information on the question, say so plainly rather than speculating.

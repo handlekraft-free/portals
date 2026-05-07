@@ -5,6 +5,10 @@ server/public
 vite.config.ts.*
 *.tar.gz
 
+# Internal / org-specific files (never commit to OSS repo)
+attached_assets/
+server/ai-briefing.local.md
+
 # Local env / secrets — never commit
 .env
 .env.*

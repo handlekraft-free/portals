@@ -1,4 +1,4 @@
-// Centralized audio service for handləkraft.
+// Centralized audio service for portal notifications and gamification.
 //
 // Tiny WebAudio synth — zero asset files, zero network. Each "sound" is a
 // short envelope on a few oscillators. Honors:

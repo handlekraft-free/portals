@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: mailto:robert@handlekraft.ai
+    about: Report security issues privately by email — do not open a public issue
+  - name: Commercial support, deployment, or custom features
+    url: mailto:robert@handlekraft.ai
+    about: Paid services from the maintainers — installation, rebranding, integrations, SLAs

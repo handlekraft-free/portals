@@ -5,7 +5,7 @@ import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { isRoleEnabled } from "./portals";
 
-const JWT_SECRET = process.env.JWT_SECRET || "handlekraft-dev-secret-change-in-production";
+const JWT_SECRET = process.env.JWT_SECRET || "open-portals-dev-secret-CHANGE-IN-PRODUCTION";
 
 export interface JwtPayload {
   userId: number;
